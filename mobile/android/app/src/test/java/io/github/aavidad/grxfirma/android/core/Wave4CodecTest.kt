@@ -67,5 +67,14 @@ class Wave4CodecTest {
         assertEquals("true", items.getJSONObject(0).getJSONObject("options").getString("visibleSeal"))
         assertFalse(items.getJSONObject(1).has("options"))
         assertEquals("baseline", json.getJSONObject("options").getString("profile"))
+        assertFalse(json.has("confirm_unseen_content"))
+    }
+
+    // KD-03 (lote 17b): la confirmación de la pantalla viaja en el lote.
+    @Test fun `confirmed cosign batch sends confirm_unseen_content`() {
+        val csig = LoadedFile("a.csig", "application/pkcs7-signature", byteArrayOf(1))
+        val json = JSONObject(Wave4Codec.batchItemsRequest(listOf(BatchItemInput(csig, "cades", "cosign")),
+            "cert", emptyMap(), confirmUnseenContent = true))
+        assertTrue(json.getBoolean("confirm_unseen_content"))
     }
 }

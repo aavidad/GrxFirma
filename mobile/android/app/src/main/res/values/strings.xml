@@ -570,6 +570,9 @@
     <string name="batch_action_label">Operación del lote</string>
     <string name="batch_action_sign">Firmar</string>
     <string name="batch_action_cosign">Cofirmar (añadir mi firma a ficheros ya firmados)</string>
+    <string name="batch_cosign_confirm_title">Cofirmar sin ver los documentos</string>
+    <string name="batch_cosign_confirm_message">Si alguno de los ficheros es una firma que no lleva dentro el documento firmado (por ejemplo, un .csig separado), lo cofirmará sin poder ver ese documento. Para verlo antes, cofírmelo por separado y elija «Añadir el documento original». ¿Quiere cofirmar el lote?</string>
+    <string name="batch_cosign_confirm_action">Cofirmar el lote</string>
     <string name="batch_seal_check">Añadir el sello visible a los PDF</string>
     <string name="batch_seal_helper">Se usa el sello que haya colocado con «Colocar el sello». Si un PDF tiene menos páginas que la elegida, el sello va en la última. La leyenda CSV no se añade en el lote.</string>
     <string name="batch_seal_error">No se ha podido preparar el sello visible de %1$s. Quite ese PDF del lote o firme sin sello.</string>

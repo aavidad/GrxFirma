@@ -73,10 +73,21 @@ object Wave4Codec {
     }
 
     /** Cada documento lleva su formato, operación y opciones (sello visible del PDF). */
-    fun batchItemsRequest(items: List<BatchItemInput>, certificateId: String, options: Map<String, String>): String =
+    /**
+     * Con [confirmUnseenContent], la persona confirmó en pantalla que cofirma
+     * sin ver el documento de las firmas que no lo llevan dentro (KD-03, lote
+     * 17b). El motor mantiene el aviso en cada elemento.
+     */
+    fun batchItemsRequest(
+        items: List<BatchItemInput>,
+        certificateId: String,
+        options: Map<String, String>,
+        confirmUnseenContent: Boolean = false,
+    ): String =
         JSONObject()
             .put("certificate_id", certificateId)
             .put("options", JSONObject(options))
+            .apply { if (confirmUnseenContent) put("confirm_unseen_content", true) }
             .put("items", JSONArray(items.map { item ->
                 JSONObject()
                     .put("name", item.file.displayName)

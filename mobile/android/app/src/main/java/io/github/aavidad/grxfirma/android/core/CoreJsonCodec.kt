@@ -147,8 +147,21 @@ object CoreJsonCodec {
         val bytes = decodeBounded(encoded, DocumentPolicy.MAX_SIGNED_OUTPUT_BYTES)
         val (extension, mime) = signedFileType(format, originalName, originalMime)
         val base = originalName.substringBeforeLast('.').ifBlank { "document" }.take(120)
-        return SignedOutput(bytes, outputName(base, extension), mime, format, algorithm)
+        return SignedOutput(bytes, outputName(base, extension), mime, format, algorithm, warningKeys(json))
     }
+
+    private val WARNING_KEY = Regex("[a-z0-9_]+(\\.[a-z0-9_]+)+")
+
+    /**
+     * Avisos del motor (lote 17b, 3b): solo claves con forma de clave, sin
+     * repetir y con tope, como en escritorio. La pantalla las traduce con el
+     * catálogo y descarta las que no conoce.
+     */
+    fun warningKeys(json: JSONObject): List<String> =
+        json.optJSONArray("warnings").toCleanStrings()
+            .filter { it.length <= 128 && WARNING_KEY.matches(it) }
+            .distinct()
+            .take(16)
 
     /** ODF y OOXML conservan el tipo del documento: la firma va dentro. */
     fun signedFileType(format: String, originalName: String, originalMime: String): Pair<String, String> =
@@ -406,6 +419,7 @@ object CoreJsonCodec {
         return EniDocument(
             decodeBounded(requiredText(json, "content_base64", allowLong = true), DocumentPolicy.MAX_SIGNED_OUTPUT_BYTES),
             type,
+            warningKeys(json),
         )
     }
 

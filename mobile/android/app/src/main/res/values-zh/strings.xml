@@ -555,6 +555,9 @@
     <string name="batch_action_label">批量操作</string>
     <string name="batch_action_sign">签名</string>
     <string name="batch_action_cosign">联署（在已签名的文件上添加我的签名）</string>
+    <string name="batch_cosign_confirm_title">在看不到文档的情况下联署</string>
+    <string name="batch_cosign_confirm_message">如果其中某个文件是不包含所签文档的签名（例如单独的 .csig 文件），您将在无法查看该文档的情况下联署它。若要先查看，请单独联署该文件并选择“添加原始文档”。要联署这批文件吗？</string>
+    <string name="batch_cosign_confirm_action">联署这批文件</string>
     <string name="batch_seal_check">为 PDF 添加可见印章</string>
     <string name="batch_seal_helper">使用通过“放置印章”放置的印章。如果某个 PDF 的页数少于所选页码，印章放在最后一页。批量签名不添加 CSV 说明。</string>
     <string name="batch_seal_error">无法为 %1$s 准备可见印章。请将该 PDF 移出批量或不加印章签名。</string>

@@ -101,9 +101,28 @@ class MainViewModelWave4Test {
         vm.signBatch("cades", onFinished = { finished = true })
         advanceUntilIdle()
         assertEquals(listOf("cosign", "cosign"), core.lastItems.map { it.action })
+        assertEquals(false, core.lastConfirmUnseenContent)
         assertTrue(finished)
         assertEquals(R.string.result_batch_cosigned,
             ((vm.state.value.result as OperationResult.Success).title as UiText.Resource).id)
+    }
+
+    // Lote 17b: la confirmación de la pantalla llega al motor y los avisos de
+    // cada documento se enseñan con su nombre.
+    @Test fun confirmedCosignBatchSendsTheConfirmationAndShowsEachWarning() = runTest {
+        val (vm, _, core) = ready()
+        core.itemWarnings = listOf("firma.cofirma_sin_original.aviso", "clave.desconocida.aviso")
+        vm.selectBatchDocuments(listOf(DOCUMENT_URI, OTHER_URI))
+        vm.updateBatchOptions("cosign", seal = false)
+        vm.signBatch("cades", confirmUnseenContent = true)
+        advanceUntilIdle()
+        assertEquals(true, core.lastConfirmUnseenContent)
+        val detail = (vm.state.value.result as OperationResult.Success).detail as UiText.Lines
+        val warnings = detail.lines.filterIsInstance<UiText.Resource>().filter { it.id == R.string.issue_line }
+        assertEquals(2, warnings.size)
+        val first = warnings.first().arguments[1] as UiText.Resource
+        assertEquals(R.string.verification_warning, first.id)
+        assertEquals(UiText.Engine("firma.cofirma_sin_original.aviso"), first.arguments.single())
     }
 
     @Test fun sealedBatchAsksThePlannerOnlyForPdfs() = runTest {
@@ -165,6 +184,8 @@ class MainViewModelWave4Test {
         var lastEniFileNames: List<String> = emptyList()
         var lastEniFileBytes: List<ByteArray> = emptyList()
         var lastItems: List<BatchItemInput> = emptyList()
+        var lastConfirmUnseenContent: Boolean? = null
+        var itemWarnings: List<String> = emptyList()
 
         override fun selectCertificate() = certificate()
         override fun importCertificate(data: ByteArray, password: CharArray) = certificate()
@@ -183,11 +204,18 @@ class MainViewModelWave4Test {
             else EniFileResult(null, documents.size, eniFileIssues)
         }
 
-        override fun signBatchItems(items: List<BatchItemInput>, certificateId: String, options: Map<String, String>): List<BatchItemResult> {
+        override fun signBatchItems(
+            items: List<BatchItemInput>,
+            certificateId: String,
+            options: Map<String, String>,
+            confirmUnseenContent: Boolean,
+        ): List<BatchItemResult> {
+            lastConfirmUnseenContent = confirmUnseenContent
             lastItems = items.map { BatchItemInput(LoadedFile(it.file.displayName, it.file.mimeType, ByteArray(0)), it.format, it.action, it.options) }
             return items.map {
                 BatchItemResult(it.file.displayName,
-                    SignedOutput(byteArrayOf(7), it.file.displayName + ".p7s", "application/pkcs7-signature", "CAdES", "SHA256withRSA"))
+                    SignedOutput(byteArrayOf(7), it.file.displayName + ".p7s", "application/pkcs7-signature", "CAdES", "SHA256withRSA",
+                        itemWarnings))
             }
         }
 

@@ -14,7 +14,9 @@ import io.github.aavidad.grxfirma.android.R
  * Android, con recursos. Nada fuera de esta lista llega a la pantalla.
  */
 object EngineKeys {
-    private val CATALOGUE_KEY = Regex("""(verifactu|eni\.validacion|eni\.codigo|csv\.error|firma\.cofirma_sin_original)\.[A-Za-z0-9_]{1,40}""")
+    // firma.sha1_corresponde y firma.lt.crl_no_aplicable: avisos del motor
+    // tras firmar (lote 17b, 3b).
+    private val CATALOGUE_KEY = Regex("""(verifactu|eni\.validacion|eni\.codigo|csv\.error|firma\.cofirma_sin_original|firma\.sha1_corresponde|firma\.lt\.crl_no_aplicable)\.[A-Za-z0-9_]{1,40}""")
 
     private val LOCAL = mapOf(
         "eni.error.unsigned_pdf" to R.string.eni_error_unsigned_pdf,

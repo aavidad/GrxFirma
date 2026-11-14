@@ -570,6 +570,9 @@
     <string name="batch_action_label">Vorgang für den Stapel</string>
     <string name="batch_action_sign">Signieren</string>
     <string name="batch_action_cosign">Gegenzeichnen (meine Signatur zu bereits signierten Dateien hinzufügen)</string>
+    <string name="batch_cosign_confirm_title">Mitsignieren, ohne die Dokumente zu sehen</string>
+    <string name="batch_cosign_confirm_message">Wenn eine der Dateien eine Signatur ist, die das signierte Dokument nicht enthält (zum Beispiel eine separate .csig-Datei), signieren Sie sie mit, ohne dieses Dokument sehen zu können. Um es vorher zu sehen, signieren Sie sie einzeln mit und wählen „Originaldokument hinzufügen“. Möchten Sie den Stapel mitsignieren?</string>
+    <string name="batch_cosign_confirm_action">Stapel mitsignieren</string>
     <string name="batch_seal_check">Sichtbares Siegel zu den PDFs hinzufügen</string>
     <string name="batch_seal_helper">Es wird das mit „Siegel platzieren“ gesetzte Siegel verwendet. Hat ein PDF weniger Seiten als die gewählte, kommt das Siegel auf die letzte Seite. Der CSV-Vermerk wird im Stapel nicht hinzugefügt.</string>
     <string name="batch_seal_error">Das sichtbare Siegel für %1$s konnte nicht vorbereitet werden. Entfernen Sie dieses PDF aus dem Stapel oder signieren Sie ohne Siegel.</string>

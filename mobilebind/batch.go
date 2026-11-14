@@ -22,9 +22,11 @@ type mobileBatchRequest struct {
 	Items         []batchItemRequest `json:"items"`
 	CertificateID string             `json:"certificate_id"`
 	Options       map[string]string  `json:"options,omitempty"`
-	// ConfirmUnseenContent se sigue aceptando por compatibilidad, pero ya no
-	// es obligatorio: el lote cofirma las CAdES explícitas sin su original y
-	// lo avisa en cada elemento (lote 16c).
+	// ConfirmUnseenContent no es obligatorio: el lote cofirma las CAdES
+	// explícitas sin su original y lo avisa en cada elemento (lote 16c). La
+	// pantalla de Android lo envía cuando la persona confirma antes de
+	// cofirmar el lote (lote 17b); el aviso se mantiene y el registro dice si
+	// hubo confirmación.
 	ConfirmUnseenContent bool `json:"confirm_unseen_content,omitempty"`
 }
 

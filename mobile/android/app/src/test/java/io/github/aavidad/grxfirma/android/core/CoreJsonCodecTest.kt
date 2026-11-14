@@ -93,6 +93,31 @@ class CoreJsonCodecTest {
         assertArrayEquals(signed, actual.bytes)
         assertEquals("contrato.pdf", actual.displayName)
         assertEquals("application/pdf", actual.mimeType)
+        assertEquals(emptyList<String>(), actual.warnings)
+    }
+
+    // Lote 17b (3b): los avisos del motor llegan como claves, sin texto libre,
+    // sin repetir y con tope; también en el documento ENI.
+    @Test
+    fun `signed and eni responses keep only well formed warning keys`() {
+        val warnings = org.json.JSONArray(listOf("firma.sha1_corresponde.aviso", "firma.sha1_corresponde.aviso",
+            "<b>texto libre</b>", "firma.lt.crl_no_aplicable.aviso", "sin_punto") + (1..30).map { "firma.extra.k$it" })
+        val response = JSONObject()
+            .put("format", "CAdES")
+            .put("algorithm", "SHA256withRSA")
+            .put("signed_content_base64", Base64.getEncoder().encodeToString(byteArrayOf(1)))
+            .put("warnings", warnings)
+            .toString()
+        val actual = CoreJsonCodec.parseSigned(response, "acta.csig")
+        assertEquals(16, actual.warnings.size)
+        assertEquals(listOf("firma.sha1_corresponde.aviso", "firma.lt.crl_no_aplicable.aviso"), actual.warnings.take(2))
+
+        val eni = CoreJsonCodec.parseEniDocument(JSONObject()
+            .put("content_base64", Base64.getEncoder().encodeToString(byteArrayOf(2)))
+            .put("signature_type", "TF04")
+            .put("warnings", org.json.JSONArray(listOf("firma.sha1_corresponde.aviso")))
+            .toString())
+        assertEquals(listOf("firma.sha1_corresponde.aviso"), eni.warnings)
     }
 
     @Test

@@ -570,6 +570,9 @@
     <string name="batch_action_label">Batch operation</string>
     <string name="batch_action_sign">Sign</string>
     <string name="batch_action_cosign">Co-sign (add my signature to files already signed)</string>
+    <string name="batch_cosign_confirm_title">Co-sign without seeing the documents</string>
+    <string name="batch_cosign_confirm_message">If any of the files is a signature that does not contain the signed document (for example, a separate .csig file), you will co-sign it without being able to see that document. To see it first, co-sign it on its own and choose “Add the original document”. Do you want to co-sign the batch?</string>
+    <string name="batch_cosign_confirm_action">Co-sign the batch</string>
     <string name="batch_seal_check">Add the visible seal to the PDFs</string>
     <string name="batch_seal_helper">The seal you placed with “Place the seal” is used. If a PDF has fewer pages than the one chosen, the seal goes on the last page. The CSV legend is not added in a batch.</string>
     <string name="batch_seal_error">The visible seal for %1$s could not be prepared. Remove that PDF from the batch or sign without the seal.</string>
