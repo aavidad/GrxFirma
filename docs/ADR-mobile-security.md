@@ -113,8 +113,9 @@ global.
 
 ## Tráfico saliente
 
-Zero Server prohíbe escuchar, no conectar. La APK pide `INTERNET` y todas las
-conexiones las abre el núcleo Go; Kotlin no abre ninguna. Son estas:
+Zero Server prohíbe abrir puertos de escucha; las conexiones salientes están
+permitidas. La APK pide `INTERNET` y todas las conexiones las abre el núcleo
+Go; Kotlin no abre ninguna. Son estas:
 
 | Conexión | Cuándo | Quién elige el destino |
 |---|---|---|
