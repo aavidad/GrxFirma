@@ -6794,6 +6794,7 @@
   ,"protocolo.estado.ninguno": "Orain ez dago atarietako sinadurak irekitzen dituen programarik. Aukeratu bat."
   ,"protocolo.estado.error": "Ezin izan da egiaztatu zein programak irekitzen dituen sinadurak. Sakatu «Egiaztatu berriro»."
   ,"protocolo.autofirma_no_instalada": "AutoFirma ez dago instalatuta ordenagailu honetan. Instalatzen baduzu, itzuli hona eta sakatu «Egiaztatu berriro»."
+  ,"protocolo.opciones_sin_autofirma": "AutoFirma eta «Galdetu aldi bakoitzean» aukerek AutoFirma instalatuta egotea behar dute."
   ,"protocolo.recargar_portal": "Atariaren webgunea irekita bazenuen, kargatu berriro sinatu aurretik."
   ,"protocolo.error.ajeno": "Ez da ezer aldatu. Beste programa bat arduratzen da orain atarietako sinadurez, eta GrxFirmak ez du aldatzen ez hondatzeko. GrxFirma edo AutoFirma erabili nahi baduzu, desinstalatu programa hori edo eskatu laguntza zure informatika-zerbitzuari."
   ,"protocolo.error.grxfirma_no_instalada": "Ez da ezer aldatu. Atarietako sinadurak irekitzen dituen GrxFirmaren zatia falta da; instalatu berriro GrxFirma."

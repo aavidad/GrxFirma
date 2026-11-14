@@ -11,15 +11,18 @@ using Microsoft.UI.Xaml.Controls;
 namespace GrxFirma.WinUI.Views;
 
 /// <summary>
-/// «Firmas desde los portales»: elige si GrxFirma o AutoFirma (la aplicación
-/// Java del Gobierno) abre los enlaces afirma:// de las webs. El estado y el
-/// cambio los hace el motor con la API del registro; aquí solo se muestran.
+/// «Programa para firmar en las webs»: elige si GrxFirma, AutoFirma (la
+/// aplicación del Gobierno) o «Preguntar cada vez» atiende los enlaces
+/// afirma:// de las webs. El estado y el cambio los hace el motor con la API
+/// del registro; aquí solo se muestran. Si la organización lo fija por
+/// política, el ajuste es de solo lectura y dice por qué.
 /// </summary>
 public sealed partial class SettingsPage
 {
     private bool _afirmaBusy;
     private bool _afirmaApplyingView;
     private string _afirmaCurrent = AfirmaHandlerChoices.None;
+    private bool _afirmaLocked;
 
     private static DesktopOperationSession Session =>
         ((App)Application.Current).OperationSession;
@@ -30,8 +33,12 @@ public sealed partial class SettingsPage
         AfirmaHandlerDescription.Text = Localizer.Text("protocolo.descripcion");
         AfirmaGrxFirmaRadio.Content = Localizer.Text("protocolo.opcion.grxfirma");
         AfirmaAutoFirmaRadio.Content = Localizer.Text("protocolo.opcion.autofirma");
+        AfirmaAskRadio.Content = Localizer.Text("protocolo.opcion.preguntar");
         AfirmaHandlerRefreshButton.Content = Localizer.Text("protocolo.comprobar");
-        AfirmaAutoFirmaMissingText.Text = Localizer.Text(AfirmaHandlerPresentation.AutoFirmaMissing);
+        AfirmaAutoFirmaMissingText.Text =
+            Localizer.Text(AfirmaHandlerPresentation.OptionsNeedAutoFirma) + " " +
+            Localizer.Text(AfirmaHandlerPresentation.AutoFirmaMissing);
+        AfirmaHandlerPolicyUnreadableText.Text = Localizer.Text(AfirmaHandlerPresentation.PolicyUnreadable);
         AfirmaAutoFirmaDownloadLink.Content = Localizer.Text("protocolo.descargar_autofirma");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
             AfirmaAutoFirmaDownloadLink, Localizer.Text("protocolo.descargar_autofirma.descripcion"));
@@ -40,6 +47,22 @@ public sealed partial class SettingsPage
             AfirmaGrxFirmaRadio, Localizer.Text("protocolo.selector"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
             AfirmaAutoFirmaRadio, Localizer.Text("protocolo.selector"));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
+            AfirmaAskRadio, Localizer.Text("protocolo.selector"));
+    }
+
+    // Ayuda de una opción para el lector de pantalla: si no se puede elegir,
+    // dice por qué (la política o la falta de AutoFirma).
+    private static string AfirmaOptionHelp(AfirmaHandlerView view, bool available, string policyText)
+    {
+        if (view.Locked)
+        {
+            return Localizer.Text("protocolo.selector") + ". " + policyText;
+        }
+        return available
+            ? Localizer.Text("protocolo.selector")
+            : Localizer.Text("protocolo.selector") + ". " +
+              Localizer.Text(AfirmaHandlerPresentation.OptionsNeedAutoFirma);
     }
 
     private void ShowAfirmaError(string? key)
@@ -103,8 +126,10 @@ public sealed partial class SettingsPage
         {
             AfirmaGrxFirmaRadio.IsChecked = view.GrxFirmaSelected;
             AfirmaAutoFirmaRadio.IsChecked = view.AutoFirmaSelected;
+            AfirmaAskRadio.IsChecked = view.AskSelected;
             AfirmaGrxFirmaRadio.Tag = view.CanChooseGrxFirma;
             AfirmaAutoFirmaRadio.Tag = view.CanChooseAutoFirma;
+            AfirmaAskRadio.Tag = view.CanChooseAsk;
         }
         finally
         {
@@ -112,16 +137,25 @@ public sealed partial class SettingsPage
         }
         _afirmaCurrent = view.GrxFirmaSelected
             ? AfirmaHandlerChoices.GrxFirma
-            : view.AutoFirmaSelected ? AfirmaHandlerChoices.AutoFirma : AfirmaHandlerChoices.None;
+            : view.AutoFirmaSelected
+                ? AfirmaHandlerChoices.AutoFirma
+                : view.AskSelected ? AfirmaHandlerChoices.Ask : AfirmaHandlerChoices.None;
+        _afirmaLocked = view.Locked;
+        var policyText = string.Join(" ", (view.PolicyKeys ?? Array.Empty<string>()).Select(key => Localizer.Text(key)));
+        AfirmaHandlerPolicyText.Text = policyText;
+        AfirmaHandlerPolicyText.Visibility = view.Locked ? Visibility.Visible : Visibility.Collapsed;
+        AfirmaHandlerPolicyUnreadableText.Visibility =
+            view.ShowPolicyUnreadable ? Visibility.Visible : Visibility.Collapsed;
         AfirmaAutoFirmaMissingText.Visibility =
             view.ShowAutoFirmaMissing ? Visibility.Visible : Visibility.Collapsed;
         AfirmaAutoFirmaDownloadLink.Visibility = AfirmaAutoFirmaMissingText.Visibility;
         // Una opción desactivada no recibe el foco: su ayuda dice por qué.
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
-            AfirmaAutoFirmaRadio,
-            view.ShowAutoFirmaMissing
-                ? Localizer.Text("protocolo.selector") + ". " + Localizer.Text(AfirmaHandlerPresentation.AutoFirmaMissing)
-                : Localizer.Text("protocolo.selector"));
+            AfirmaGrxFirmaRadio, AfirmaOptionHelp(view, true, policyText));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
+            AfirmaAutoFirmaRadio, AfirmaOptionHelp(view, view.CanChooseAutoFirma || view.Locked, policyText));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(
+            AfirmaAskRadio, AfirmaOptionHelp(view, view.CanChooseAsk || view.Locked, policyText));
         var status = view.StatusArgument is null
             ? Localizer.Text(view.StatusKey)
             : Localizer.Format(view.StatusKey, view.StatusArgument);
@@ -147,6 +181,7 @@ public sealed partial class SettingsPage
         // el foco; _afirmaBusy ya ignora una segunda elección.
         AfirmaGrxFirmaRadio.IsEnabled = AfirmaGrxFirmaRadio.Tag is true;
         AfirmaAutoFirmaRadio.IsEnabled = AfirmaAutoFirmaRadio.Tag is true;
+        AfirmaAskRadio.IsEnabled = AfirmaAskRadio.Tag is true;
         AfirmaHandlerRefreshButton.IsEnabled = !_afirmaBusy;
     }
 
@@ -157,7 +192,9 @@ public sealed partial class SettingsPage
     {
         var handler = ReferenceEquals(sender, AfirmaAutoFirmaRadio)
             ? AfirmaHandlerChoices.AutoFirma
-            : AfirmaHandlerChoices.GrxFirma;
+            : ReferenceEquals(sender, AfirmaAskRadio)
+                ? AfirmaHandlerChoices.Ask
+                : AfirmaHandlerChoices.GrxFirma;
         var cancellation = _pageCancellation;
         if (_afirmaBusy && !_afirmaApplyingView)
         {
@@ -165,7 +202,7 @@ public sealed partial class SettingsPage
             // mostrar el estado real.
             return;
         }
-        if (_afirmaApplyingView || cancellation is null ||
+        if (_afirmaApplyingView || cancellation is null || _afirmaLocked ||
             handler == _afirmaCurrent ||
             !Session.TryGetOperations(DesktopOperationActions.AfirmaHandlerSelect, out var operations))
         {

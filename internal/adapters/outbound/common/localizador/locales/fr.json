@@ -6794,6 +6794,7 @@
   ,"protocolo.estado.ninguno": "Aucun programme n’ouvre actuellement les signatures des portails. Choisissez-en un."
   ,"protocolo.estado.error": "Impossible de vérifier quel programme ouvre les signatures. Appuyez sur « Vérifier à nouveau »."
   ,"protocolo.autofirma_no_instalada": "AutoFirma n’est pas installé sur cet ordinateur. Si vous l’installez, revenez ici et appuyez sur « Vérifier à nouveau »."
+  ,"protocolo.opciones_sin_autofirma": "Les options AutoFirma et « Demander à chaque fois » nécessitent qu'AutoFirma soit installé."
   ,"protocolo.recargar_portal": "Si la page du portail était déjà ouverte, rechargez-la avant de signer à nouveau."
   ,"protocolo.error.ajeno": "Rien n’a été modifié. Un autre programme gère désormais les signatures des portails et GrxFirma n’y touche pas pour ne pas le perturber. Pour utiliser GrxFirma ou AutoFirma, désinstallez ce programme ou demandez de l’aide à votre service informatique."
   ,"protocolo.error.grxfirma_no_instalada": "Rien n’a été modifié. Il manque la partie de GrxFirma qui ouvre les signatures des portails ; réinstallez GrxFirma."

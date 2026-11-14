@@ -6794,6 +6794,7 @@
   ,"protocolo.estado.ninguno": "Agora ningún programa abre as sinaturas dos portais. Escolla un."
   ,"protocolo.estado.error": "Non se puido comprobar que programa abre as sinaturas. Prema «Comprobar de novo»."
   ,"protocolo.autofirma_no_instalada": "AutoFirma non está instalado neste equipo. Se o instala, volva aquí e prema «Comprobar de novo»."
+  ,"protocolo.opciones_sin_autofirma": "As opcións AutoFirma e «Preguntar cada vez» precisan que AutoFirma estea instalado."
   ,"protocolo.recargar_portal": "Se tiña aberta a web do portal, recárguea antes de volver asinar."
   ,"protocolo.error.ajeno": "Non se cambiou nada. Outro programa encárgase agora das sinaturas dos portais e GrxFirma non o cambia para non estragalo. Se quere usar GrxFirma ou AutoFirma, desinstale ese programa ou pida axuda ao seu servizo de informática."
   ,"protocolo.error.grxfirma_no_instalada": "Non se cambiou nada. Falta a parte de GrxFirma que abre as sinaturas dos portais; volva instalar GrxFirma."

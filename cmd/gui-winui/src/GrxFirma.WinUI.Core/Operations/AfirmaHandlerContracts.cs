@@ -11,16 +11,18 @@ namespace GrxFirma.WinUI.Core.Operations;
 /// <summary>
 /// Programas que pueden abrir las firmas que piden los portales (protocolo
 /// afirma://). El motor lee y cambia el registro; la interfaz solo elige.
+/// «Preguntar» deja el protocolo a GrxFirma, que pregunta en cada firma.
 /// </summary>
 public static class AfirmaHandlerChoices
 {
     public const string GrxFirma = "grxfirma";
     public const string AutoFirma = "autofirma";
+    public const string Ask = "preguntar";
     public const string Other = "other";
     public const string None = "none";
 
     public static bool IsSelectable(string? handler) =>
-        handler is GrxFirma or AutoFirma;
+        handler is GrxFirma or AutoFirma or Ask;
 }
 
 /// <summary>Estado real leído del registro por el motor.</summary>
@@ -33,6 +35,11 @@ public sealed class AfirmaHandlerStatus
     [JsonPropertyName("autofirmaInstalled")] public bool AutoFirmaInstalled { get; init; }
     [JsonPropertyName("autofirmaPath")] public string AutoFirmaPath { get; init; } = "";
     [JsonPropertyName("preference")] public string Preference { get; init; } = "";
+    /// <summary>Lo que fija la política de la organización (manejador_afirma).</summary>
+    [JsonPropertyName("policy")] public string Policy { get; init; } = "";
+    [JsonPropertyName("policyUnreadable")] public bool PolicyUnreadable { get; init; }
+    /// <summary>Lo que pasa cuando una web pide firmar.</summary>
+    [JsonPropertyName("effective")] public string Effective { get; init; } = "";
 }
 
 public sealed record AfirmaHandlerStatusParameters;
@@ -49,7 +56,12 @@ public sealed record AfirmaHandlerView(
     bool CanChooseAutoFirma,
     string StatusKey,
     string? StatusArgument,
-    bool ShowAutoFirmaMissing);
+    bool ShowAutoFirmaMissing,
+    bool AskSelected = false,
+    bool CanChooseAsk = false,
+    bool Locked = false,
+    IReadOnlyList<string>? PolicyKeys = null,
+    bool ShowPolicyUnreadable = false);
 
 /// <summary>
 /// Traduce el estado del motor a claves de catálogo; no contiene textos. Las
@@ -61,7 +73,36 @@ public static class AfirmaHandlerPresentation
     public const string StatusChanging = "protocolo.estado.cambiando";
     public const string StatusError = "protocolo.estado.error";
     public const string AutoFirmaMissing = "protocolo.autofirma_no_instalada";
+    public const string OptionsNeedAutoFirma = "protocolo.opciones_sin_autofirma";
+    public const string PolicyUnreadable = "protocolo.politica_ilegible";
+    public const string PolicyWithoutAutoFirma = "protocolo.politica.sin_autofirma";
     public const string ReloadPortal = "protocolo.recargar_portal";
+
+    /// <summary>
+    /// Lo que pasa cuando una web pide firmar. Un motor anterior, sin
+    /// «effective», solo da lo que dice el registro.
+    /// </summary>
+    public static string EffectiveHandler(AfirmaHandlerStatus status) =>
+        string.IsNullOrEmpty(status.Effective) ? status.Current ?? AfirmaHandlerChoices.None : status.Effective;
+
+    /// <summary>Claves que explican por qué el ajuste no se puede cambiar.</summary>
+    public static IReadOnlyList<string> PolicyKeysFor(AfirmaHandlerStatus status)
+    {
+        var key = status.Policy switch
+        {
+            AfirmaHandlerChoices.GrxFirma => "protocolo.politica.grxfirma",
+            AfirmaHandlerChoices.AutoFirma => "protocolo.politica.autofirma",
+            AfirmaHandlerChoices.Ask => "protocolo.politica.preguntar",
+            _ => null,
+        };
+        if (key is null)
+        {
+            return [];
+        }
+        return status.Policy != AfirmaHandlerChoices.GrxFirma && !status.AutoFirmaInstalled
+            ? [key, PolicyWithoutAutoFirma]
+            : [key];
+    }
 
     public static AfirmaHandlerView From(AfirmaHandlerStatus? status)
     {
@@ -70,23 +111,31 @@ public static class AfirmaHandlerPresentation
             return new AfirmaHandlerView(false, false, false, false, false, StatusError, null, false);
         }
 
-        var current = status.Current ?? AfirmaHandlerChoices.None;
-        var (key, argument) = current switch
+        var effective = EffectiveHandler(status);
+        var (key, argument) = effective switch
         {
             AfirmaHandlerChoices.GrxFirma => ("protocolo.estado.grxfirma", (string?)null),
             AfirmaHandlerChoices.AutoFirma => ("protocolo.estado.autofirma", null),
+            AfirmaHandlerChoices.Ask => ("protocolo.estado.preguntar", null),
             AfirmaHandlerChoices.Other => ("protocolo.estado.otro", SafeIpcText.Clean(status.CurrentPath, 260, "")),
             _ => ("protocolo.estado.ninguno", null),
         };
+        var policyKeys = PolicyKeysFor(status);
+        var locked = policyKeys.Count > 0;
         return new AfirmaHandlerView(
             Visible: true,
-            GrxFirmaSelected: current == AfirmaHandlerChoices.GrxFirma,
-            AutoFirmaSelected: current == AfirmaHandlerChoices.AutoFirma,
-            CanChooseGrxFirma: status.GrxFirmaInstalled,
-            CanChooseAutoFirma: status.AutoFirmaInstalled,
+            GrxFirmaSelected: effective == AfirmaHandlerChoices.GrxFirma,
+            AutoFirmaSelected: effective == AfirmaHandlerChoices.AutoFirma,
+            CanChooseGrxFirma: status.GrxFirmaInstalled && !locked,
+            CanChooseAutoFirma: status.AutoFirmaInstalled && !locked,
             StatusKey: key,
             StatusArgument: argument,
-            ShowAutoFirmaMissing: !status.AutoFirmaInstalled);
+            ShowAutoFirmaMissing: !status.AutoFirmaInstalled && !locked,
+            AskSelected: effective == AfirmaHandlerChoices.Ask,
+            CanChooseAsk: status.AutoFirmaInstalled && status.GrxFirmaInstalled && !locked,
+            Locked: locked,
+            PolicyKeys: policyKeys,
+            ShowPolicyUnreadable: status.PolicyUnreadable);
     }
 
     /// <summary>Mensaje claro para cada código de error estable del motor.</summary>
@@ -96,6 +145,7 @@ public static class AfirmaHandlerPresentation
         "autofirma_not_installed" => AutoFirmaMissing,
         "grxfirma_afirma_missing" => "protocolo.error.grxfirma_no_instalada",
         "afirma_handler_unsupported" => "protocolo.error.no_disponible",
+        "afirma_handler_policy" => "protocolo.error.politica",
         _ => "protocolo.error.generico",
     };
 }

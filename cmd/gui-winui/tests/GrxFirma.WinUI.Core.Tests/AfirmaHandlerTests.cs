@@ -71,11 +71,88 @@ public sealed class AfirmaHandlerTests
     }
 
     [TestMethod]
+    public void View_FollowsEffectiveHandlerAndAsk()
+    {
+        // «Preguntar»: el registro dice GrxFirma, pero en cada firma se pregunta.
+        var status = JsonSerializer.Deserialize<AfirmaHandlerStatus>("""
+            {"supported":true,"current":"grxfirma","grxfirmaInstalled":true,"autofirmaInstalled":true,
+             "preference":"preguntar","effective":"preguntar"}
+            """)!;
+        var ask = AfirmaHandlerPresentation.From(status);
+        Assert.IsTrue(ask.AskSelected);
+        Assert.IsFalse(ask.GrxFirmaSelected || ask.AutoFirmaSelected);
+        Assert.IsTrue(ask.CanChooseAsk);
+        Assert.IsFalse(ask.Locked);
+        Assert.AreEqual("protocolo.estado.preguntar", ask.StatusKey);
+
+        // Sin AutoFirma no se puede preguntar.
+        var noAuto = AfirmaHandlerPresentation.From(new AfirmaHandlerStatus
+        {
+            Supported = true,
+            Current = AfirmaHandlerChoices.GrxFirma,
+            GrxFirmaInstalled = true,
+        });
+        Assert.IsFalse(noAuto.CanChooseAsk);
+        Assert.IsTrue(noAuto.ShowAutoFirmaMissing);
+
+        // Un motor anterior sin «effective» sigue funcionando con «current».
+        var legacy = AfirmaHandlerPresentation.From(new AfirmaHandlerStatus
+        {
+            Supported = true,
+            Current = AfirmaHandlerChoices.AutoFirma,
+            GrxFirmaInstalled = true,
+            AutoFirmaInstalled = true,
+        });
+        Assert.IsTrue(legacy.AutoFirmaSelected);
+    }
+
+    [TestMethod]
+    public void View_PolicyMakesTheSettingReadOnlyAndSaysWhy()
+    {
+        var locked = AfirmaHandlerPresentation.From(JsonSerializer.Deserialize<AfirmaHandlerStatus>("""
+            {"supported":true,"current":"grxfirma","grxfirmaInstalled":true,"autofirmaInstalled":true,
+             "policy":"autofirma","effective":"autofirma"}
+            """)!);
+        Assert.IsTrue(locked.Locked);
+        Assert.IsTrue(locked.AutoFirmaSelected);
+        Assert.IsFalse(locked.CanChooseGrxFirma || locked.CanChooseAutoFirma || locked.CanChooseAsk);
+        CollectionAssert.AreEqual(new[] { "protocolo.politica.autofirma" }, locked.PolicyKeys!.ToArray());
+
+        // Política «preguntar» sin AutoFirma: también se dice qué pasa de momento.
+        var withoutAuto = AfirmaHandlerPresentation.From(new AfirmaHandlerStatus
+        {
+            Supported = true,
+            Current = AfirmaHandlerChoices.GrxFirma,
+            GrxFirmaInstalled = true,
+            Policy = AfirmaHandlerChoices.Ask,
+            Effective = AfirmaHandlerChoices.GrxFirma,
+        });
+        CollectionAssert.AreEqual(
+            new[] { "protocolo.politica.preguntar", "protocolo.politica.sin_autofirma" },
+            withoutAuto.PolicyKeys!.ToArray());
+        Assert.IsFalse(withoutAuto.ShowAutoFirmaMissing);
+
+        // Política ilegible: se avisa y se puede elegir.
+        var unreadable = AfirmaHandlerPresentation.From(new AfirmaHandlerStatus
+        {
+            Supported = true,
+            Current = AfirmaHandlerChoices.GrxFirma,
+            GrxFirmaInstalled = true,
+            AutoFirmaInstalled = true,
+            PolicyUnreadable = true,
+        });
+        Assert.IsFalse(unreadable.Locked);
+        Assert.IsTrue(unreadable.ShowPolicyUnreadable);
+        Assert.IsTrue(unreadable.CanChooseAutoFirma);
+    }
+
+    [TestMethod]
     public void ErrorKey_MapsStableCodesToPlainMessages()
     {
         Assert.AreEqual("protocolo.error.ajeno", AfirmaHandlerPresentation.ErrorKey("afirma_handler_foreign"));
         Assert.AreEqual("protocolo.autofirma_no_instalada", AfirmaHandlerPresentation.ErrorKey("autofirma_not_installed"));
         Assert.AreEqual("protocolo.error.grxfirma_no_instalada", AfirmaHandlerPresentation.ErrorKey("grxfirma_afirma_missing"));
+        Assert.AreEqual("protocolo.error.politica", AfirmaHandlerPresentation.ErrorKey("afirma_handler_policy"));
         Assert.AreEqual("protocolo.error.generico", AfirmaHandlerPresentation.ErrorKey("operation_failed"));
         Assert.AreEqual("protocolo.error.generico", AfirmaHandlerPresentation.ErrorKey(null));
     }
@@ -87,14 +164,16 @@ public sealed class AfirmaHandlerTests
         var client = new DesktopOperationsClient(ipc);
         await client.GetAfirmaHandlerStatusAsync();
         await client.SelectAfirmaHandlerAsync(AfirmaHandlerChoices.AutoFirma);
+        await client.SelectAfirmaHandlerAsync(AfirmaHandlerChoices.Ask);
         Assert.AreEqual("afirma_handler_status", ipc.Actions[0]);
         Assert.AreEqual("afirma_handler_select", ipc.Actions[1]);
         Assert.AreEqual("""{"handler":"autofirma"}""", ipc.Parameters[1]);
+        Assert.AreEqual("""{"handler":"preguntar"}""", ipc.Parameters[2]);
         await Assert.ThrowsExactlyAsync<ArgumentOutOfRangeException>(
             () => client.SelectAfirmaHandlerAsync("other"));
         await Assert.ThrowsExactlyAsync<ArgumentOutOfRangeException>(
             () => client.SelectAfirmaHandlerAsync("C:\\malware.exe"));
-        Assert.AreEqual(2, ipc.Actions.Count);
+        Assert.AreEqual(3, ipc.Actions.Count);
     }
 
     private sealed class RecordingIpcClient : IIpcClient

@@ -2118,7 +2118,8 @@ void IpcBridge::onReadyRead() {
           QStringLiteral("afirma_handler_foreign"),
           QStringLiteral("autofirma_not_installed"),
           QStringLiteral("grxfirma_afirma_missing"),
-          QStringLiteral("afirma_handler_unsupported")};
+          QStringLiteral("afirma_handler_unsupported"),
+          QStringLiteral("afirma_handler_policy")};
       const bool success = ok && data.isObject();
       emit afirmaHandlerFinished(
           action, success, success ? data.toObject().toVariantMap() : QVariantMap(),
@@ -3564,10 +3565,11 @@ void IpcBridge::getAfirmaHandlerStatus() {
 }
 
 void IpcBridge::selectAfirmaHandler(const QString &handler) {
-  // Solo las dos opciones del selector; el motor comprueba la propiedad del
-  // registro antes de tocar nada.
+  // Solo las tres opciones del selector; el motor comprueba la política y la
+  // propiedad del registro antes de tocar nada.
   if (handler != QStringLiteral("grxfirma") &&
-      handler != QStringLiteral("autofirma")) {
+      handler != QStringLiteral("autofirma") &&
+      handler != QStringLiteral("preguntar")) {
     emit afirmaHandlerFinished(QStringLiteral("afirma_handler_select"), false,
                                QVariantMap(),
                                QStringLiteral("afirma_handler_failed"));

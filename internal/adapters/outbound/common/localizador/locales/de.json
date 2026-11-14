@@ -6794,6 +6794,7 @@
   ,"protocolo.estado.ninguno": "Derzeit öffnet kein Programm Portalsignaturen. Wählen Sie eines aus."
   ,"protocolo.estado.error": "Es konnte nicht geprüft werden, welches Programm Signaturen öffnet. Klicken Sie auf „Erneut prüfen“."
   ,"protocolo.autofirma_no_instalada": "AutoFirma ist auf diesem Computer nicht installiert. Wenn Sie es installieren, kommen Sie hierher zurück und klicken Sie auf „Erneut prüfen“."
+  ,"protocolo.opciones_sin_autofirma": "Für die Optionen AutoFirma und „Jedes Mal fragen“ muss AutoFirma installiert sein."
   ,"protocolo.recargar_portal": "Wenn die Portalseite bereits geöffnet war, laden Sie sie neu, bevor Sie erneut signieren."
   ,"protocolo.error.ajeno": "Es wurde nichts geändert. Ein anderes Programm ist jetzt für Portalsignaturen zuständig, und GrxFirma greift nicht ein, um es nicht zu beschädigen. Um GrxFirma oder AutoFirma zu verwenden, deinstallieren Sie dieses Programm oder bitten Sie Ihre IT-Abteilung um Hilfe."
   ,"protocolo.error.grxfirma_no_instalada": "Es wurde nichts geändert. Der Teil von GrxFirma, der Portalsignaturen öffnet, fehlt; installieren Sie GrxFirma neu."

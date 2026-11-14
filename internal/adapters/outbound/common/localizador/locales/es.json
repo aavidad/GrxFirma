@@ -6794,6 +6794,7 @@
   ,"protocolo.estado.ninguno": "Ahora ningún programa abre las firmas de los portales. Elija uno."
   ,"protocolo.estado.error": "No se ha podido comprobar qué programa abre las firmas. Pulse «Comprobar de nuevo»."
   ,"protocolo.autofirma_no_instalada": "AutoFirma no está instalado en este equipo. Si lo instala, vuelva aquí y pulse «Comprobar de nuevo»."
+  ,"protocolo.opciones_sin_autofirma": "Las opciones AutoFirma y «Preguntar cada vez» necesitan que AutoFirma esté instalado."
   ,"protocolo.recargar_portal": "Si tenía abierta la web del portal, recárguela antes de volver a firmar."
   ,"protocolo.error.ajeno": "No se ha cambiado nada. Otro programa se encarga ahora de las firmas de los portales y GrxFirma no lo cambia para no estropearlo. Si quiere usar GrxFirma o AutoFirma, desinstale ese programa o pida ayuda a su servicio de informática."
   ,"protocolo.error.grxfirma_no_instalada": "No se ha cambiado nada. Falta la parte de GrxFirma que abre las firmas de los portales; vuelva a instalar GrxFirma."

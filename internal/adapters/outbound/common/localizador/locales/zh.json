@@ -6794,6 +6794,7 @@
   ,"protocolo.estado.ninguno": "现在没有程序打开门户网站的签名。请选择一个。"
   ,"protocolo.estado.error": "无法检查由哪个程序打开签名。请点击“重新检查”。"
   ,"protocolo.autofirma_no_instalada": "此计算机未安装 AutoFirma。安装后，请回到此处并点击“重新检查”。"
+  ,"protocolo.opciones_sin_autofirma": "“AutoFirma”和“每次询问”选项需要安装 AutoFirma。"
   ,"protocolo.recargar_portal": "如果门户网站页面已打开，请在再次签名前刷新页面。"
   ,"protocolo.error.ajeno": "未做任何更改。现在由另一个程序处理门户网站的签名，GrxFirma 不会改动它，以免造成损坏。如需使用 GrxFirma 或 AutoFirma，请卸载该程序或向您的信息技术部门求助。"
   ,"protocolo.error.grxfirma_no_instalada": "未做任何更改。缺少 GrxFirma 中负责打开门户网站签名的组件；请重新安装 GrxFirma。"

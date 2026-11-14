@@ -6794,6 +6794,7 @@
   ,"protocolo.estado.ninguno": "Ara cap programa no obri les signatures dels portals. Trieu-ne un."
   ,"protocolo.estado.error": "No s'ha pogut comprovar quin programa obri les signatures. Premeu «Comprova-ho de nou»."
   ,"protocolo.autofirma_no_instalada": "AutoFirma no està instal·lat en este equip. Si l'instal·leu, torneu ací i premeu «Comprova-ho de nou»."
+  ,"protocolo.opciones_sin_autofirma": "Les opcions AutoFirma i «Preguntar cada vegada» necessiten que AutoFirma estiga instal·lat."
   ,"protocolo.recargar_portal": "Si teníeu obert el web del portal, torneu-lo a carregar abans de signar de nou."
   ,"protocolo.error.ajeno": "No s'ha canviat res. Un altre programa s'encarrega ara de les signatures dels portals i GrxFirma no el canvia per a no espatlar-lo. Si voleu utilitzar GrxFirma o AutoFirma, desinstal·leu eixe programa o demaneu ajuda al vostre servici d'informàtica."
   ,"protocolo.error.grxfirma_no_instalada": "No s'ha canviat res. Falta la part de GrxFirma que obri les signatures dels portals; torneu a instal·lar GrxFirma."
