@@ -85,6 +85,22 @@ class CosignOriginalContract(unittest.TestCase):
         self.assertIn('action === "cosign" || action === "countersign"', qml_function(MAIN, "isCosignOrCountersign"))
         self.assertIn("resetCosignOriginalChoice()", MAIN[MAIN.index("onCurrentFilePathChanged: {"):][:200])
 
+    def test_la_eleccion_vale_solo_para_un_intento(self):
+        # Lote 17c: «Firmar de todos modos» (o el original elegido) se borra
+        # al acabar el intento, aunque la firma no llegue a enviarse.
+        execute = qml_function(MAIN, "executeSignRequest")
+        spend = execute.index("const cosignOriginal = skipCosignOriginalCheckOnce")
+        # Cada salida con error, cuadro o secretos remotos anterior al gasto la
+        # borra (siete); las que esperan a que el intento siga solo la conservan.
+        self.assertGreaterEqual(execute[:spend].count("window.resetCosignOriginalChoice()"), 7)
+        for handler in ("onSigningFinished", "onBatchSigningFinished"):
+            self.assertIn("window.resetCosignOriginalChoice()", qml_function(MAIN, handler)[:300])
+        preview = qml_function(MAIN, "resumeSignAfterPreview")
+        self.assertIn("window.resetCosignOriginalChoice()", preview)
+        dialog = qml_block(MAIN, "ThemedDialog {\n        id: cosignOriginalDialog")
+        cancel = dialog[dialog.index('text: tr("Cancelar")'):]
+        self.assertIn("window.resetCosignOriginalChoice()", cancel)
+
     def test_respuesta_del_motor(self):
         handler = qml_function(MAIN, "onCosignOriginalChecked")
         self.assertIn("ctx.path !== window.currentFilePath", handler)
