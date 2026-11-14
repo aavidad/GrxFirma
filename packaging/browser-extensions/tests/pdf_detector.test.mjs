@@ -85,6 +85,9 @@ for (const variant of ['chromium', 'firefox']) {
     const h = await detector(variant, async () => { throw new Error('sin red'); });
     assert.ok(h.button.children.length > 0);
     assert.ok(h.button.children.every((node) => node.tagName !== 'img'));
+    // C-06: sin recursos de la extensión en la página, el manifiesto no expone ninguno.
+    const manifest = JSON.parse(await readFile(path.join(root, variant, 'manifest.json'), 'utf8'));
+    assert.equal(manifest.web_accessible_resources, undefined);
   });
 }
 

@@ -59,11 +59,11 @@ import (
 var version = "dev"
 
 const (
-	envRESTToken = "GRXFIRMA_REST_TOKEN"
+	envRESTToken = secretinput.EnvRESTToken
 	// envRESTTokenHeredado mantiene los lanzadores de AutoFirmaV2 existentes.
-	envRESTTokenHeredado = "AUTOFIRMAV2_REST_TOKEN"
-	envPKCS12Password    = "GRXFIRMA_PKCS12_PASSWORD"
-	envProtectionToken   = "GRXFIRMA_PROTECTION_SECRET_B64"
+	envRESTTokenHeredado = secretinput.EnvRESTTokenHeredado
+	envPKCS12Password    = secretinput.EnvPKCS12Password
+	envProtectionToken   = secretinput.EnvProtectionSecret
 	minRESTLifetime      = time.Second
 	maxRESTLifetime      = 240 * time.Minute
 )
@@ -80,7 +80,7 @@ func main() {
 		os.Exit(2)
 	}
 	environment, err := secretinput.ConsumeEnvironment(
-		[]string{envPKCS12Password, envRESTToken, envRESTTokenHeredado, envProtectionToken},
+		secretinput.NombresEntornoSecretos(),
 		os.LookupEnv,
 		os.Unsetenv,
 	)
@@ -181,6 +181,9 @@ func main() {
 	}
 	protectionCompat, _ := environment.Take(envProtectionToken)
 	adaptador.WithCompatibilitySecrets(passwordP12Compat, protectionCompat)
+	if pdfPasswordCompat, present := environment.Take(secretinput.EnvPDFPassword); present {
+		adaptador.WithCompatiblePDFPassword(pdfPasswordCompat)
+	}
 
 	os.Exit(adaptador.Run(ctx, argsResto))
 }
@@ -636,6 +639,7 @@ func runRESTServer(ctx context.Context, logger *slog.Logger, rutaP12, password, 
 		fmt.Fprintln(os.Stderr, "error arrancando el servidor REST:", err)
 		return 1
 	}
+	configurarTSAOpcionesREST(servicios)
 	credentialFile := ""
 	if tokenGenerado {
 		var cleanup func()
@@ -656,8 +660,6 @@ func runRESTServer(ctx context.Context, logger *slog.Logger, rutaP12, password, 
 	adaptador := restin.New(servicios.firmar, servicios.verificar, selector).WithBearerToken(cfg.token)
 	adaptador.WithBatchSigner(servicios.procesarLote)
 	adaptador.WithHashes(servicios.crearHash, servicios.comprobarHash)
-	adaptador.WithDirectoryHashes(servicios.crearHashDir, servicios.comprobarHashDir)
-	adaptador.WithDirectoryHashReports(servicios.informeHashDir)
 	adaptador.WithPDFPreview(application.NuevoPdfPreviewUseCase(pdfpreview.New()))
 	if esDireccionLoopback(cfg.addr) {
 		// La GUI REST local necesita leer el PDF seleccionado para renderizarlo,

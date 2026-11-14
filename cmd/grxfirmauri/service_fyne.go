@@ -37,6 +37,12 @@ type aprobacionInteractiva struct {
 	titulo string
 }
 
+// ConTitulo devuelve el mismo aprobador con otro título (A-09).
+func (a aprobacionInteractiva) ConTitulo(titulo string) ports.UserApproval {
+	a.titulo = titulo
+	return a
+}
+
 func (a aprobacionInteractiva) Request(ctx context.Context, message string) (bool, error) {
 	portalActionUI()
 	if _, parent := currentProtocolUIContext(); parent != nil {
@@ -393,7 +399,7 @@ func construirServicioWebSocket(configDir, p12Dir, p12Password string) (*legacyw
 		approval,
 		auditor,
 		nil,
-	)
+	).WithComponedorAprobacion(componerAprobacionProtocolo)
 	if firmarDirecto == nil {
 		return nil, nil, errors.New("no se pudo construir el caso de uso de firma para WebSocket")
 	}
@@ -404,8 +410,8 @@ func construirServicioWebSocket(configDir, p12Dir, p12Password string) (*legacyw
 		approval,
 		auditor,
 		nil,
-	)
-	triphaseExec := triphase.New(runtime.clienteHTTP)
+	).WithComponedorAprobacion(componerAprobacionProtocolo)
+	triphaseExec := triphase.New(runtime.clienteHTTP).ConValidadorDestino(validadorDestinoRuntime(runtime))
 	legacyHandler := newLegacyWebSocketHandler(
 		firmarDirecto,
 		batchUC,

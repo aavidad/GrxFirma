@@ -58,6 +58,29 @@
   "identity.local.selector.no_expiry": "scadenza non disponibile",
   "identity.local.selector.use": "Usa certificato",
   "identity.local.selector.cancel": "Annulla",
+  "approval.question.sign": "Vuoi firmare con il certificato «%s»?",
+  "approval.question.cosign": "Vuoi aggiungere la tua firma (cofirma) con il certificato «%s»?",
+  "approval.question.countersign": "Vuoi controfirmare con il certificato «%s»?",
+  "approval.question.batch": "Vuoi firmare %d documenti con il certificato «%s»?",
+  "approval.question.batch_unknown": "Vuoi firmare un lotto di documenti con il certificato «%s»?",
+  "approval.certificate.unknown": "senza nome",
+  "approval.requester.origin": "Sito che lo richiede: %s",
+  "approval.requester.application": "Applicazione che lo richiede: %s",
+  "approval.document": "Documento: %s",
+  "approval.document.sized": "Documento: %s (%s)",
+  "approval.documents": "Documenti: %s",
+  "approval.documents.more": "%s e altri %d",
+  "approval.format": "Formato di firma: %s",
+  "approval.destinations": "Server che riceveranno il documento o la firma: %s",
+  "approval.origin.unverifiable": "GrxFirma non può verificare quale sito ha richiesto questa firma. I server dell'elenco li ha scelti quel sito. Continua solo se li riconosci.",
+  "approval.session.unidentified": "Questo sito usa un metodo vecchio che non identifica la sessione con GrxFirma. Continua solo se hai appena avviato tu questa firma sul sito.",
+  "approval.triphase.server_multiple": "Il server del sito prepara questa firma e può chiederne più di una con questa sola conferma.",
+  "approval.destination.unencrypted": "Un server dell'elenco usa una connessione non cifrata (http): ciò che viene inviato può essere letto lungo il percorso. Continua solo se è un server della tua organizzazione.",
+  "approval.size.bytes": "%d byte",
+  "approval.size.kb": "%d KB",
+  "approval.save.extension": "Il sito web chiede di salvare un file %s in %s. Firme e documenti di solito sono .pdf, .xml, .csig o .xsig. Salvalo solo se sai di cosa si tratta. Vuoi salvarlo?",
+  "approval.save.extension.risky": "Il sito vuole salvare un file %s in %s. Questo tipo di file può contenere macro o codice che si esegue all'apertura. Salvalo solo se ti aspettavi di riceverlo da questo sito. Vuoi salvarlo?",
+  "approval.save.title": "Conferma salvataggio",
   "cli.error.no_operation": "non è stata specificata alcuna operazione CLI",
   "cli.error.p12_secret_input": "non è stato possibile leggere la password PKCS#12",
   "cli.error.prefix": "errore:",
@@ -85,9 +108,10 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "I record più vecchi sono stati rimossi dalla politica di conservazione; la catena viene verificata dal primo conservato.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d record sono precedenti alla catena di hash e non possono essere verificati.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Verifica la catena di hash del registro di audit: rileva record alterati, inseriti o cancellati. Per dimostrare anche che la parte finale non è stata tagliata, firma il file con il tuo certificato al momento della consegna.",
+  "cli.help.audit": "Verifica la catena di hash del registro di audit: rileva modifiche accidentali; non protegge da chi può scrivere il file. Per dimostrare anche che la parte finale non è stata tagliata, firma il file con il tuo certificato al momento della consegna.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Con la verifica, salva un rapporto di convalida in HTML stampabile con l'esito, i controlli, i firmatari e l'hash SHA-256 del file verificato.",
+  "cli.help.verify_exit": "Codici di uscita della verifica: 0 se la firma è valida; 2 se non è valida; 1 se non è stato possibile verificarla (file illeggibile, formato sconosciuto o altro errore).",
   "Informe de validación": "Rapporto di convalida",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Legge senza eco la password di un PDF cifrato (utente o proprietario) per firmarlo mantenendone la cifratura. È accettata anche la variabile GRXFIRMA_PDF_PASSWORD, che viene cancellata alla lettura; non è mai accettata come argomento.",
@@ -128,6 +152,9 @@
   "security.secret.hint.p12": "usare -contrasena-stdin o, solo per compatibilità di automazione, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "Password PKCS#12: ",
   "security.secret.prompt.protection": "Chiave di protezione Base64: ",
+  "desktop.ipc.server.client_pid_required": "la modalità --server richiede --ipc-client-pid con il PID del programma che si collegherà; senza di esso il canale IPC non viene aperto",
+  "desktop.ipc.peer_binding_unsupported": "questo sistema non permette di verificare quale programma si collega al motore di firma, quindi GrxFirma non si avvia",
+  "desktop.ipc.flag.parent_stdin": "arresta il server quando si chiude lo standard input che il programma grafico che lo ha avviato tiene aperto",
   "rest.error.private_credential": "impossibile preparare la consegna privata della credenziale REST",
   "rest.help.private_delivery": "Un gestore di segreti può inserire GRXFIRMA_REST_TOKEN. Se il token viene generato automaticamente, viene mostrato solo il percorso di un file privato e temporaneo per curl --config.",
   "rest.output.bearer_file": "Credenziale Bearer temporanea: file privato %s",
@@ -860,6 +887,15 @@
   "Firma electrónica avanzada": "Firma elettronica avanzata",
   "Firma guardada exitosamente en: ": "Firma salvata correttamente in: ",
   "Firma inválida o integridad no garantizada.": "Firma non valida o integrità non garantita.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "La firma è corretta, ma parte del contenuto del documento non è firmata.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Non è stato possibile verificare tutto ciò che la firma copre, quindi non viene considerata valida.",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "La firma è valida, anche se non copre alcuni metadati del documento perché il suo formato li esclude. Il dettaglio indica quali.",
+  "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "Il documento non è cambiato da quando è stato firmato, ma la firma usa SHA-1, un algoritmo vecchio che oggi non è considerato sicuro. Per questo non viene considerata valida: serve come prova di una firma fatta quando SHA-1 era accettato.",
+  "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida.": "La firma corrisponde al modo in cui le versioni precedenti di GrxFirma preparavano l'XML, non a quello standard. Molto probabilmente è stata fatta con una di quelle versioni. Non viene considerata valida.",
+  "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "Con quel vecchio metodo le istruzioni di elaborazione fuori dall'elemento radice, come un foglio di stile, non venivano firmate, e questo documento ne contiene. Potrebbero essere state aggiunte dopo la firma.",
+  "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "Il documento dichiara una DTD esterna che GrxFirma non legge. Se quella DTD aggiunge valori al documento, ciò che mostra un altro programma potrebbe non essere ciò che è stato firmato, quindi la firma non viene considerata valida.",
+  "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "Il nome o il tipo di questo file protetto potrebbero essere stati cambiati dopo la protezione; succede spesso con quelli creati da una versione precedente di GrxFirma. Il contenuto è stato verificato. GrxFirma ha corretto il nome per sicurezza: controllalo prima di aprire il file.",
+  "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "Questo file è stato cifrato con un algoritmo vecchio che oggi non è considerato sicuro. È stato decifrato per non farti perdere l'accesso, ma chi te l'ha inviato dovrebbe proteggerlo di nuovo con uno attuale.",
   "Firma múltiple completada (": "Firma multipla completata (",
   "Firma múltiple completada con incidencias (": "Firma multipla completata con avvisi (",
   "Firma múltiple finalizada.": "Firma multipla terminata.",
@@ -1163,6 +1199,7 @@
   "No se pudo conectar al backend tras 10 segundos": "Impossibile connettersi al backend dopo 10 secondi",
   "No se pudo conectar con el backend local.": "Impossibile connettersi al backend locale.",
   "No se pudo conectar con el servicio local de firma (¿está bloqueado?).": "Impossibile connettersi al servizio locale di firma (è bloccato?).",
+  "No se pudo abrir la carpeta del fichero": "Impossibile aprire la cartella del file",
   "No se pudo confirmar el guardado de preferencias.": "Impossibile confermare il salvataggio delle preferenze.",
   "No se pudo confirmar el guardado de preferencias. Cerrando igualmente.": "Impossibile confermare il salvataggio delle preferenze. Chiusura comunque.",
   "No se pudo copiar el JSON de verificación.": "Impossibile copiare il JSON di verifica.",
@@ -2402,6 +2439,13 @@
   "✅ Conexión establecida con el motor de firma.": "✅ Connessione stabilita con il motore di firma.",
   "✅ Firma guardada exitosamente en: ": "✅ Firma salvata correttamente in: ",
   "✅ Proceso de instalación finalizado.": "✅ Processo di installazione terminato.",
+  "Conectando con el motor de firma del lanzador...": "Connessione al motore di firma del programma di avvio...",
+  "Arrancando el motor de firma de esta ventana...": "Avvio del motore di firma di questa finestra...",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ Non c'è una cartella privata per la connessione al motore di firma.",
+  "Error: no se pudo preparar la conexión con el motor de firma": "Errore: impossibile preparare la connessione al motore di firma",
+  "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "La connessione non porta al motore di firma avviato da GrxFirma ed è stata chiusa senza inviare dati. Chiuda GrxFirma e lo riapra.",
+  "Error: no se reconoce el motor de firma": "Errore: motore di firma non riconosciuto",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ Risposta del motore di firma troppo grande; la connessione viene chiusa.",
   "✅ Validar Documento": "✅ Convalida documento",
   "✅ VÁLIDA": "✅ VALIDA",
   "✍ FIRMA DIGITAL": "✍ FIRMA DIGITALE",
@@ -2427,6 +2471,7 @@
   "❌ No se pudo abrir la URL: ": "❌ Non è stato possibile aprire l'URL: ",
   "❌ No se pudo arrancar GrxFirma: ": "❌ Non è stato possibile avviare GrxFirma: ",
   "❌ No se puede instalar: Backend no configurado.": "❌ Impossibile installare: backend non configurato.",
+  "❌ No se pudo abrir la carpeta: ": "❌ Impossibile aprire la cartella: ",
   "🌐  Configuración de Proxy": "🌐 Impostazioni proxy",
   "🌐  Servidor API REST Local": "🌐 Server API REST locale",
   "📤 Enviando petición (JSON): ": "📤 Invio della richiesta (JSON): ",
@@ -2738,6 +2783,13 @@
   ,"Entendido": "Ho capito"
   ,"Actualizado a %1: ver novedades": "Aggiornato alla %1: vedi le novità"
   ,"revocación no concluyente": "Non è stato possibile verificare la revoca del certificato. La firma non è considerata valida."
+  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Non è stato possibile leggere l’archivio dei certificati radice del sistema, quindi non si sa se il certificato è attendibile. La firma non è considerata valida."
+  ,"clave RSA del firmante de menos de 2048 bits": "La chiave del firmatario è RSA con meno di 2048 bit, una dimensione oggi non considerata sicura. La firma non è considerata valida."
+  ,"el certificado firmante no está destinado a firmar documentos": "Il certificato usato per firmare non è destinato alla firma di documenti (può essere, ad esempio, quello di un server web). La firma non è considerata valida."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "Il certificato dipende da una radice attendibile del sistema. Questo non garantisce che sia un certificato qualificato."
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "I dati firmati non indicano quale certificato è stato usato, quindi non si può verificare che il certificato mostrato sia quello che ha firmato."
+  ,"el PDF contiene firmas que no se han podido verificar": "Il PDF contiene firme che GrxFirma non può verificare, quindi non può essere considerato valido."
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "Il PDF contiene una marca temporale di documento che non è stata verificata."
   ,"rest.verify_v2.error.limit": "Il limite di verifica v2 è fuori dall’intervallo consentito"
   ,"portal.seal.title": "Posiziona il timbro sul PDF"
   ,"portal.seal.instructions": "Il sito da cui sta firmando le chiede di scegliere dove va la firma. Trascini il timbro per spostarlo, usi l’angolo in basso a destra per ridimensionarlo e il cerchio con la freccia (↻) per ruotarlo. Può anche scrivere la posizione in «Regolazione precisa»."
@@ -3923,6 +3975,9 @@
   ,"El sello visible permite elegir su posición en el PDF desde la aplicación y en los portales que solicitan esa elección.": "La posizione del timbro visibile nel PDF può essere scelta dall’applicazione e dai portali che richiedono questa selezione."
   ,"Se reforzó la lectura de PDF cifrados o dañados para evitar cierres inesperados.": "Rafforzata la lettura dei PDF cifrati o danneggiati per evitare chiusure impreviste."
   ,"Próxima versión (sin publicar)": "Prossima versione (non pubblicata)"
+  ,"Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.": "Quando si firma da un sito web (afirma://), il selettore del certificato non mostra più «Ricorda questa selezione». La casella non aveva alcun effetto: nella firma da un sito web GrxFirma chiede il certificato ogni volta, come prima."
+  ,"GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva prohibir_cifrado_cms_heredado. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.": "GrxFirma torna ad aprire i file cifrati (buste CMS) con algoritmi obsoleti come DES o 3DES. Li apre e avvisa che la cifratura non è più considerata sicura; un amministratore può impedirlo con il criterio prohibir_cifrado_cms_heredado. L'avviso compare anche nell'applicazione, nella riga di comando e nella console REST."
+  ,"Los archivos .afp que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.": "I file .afp protetti con questa versione si aprono anche con le versioni precedenti di GrxFirma. Il formato più recente resta disponibile se richiesto espressamente."
   ,"Histórico: nombre anterior AutoFirmaV2, versiones 2.0.x": "Cronologia: nome precedente AutoFirmaV2, versioni 2.0.x"
   ,"Contenido de firma": "Contenuto della firma"
   ,"Disponibilidad de firma": "Disponibilità della firma"
@@ -5104,7 +5159,6 @@
   ,"sin certificado firmante para evaluar confianza": "Non c'è un certificato del firmatario con cui valutare la fiducia"
   ,"sin anclas de confianza disponibles": "Nessun certificato radice attendibile disponibile"
   ,"ancla de confianza X.509 inválida": "Certificato radice attendibile X.509 non valido"
-  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Non è stato possibile consultare un archivio di certificati radice del sistema utilizzabile"
   ,"ninguna ancla de confianza configurada contiene material X.509 verificable": "Nessun certificato radice attendibile configurato contiene dati X.509 verificabili"
   ,"cadena X.509 verificada contra las anclas de confianza configuradas": "Catena X.509 verificata rispetto ai certificati radice attendibili configurati"
   ,"cadena de certificados vacía": "La catena di certificati è vuota"

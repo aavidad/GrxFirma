@@ -61,8 +61,9 @@ Resultados del 4 de octubre de 2026, en este entorno restringido:
 | Prueba opcional XSD/xmllint | Dos subpruebas omitidas mediante `t.Skip`: no están indicadas las rutas de los XSD. |
 | Compilación y pruebas C# | Sin ejecutar: no hay dotnet en este entorno. Se añaden pruebas de lógica con `Assert.ThrowsExactly`. |
 
-Go utiliza `GOCACHE=/tmp/eni-go-cache` porque la caché del directorio personal
-es de solo lectura, y `GOPROXY=off` para impedir descargas. La revisión focal
+Go utilizó una caché temporal aparte porque la del directorio personal era de
+solo lectura, y `GOPROXY=off` para impedir descargas. Si hace falta repetirlo,
+cree la caché con `mktemp -d` en lugar de una ruta fija en `/tmp`. La revisión focal
 de seguridad siguió la skill local `security-audit`; no se enviaron código ni
 datos a servicios externos.
 

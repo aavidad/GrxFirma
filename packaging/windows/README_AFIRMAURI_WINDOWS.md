@@ -42,8 +42,10 @@ Set-ExecutionPolicy -Scope Process Bypass
 El script:
 
 - copia `grxfirma-afirmauri.exe` a `%LOCALAPPDATA%\Programs\GrxFirma\AfirmaURI`;
-- genera `afirmauri-handler.cmd`;
-- registra `HKCU\Software\Classes\afirma` para que la URI `afirma://` abra el handler.
+- borra el `afirmauri-handler.cmd` que dejaban versiones anteriores (reenviaba
+  la URI a `cmd.exe` y no lo usaba nadie);
+- registra `HKCU\Software\Classes\afirma` para que la URI `afirma://` abra
+  directamente `grxfirma-afirmauri.exe` con `"%1"`.
 
 Para desinstalar manualmente y retirar también el registro por usuario:
 

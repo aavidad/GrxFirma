@@ -31,6 +31,9 @@ const (
 	NivelLog                 = "nivel_log"
 	TimeoutOperacionSegundos = "timeout_operacion_segundos"
 	MaxTamanoDocumentoBytes  = "max_tamano_documento_bytes"
+	// TSAPermitidas es la lista opcional de TSA que puede pedir una petición
+	// (tsaURL de las opciones). PENDIENTE: no está en la plantilla ADMX.
+	TSAPermitidas            = "tsa_permitidas"
 	PermitirOrigenVacio      = "permitir_origen_vacio"
 	PermitirDESLegacy        = "permitir_des_legacy"
 	PermitirRutasDirectas    = "permitir_rutas_directas_protocolo"
@@ -39,6 +42,8 @@ const (
 	PermitirCMSAESECBLegacy  = "permitir_cms_aes_ecb_legacy"
 	FirmaRemotaCSC           = "firma_remota_csc"
 	FirmaRemotaCSCOAuth      = "firma_remota_csc_oauth_permitidos"
+	// ProhibirCifradoCMSHeredado impide descifrar CMS con cifrados antiguos.
+	ProhibirCifradoCMSHeredado = "prohibir_cifrado_cms_heredado"
 )
 
 // Native indica si la plataforma dispone de un almacén de política de

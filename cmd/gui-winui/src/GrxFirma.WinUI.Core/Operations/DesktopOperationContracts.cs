@@ -1172,6 +1172,15 @@ public sealed record UnprotectResult
         get => _mimeType;
         init => _mimeType = OperationResultText.Clean(value, 160);
     }
+
+    // Avisos para la persona cuando el contenedor se abrió por compatibilidad
+    // con algo antiguo (por ejemplo, un cifrado que hoy no se considera seguro).
+    [JsonPropertyName("warnings")]
+    public IReadOnlyList<string> Warnings { get; init; } = [];
+
+    [JsonIgnore]
+    public IReadOnlyList<string> VisibleWarnings =>
+        OperationResultText.CleanList(Warnings);
 }
 
 public sealed record SignResult

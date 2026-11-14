@@ -18,6 +18,18 @@ pueden modificarla.
 | Windows | `HKLM\SOFTWARE\Policies\GrxFirma` (vista de 64 bits) | Administradores y GPO |
 | Linux / macOS | `/etc/grxfirma/policy.json` y `/etc/grxfirma/allowed-domains.json` | root. Se rechaza si el fichero es modificable por grupo u otros (`chmod 644`, propietario root) |
 
+En macOS `/etc` es un enlace simbólico a `/private/etc`. GrxFirma no sigue
+enlaces al leer la política, así que en macOS lee `/private/etc/grxfirma/policy.json`
+(el mismo fichero que se ve como `/etc/grxfirma/policy.json`).
+
+**Si la política tiene errores.** Un valor con el tipo equivocado invalida solo
+ese ajuste: el resto de la política se aplica. Un ajuste restrictivo
+(`rest_habilitado`, `websocket_habilitado`, `websocket_permitido`,
+`tofu_habilitado`) cuyo valor no se entiende queda **desactivado**, y si
+`policy.json` existe pero no se puede leer (JSON inválido, enlace, propietario
+distinto de root en Linux), REST y WebSocket quedan desactivados. En todos los
+casos GrxFirma deja un aviso en el registro de diagnóstico.
+
 En Windows **no** se leen `C:\etc\...` ni `%ProgramData%`: cualquier usuario
 autenticado puede crear carpetas en ellas y plantar una política que afectaría a
 todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
@@ -36,6 +48,27 @@ todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
 | `firma_remota_csc_oauth_permitidos` | `REG_MULTI_SZ` | Pares `servicio=autorizacion` (`host[:puerto]`) que permiten un servidor OAuth en otro host que el servicio de firma remota. Sustituye a la lista del usuario. |
 | `nivel_log`, `directorio_p12` | `REG_SZ` | Igual que en `policy.json`. |
 | `timeout_operacion_segundos`, `max_tamano_documento_bytes` | `REG_DWORD` / `REG_QWORD` | Límites operativos. |
+| `tsa_permitidas` | `REG_MULTI_SZ` | Lista opcional de TSA que una petición puede indicar en su opción `tsaURL`. Ver «TSA indicada en la petición». |
+
+## TSA indicada en la petición (`tsa_permitidas`)
+
+Una petición de firma puede traer su propia TSA en la opción `tsaURL`. Qué se
+admite depende de quién elige esa opción:
+
+| Camino | Sin `tsa_permitidas` | Con `tsa_permitidas` definida |
+|---|---|---|
+| `afirma://`, WebSocket y host nativo (la elige una página web) | TSA pública sí; en loopback, red privada o enlace local, no | Además se admiten las de la lista, aunque estén en la red interna. Las públicas siguen valiendo |
+| REST local | Cualquier TSA. Si está en la red interna, el registro anota `tsa_opciones_red_local` con el host (sin ruta ni consulta) | Solo las de la lista; las demás se rechazan y el registro anota `tsa_opciones_no_permitida` |
+| CLI (`grxfirma`) e interfaz de escritorio | Cualquier TSA: la teclea o la configura el propio usuario | No se aplica |
+
+Cada entrada es una URL; se compara el origen (esquema, host y puerto), no la
+ruta. Una lista vacía cuenta como definida: por REST no se admite ninguna TSA
+indicada en la petición. Si el valor no se entiende, se trata como una lista
+vacía. Solo la fija la política de máquina; `config.json` del usuario no la
+lee. La TSA de la organización (`GRXFIRMA_TSA_URL`) no depende de esta lista.
+
+En la plantilla ADMX es «Sellos de tiempo (TSA) que puede indicar una
+petición», en la categoría de orígenes.
 
 Excepciones de compatibilidad (todas desactivadas por defecto; `1` las activa):
 
@@ -44,9 +77,10 @@ Excepciones de compatibilidad (todas desactivadas por defecto; `1` las activa):
 | `permitir_des_legacy` | Formato de sesión DES/ECB de AutoFirma 1.9 también fuera de HTTPS (ver nota) | `GRXFIRMA_ENABLE_LEGACY_DES` |
 | `permitir_sha1_legacy` | Generar firmas SHA-1 pedidas por portales antiguos | `GRXFIRMA_ENABLE_LEGACY_SHA1` |
 | `permitir_cms_aes_ecb_legacy` | Leer sobres `SignedAndEnvelopedData` AES-ECB de 1.9 | `GRXFIRMA_ENABLE_LEGACY_CMS_AES_ECB` |
+| `prohibir_cifrado_cms_heredado` | Impide descifrar sobres CMS `EnvelopedData`/`EncryptedData` con un cifrado antiguo (por defecto se descifran con aviso). Restringe, no amplía | — |
 | `permitir_origen_vacio` | WebSocket sin cabecera `Origin` o con `Origin: null` | `GRXFIRMA_WS_ALLOW_EMPTY_ORIGIN` |
 | `permitir_rutas_directas_protocolo` | Rutas locales absolutas en `load`, `save` y `signandsave` | `GRXFIRMA_ENABLE_LEGACY_DIRECT_PATHS` |
-| `aprobacion_automatica_nativehost` | Firmar desde la extensión sin diálogo de confirmación | `GRXFIRMA_NATIVEHOST_AUTO_APPROVE` |
+| `aprobacion_automatica_nativehost` | Firmar desde la extensión oficial de GrxFirma sin diálogo de confirmación (con otras extensiones se pide siempre; ver «Llamantes autorizados del host nativo» en `ADR-desktop-security.md`) | `GRXFIRMA_NATIVEHOST_AUTO_APPROVE` |
 
 **Nota sobre DES.** El intercambio por servidor intermedio de AutoFirma 1.x
 (StorageService/RetrieveService, que usan FIRe y el modo de respaldo de
@@ -54,8 +88,10 @@ AutoScript 1.9) cifra el paquete de sesión con DES y una clave de 8 dígitos. S
 esta política, GrxFirma lo admite **solo para ese paquete y solo si todos los
 servidores del intercambio son HTTPS**: la confidencialidad real la da TLS y la
 clave del protocolo no es más débil con DES. El usuario ve un aviso con el
-motivo. DES nunca se usa para firmar. La política solo amplía el permiso a
-servidores sin HTTPS (por ejemplo, un servidor local de pruebas).
+motivo. DES nunca se usa para firmar. La política amplía ese permiso a
+servidores sin HTTPS (por ejemplo, un servidor local de pruebas) y, además,
+deja abrir sobres CMS `EnvelopedData`/`EncryptedData` cifrados con DES o 3DES,
+que sin ella se rechazan.
 
 **Las variables de entorno antiguas ya no tienen efecto.** Cualquier web, guía o
 programa podía pedir al usuario que las definiera para rebajar la seguridad.
@@ -90,6 +126,7 @@ admite un `REG_SZ` con valores separados por `;`.
   "tofu_habilitado": false,
   "websocket_permitido": false,
   "dominios_de_confianza": ["sede.ejemplo.es"],
+  "tsa_permitidas": ["https://tsa.ejemplo.es/tsa"],
   "permitir_des_legacy": false
 }
 ```

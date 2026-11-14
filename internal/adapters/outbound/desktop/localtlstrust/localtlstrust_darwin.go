@@ -33,17 +33,7 @@ func ensureTrustedPlatform(ctx context.Context, _ string, validatedCertFile stri
 		return nil
 	}
 
-	cmd := exec.CommandContext(
-		ctx,
-		"security",
-		"add-trusted-cert",
-		"-d",
-		"-r",
-		"trustAsRoot",
-		"-k",
-		keychain,
-		validatedCertFile,
-	)
+	cmd := exec.CommandContext(ctx, "security", darwinAddTrustedArgs(keychain, validatedCertFile)...) // #nosec G204 -- herramienta fija y argumentos separados.
 	if out, err := cmd.CombinedOutput(); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
 			return ErrHerramientaNoDisponible
@@ -51,6 +41,13 @@ func ensureTrustedPlatform(ctx context.Context, _ string, validatedCertFile stri
 		return fmt.Errorf("localtlstrust: instalar en keychain: %w: %s", err, string(bytes.TrimSpace(out)))
 	}
 	return nil
+}
+
+// darwinAddTrustedArgs confía la raíz solo para SSL (B-01): `-p ssl` limita
+// la configuración de confianza a la política SSL, de modo que una firma de
+// código o de correo emitida con la clave de la CA no se acepta.
+func darwinAddTrustedArgs(keychain, certFile string) []string {
+	return []string{"add-trusted-cert", "-d", "-r", "trustAsRoot", "-p", "ssl", "-k", keychain, certFile}
 }
 
 func certificadoInstaladoMacOS(ctx context.Context, keychain string, cert *x509.Certificate) (bool, error) {

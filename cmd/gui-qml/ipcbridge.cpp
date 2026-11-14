@@ -4,10 +4,12 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 #include "ipcbridge.h"
+#include "openablefile.h"
 #include "linuxstartupregistration.h"
 #include "executablelocator.h"
 #include "activediagnostics.h"
 #include "incidentprivacy.h"
+#include "ipcpeer.h"
 #include "ipcsocketpath.h"
 #include "processenvironment.h"
 #include "transientsecret.h"
@@ -26,6 +28,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#ifdef Q_OS_WIN
+#include "windowssystempath.h"
+#endif
 #include <QProcessEnvironment>
 #include <QRandomGenerator>
 #include <QSaveFile>
@@ -467,6 +472,8 @@ static QString ipcOriginHint(const QString &action, const QString &message) {
 
 IpcBridge::IpcBridge(QObject *parent) : QObject(parent) {
   m_socket = new QLocalSocket(this);
+  // Una respuesta sin salto de línea no puede crecer sin límite en memoria.
+  m_socket->setReadBufferSize(IpcPeer::kMaxResponseLineBytes);
   m_nam = new QNetworkAccessManager(this);
   m_activeDiagnostics = new ActiveDiagnosticsRunner(this);
   m_webCompatibilityLease = new WebCompatibilityLease(
@@ -522,7 +529,7 @@ IpcBridge::IpcBridge(QObject *parent) : QObject(parent) {
       // el backend que posee esta GUI sigue vivo; al detenerlo de forma
       // explícita el guard evita reabrir el canal.
       QTimer::singleShot(0, this, [this]() {
-        if (m_shuttingDown || !m_process ||
+        if (m_shuttingDown || m_serverRejected || !m_process ||
             m_process->state() == QProcess::NotRunning ||
             m_socket->state() == QLocalSocket::ConnectedState) {
           return;
@@ -877,18 +884,20 @@ void IpcBridge::startBackend(const QString &addr, const QString &token,
   if (m_addr.contains('/')) {
     m_socketPath = m_addr;
   } else {
-    QString userName = QDir::home().dirName();
-    if (userName.isEmpty())
-      userName = "default";
-    QString runtimeDir =
-        QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
-    if (runtimeDir.isEmpty())
-      runtimeDir = QDir::tempPath();
-    m_socketPath = QDir(runtimeDir)
-                       .absoluteFilePath("grxfirma_ipc_" + userName + ".sock");
+    // Ruta nueva y aleatoria en un directorio privado del usuario (0700).
+    // Nunca el temporal compartido ni un nombre fijo que otro pueda ocupar.
+    m_socketPath = IpcPeer::newPrivateSocketPath();
+    if (m_socketPath.isEmpty() && mode != QStringLiteral("rest")) {
+      emit backendLogReceived(it(QStringLiteral(
+          "❌ No hay un directorio privado para la conexión con el motor de firma.")));
+      setStatus(it(QStringLiteral("Error: no se pudo preparar la conexión con el motor de firma")));
+      return;
+    }
   }
 #endif
   qDebug() << "[IpcBridge] Ruta IPC privada calculada.";
+  m_serverRejected = false;
+  m_expectedServerPid = 0;
 
   // Si ya hay un proceso, detenerlo para asegurar un reinicio limpio
   if (m_process && m_process->state() != QProcess::NotRunning) {
@@ -896,40 +905,20 @@ void IpcBridge::startBackend(const QString &addr, const QString &token,
     m_process->waitForFinished(2000);
   }
 
-  // Comprobar si el socket esta vivo (solo si no es modo puramente REST)
+  // Solo se habla con un backend cuyo PID se conoce: el que lanzó
+  // grxfirma-gui (--backend-pid) o el que lanza esta GUI. Nunca se reutiliza
+  // un socket o pipe que ya existiera en la ruta: podría ser de otro proceso.
   bool needsLaunch = true;
   if (m_serverMode != "rest") {
-#if defined(Q_OS_WIN)
-    QLocalSocket testSocket;
-    testSocket.connectToServer(m_socketPath);
-    if (testSocket.waitForConnected(500)) {
-      testSocket.disconnectFromServer();
+    if (m_launcherBackendPid > 0) {
       needsLaunch = false;
+      m_expectedServerPid = m_launcherBackendPid;
       emit backendLogReceived(
-          it(QStringLiteral("Named pipe activo encontrado. Conectando...")));
+          it(QStringLiteral("Conectando con el motor de firma del lanzador...")));
     } else {
       emit backendLogReceived(
-          it(QStringLiteral("Named pipe no activo. Arrancando backend Go...")));
+          it(QStringLiteral("Arrancando el motor de firma de esta ventana...")));
     }
-#else
-    if (QFileInfo::exists(m_socketPath)) {
-      QLocalSocket testSocket;
-      testSocket.connectToServer(m_socketPath);
-      if (testSocket.waitForConnected(500)) {
-        testSocket.disconnectFromServer();
-        needsLaunch = false;
-        emit backendLogReceived(
-            it(QStringLiteral("Socket activo encontrado. Conectando...")));
-      } else {
-        emit backendLogReceived(
-            it(QStringLiteral("Socket muerto encontrado. Limpiando y arrancando...")));
-        QFile::remove(m_socketPath);
-      }
-    } else {
-      emit backendLogReceived(
-          it(QStringLiteral("Socket no encontrado. Arrancando backend Go...")));
-    }
-#endif
   } else {
     emit backendLogReceived(
         it(QStringLiteral("Modo REST activo. Arrancando backend Go...")));
@@ -964,13 +953,17 @@ void IpcBridge::launchBackendProcess() {
     bin = wrapperBin;
     args << "--server" << "--server-modo" << "ipc" << "--ipc-socket"
          << m_socketPath;
-#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
     // El backend valida este valor contra las credenciales que entrega el SO
-    // para el peer real del named pipe/socket. No es un secreto ni se usa como
-    // dato de confianza por sí solo.
+    // para el peer real del named pipe/socket (Windows, Linux y macOS). No es
+    // un secreto ni se usa como dato de confianza por sí solo. Sin él, el
+    // backend en modo --server no arranca.
     args << "--ipc-client-pid"
          << QString::number(QCoreApplication::applicationPid());
-#endif
+    // El backend termina cuando se cierra su entrada estándar. QProcess deja
+    // abierto el extremo de escritura mientras esta GUI vive y el sistema lo
+    // cierra si muere de forma abrupta, así no queda un backend huérfano.
+    // Nunca se llama a closeWriteChannel() sobre este proceso.
+    args << "--ipc-parent-stdin";
   } else if (m_serverMode == "rest") {
     if (backendBin.isEmpty()) {
       emit backendLogReceived(it(QStringLiteral(
@@ -1014,6 +1007,9 @@ void IpcBridge::launchBackendProcess() {
     emit backendLogReceived(it(QStringLiteral("✅ Backend Go arrancado (PID ")) +
                             QString::number(m_process->processId()) +
                             ") modo [" + m_serverMode + "]");
+    // El servidor IPC corre en este mismo proceso hijo: es el único PID que
+    // se aceptará al otro lado del socket.
+    m_expectedServerPid = m_process->processId();
 
     if (m_serverMode != "rest") {
       tryConnect();
@@ -1025,6 +1021,8 @@ void IpcBridge::launchBackendProcess() {
 }
 
 void IpcBridge::tryConnect() {
+  if (m_serverRejected)
+    return;
   if (m_socket->state() == QLocalSocket::ConnectedState) {
     emit backendLogReceived(
         it(QStringLiteral("ℹ️ IPC ya conectado. Se omite nuevo connect().")));
@@ -1104,6 +1102,7 @@ void IpcBridge::stopBackend() {
     delete m_process;
     m_process = nullptr;
   }
+  m_expectedServerPid = 0;
   setStatus(it(QStringLiteral("Backend detenido")));
 }
 
@@ -1142,6 +1141,8 @@ void IpcBridge::shutdownForExit() {
 
 bool IpcBridge::queueDeferredRequest(const QString &action,
                                      const QVariantMap &params) {
+  if (m_serverRejected)
+    return false;
   // Administrative configuration is explicit: never replay on reconnection.
   if (action == "get_token_settings" || action == "save_token_settings" ||
       action == "diagnose_token_settings")
@@ -1868,7 +1869,36 @@ void IpcBridge::checkHash(const QString &inputPath, const QString &hashPath,
   sendRequest("hash_check", params);
 }
 
+bool IpcBridge::verifyConnectedServer() {
+  const IpcPeer::ServerIdentity peer =
+      IpcPeer::readServerIdentity(m_socket->socketDescriptor());
+  return IpcPeer::acceptServer(peer, IpcPeer::currentUid(),
+                               m_expectedServerPid);
+}
+
+void IpcBridge::rejectConnectedServer() {
+  // No se envía nada a un extremo que no es el motor esperado: ni la acción
+  // diferida (puede llevar datos del documento) ni las siguientes.
+  m_serverRejected = true;
+  m_retryCount = 1000;
+  const QString deferredAction = m_deferredAction;
+  m_deferredRequest.fill('\0');
+  m_deferredRequest.clear();
+  m_deferredAction.clear();
+  const QString message = it(QStringLiteral(
+      "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo."));
+  emit backendLogReceived(QStringLiteral("❌ ") + message);
+  setStatus(it(QStringLiteral("Error: no se reconoce el motor de firma")));
+  m_socket->abort();
+  if (!deferredAction.isEmpty())
+    failActionDueToConnection(deferredAction, message);
+}
+
 void IpcBridge::onConnected() {
+  if (!verifyConnectedServer()) {
+    rejectConnectedServer();
+    return;
+  }
   const bool hadDeferredRequest = !m_deferredRequest.isEmpty();
   m_requestLocalTLSStartupAfterDeferred = false;
   m_refreshCertificatesAfterLocalTLSStartup = false;
@@ -1916,6 +1946,15 @@ void IpcBridge::onError(QLocalSocket::LocalSocketError error) {
 }
 
 void IpcBridge::onReadyRead() {
+  if (m_serverRejected)
+    return;
+  if (!m_socket->canReadLine() &&
+      m_socket->bytesAvailable() >= IpcPeer::kMaxResponseLineBytes) {
+    emit backendLogReceived(it(QStringLiteral(
+        "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.")));
+    m_socket->abort();
+    return;
+  }
   while (m_socket->canReadLine()) {
     QByteArray line = m_socket->readLine();
     QJsonDocument doc = QJsonDocument::fromJson(line);
@@ -2575,33 +2614,33 @@ void IpcBridge::openExternal(const QString &path) {
     return;
   }
 
-  const QString suffix = info.suffix().trimmed().toLower();
-  const bool preferOpenDir =
-      suffix == QStringLiteral("enveloped") || suffix == QStringLiteral("afp");
-  if (preferOpenDir) {
+  // Solo se abren tipos documentales; para el resto (ejecutables, accesos
+  // directos, scripts, sobres .afp/.enveloped...) se muestra su carpeta y
+  // nunca se entrega el fichero al sistema.
+  if (!info.isDir() && !OpenableFile::isDocumentToOpen(info.fileName())) {
     const QString dirPath = info.absolutePath();
     if (!dirPath.isEmpty() &&
-        QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath))) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath)))
       return;
-    }
+    emit backendLogReceived(it(QStringLiteral("❌ No se pudo abrir la carpeta: ")) +
+                            dirPath);
+    setStatus(it(QStringLiteral("No se pudo abrir la carpeta del fichero")));
+    return;
   }
 
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(localPath)))
     return;
 
 #ifdef Q_OS_WIN
-  if (QProcess::startDetached("explorer.exe",
-                              {QDir::toNativeSeparators(localPath)}))
+  const QString explorer =
+      QString::fromStdWString(WindowsSystemPath::explorer());
+  if (!explorer.isEmpty() &&
+      QProcess::startDetached(explorer, {QDir::toNativeSeparators(localPath)}))
     return;
 #elif defined(Q_OS_MACOS)
   if (QProcess::startDetached("open", {localPath}))
     return;
 #else
-  if (preferOpenDir) {
-    const QString dirPath = info.absolutePath();
-    if (!dirPath.isEmpty() && QProcess::startDetached("xdg-open", {dirPath}))
-      return;
-  }
   if (QProcess::startDetached("xdg-open", {localPath}))
     return;
 #endif
@@ -2620,11 +2659,18 @@ void IpcBridge::openSignedDocument(const QString &path) {
     setStatus(it(QStringLiteral("El fichero indicado no existe")));
     return;
   }
+  if (!OpenableFile::isDocumentToOpen(info.fileName())) {
+    openExternal(info.absoluteFilePath());
+    return;
+  }
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath())))
     return;
 #ifdef Q_OS_WIN
-  if (QProcess::startDetached(QStringLiteral("explorer.exe"),
-                              {QDir::toNativeSeparators(info.absoluteFilePath())}))
+  const QString explorer =
+      QString::fromStdWString(WindowsSystemPath::explorer());
+  if (!explorer.isEmpty() &&
+      QProcess::startDetached(
+          explorer, {QDir::toNativeSeparators(info.absoluteFilePath())}))
     return;
 #elif defined(Q_OS_MACOS)
   if (QProcess::startDetached(QStringLiteral("open"),
@@ -2640,7 +2686,10 @@ void IpcBridge::openSignedDocument(const QString &path) {
 
 void IpcBridge::openCertManager() {
 #ifdef Q_OS_WIN
-  QProcess::startDetached("rundll32.exe", {"cryptext.dll,CryptExtOpenCER"});
+  const QString rundll32 =
+      QString::fromStdWString(WindowsSystemPath::rundll32());
+  if (!rundll32.isEmpty())
+    QProcess::startDetached(rundll32, {"cryptext.dll,CryptExtOpenCER"});
 #elif defined(Q_OS_MACOS)
   QProcess::startDetached(
       "open", {"/System/Applications/Utilities/Keychain Access.app"});
@@ -2976,24 +3025,16 @@ void IpcBridge::storeProxyCredentials(const QString &realm,
                                       const QString &username,
                                       QString password) {
   QByteArray passwordBytes = password.toUtf8();
-  QVariantMap params;
-  params.insert(QStringLiteral("realm"), realm);
-  params.insert(QStringLiteral("username"), username);
-  // Go decodifica esta cadena Base64 directamente en []byte zeroizable.
-  QByteArray encodedPassword = passwordBytes.toBase64();
-  params.insert(QStringLiteral("password"),
-                QString::fromLatin1(encodedPassword));
-  password.fill(QChar('\0'));
+  // `password` comparte datos con la cadena de QML: fill() separa una copia
+  // propia y no borra la original. Solo se suelta la referencia.
   password.clear();
-  passwordBytes.fill('\0');
-  passwordBytes.clear();
-  encodedPassword.fill('\0');
-  encodedPassword.clear();
-
-  m_pendingAction = QStringLiteral("proxy_secret_store");
-  sendRequest(QStringLiteral("proxy_secret_store"), params);
-  params.insert(QStringLiteral("password"), QString());
-  params.clear();
+  QJsonObject plain;
+  plain.insert(QStringLiteral("realm"), realm);
+  plain.insert(QStringLiteral("username"), username);
+  // Go decodifica esta cadena Base64 directamente en []byte zeroizable.
+  sendSecretRequest(QStringLiteral("proxy_secret_store"), plain,
+                    {{QStringLiteral("password"), &passwordBytes}});
+  TransientSecret::zeroize(passwordBytes);
 }
 
 void IpcBridge::deleteProxyCredentials() {
@@ -3056,29 +3097,94 @@ void IpcBridge::getPdfPreview(const QString &path, int page,
   m_socket->flush();
 }
 
-void IpcBridge::importCertificate(const QString &path,
-                                  const QString &password) {
+// Las credenciales (P12 y contraseña) no pasan por QVariantMap ni QJsonObject:
+// van como QByteArray directamente a la trama y esos búferes se ponen a cero.
+// La QString de la contraseña llega desde QML y comparte datos con la del
+// campo de texto, así que el puente no puede borrarla; la UI vacía el campo.
+void IpcBridge::sendCredentialRequest(const QString &action,
+                                      const QString &path,
+                                      const QString &password,
+                                      const QString &credentialField,
+                                      const QJsonObject &plainParams) {
   QByteArray data;
   QString error;
   if (!readCredentialFileIPC(path, &data, &error)) {
-    emit certificateImportFinished(false, error);
+    if (action == QStringLiteral("use_temporary_certificate"))
+      emit temporaryCertificateFinished(false, error, QVariantMap());
+    else
+      emit certificateImportFinished(false, error);
     return;
   }
+  QByteArray passwordBytes = password.toUtf8();
+  sendSecretRequest(action, plainParams,
+                    {{credentialField, &data},
+                     {QStringLiteral("passwordB64"), &passwordBytes}});
+  TransientSecret::zeroize(data);
+  TransientSecret::zeroize(passwordBytes);
+}
 
-  QVariantMap params;
-  QByteArray encoded = data.toBase64();
-  params.insert("p12B64", QString::fromLatin1(encoded));
-  params.insert("password", password);
-  encoded.fill('\0');
-  data.fill('\0');
-  data.clear();
+void IpcBridge::sendSecretRequest(
+    const QString &action, const QJsonObject &plainParams,
+    const QList<QPair<QString, QByteArray *>> &secrets) {
+  m_pendingAction = action;
+  if (!m_socket->isOpen() ||
+      m_socket->state() != QLocalSocket::ConnectedState) {
+    for (const auto &secret : secrets)
+      if (secret.second)
+        TransientSecret::zeroize(*secret.second);
+    emit backendLogReceived(it(QStringLiteral("⚠️ No hay conexión con el motor. estado=")) +
+                            ipcSocketStateName(m_socket->state()) +
+                            it(QStringLiteral(", action=")) + action);
+    // Nunca se difiere: no se guardan credenciales para la reconexión.
+    failActionDueToConnection(
+        action, it(QStringLiteral("Sin conexión con el motor de firma")));
+    return;
+  }
+  const quint64 seq = ++m_requestSeq;
+  const QString requestId = ipcNewCorrelationId(QStringLiteral("ipc"), seq);
+  const QString traceId = ipcNewCorrelationId(QStringLiteral("trace"), seq);
+  QJsonObject header;
+  header.insert("requestId", requestId);
+  header.insert("traceId", traceId);
+  header.insert("action", action);
+  QByteArray data =
+      TransientSecret::buildSecretRequestFrame(header, plainParams, secrets);
+  // El registro solo ve la cabecera y los parámetros no secretos.
+  QJsonObject logged = header;
+  logged.insert("params", plainParams);
+  emit backendLogReceived(
+      it(QStringLiteral("📤 Petición IPC mínima: ")) +
+      IncidentFormatIpcLogEvent(logged.toVariantMap(),
+                                QStringLiteral("ipc-request"),
+                                QStringLiteral("pending"), data.size()));
+  m_pendingRequestId = requestId;
+  m_pendingTraceId = traceId;
+  setLastRequestId(requestId);
+  setLastTraceId(traceId);
+  if (m_socket->write(data) == -1) {
+    TransientSecret::zeroize(data);
+    const QString err =
+        it(QStringLiteral("No se pudo enviar la petición IPC: ")) +
+        m_socket->errorString();
+    emit backendLogReceived(it(QStringLiteral("❌ ")) + err);
+    failActionDueToConnection(action, err);
+    return;
+  }
+  m_socket->flush();
+  TransientSecret::zeroize(data);
+  emit backendLogReceived(
+      it(QStringLiteral("📬 Petición IPC enviada: ")) +
+      IncidentFormatIpcLogEvent(logged.toVariantMap(),
+                                QStringLiteral("ipc-request"),
+                                QStringLiteral("sent")));
+}
 
+void IpcBridge::importCertificate(const QString &path,
+                                  const QString &password) {
   emit backendLogReceived(
       it(QStringLiteral("⚙ Iniciando importación de certificado IPC...")));
-  m_pendingAction = "import_certificate";
-  sendRequest("import_certificate", params);
-  params.insert("p12B64", QString());
-  params.insert("password", QString());
+  sendCredentialRequest(QStringLiteral("import_certificate"), path, password,
+                        QStringLiteral("p12B64"), QJsonObject());
 }
 
 void IpcBridge::requestCertificateAccessOptions() {
@@ -3096,45 +3202,17 @@ void IpcBridge::openCertificateManager(const QString &managerId) {
 void IpcBridge::importCertificateToStore(const QString &path,
                                          const QString &password,
                                          const QString &targetId) {
-  QByteArray data;
-  QString error;
-  if (!readCredentialFileIPC(path, &data, &error)) {
-    emit certificateImportFinished(false, error);
-    return;
-  }
-  QVariantMap params;
-  QByteArray encoded = data.toBase64();
-  params.insert(QStringLiteral("credentialB64"), QString::fromLatin1(encoded));
-  params.insert(QStringLiteral("password"), password);
-  params.insert(QStringLiteral("targetId"), targetId.trimmed());
-  encoded.fill('\0');
-  data.fill('\0');
-  data.clear();
-  m_pendingAction = QStringLiteral("import_certificate_to_store");
-  sendRequest(QStringLiteral("import_certificate_to_store"), params);
-  params.insert(QStringLiteral("credentialB64"), QString());
-  params.insert(QStringLiteral("password"), QString());
+  QJsonObject plain;
+  plain.insert(QStringLiteral("targetId"), targetId.trimmed());
+  sendCredentialRequest(QStringLiteral("import_certificate_to_store"), path,
+                        password, QStringLiteral("credentialB64"), plain);
 }
 
 void IpcBridge::useTemporaryCertificate(const QString &path,
                                         const QString &password) {
-  QByteArray data;
-  QString error;
-  if (!readCredentialFileIPC(path, &data, &error)) {
-    emit temporaryCertificateFinished(false, error, QVariantMap());
-    return;
-  }
-  QVariantMap params;
-  QByteArray encoded = data.toBase64();
-  params.insert(QStringLiteral("credentialB64"), QString::fromLatin1(encoded));
-  params.insert(QStringLiteral("password"), password);
-  encoded.fill('\0');
-  data.fill('\0');
-  data.clear();
-  m_pendingAction = QStringLiteral("use_temporary_certificate");
-  sendRequest(QStringLiteral("use_temporary_certificate"), params);
-  params.insert(QStringLiteral("credentialB64"), QString());
-  params.insert(QStringLiteral("password"), QString());
+  sendCredentialRequest(QStringLiteral("use_temporary_certificate"), path,
+                        password, QStringLiteral("credentialB64"),
+                        QJsonObject());
 }
 
 void IpcBridge::removeTemporaryCertificate(const QString &certificateId) {

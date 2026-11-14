@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strings"
 
+	"grxfirma/internal/adapters/inbound/common/secretinput"
 	"grxfirma/internal/domain"
 )
 
@@ -336,11 +337,10 @@ func executableCandidates(baseDir, baseName string) []string {
 }
 
 func filtrarSecretosEntornoHijo(base []string) []string {
-	bloqueadas := map[string]struct{}{
-		"GRXFIRMA_PKCS12_PASSWORD":       {},
-		"GRXFIRMA_REST_TOKEN":            {},
-		"AUTOFIRMAV2_REST_TOKEN":         {},
-		"GRXFIRMA_PROTECTION_SECRET_B64": {},
+	nombres := secretinput.NombresEntornoSecretos()
+	bloqueadas := make(map[string]struct{}, len(nombres))
+	for _, nombre := range nombres {
+		bloqueadas[nombre] = struct{}{}
 	}
 	out := make([]string, 0, len(base))
 	for _, item := range base {

@@ -19,7 +19,7 @@ func TestLocalStrongKeyring_AutogeneraYExponeIdentidad(t *testing.T) {
 	t.Parallel()
 
 	cfg := t.TempDir()
-	keyring := protector.NuevoLocalStrongKeyring(cfg)
+	keyring := protector.NuevoLocalStrongKeyring(cfg, cfg, nuevoAlmacenMemoria())
 
 	recipients, err := keyring.List(context.Background())
 	if err != nil {
@@ -32,7 +32,7 @@ func TestLocalStrongKeyring_AutogeneraYExponeIdentidad(t *testing.T) {
 		t.Fatalf("destinatario fuerte incompleto: %#v", got)
 	}
 
-	keys, err := keyring.DecryptionKeys(context.Background())
+	keys, err := keyring.DecryptionKeys(context.Background(), documentoDirigidoA(t, recipients[0].ID))
 	if err != nil {
 		t.Fatalf("DecryptionKeys() error = %v", err)
 	}
@@ -56,7 +56,7 @@ func TestLocalStrongKeyring_AutogeneraYExponeIdentidad(t *testing.T) {
 }
 
 func TestLocalStrongKeyring_ImportRechazaIDNoDerivado(t *testing.T) {
-	source := protector.NuevoLocalStrongKeyring(t.TempDir())
+	source := protector.NuevoLocalStrongKeyring(t.TempDir(), t.TempDir(), nuevoAlmacenMemoria())
 	recipients, err := source.List(context.Background())
 	if err != nil {
 		t.Fatalf("List source: %v", err)
@@ -71,14 +71,14 @@ func TestLocalStrongKeyring_ImportRechazaIDNoDerivado(t *testing.T) {
 		[]byte(`"id": "../../victim"`),
 		1,
 	)
-	destination := protector.NuevoLocalStrongKeyring(t.TempDir())
+	destination := protector.NuevoLocalStrongKeyring(t.TempDir(), t.TempDir(), nuevoAlmacenMemoria())
 	if _, err := destination.Import(context.Background(), malicious); err == nil {
 		t.Fatal("Import accepted an identifier unrelated to the public keys")
 	}
 }
 
 func TestLocalStrongKeyring_ImportRechazaDestinoSymlink(t *testing.T) {
-	source := protector.NuevoLocalStrongKeyring(t.TempDir())
+	source := protector.NuevoLocalStrongKeyring(t.TempDir(), t.TempDir(), nuevoAlmacenMemoria())
 	recipients, err := source.List(context.Background())
 	if err != nil {
 		t.Fatalf("List source: %v", err)
@@ -101,7 +101,7 @@ func TestLocalStrongKeyring_ImportRechazaDestinoSymlink(t *testing.T) {
 	if err := os.Symlink(victim, link); err != nil {
 		t.Skipf("symlinks unavailable: %v", err)
 	}
-	destination := protector.NuevoLocalStrongKeyring(cfg)
+	destination := protector.NuevoLocalStrongKeyring(cfg, cfg, nuevoAlmacenMemoria())
 	if _, err := destination.Import(context.Background(), exported); err == nil {
 		t.Fatal("Import accepted a symlink destination")
 	}

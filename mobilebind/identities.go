@@ -12,6 +12,7 @@ import (
 	"errors"
 	"sync"
 
+	"grxfirma/internal/adapters/outbound/common/protector"
 	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -356,7 +357,9 @@ type mobileSessionDecryptionKeys struct {
 	store *sessionIdentityStore
 }
 
-func (k mobileSessionDecryptionKeys) DecryptionKeys(ctx context.Context) ([]domain.ProtectionKeyMaterial, error) {
+// DecryptionKeys solo entrega las claves de las identidades abiertas que el
+// documento nombra como destinatarias (F-01).
+func (k mobileSessionDecryptionKeys) DecryptionKeys(ctx context.Context, protected domain.Document) ([]domain.ProtectionKeyMaterial, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -372,6 +375,13 @@ func (k mobileSessionDecryptionKeys) DecryptionKeys(ctx context.Context) ([]doma
 		}
 		private, ok := identity.signer.(*rsa.PrivateKey)
 		if !ok || private == nil {
+			continue
+		}
+		ref := identity.reference
+		if len(ref.DER) == 0 {
+			ref.DER = identity.certificate.Raw
+		}
+		if !protector.DocumentoNombraCertificado(protected, ref) {
 			continue
 		}
 		pkcs8, err := x509.MarshalPKCS8PrivateKey(private)

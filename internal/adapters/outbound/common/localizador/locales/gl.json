@@ -58,6 +58,29 @@
   "identity.local.selector.no_expiry": "caducidade non dispoñible",
   "identity.local.selector.use": "Usar certificado",
   "identity.local.selector.cancel": "Cancelar",
+  "approval.question.sign": "Queres asinar co certificado «%s»?",
+  "approval.question.cosign": "Queres engadir a túa sinatura (cosinatura) co certificado «%s»?",
+  "approval.question.countersign": "Queres asinar sobre unha sinatura existente (contrasinatura) co certificado «%s»?",
+  "approval.question.batch": "Queres asinar %d documentos co certificado «%s»?",
+  "approval.question.batch_unknown": "Queres asinar un lote de documentos co certificado «%s»?",
+  "approval.certificate.unknown": "sen nome",
+  "approval.requester.origin": "Web que o pide: %s",
+  "approval.requester.application": "Aplicación que o pide: %s",
+  "approval.document": "Documento: %s",
+  "approval.document.sized": "Documento: %s (%s)",
+  "approval.documents": "Documentos: %s",
+  "approval.documents.more": "%s e %d máis",
+  "approval.format": "Formato de sinatura: %s",
+  "approval.destinations": "Servidores que recibirán o documento ou a sinatura: %s",
+  "approval.origin.unverifiable": "GrxFirma non pode comprobar que web pediu esta sinatura. Os servidores da lista escolleunos esa web. Continúa só se os recoñeces.",
+  "approval.session.unidentified": "Esta web usa un sistema antigo que non identifica a sesión con GrxFirma. Continúa só se acabas de comezar ti esta sinatura na web.",
+  "approval.triphase.server_multiple": "O servidor da web prepara esta sinatura e pode pedir máis dunha con esta soa confirmación.",
+  "approval.destination.unencrypted": "Algún servidor da lista usa unha conexión sen cifrar (http): o que se envíe pódese ler polo camiño. Continúa só se é un servidor da túa organización.",
+  "approval.size.bytes": "%d bytes",
+  "approval.size.kb": "%d KB",
+  "approval.save.extension": "A web pide gardar un ficheiro %s en %s. As sinaturas e os documentos adoitan ser .pdf, .xml, .csig ou .xsig. Gárdao só se sabes que é. Queres gardalo?",
+  "approval.save.extension.risky": "A web pide gardar un ficheiro %s en %s. Este tipo de ficheiro pode levar macros ou código que se executa ao abrilo. Gárdao só se esperabas recibilo desta web. Queres gardalo?",
+  "approval.save.title": "Confirmar o gardado",
   "cli.error.no_operation": "non se indicou ningunha operación CLI",
   "cli.error.p12_secret_input": "non se puido ler o contrasinal PKCS#12",
   "cli.error.prefix": "erro:",
@@ -85,9 +108,10 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Os rexistros máis antigos retiráronse pola política de retención; a cadea compróbase desde o primeiro conservado.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d rexistros son anteriores á cadea de resumos (hash) e non se poden comprobar.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Comproba a cadea de resumos (hash) do rexistro de auditoría: detecta rexistros alterados, inseridos ou borrados. Para acreditar tamén que non se recortou o final, asina o ficheiro co teu certificado ao entregalo.",
+  "cli.help.audit": "Comproba a cadea de resumos (hash) do rexistro de auditoría: detecta modificacións accidentais; non protexe fronte a quen pode escribir o ficheiro. Para acreditar tamén que non se recortou o final, asina o ficheiro co teu certificado ao entregalo.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Coa verificación, garda un informe de validación en HTML imprimible co veredicto, as comprobacións, os asinantes e o resumo SHA-256 do ficheiro verificado.",
+  "cli.help.verify_exit": "Códigos de saída da verificación: 0 se a sinatura é válida; 2 se non é válida; 1 se non se puido comprobar (ficheiro ilexible, formato descoñecido ou outro erro).",
   "Informe de validación": "Informe de validación",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Le sen eco o contrasinal dun PDF cifrado (de usuario ou de propietario) para asinalo conservando o seu cifrado. Tamén se admite a variable GRXFIRMA_PDF_PASSWORD, que se borra ao lela; nunca se acepta como argumento.",
@@ -128,6 +152,9 @@
   "security.secret.hint.p12": "use -contrasena-stdin ou, só para compatibilidade automatizada, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "Contrasinal PKCS#12: ",
   "security.secret.prompt.protection": "Chave de protección Base64: ",
+  "desktop.ipc.server.client_pid_required": "o modo --server precisa --ipc-client-pid co PID do programa que se vai conectar; sen el non se abre a canle IPC",
+  "desktop.ipc.peer_binding_unsupported": "este sistema non permite comprobar que programa se conecta ao motor de sinatura, así que GrxFirma non se inicia",
+  "desktop.ipc.flag.parent_stdin": "detén o servidor cando se pecha a entrada estándar que mantén aberta o programa gráfico que o lanzou",
   "rest.error.private_credential": "erro preparando a entrega privada da credencial REST",
   "rest.help.private_delivery": "Un xestor de segredos pode inxectar GRXFIRMA_REST_TOKEN. Se o token se xera automaticamente, só se amosa a ruta dun ficheiro privado e efémero para curl --config.",
   "rest.output.bearer_file": "Credencial Bearer efémera: ficheiro privado %s",
@@ -860,6 +887,15 @@
   "Firma electrónica avanzada": "Sinatura electrónica avanzada",
   "Firma guardada exitosamente en: ": "Sinatura gardada con éxito en: ",
   "Firma inválida o integridad no garantizada.": "Sinatura non válida ou integridade non garantida.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "A sinatura é correcta, pero parte do contido do documento non está asinado.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Non se puido comprobar todo o que cobre a sinatura, así que non se dá por válida.",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "A sinatura é válida, aínda que non cobre algúns metadatos do documento porque o seu formato os deixa fóra. No detalle indícase cales.",
+  "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "O documento non cambiou desde que se asinou, pero a sinatura usa SHA-1, un algoritmo antigo que hoxe non se considera seguro. Por iso non se dá por válida: serve como proba dunha sinatura feita cando SHA-1 se aceptaba.",
+  "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida.": "A sinatura coincide coa forma de preparar o XML que usaban as versións anteriores de GrxFirma, non coa estándar. O normal é que a fixese unha desas versións. Non se dá por válida.",
+  "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "Con esa forma antiga non quedaban asinadas as instrucións de proceso de fóra do elemento raíz, como unha folla de estilo, e este documento téñenas. Puideron engadirse despois de asinar.",
+  "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "O documento declara unha DTD externa que GrxFirma non le. Se esa DTD engade valores ao documento, o que amose outro programa pode non ser o asinado, así que a sinatura non se dá por válida.",
+  "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "O nome ou o tipo deste ficheiro protexido puideron cambiarse despois de protexelo; adoita pasar cos que fixo unha versión anterior de GrxFirma. O contido si está comprobado. GrxFirma axustou o nome por seguridade: revíseo antes de abrir o ficheiro.",
+  "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "Este ficheiro cifrouse cun algoritmo antigo que hoxe non se considera seguro. Descifrouse para que non perda o acceso, pero quen llo enviou debería protexelo de novo cun actual.",
   "Firma múltiple completada (": "Sinatura múltiple completada (",
   "Firma múltiple completada con incidencias (": "Sinatura múltiple completada con incidencias (",
   "Firma múltiple finalizada.": "Sinatura múltiple finalizada.",
@@ -1163,6 +1199,7 @@
   "No se pudo conectar al backend tras 10 segundos": "Non se puido conectar ao backend tras 10 segundos",
   "No se pudo conectar con el backend local.": "Non se puido conectar co backend local.",
   "No se pudo conectar con el servicio local de firma (¿está bloqueado?).": "Non se puido conectar co servizo local de sinatura (está bloqueado?).",
+  "No se pudo abrir la carpeta del fichero": "Non se puido abrir o cartafol do ficheiro",
   "No se pudo confirmar el guardado de preferencias.": "Non se puido confirmar o gardado das preferencias.",
   "No se pudo confirmar el guardado de preferencias. Cerrando igualmente.": "Non se puido confirmar o gardado das preferencias. Pecharase igualmente.",
   "No se pudo copiar el JSON de verificación.": "Non se puido copiar o JSON de verificación.",
@@ -2402,6 +2439,13 @@
   "✅ Conexión establecida con el motor de firma.": "✅ Conexión establecida co motor de sinatura.",
   "✅ Firma guardada exitosamente en: ": "✅ Sinatura gardada con éxito en: ",
   "✅ Proceso de instalación finalizado.": "✅ Proceso de instalación finalizado.",
+  "Conectando con el motor de firma del lanzador...": "Conectando co motor de sinatura do lanzador...",
+  "Arrancando el motor de firma de esta ventana...": "Iniciando o motor de sinatura desta xanela...",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ Non hai un cartafol privado para a conexión co motor de sinatura.",
+  "Error: no se pudo preparar la conexión con el motor de firma": "Erro: non se puido preparar a conexión co motor de sinatura",
+  "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "A conexión non leva ao motor de sinatura que abriu GrxFirma e cortouse sen enviar ningún dato. Peche GrxFirma e volva abrilo.",
+  "Error: no se reconoce el motor de firma": "Erro: non se recoñece o motor de sinatura",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ A resposta do motor de sinatura é demasiado grande; córtase a conexión.",
   "✅ Validar Documento": "✅ Validar documento",
   "✅ VÁLIDA": "✅ VÁLIDO",
   "✍ FIRMA DIGITAL": "✍ SINATURA DIXITAL",
@@ -2427,6 +2471,7 @@
   "❌ No se pudo abrir la URL: ": "❌ Non se puido abrir a URL: ",
   "❌ No se pudo arrancar GrxFirma: ": "❌ Non se puido arrancar GrxFirma: ",
   "❌ No se puede instalar: Backend no configurado.": "❌ Non se pode instalar: backend non configurado.",
+  "❌ No se pudo abrir la carpeta: ": "❌ Non se puido abrir o cartafol: ",
   "🌐  Configuración de Proxy": "🌐 Configuración do proxy",
   "🌐  Servidor API REST Local": "🌐 Servidor local de API REST",
   "📤 Enviando petición (JSON): ": "📤 Enviando petición (JSON): ",
@@ -2738,6 +2783,13 @@
   ,"Entendido": "Entendido"
   ,"Actualizado a %1: ver novedades": "Actualizado á %1: ver novidades"
   ,"revocación no concluyente": "Non se puido comprobar a revogación do certificado. A sinatura non se considera válida."
+  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Non se puido ler o almacén de certificados raíz do sistema, así que non se sabe se o certificado é de confianza. A sinatura non se considera válida."
+  ,"clave RSA del firmante de menos de 2048 bits": "A clave do asinante é RSA de menos de 2048 bits, un tamaño que hoxe non se considera seguro. A sinatura non se considera válida."
+  ,"el certificado firmante no está destinado a firmar documentos": "O certificado co que se asinou non serve para asinar documentos (pode ser, por exemplo, o dun servidor web). A sinatura non se considera válida."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "O certificado depende dunha raíz de confianza do sistema. Iso non garante que sexa un certificado cualificado."
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "A sinatura non indica nos seus datos asinados que certificado se usou, así que non se pode comprobar que o certificado que se mostra sexa o que asinou."
+  ,"el PDF contiene firmas que no se han podido verificar": "O PDF ten sinaturas que GrxFirma non pode verificar, así que non se pode dar por válido."
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "O PDF ten un selo de tempo de documento que non se comprobou."
   ,"rest.verify_v2.error.limit": "O límite de verificación v2 está fóra do intervalo permitido"
   ,"portal.seal.title": "Colocar o selo no PDF"
   ,"portal.seal.instructions": "A web desde a que asina pídelle que escolla onde vai a sinatura. Arrastre o selo para movelo, use a esquina inferior dereita para cambiar o seu tamaño e o círculo coa frecha (↻) para xiralo. Tamén pode escribir a posición en «Axuste preciso»."
@@ -3923,6 +3975,9 @@
   ,"El sello visible permite elegir su posición en el PDF desde la aplicación y en los portales que solicitan esa elección.": "O selo visible permite escoller a súa posición no PDF desde a aplicación e nos portais que solicitan esa selección."
   ,"Se reforzó la lectura de PDF cifrados o dañados para evitar cierres inesperados.": "Reforzouse a lectura dos PDF cifrados ou danados para evitar peches inesperados."
   ,"Próxima versión (sin publicar)": "Próxima versión (sen publicar)"
+  ,"Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.": "Ao asinar desde unha web (afirma://), o selector de certificado xa non mostra «Lembrar esta selección». A caixa non facía nada: na sinatura desde unha web, GrxFirma pide o certificado cada vez, igual que antes."
+  ,"GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva prohibir_cifrado_cms_heredado. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.": "GrxFirma volve abrir os ficheiros cifrados (sobres CMS) con algoritmos antigos como DES ou 3DES. Ábreos e avisa de que o cifrado xa non se considera seguro; un administrador pode impedilo coa directiva prohibir_cifrado_cms_heredado. O aviso vese tamén na aplicación, na liña de ordes e na consola REST."
+  ,"Los archivos .afp que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.": "Os ficheiros .afp que protexe esta versión ábrense tamén coas versións anteriores de GrxFirma. O formato máis novo segue dispoñible se se pide expresamente."
   ,"Histórico: nombre anterior AutoFirmaV2, versiones 2.0.x": "Histórico: nome anterior AutoFirmaV2, versións 2.0.x"
   ,"Contenido de firma": "Contido da sinatura"
   ,"Disponibilidad de firma": "Dispoñibilidade da sinatura"
@@ -5104,7 +5159,6 @@
   ,"sin certificado firmante para evaluar confianza": "Non hai certificado do asinante co que avaliar a confianza"
   ,"sin anclas de confianza disponibles": "Non hai certificados raíz de confianza dispoñibles"
   ,"ancla de confianza X.509 inválida": "Certificado raíz de confianza X.509 non válido"
-  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Non se puido consultar un almacén de certificados raíz do sistema utilizable"
   ,"ninguna ancla de confianza configurada contiene material X.509 verificable": "Ningún certificado raíz de confianza configurado contén datos X.509 verificables"
   ,"cadena X.509 verificada contra las anclas de confianza configuradas": "Cadea X.509 verificada cos certificados raíz de confianza configurados"
   ,"cadena de certificados vacía": "A cadea de certificados está baleira"

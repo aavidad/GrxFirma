@@ -315,8 +315,10 @@ func TestOrchestrator_OrigenRechazado(t *testing.T) {
 	notify := &mockDesktopNotification{}
 
 	orch := session.New(session.Config{
-		TrustValidator: validator,
-		ParserLegacy:   afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		TrustValidator:     validator,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-1")}, nil
@@ -353,7 +355,9 @@ func TestOrchestrator_ProtocoloRemotoSimpleConservaOpcionesLegacy(t *testing.T) 
 
 	var jobRecibido domain.SignatureJob
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1")}, nil
 		}},
@@ -400,7 +404,9 @@ func TestOrchestrator_BatchRemotoLegacyUsaEjecutorEspecifico(t *testing.T) {
 
 	remoteCalled := false
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1"), certRef("cert-2")}, nil
 		}},
@@ -463,7 +469,9 @@ func TestOrchestrator_BatchRecuperadoDesdeRetrieveSeResuelveComoRemoto(t *testin
 	)
 
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1")}, nil
 		}},
@@ -519,7 +527,9 @@ func TestOrchestrator_SelectCertUsaSubidaDedicadaDeCertificado(t *testing.T) {
 
 	subidaCert := false
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1")}, nil
 		}},
@@ -577,7 +587,9 @@ func TestOrchestrator_FirmaRecuperadaXMLUsaFirmaLocalYSubidaLegacy(t *testing.T)
 	var subido bool
 
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1")}, nil
 		}},
@@ -654,7 +666,9 @@ func TestOrchestrator_NoAbreProgresoAntesDeSeleccionarCertificadoEnBatch(t *test
 
 	progress := &mockProgressProvider{}
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-1"), certRef("cert-2")}, nil
 		}},
@@ -702,6 +716,8 @@ func TestOrchestrator_BatchStopOnErrorEjecutaSecuencialYNoLanzaPosteriores(t *te
 
 	var llamadas []string
 	orch := session.New(session.Config{
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
 		// El usuario elige el certificado en el selector.
 		CertSelector: &mockCertSelector{selectFn: func(_ context.Context, certs []domain.CertificateRef) (certpicker.ResultadoSeleccion, error) {
 			return certpicker.ResultadoSeleccion{Certificado: certs[0]}, nil
@@ -759,6 +775,8 @@ func TestOrchestrator_BatchSinStopOnErrorConservaEjecucionBestEffort(t *testing.
 
 	llamadas := 0
 	orch := session.New(session.Config{
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
 		// El usuario elige el certificado en el selector.
 		CertSelector: &mockCertSelector{selectFn: func(_ context.Context, certs []domain.CertificateRef) (certpicker.ResultadoSeleccion, error) {
 			return certpicker.ResultadoSeleccion{Certificado: certs[0]}, nil
@@ -813,7 +831,9 @@ func TestOrchestrator_FiltraCertificadosNoCaducadosPorDefecto(t *testing.T) {
 		certUsado       string
 	)
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{
 				certRefExpirado("cert-expirado"),
@@ -870,7 +890,9 @@ func TestOrchestrator_FiltroLegacySinCandidatosNoFirmaCaducados(t *testing.T) {
 
 	var recibidos []domain.CertificateRef
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{
 				certRefExpirado("cert-expirado-1"),
@@ -924,7 +946,9 @@ func TestOrchestrator_SinCertificados(t *testing.T) {
 	notify := &mockDesktopNotification{}
 
 	orch := session.New(session.Config{
-		TrustValidator: nil, // sin validación de origen
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		TrustValidator:     nil, // sin validación de origen
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{}, nil
@@ -981,7 +1005,9 @@ func TestOrchestrator_FlujoCompleto(t *testing.T) {
 	solicitud.SignCommand = signCmd
 
 	orch := session.New(session.Config{
-		TrustValidator: nil,
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		TrustValidator:     nil,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-1")}, nil
@@ -1042,7 +1068,9 @@ func TestOrchestrator_ContextoCancelado(t *testing.T) {
 	selectorInvocado := false
 
 	orch := session.New(session.Config{
-		TrustValidator: nil,
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		TrustValidator:     nil,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				// Cancelar el contexto justo después de listar los certificados,
@@ -1081,6 +1109,8 @@ func TestOrchestrator_SeleccionExplicitaNoAutoSeleccionaCertificadoUnico(t *test
 	selectorCalls := 0
 	certificate := certRef("cert-explicito")
 	orch := session.New(session.Config{
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certificate}, nil
@@ -1121,6 +1151,8 @@ func TestOrchestrator_TimeoutGlobal(t *testing.T) {
 
 	eventos := &mockEventPublisher{}
 	orch := session.New(session.Config{
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-1")}, nil
@@ -1165,6 +1197,8 @@ func TestOrchestrator_PublicaEventoEnErrorDeProtocolo(t *testing.T) {
 
 	eventos := &mockEventPublisher{}
 	orch := session.New(session.Config{
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-1")}, nil
@@ -1212,6 +1246,8 @@ func TestOrchestrator_ReutilizaCertificadoPreferidoDeSesion(t *testing.T) {
 	}
 
 	orch := session.New(session.Config{
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-1"), certRef("cert-2")}, nil
@@ -1252,6 +1288,8 @@ func TestOrchestrator_PideConsentimientoConUnicoCertificado(t *testing.T) {
 
 	selectorLlamado := false
 	orch := session.New(session.Config{
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-unico")}, nil
@@ -1290,6 +1328,8 @@ func TestOrchestrator_GuardaCertificadoPreferidoSegunModoRecuerdo(t *testing.T) 
 	preferencias := &mockPreferenceStore{}
 	selectorLlamado := 0
 	orch := session.New(session.Config{
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
 		CertCatalog: &mockCertCatalog{
 			listFn: func(_ context.Context) ([]domain.CertificateRef, error) {
 				return []domain.CertificateRef{certRef("cert-1"), certRef("cert-2")}, nil
@@ -1399,7 +1439,9 @@ func TestOrchestrator_FormatoTriConServerURLUsaServidorTrifasico(t *testing.T) {
 		},
 	}
 	orch := session.New(session.Config{
-		ParserLegacy: afirmauri.New(nil),
+		Aprobador:          aprobadorPrueba{},
+		ComponerAprobacion: componerAprobacionPrueba,
+		ParserLegacy:       afirmauri.New(nil),
 		CertCatalog: &mockCertCatalog{listFn: func(context.Context) ([]domain.CertificateRef, error) {
 			return []domain.CertificateRef{certRef("cert-fnmt")}, nil
 		}},

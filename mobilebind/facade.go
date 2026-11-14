@@ -178,7 +178,8 @@ type sealPreviewRequest struct {
 
 // SealPreviewJSON usa el mismo compositor que la firma PAdES. La identidad
 // procede exclusivamente de la sesión, nunca de un nombre suministrado por UI.
-func (f *Facade) SealPreviewJSON(payload string) (string, error) {
+func (f *Facade) SealPreviewJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("vista previa del sello", &out, &err)
 	if f == nil || f.session == nil {
 		return "", errNoConfigurado("vista previa del sello")
 	}
@@ -346,7 +347,8 @@ type externalIdentityRequest struct {
 
 // InstallExternalIdentityJSON enlaza un certificado con un firmador del DNIe.
 // El callback recibe solo resúmenes; la clave privada permanece en la tarjeta.
-func (f *Facade) InstallExternalIdentityJSON(payload string, signer ExternalDigestSigner) (string, error) {
+func (f *Facade) InstallExternalIdentityJSON(payload string, signer ExternalDigestSigner) (out string, err error) {
+	defer recuperarPanicoFachada("identidad externa", &out, &err)
 	if f == nil || f.session == nil || signer == nil {
 		return "", errNoConfigurado("identidad externa")
 	}
@@ -429,7 +431,8 @@ type androidIntentResponse struct {
 }
 
 // SignJSON firma un documento a partir de un payload JSON bind-friendly.
-func (f *Facade) SignJSON(payload string) (string, error) {
+func (f *Facade) SignJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("firma", &out, &err)
 	if f == nil || f.signService == nil {
 		return "", errNoConfigurado("firma")
 	}
@@ -542,7 +545,8 @@ func (f *Facade) InspectSignatureJSON(payload string) (string, error) {
 }
 
 // VerifyJSON verifica una firma a partir de un payload JSON bind-friendly.
-func (f *Facade) VerifyJSON(payload string) (string, error) {
+func (f *Facade) VerifyJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("verificacion", &out, &err)
 	if f == nil || f.verifyService == nil {
 		return "", errNoConfigurado("verificacion")
 	}
@@ -649,7 +653,8 @@ func (f *Facade) VerifyJSON(payload string) (string, error) {
 }
 
 // SelectCertificateJSON resuelve la seleccion de certificado con un payload bind-friendly.
-func (f *Facade) SelectCertificateJSON(payload string) (string, error) {
+func (f *Facade) SelectCertificateJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("seleccion de certificado", &out, &err)
 	if f == nil || f.selectService == nil {
 		return "", errNoConfigurado("seleccion de certificado")
 	}
@@ -796,7 +801,8 @@ func (f *Facade) uploadResultJSON(payload string) (string, error) {
 }
 
 // ImportCertificateJSON importa un certificado externo a partir de un payload JSON bind-friendly.
-func (f *Facade) ImportCertificateJSON(payload string) (string, error) {
+func (f *Facade) ImportCertificateJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("importacion de certificado", &out, &err)
 	if f == nil || f.importService == nil {
 		return "", errNoConfigurado("importacion de certificado")
 	}
@@ -825,7 +831,8 @@ func (f *Facade) ImportCertificateJSON(payload string) (string, error) {
 // ImportCertificateBytesJSON evita crear una copia Base64 del PKCS#12 en el
 // borde Android. gomobile entrega un slice mutable que se limpia antes de
 // devolver; la contraseña sigue limitada por el contrato String de gobind.
-func (f *Facade) ImportCertificateBytesJSON(data []byte, password string) (string, error) {
+func (f *Facade) ImportCertificateBytesJSON(data []byte, password string) (out string, err error) {
+	defer recuperarPanicoFachada("importacion de certificado", &out, &err)
 	if f == nil || f.importService == nil {
 		return "", errNoConfigurado("importacion de certificado")
 	}
@@ -886,7 +893,8 @@ func mobileCertificateImportErrorMessage(err error) string {
 }
 
 // ResolvePlatformProfileJSON devuelve las capacidades observables de la plataforma mobile.
-func (f *Facade) ResolvePlatformProfileJSON() (string, error) {
+func (f *Facade) ResolvePlatformProfileJSON() (out string, err error) {
+	defer recuperarPanicoFachada("perfil de plataforma", &out, &err)
 	if f == nil || f.profileService == nil {
 		return "", errNoConfigurado("perfil de plataforma")
 	}
@@ -915,7 +923,8 @@ func (f *Facade) ResolvePlatformProfileJSON() (string, error) {
 
 // TranslateAndroidIntentJSON traduce un intent Android a una solicitud mobile
 // bind-friendly, sin exponer tipos internos del núcleo.
-func (f *Facade) TranslateAndroidIntentJSON(payload string) (string, error) {
+func (f *Facade) TranslateAndroidIntentJSON(payload string) (out string, err error) {
+	defer recuperarPanicoFachada("traduccion de intent", &out, &err)
 	if f == nil || f.androidIntentAdapter == nil {
 		return "", errNoConfigurado("android intent")
 	}
@@ -999,6 +1008,18 @@ func marshal(v any) (string, error) {
 		return "", err
 	}
 	return string(data), nil
+}
+
+// recuperarPanicoFachada convierte un pánico en un error saneado, sin el
+// detalle del pánico. gomobile no traduce los pánicos de Go a excepciones de
+// Java o Swift: sin esto, un documento que haga entrar en pánico a un
+// analizador del núcleo cierra la app (H-10). Debe llamarse con defer
+// directamente, para que recover funcione.
+func recuperarPanicoFachada(operacion string, out *string, err *error) {
+	if recover() != nil {
+		*out = ""
+		*err = safeOperationError(operacion)
+	}
 }
 
 func errNoConfigurado(operacion string) error {

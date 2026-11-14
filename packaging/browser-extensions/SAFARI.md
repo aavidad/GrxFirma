@@ -15,7 +15,10 @@ modelo en [Messaging between the app and JavaScript in a Safari web extension](h
 `build-safari.sh` ya no deja el handler generado por Xcode como marcador. El
 flujo actual:
 
-- convierte la extension Chromium en un directorio temporal vacio y solo
+- filtra la fuente Chromium con las mismas reglas que `build.py` (sin
+  `signer/` ni modulos heredados, y con `LOCAL_REST_BEARER` vacio) y falla si
+  el proyecto resultante contiene alguno de esos ficheros;
+- convierte esa fuente filtrada en un directorio temporal vacio y solo
   publica el resultado despues de validar y compilar;
 - sustituye de forma determinista `SafariWebExtensionHandler.swift`;
 - sustituye la vista de la app contenedora por la configuracion local;

@@ -9,9 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
-	"unicode"
 
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -27,6 +25,7 @@ type SignDocumentUseCase struct {
 	auditor   *AuditUseCase
 	eventos   ports.EventPublisher
 	metricas  ports.OperationMetrics
+	componer  ComponedorAprobacion
 }
 
 // NuevoSignDocumentUseCase construye el caso de uso con sus dependencias.
@@ -53,6 +52,17 @@ func (uc *SignDocumentUseCase) WithMetrics(metricas ports.OperationMetrics) *Sig
 		return nil
 	}
 	uc.metricas = metricas
+	return uc
+}
+
+// WithComponedorAprobacion fija cómo se compone el texto de aprobación. Los
+// binarios con diálogo real lo inyectan para que el texto salga traducido y
+// neutralizado por el componente común de aprobación.
+func (uc *SignDocumentUseCase) WithComponedorAprobacion(componer ComponedorAprobacion) *SignDocumentUseCase {
+	if uc == nil {
+		return nil
+	}
+	uc.componer = componer
 	return uc
 }
 
@@ -87,7 +97,7 @@ func (uc *SignDocumentUseCase) Ejecutar(ctx context.Context, cmd SignCommand) (S
 		uc.auditarFallo(ctx, cmd, cert, err)
 		return SignResult{}, err
 	}
-	aprobado, err := uc.aprobador.Request(ctx, mensajeAprobacionFirma(cmd, cert))
+	aprobado, err := uc.aprobador.Request(ctx, uc.mensajeAprobacion(ctx, cmd, cert))
 	if err != nil {
 		uc.auditarFallo(ctx, cmd, cert, err)
 		return SignResult{}, fmt.Errorf("error al solicitar aprobacion al usuario: %w", err)
@@ -146,45 +156,36 @@ func copiarCadenaDER(origen [][]byte) [][]byte {
 	return destino
 }
 
-// MensajeAprobacionFirma es el texto de confirmación que ve el usuario antes
-// de firmar, también cuando la firma se completa en un servidor trifásico.
-func MensajeAprobacionFirma(cmd SignCommand, cert domain.CertificateRef) string {
+func (uc *SignDocumentUseCase) mensajeAprobacion(ctx context.Context, cmd SignCommand, cert domain.CertificateRef) string {
+	if uc != nil && uc.componer != nil {
+		detalle := DetalleAprobacionFirma(cmd, cert.Subject)
+		detalle.SesionNoIdentificada = SesionNoIdentificada(ctx)
+		detalle.DestinoSinCifrar = DestinoSinCifrar(ctx)
+		return uc.componer(detalle)
+	}
 	return mensajeAprobacionFirma(cmd, cert)
 }
 
+// mensajeAprobacionFirma es el texto de reserva cuando el binario no inyecta
+// un componedor (CLI y REST, que aprueban sin diálogo). Todo lo que viene de
+// fuera pasa por NeutralizarTextoAprobacion.
 func mensajeAprobacionFirma(cmd SignCommand, cert domain.CertificateRef) string {
 	mensaje := fmt.Sprintf(
 		"¿Desea firmar el documento '%s' con el certificado '%s'?",
-		cmd.Document.Name,
-		cert.Subject,
+		NeutralizarTextoAprobacion(cmd.Document.Name, MaxRunasAprobacionCampo),
+		NeutralizarTextoAprobacion(cert.Subject, MaxRunasAprobacionCampo),
 	)
-	if aplicacion := contextoAprobacionSeguro(cmd.RequesterApplication); aplicacion != "" {
-		mensaje += "\nAplicación solicitante: " + aplicacion
-	}
 	if origen := contextoAprobacionSeguro(cmd.RequesterOrigin); origen != "" {
 		mensaje += "\nOrigen solicitante: " + origen
+	}
+	if aplicacion := contextoAprobacionSeguro(cmd.RequesterApplication); aplicacion != "" {
+		mensaje += "\nAplicación solicitante: " + aplicacion
 	}
 	return mensaje
 }
 
 func contextoAprobacionSeguro(value string) string {
-	value = strings.TrimSpace(value)
-	if value == "" {
-		return ""
-	}
-	const maxRunes = 512
-	out := make([]rune, 0, min(len(value), maxRunes))
-	for _, r := range value {
-		if len(out) >= maxRunes {
-			break
-		}
-		if unicode.IsControl(r) {
-			out = append(out, ' ')
-			continue
-		}
-		out = append(out, r)
-	}
-	return strings.Join(strings.Fields(string(out)), " ")
+	return NeutralizarTextoAprobacion(value, MaxRunasAprobacionSolicitud)
 }
 
 // Execute expone el caso de uso con el nombre neutro esperado por los adaptadores.

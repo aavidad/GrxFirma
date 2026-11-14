@@ -697,22 +697,24 @@ func exclusiveC14N(xmlStr string) ([]byte, error) {
 	return canonicalizeXML([]byte(xmlStr), algExcC14N)
 }
 
-// escapeXMLAttr escapa caracteres especiales en valores de atributos XML.
+// escapeXMLAttr escapa caracteres especiales en valores de atributos XML con
+// las referencias hexadecimales que fija C14N 1.0 §2.3.
 func escapeXMLAttr(s string) string {
 	s = strings.ReplaceAll(s, "&", "&amp;")
 	s = strings.ReplaceAll(s, "<", "&lt;")
 	s = strings.ReplaceAll(s, `"`, "&quot;")
-	s = strings.ReplaceAll(s, "\t", "&#9;")
-	s = strings.ReplaceAll(s, "\n", "&#10;")
-	s = strings.ReplaceAll(s, "\r", "&#13;")
+	s = strings.ReplaceAll(s, "\t", "&#x9;")
+	s = strings.ReplaceAll(s, "\n", "&#xA;")
+	s = strings.ReplaceAll(s, "\r", "&#xD;")
 	return s
 }
 
-// escapeXMLText escapa caracteres especiales en contenido de texto XML.
+// escapeXMLText escapa caracteres especiales en contenido de texto XML
+// (C14N 1.0 §2.3: el retorno de carro como &#xD;).
 func escapeXMLText(s string) string {
 	s = strings.ReplaceAll(s, "&", "&amp;")
 	s = strings.ReplaceAll(s, "<", "&lt;")
 	s = strings.ReplaceAll(s, ">", "&gt;")
-	s = strings.ReplaceAll(s, "\r", "&#13;")
+	s = strings.ReplaceAll(s, "\r", "&#xD;")
 	return s
 }

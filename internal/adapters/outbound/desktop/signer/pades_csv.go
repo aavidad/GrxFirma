@@ -79,6 +79,18 @@ func ResolverLeyendaCSV(options map[string]string) (direccion, texto string, act
 	return opciones.direccion, opciones.texto, true, nil
 }
 
+// comprobarPaginasSellos valida el número de páginas que declara el PDF antes
+// de reservar un sello por página (E2-03): /Count lo fija el documento.
+func comprobarPaginasSellos(total int) error {
+	if total < 1 {
+		return fmt.Errorf("el PDF no declara un número de páginas válido")
+	}
+	if total > pdfsign.MaxSellosImagen {
+		return fmt.Errorf("demasiadas imágenes que estampar (%d)", total)
+	}
+	return nil
+}
+
 // leyendaCSV devuelve un sello por página con la leyenda CSV, en el margen
 // inferior de la página tal como se ve (con su CropBox y su /Rotate).
 func leyendaCSV(options map[string]string, pdfData []byte) ([]pdfsign.StampImage, error) {
@@ -96,9 +108,14 @@ func leyendaCSV(options map[string]string, pdfData []byte) ([]pdfsign.StampImage
 	if total > pdfsign.MaxSellosImagen {
 		return nil, fmt.Errorf("la leyenda CSV admite documentos de hasta %d páginas", pdfsign.MaxSellosImagen)
 	}
+	// /Count lo fija el documento: se comprueba antes de reservar un sello
+	// por página (E2-03).
+	if err := comprobarPaginasSellos(total); err != nil {
+		return nil, err
+	}
 	type claveImagen struct{ ancho, giro int }
 	imagenes := map[claveImagen][]byte{} // para no repetir el renderizado
-	out := make([]pdfsign.StampImage, 0, max(total, 0))
+	out := make([]pdfsign.StampImage, 0, total)
 	for p := 1; p <= total; p++ {
 		m := marcoLeyendaCSV(r.Page(p))
 		anchoVisto, altoVisto := m.dimensionesVisibles()

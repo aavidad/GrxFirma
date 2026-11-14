@@ -13716,6 +13716,43 @@ Window {
                                             color: "white"
                                             wrapMode: Text.WordWrap
                                         }
+                                        Rectangle {
+                                            id: unprotectWarningsBox
+                                            readonly property var avisos: window.unprotectResult && !window.unprotectResult.error && window.unprotectResult.warnings
+                                                                          ? window.unprotectResult.warnings : []
+                                            visible: avisos.length > 0
+                                            Accessible.role: Accessible.AlertMessage
+                                            Accessible.name: tr("Advertencias")
+                                            Layout.fillWidth: true
+                                            radius: 8
+                                            color: "#4d3b12"
+                                            border.color: "#f2c14e"
+                                            border.width: 1
+                                            implicitHeight: unprotectWarningsColumn.implicitHeight + 16
+
+                                            ColumnLayout {
+                                                id: unprotectWarningsColumn
+                                                anchors.fill: parent
+                                                anchors.margins: 8
+                                                spacing: 4
+
+                                                Text {
+                                                    text: tr("Advertencias")
+                                                    color: "#f2c14e"
+                                                    font.bold: true
+                                                }
+                                                Repeater {
+                                                    model: unprotectWarningsBox.avisos
+                                                    delegate: Text {
+                                                        textFormat: Text.PlainText
+                                                        text: tr(String(modelData))
+                                                        color: "white"
+                                                        wrapMode: Text.WordWrap
+                                                        Layout.fillWidth: true
+                                                    }
+                                                }
+                                            }
+                                        }
                                         ThemedButton {
                                             visible: window.unprotectResult && !window.unprotectResult.error && !!window.unprotectResult.outputPath
                                             text: tr("Abrir desprotegido")

@@ -553,31 +553,25 @@ for (const variant of ["chromium", "firefox"]) {
     assert.equal(message.requesterOrigin, "https://sede.dipgra.es");
   });
 
-  test(`${variant}: firma interna conserva el origen acreditado por runtime`, async () => {
+  test(`${variant}: el fondo ya no atiende las acciones del firmador heredado`, async () => {
     const harness = await loadBackground(variant, {
       nativeResponse(message) {
-        return {
-          requestId: message.requestId,
-          success: true,
-          signature: "Zg==",
-          chunk: 0,
-          totalChunks: 1
-        };
+        return { requestId: message.requestId, success: true, signature: "Zg==", chunk: 0, totalChunks: 1 };
       }
     });
 
-    const response = await harness.dispatchRuntimeMessage({
-      action: "signDocument",
-      data: "aG9sYQ==",
-      certificateId: "cert-1",
-      format: "cades"
-    });
-    assert.equal(response.success, true);
-    assert.equal(harness.postedMessages.length, 1);
-    assert.match(
-      harness.postedMessages[0].requesterOrigin,
-      /^(chrome-extension|moz-extension):\/\//
-    );
+    for (const request of [
+      { action: "signDocument", data: "aG9sYQ==", certificateId: "cert-1", format: "cades" },
+      { action: "verifySignature", signatureData: "aG9sYQ==", format: "cades" }
+    ]) {
+      const response = await harness.dispatchRuntimeMessage(request);
+      assert.equal(response.success, false);
+      assert.equal(response.code, "sender_action_not_authorized");
+    }
+    assert.equal(harness.postedMessages.length, 0);
+    for (const name of ["signWithSystemCertificate", "verifyWithSystemCertificate", "signWithSystemCertificateRest", "verifyWithSystemCertificateRest"]) {
+      assert.equal(vm.runInContext(`typeof ${name}`, harness.context), "undefined");
+    }
   });
 
   test(`${variant}: no anuncia REST sin un Bearer aprovisionado`, async () => {

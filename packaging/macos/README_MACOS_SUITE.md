@@ -75,6 +75,12 @@ a GrxFirma, conserva manifiestos modificados o ajenos y no sigue enlaces
 simbólicos. Desde el directorio extraído también puede ejecutarse directamente
 como `./uninstall-suite.sh`.
 
+Antes de borrar `GrxFirma AfirmaURI.app`, el desinstalador ejecuta
+`grxfirma-afirmauri --remove-local-tls-trust` para quitar del llavero del
+usuario la CA local que GrxFirma instaló, como ya hacen Windows y Linux. Si no
+lo consigue, avisa y termina la desinstalación; la CA se puede quitar después a
+mano desde Acceso a Llaveros.
+
 Si la instalación procede del PKG, limpia primero los registros de cada usuario
 y después elimina el payload del sistema:
 
@@ -84,7 +90,9 @@ sudo "/Library/Application Support/GrxFirma/uninstall-suite.sh" --system
 
 El modo `--system` solo elimina el enlace de `/usr/local/bin/grxfirma` si
 apunta al binario de este paquete y conserva cualquier fichero ajeno que ocupe
-esa ruta.
+esa ruta. También retira la CA local del usuario que lanzó `sudo`. La de los
+demás usuarios del equipo se retira al ejecutar cada uno el desinstalador de
+usuario, como se indica arriba.
 
 ## Construcción
 
@@ -166,6 +174,13 @@ mismas versiones de Go, SDK/Xcode, compilador, Python/zlib, Qt/macdeployqt y
 `pkgbuild`. `codesign --timestamp`, la firma del instalador, notarización y
 grapado incorporan evidencia temporal externa y deben producir bytes distintos.
 Apple tampoco garantiza un PKG idéntico entre versiones de `pkgbuild`.
+
+El PKG marca los dos `.app` como no reubicables: `build-suite.sh` genera la
+lista de bundles con `pkgbuild --analyze`, pone `BundleIsRelocatable` a `false`
+y la pasa con `--component-plist`. Así Installer siempre escribe en
+`/Applications` y no actualiza otra copia con el mismo identificador, como la
+de `~/Applications`. `validate-pkg.sh` rechaza el PKG si su `PackageInfo`
+contiene `<relocate>`.
 
 ## Observaciones
 

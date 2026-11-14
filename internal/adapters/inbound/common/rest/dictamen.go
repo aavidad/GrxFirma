@@ -180,12 +180,8 @@ func bearerSoloVerificacionValido(r *http.Request, token string) bool {
 	return subtle.ConstantTimeCompare([]byte(parts[1]), []byte(token)) == 1
 }
 
-// handleVerifySoloBase64 rechaza siempre las rutas de fichero, aunque el
-// adaptador se hubiera configurado para admitirlas en otro modo.
+// handleVerifySoloBase64 verifica solo contenido en base64: handleVerify
+// rechaza siempre las rutas de fichero.
 func (a *Adaptador) handleVerifySoloBase64(w http.ResponseWriter, r *http.Request) {
-	if a.AllowFileSystemPaths {
-		writeError(w, http.StatusForbidden, "operaciones con rutas de fichero deshabilitadas; use content_base64")
-		return
-	}
 	a.handleVerify(w, r)
 }

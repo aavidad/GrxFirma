@@ -44,6 +44,13 @@
         <multiText id="DominiosDeConfianza_List" valueName="dominios_de_confianza" required="true" />
       </elements>
     </policy>
+    <policy name="TSAPermitidas" class="Machine" displayName="$(string.TSAPermitidas)" explainText="$(string.TSAPermitidas_Help)" presentation="$(presentation.TSAPermitidas)" key="SOFTWARE\Policies\GrxFirma">
+      <parentCategory ref="Origenes" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <elements>
+        <multiText id="TSAPermitidas_List" valueName="tsa_permitidas" />
+      </elements>
+    </policy>
     <policy name="TofuHabilitado" class="Machine" displayName="$(string.TofuHabilitado)" explainText="$(string.TofuHabilitado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="tofu_habilitado">
       <parentCategory ref="Origenes" />
       <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
@@ -115,6 +122,14 @@
       <elements>
         <decimal id="MaxTamanoDocumento_Bytes" valueName="max_tamano_documento_bytes" required="true" minValue="1048576" maxValue="4294967295" />
       </elements>
+    </policy>
+
+    <!-- Restricción: no rebaja la seguridad, la sube -->
+    <policy name="ProhibirCifradoCMSHeredado" class="Machine" displayName="$(string.ProhibirCifradoCMSHeredado)" explainText="$(string.ProhibirCifradoCMSHeredado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="prohibir_cifrado_cms_heredado">
+      <parentCategory ref="Operacion" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_90" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
     </policy>
 
     <!-- Excepciones de compatibilidad: rebajan la seguridad -->

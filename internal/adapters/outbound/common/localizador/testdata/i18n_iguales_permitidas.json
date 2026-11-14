@@ -305,7 +305,11 @@
   "Última",
   "❌ Error: ",
   "report.signer.identifier",
-  "report.technical.subject_dn"
+  "report.technical.subject_dn",
+  "approval.document",
+  "approval.document.sized",
+  "approval.documents",
+  "approval.size.bytes"
  ],
  "de": [
   " + base64",
@@ -536,7 +540,8 @@
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
   "winui.proteger.cms_envelopeddata_enveloped",
   "winui.proteger.compatible_rsa_oaep",
-  "❌ Error: "
+  "❌ Error: ",
+  "approval.size.bytes"
  ],
  "eu": [
   " + base64",
@@ -1778,7 +1783,11 @@
   "qt.filedialog.filter",
   "qt.folderbreadcrumbbar.up",
   "qt.qstandardpaths.downloads",
-  "Modo de servidor"
+  "Modo de servidor",
+  "approval.document",
+  "approval.document.sized",
+  "approval.documents",
+  "approval.size.bytes"
  ],
  "it": [
   " + base64",
@@ -1954,7 +1963,9 @@
   "winui.selector.nombre_firma",
   "winui.verificar.completa",
   "❌ Error: ",
-  "qt.filedialog.filter"
+  "qt.filedialog.filter",
+  "approval.document",
+  "approval.document.sized"
  ],
  "pt": [
   " + base64",
@@ -2389,7 +2400,11 @@
   "winui.selector.nombre_documento_recuperado",
   "qt.filedialog.filter",
   "qt.folderbreadcrumbbar.up",
-  "Modo de servidor"
+  "Modo de servidor",
+  "approval.document",
+  "approval.document.sized",
+  "approval.documents",
+  "approval.size.bytes"
  ],
  "va": [
   " + base64",
@@ -2739,7 +2754,11 @@
   "❌ Error en Socket: ",
   "❌ Error: ",
   "report.signer.identifier",
-  "report.technical.subject_dn"
+  "report.technical.subject_dn",
+  "approval.document",
+  "approval.document.sized",
+  "approval.documents",
+  "approval.size.bytes"
  ],
  "zh": [
   " + base64",

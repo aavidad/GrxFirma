@@ -193,8 +193,9 @@ func TestList_CancelContexto(t *testing.T) {
 	}
 }
 
-// TestConvertirP12APEM_UsaPasswordFile verifica que openssl no recibe la contraseña por argv.
-func TestConvertirP12APEM_UsaPasswordFile(t *testing.T) {
+// TestConvertirP12APEM_UsaDescriptor verifica que openssl no recibe la
+// contraseña por argv ni por un fichero: la lee del descriptor heredado 3.
+func TestConvertirP12APEM_UsaDescriptor(t *testing.T) {
 	dir := t.TempDir()
 	p12Path := filepath.Join(dir, "cert.p12")
 	if err := os.WriteFile(p12Path, []byte("p12 falso"), 0o600); err != nil {
@@ -219,14 +220,8 @@ for arg in "$@"; do
 	prev="$arg"
 done
 
-case "$passin" in
-	file:*) pw_path=${passin#file:} ;;
-	*) exit 32 ;;
-esac
-
-[ -f "$pw_path" ] || exit 33
-[ "$(stat -c %a "$pw_path")" = "600" ] || exit 34
-[ "$(cat "$pw_path")" = "$EXPECT_PASSWORD" ] || exit 35
+[ "$passin" = "fd:3" ] || exit 32
+[ "$(cat <&3)" = "$EXPECT_PASSWORD" ] || exit 35
 
 cat <<'EOF'
 -----BEGIN CERTIFICATE-----

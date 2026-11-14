@@ -58,6 +58,29 @@
   "identity.local.selector.no_expiry": "caducitat no disponible",
   "identity.local.selector.use": "Utilitza el certificat",
   "identity.local.selector.cancel": "Cancel·la",
+  "approval.question.sign": "Vols signar amb el certificat «%s»?",
+  "approval.question.cosign": "Vols afegir la teva signatura (cosignatura) amb el certificat «%s»?",
+  "approval.question.countersign": "Vols contrasignar amb el certificat «%s»?",
+  "approval.question.batch": "Vols signar %d documents amb el certificat «%s»?",
+  "approval.question.batch_unknown": "Vols signar un lot de documents amb el certificat «%s»?",
+  "approval.certificate.unknown": "sense nom",
+  "approval.requester.origin": "Web que ho demana: %s",
+  "approval.requester.application": "Aplicació que ho demana: %s",
+  "approval.document": "Document: %s",
+  "approval.document.sized": "Document: %s (%s)",
+  "approval.documents": "Documents: %s",
+  "approval.documents.more": "%s i %d més",
+  "approval.format": "Format de signatura: %s",
+  "approval.destinations": "Servidors que rebran el document o la signatura: %s",
+  "approval.origin.unverifiable": "GrxFirma no pot comprovar quin web ha demanat aquesta signatura. Els servidors de la llista els ha triat aquest web. Continua només si els reconeixes.",
+  "approval.session.unidentified": "Aquest web fa servir un sistema antic que no identifica la sessió amb GrxFirma. Continua només si acabes de començar tu aquesta signatura al web.",
+  "approval.triphase.server_multiple": "El servidor de la web prepara aquesta signatura i pot demanar-ne més d'una amb aquesta sola confirmació.",
+  "approval.destination.unencrypted": "Algun servidor de la llista fa servir una connexió sense xifrar (http): el que s'envia es pot llegir pel camí. Continua només si és un servidor de la teva organització.",
+  "approval.size.bytes": "%d bytes",
+  "approval.size.kb": "%d KB",
+  "approval.save.extension": "La web demana desar un fitxer %s a %s. Les signatures i els documents solen ser .pdf, .xml, .csig o .xsig. Desa'l només si saps què és. Vols desar-lo?",
+  "approval.save.extension.risky": "La web demana desar un fitxer %s a %s. Aquest tipus de fitxer pot portar macros o codi que s'executa en obrir-lo. Desa'l només si esperaves rebre'l d'aquesta web. Vols desar-lo?",
+  "approval.save.title": "Confirmar el desament",
   "cli.error.no_operation": "no s’ha indicat cap operació CLI",
   "cli.error.p12_secret_input": "no s’ha pogut llegir la contrasenya PKCS#12",
   "cli.error.prefix": "error:",
@@ -85,9 +108,10 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Els registres més antics es van retirar per la política de retenció; la cadena es comprova des del primer conservat.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d registres són anteriors a la cadena de resums (hash) i no es poden comprovar.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Comprova la cadena de resums (hash) del registre d'auditoria: detecta registres alterats, inserits o esborrats. Per acreditar també que no s'ha retallat el final, signa el fitxer amb el teu certificat en lliurar-lo.",
+  "cli.help.audit": "Comprova la cadena de resums (hash) del registre d'auditoria: detecta modificacions accidentals; no protegeix davant de qui pot escriure el fitxer. Per acreditar també que no s'ha retallat el final, signa el fitxer amb el teu certificat en lliurar-lo.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Amb la verificació, desa un informe de validació en HTML imprimible amb el veredicte, les comprovacions, els signants i el resum SHA-256 del fitxer verificat.",
+  "cli.help.verify_exit": "Codis de sortida de la verificació: 0 si la signatura és vàlida; 2 si no és vàlida; 1 si no s'ha pogut comprovar (fitxer il·legible, format desconegut o un altre error).",
   "Informe de validación": "Informe de validació",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Llegeix sense eco la contrasenya d'un PDF xifrat (d'usuari o de propietari) per signar-lo conservant-ne el xifratge. També s'admet la variable GRXFIRMA_PDF_PASSWORD, que s'esborra en llegir-la; mai no s'accepta com a argument.",
@@ -128,6 +152,9 @@
   "security.secret.hint.p12": "useu -contrasena-stdin o, només per compatibilitat automatitzada, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "Contrasenya PKCS#12: ",
   "security.secret.prompt.protection": "Clau de protecció Base64: ",
+  "desktop.ipc.server.client_pid_required": "el mode --server necessita --ipc-client-pid amb el PID del programa que s'hi connectarà; sense això no s'obre el canal IPC",
+  "desktop.ipc.peer_binding_unsupported": "aquest sistema no permet comprovar quin programa es connecta al motor de signatura, així que GrxFirma no s'inicia",
+  "desktop.ipc.flag.parent_stdin": "atura el servidor quan es tanca l'entrada estàndard que manté oberta el programa gràfic que l'ha llançat",
   "rest.error.private_credential": "error preparant el lliurament privat de la credencial REST",
   "rest.help.private_delivery": "Un gestor de secrets pot injectar GRXFIRMA_REST_TOKEN. Si el testimoni es genera automàticament, només es mostra la ruta d'un fitxer privat i efímer per a curl --config.",
   "rest.output.bearer_file": "Credencial Bearer efímera: fitxer privat %s",
@@ -860,6 +887,15 @@
   "Firma electrónica avanzada": "Signatura electrònica avançada",
   "Firma guardada exitosamente en: ": "Signatura desada amb èxit a: ",
   "Firma inválida o integridad no garantizada.": "Signatura no vàlida o integritat no garantida.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "La signatura és correcta, però part del contingut del document no està signat.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "No s'ha pogut comprovar tot el que cobreix la signatura, així que no es dona per vàlida.",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "La signatura és vàlida, encara que no cobreix algunes metadades del document perquè el seu format les deixa fora. Al detall s'indica quines.",
+  "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "El document no ha canviat des que es va signar, però la signatura fa servir SHA-1, un algorisme antic que avui no es considera segur. Per això no es dona per vàlida: serveix com a prova d'una signatura feta quan SHA-1 s'acceptava.",
+  "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida.": "La signatura coincideix amb la manera de preparar l'XML que feien servir les versions anteriors de GrxFirma, no amb l'estàndard. El més normal és que la fes una d'aquestes versions. No es dona per vàlida.",
+  "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "Amb aquesta manera antiga no quedaven signades les instruccions de procés de fora de l'element arrel, com un full d'estil, i aquest document en té. Es podrien haver afegit després de signar.",
+  "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "El document declara una DTD externa que GrxFirma no llegeix. Si aquesta DTD afegeix valors al document, el que mostri un altre programa pot no ser el que es va signar, així que la signatura no es dona per vàlida.",
+  "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "El nom o el tipus d'aquest fitxer protegit es podrien haver canviat després de protegir-lo; passa sovint amb els que va fer una versió anterior de GrxFirma. El contingut sí que està comprovat. GrxFirma ha ajustat el nom per seguretat: reviseu-lo abans d'obrir el fitxer.",
+  "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "Aquest fitxer es va xifrar amb un algorisme antic que avui no es considera segur. S'ha desxifrat perquè no en perdeu l'accés, però qui us l'ha enviat l'hauria de tornar a protegir amb un d'actual.",
   "Firma múltiple completada (": "Signatura múltiple completada (",
   "Firma múltiple completada con incidencias (": "Signatura múltiple completada amb incidències (",
   "Firma múltiple finalizada.": "Signatura múltiple finalitzada.",
@@ -1163,6 +1199,7 @@
   "No se pudo conectar al backend tras 10 segundos": "No s'ha pogut connectar amb el backend després de 10 segons",
   "No se pudo conectar con el backend local.": "No s'ha pogut connectar amb el backend local.",
   "No se pudo conectar con el servicio local de firma (¿está bloqueado?).": "No s'ha pogut connectar amb el servei local de signatura (està bloquejat?).",
+  "No se pudo abrir la carpeta del fichero": "No s'ha pogut obrir la carpeta del fitxer",
   "No se pudo confirmar el guardado de preferencias.": "No s'ha pogut confirmar el guardat de preferències.",
   "No se pudo confirmar el guardado de preferencias. Cerrando igualmente.": "No s'ha pogut confirmar el guardat de preferències. Es tancarà igualment.",
   "No se pudo copiar el JSON de verificación.": "No s'ha pogut copiar el JSON de verificació.",
@@ -2402,6 +2439,13 @@
   "✅ Conexión establecida con el motor de firma.": "✅ Connexió establerta amb el motor de signatura.",
   "✅ Firma guardada exitosamente en: ": "✅ Signatura desada amb èxit a: ",
   "✅ Proceso de instalación finalizado.": "✅ Procés d'instal·lació finalitzat.",
+  "Conectando con el motor de firma del lanzador...": "S'està connectant amb el motor de signatura del llançador...",
+  "Arrancando el motor de firma de esta ventana...": "S'està iniciant el motor de signatura d'aquesta finestra...",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ No hi ha cap carpeta privada per a la connexió amb el motor de signatura.",
+  "Error: no se pudo preparar la conexión con el motor de firma": "Error: no s'ha pogut preparar la connexió amb el motor de signatura",
+  "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "La connexió no porta al motor de signatura que ha obert GrxFirma i s'ha tallat sense enviar cap dada. Tanqueu GrxFirma i torneu-lo a obrir.",
+  "Error: no se reconoce el motor de firma": "Error: no es reconeix el motor de signatura",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ La resposta del motor de signatura és massa gran; es talla la connexió.",
   "✅ Validar Documento": "✅ Validar document",
   "✅ VÁLIDA": "✅ VÀLIDA",
   "✍ FIRMA DIGITAL": "✍ SIGNATURA DIGITAL",
@@ -2427,6 +2471,7 @@
   "❌ No se pudo abrir la URL: ": "❌ No s'ha pogut obrir la URL: ",
   "❌ No se pudo arrancar GrxFirma: ": "❌ No s'ha pogut arrencar GrxFirma: ",
   "❌ No se puede instalar: Backend no configurado.": "❌ No es pot instal·lar: backend no configurat.",
+  "❌ No se pudo abrir la carpeta: ": "❌ No s'ha pogut obrir la carpeta: ",
   "🌐  Configuración de Proxy": "🌐 Configuració de Proxy",
   "🌐  Servidor API REST Local": "🌐 Servidor API REST Local",
   "📤 Enviando petición (JSON): ": "📤 Enviant la petició (JSON): ",
@@ -2738,6 +2783,13 @@
   ,"Entendido": "Entès"
   ,"Actualizado a %1: ver novedades": "Actualitzat a %1: veure novetats"
   ,"revocación no concluyente": "No s’ha pogut comprovar la revocació del certificat. La signatura no es considera vàlida."
+  ,"no se pudo consultar un almacén raíz del sistema utilizable": "No s’ha pogut llegir el magatzem de certificats arrel del sistema, així que no se sap si el certificat és de confiança. La signatura no es considera vàlida."
+  ,"clave RSA del firmante de menos de 2048 bits": "La clau del signant és RSA de menys de 2048 bits, una mida que avui no es considera segura. La signatura no es considera vàlida."
+  ,"el certificado firmante no está destinado a firmar documentos": "El certificat amb què es va signar no serveix per signar documents (pot ser, per exemple, el d’un servidor web). La signatura no es considera vàlida."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "El certificat depèn d’una arrel de confiança del sistema. Això no garanteix que sigui un certificat qualificat."
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "La signatura no indica en les dades signades quin certificat es va fer servir, així que no es pot comprovar que el certificat que es mostra sigui el que va signar."
+  ,"el PDF contiene firmas que no se han podido verificar": "El PDF té signatures que GrxFirma no pot verificar, així que no es pot donar per vàlid."
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "El PDF té un segell de temps de document que no s'ha comprovat."
   ,"rest.verify_v2.error.limit": "El límit de verificació v2 és fora de l’interval permès"
   ,"portal.seal.title": "Col·locar el segell al PDF"
   ,"portal.seal.instructions": "El web des del qual signeu us demana que trieu on va la signatura. Arrossegueu el segell per moure’l, feu servir la cantonada inferior dreta per canviar-ne la mida i el cercle amb la fletxa (↻) per girar-lo. També podeu escriure la posició a «Ajust precís»."
@@ -3923,6 +3975,9 @@
   ,"El sello visible permite elegir su posición en el PDF desde la aplicación y en los portales que solicitan esa elección.": "El segell visible permet triar la seva posició al PDF des de l’aplicació i als portals que demanen aquesta selecció."
   ,"Se reforzó la lectura de PDF cifrados o dañados para evitar cierres inesperados.": "S’ha reforçat la lectura dels PDF xifrats o danyats per evitar tancaments inesperats."
   ,"Próxima versión (sin publicar)": "Pròxima versió (no publicada)"
+  ,"Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.": "En signar des d'un web (afirma://), el selector de certificat ja no mostra «Recorda aquesta selecció». La casella no feia res: en la signatura des d'un web, GrxFirma demana el certificat cada vegada, igual que abans."
+  ,"GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva prohibir_cifrado_cms_heredado. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.": "GrxFirma torna a obrir els fitxers xifrats (sobres CMS) amb algorismes antics com DES o 3DES. Els obre i avisa que el xifratge ja no es considera segur; un administrador ho pot impedir amb la directiva prohibir_cifrado_cms_heredado. L'avís també es veu a l'aplicació, a la línia d'ordres i a la consola REST."
+  ,"Los archivos .afp que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.": "Els fitxers .afp que protegeix aquesta versió també s'obren amb les versions anteriors de GrxFirma. El format més nou continua disponible si es demana expressament."
   ,"Histórico: nombre anterior AutoFirmaV2, versiones 2.0.x": "Històric: nom anterior AutoFirmaV2, versions 2.0.x"
   ,"Contenido de firma": "Contingut de signatura"
   ,"Disponibilidad de firma": "Disponibilitat de la signatura"
@@ -5104,7 +5159,6 @@
   ,"sin certificado firmante para evaluar confianza": "No hi ha cap certificat del signant amb què avaluar la confiança"
   ,"sin anclas de confianza disponibles": "No hi ha certificats arrel de confiança disponibles"
   ,"ancla de confianza X.509 inválida": "Certificat arrel de confiança X.509 no vàlid"
-  ,"no se pudo consultar un almacén raíz del sistema utilizable": "No s'ha pogut consultar cap magatzem de certificats arrel del sistema utilitzable"
   ,"ninguna ancla de confianza configurada contiene material X.509 verificable": "Cap certificat arrel de confiança configurat no conté dades X.509 verificables"
   ,"cadena X.509 verificada contra las anclas de confianza configuradas": "Cadena X.509 verificada amb els certificats arrel de confiança configurats"
   ,"cadena de certificados vacía": "La cadena de certificats és buida"

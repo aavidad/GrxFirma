@@ -382,10 +382,6 @@
             <label for="signDirectory">o carpeta</label>
             <input id="signDirectory" type="file" webkitdirectory directory multiple>
           </div>
-          <div class="field">
-            <label for="signInputPath">o ruta local</label>
-            <input id="signInputPath" type="text" placeholder="/ruta/al/documento.pdf">
-          </div>
         </div>
         <div id="signFileMeta" class="muted small" style="margin:-4px 0 12px"></div>
         <div class="field-row">
@@ -410,10 +406,6 @@
               <option value="cosign">Cofirma</option>
               <option value="countersign">Contrafirma</option>
             </select>
-          </div>
-          <div class="field">
-            <label for="signOutputPath">Ruta de salida</label>
-            <input id="signOutputPath" type="text" placeholder="/ruta/de/salida/opcional">
           </div>
         </div>
         <div class="field-row">
@@ -592,9 +584,7 @@
           </div>
         </div>
         <div class="field-row">
-          <label class="check"><input id="signSaveToDisk" type="checkbox" checked> Guardar en disco si se usa ruta</label>
           <label class="check"><input id="signReturnB64" type="checkbox" checked> Devolver contenido firmado en base64</label>
-          <label class="check"><input id="signOverwrite" type="checkbox"> Sobrescribir salida</label>
         </div>
         <div class="actions">
           <button id="signBtn">Firmar</button>
@@ -610,19 +600,11 @@
             <label for="verifyFile">Archivo firmado</label>
             <input id="verifyFile" type="file">
           </div>
-          <div class="field">
-            <label for="verifyInputPath">o ruta local</label>
-            <input id="verifyInputPath" type="text" placeholder="/ruta/al/documento_firmado.pdf">
-          </div>
         </div>
         <div class="field-row">
           <div class="field">
             <label for="verifyOriginalFile">Original opcional</label>
             <input id="verifyOriginalFile" type="file">
-          </div>
-          <div class="field">
-            <label for="verifyOriginalPath">o ruta del original</label>
-            <input id="verifyOriginalPath" type="text" placeholder="/ruta/al/original.pdf">
           </div>
         </div>
         <div id="verifyOriginalSummary" class="stack" style="margin-top:10px"></div>
@@ -640,14 +622,8 @@
       <section id="hashToolsCard" class="card">
         <h2>Huellas e integridad</h2>
         <div class="stack">
+          <h3>Crear huella</h3>
           <div class="field-row">
-            <div class="field">
-              <label for="hashCreateMode">Crear huella</label>
-              <select id="hashCreateMode">
-                <option value="file">Fichero</option>
-                <option value="directory">Directorio</option>
-              </select>
-            </div>
             <div class="field">
               <label for="hashCreateAlgorithm">Algoritmo</label>
               <select id="hashCreateAlgorithm">
@@ -667,24 +643,6 @@
               <label for="hashCreateFile">Fichero</label>
               <input id="hashCreateFile" type="file">
             </div>
-            <div class="field">
-              <label for="hashCreatePath">Ruta local</label>
-              <input id="hashCreatePath" type="text" placeholder="/ruta/al/documento.pdf o /ruta/al/directorio">
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label for="hashCreateOutputPath">Ruta de salida</label>
-              <input id="hashCreateOutputPath" type="text" placeholder="/ruta/de/salida opcional">
-            </div>
-            <div class="field" id="hashCreateRecursiveWrap">
-              <label>&nbsp;</label>
-              <label class="check"><input id="hashCreateRecursive" type="checkbox"> Recursivo</label>
-            </div>
-            <div class="field">
-              <label>&nbsp;</label>
-              <label class="check"><input id="hashCreateSaveToDisk" type="checkbox" checked> Guardar en disco</label>
-            </div>
           </div>
           <div class="actions">
             <button id="hashCreateBtn">Crear huella</button>
@@ -695,14 +653,8 @@
         </div>
 
         <div class="stack" style="margin-top:18px">
+          <h3>Comprobar huella</h3>
           <div class="field-row">
-            <div class="field">
-              <label for="hashCheckMode">Comprobar huella</label>
-              <select id="hashCheckMode">
-                <option value="file">Fichero</option>
-                <option value="directory">Directorio</option>
-              </select>
-            </div>
             <div class="field">
               <label for="hashCheckAlgorithm">Algoritmo opcional</label>
               <select id="hashCheckAlgorithm">
@@ -720,28 +672,8 @@
               <input id="hashCheckFile" type="file">
             </div>
             <div class="field">
-              <label for="hashCheckPath">Ruta local</label>
-              <input id="hashCheckPath" type="text" placeholder="/ruta/al/documento.pdf o /ruta/al/directorio">
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
               <label for="hashCheckManifestFile">Fichero de huella o manifiesto</label>
-              <input id="hashCheckManifestFile" type="file" accept=".hexhash,.hashb64,.hash,.hashfiles,.txthashfiles,.txt,.xml,.csv,.hashreport">
-            </div>
-            <div class="field">
-              <label for="hashCheckManifestPath">Ruta del fichero de huella</label>
-              <input id="hashCheckManifestPath" type="text" placeholder="/ruta/al/documento.hexhash o /ruta/al/directorio.hashfiles">
-            </div>
-          </div>
-          <div class="field-row" id="hashCheckReportRow">
-            <div class="field">
-              <label for="hashCheckReportOutputPath">Ruta del informe (.hashreport)</label>
-              <input id="hashCheckReportOutputPath" type="text" placeholder="/ruta/de/salida.hashreport">
-            </div>
-            <div class="field">
-              <label>&nbsp;</label>
-              <label class="check"><input id="hashCheckSaveReportToDisk" type="checkbox"> Guardar informe</label>
+              <input id="hashCheckManifestFile" type="file" accept=".hexhash,.hashb64,.hash">
             </div>
           </div>
           <div id="hashCheckAlgorithmSummary" class="stack" style="margin-top:10px"></div>
@@ -797,19 +729,9 @@
             <label for="protectFile">Fichero a proteger</label>
             <input id="protectFile" type="file">
           </div>
-          <div class="field">
-            <label for="protectInputPath">o ruta local</label>
-            <input id="protectInputPath" type="text" placeholder="/ruta/al/documento.bin">
-          </div>
-          <div class="field">
-            <label for="protectOutputPath">Ruta protegida</label>
-            <input id="protectOutputPath" type="text" placeholder="/ruta/de/salida/opcional.afp, .enveloped o .authenveloped.p7m">
-          </div>
         </div>
         <div class="field-row">
-          <label class="check"><input id="protectSaveToDisk" type="checkbox" checked> Guardar protegido en disco si se usa ruta</label>
           <label class="check"><input id="protectReturnB64" type="checkbox" checked> Devolver contenido protegido en base64</label>
-          <label class="check"><input id="protectOverwrite" type="checkbox"> Sobrescribir salida</label>
         </div>
         <div id="protectArtifactSummary" class="stack" style="margin-top:10px"></div>
         <div id="protectPlanSummary" class="stack" style="margin-top:10px"></div>
@@ -822,19 +744,9 @@
             <label for="unprotectFile">Fichero protegido</label>
             <input id="unprotectFile" type="file" accept=".afp,.enveloped,.p7m,application/pkcs7-mime,application/vnd.grxfirma.protected-envelope,application/octet-stream">
           </div>
-          <div class="field">
-            <label for="unprotectInputPath">o ruta local</label>
-            <input id="unprotectInputPath" type="text" placeholder="/ruta/al/documento.afp, .enveloped o .authenveloped.p7m">
-          </div>
-          <div class="field">
-            <label for="unprotectOutputPath">Ruta desprotegida</label>
-            <input id="unprotectOutputPath" type="text" placeholder="/ruta/de/salida/opcional">
-          </div>
         </div>
         <div class="field-row">
-          <label class="check"><input id="unprotectSaveToDisk" type="checkbox" checked> Guardar desprotegido en disco si se usa ruta</label>
           <label class="check"><input id="unprotectReturnB64" type="checkbox" checked> Devolver contenido desprotegido en base64</label>
-          <label class="check"><input id="unprotectOverwrite" type="checkbox"> Sobrescribir salida</label>
         </div>
         <div id="unprotectArtifactSummary" class="stack" style="margin-top:10px"></div>
         <div id="unprotectPlanSummary" class="stack" style="margin-top:10px"></div>
@@ -1015,9 +927,7 @@
     const consolePrefFields = {
       signFormat: "value",
       signAction: "value",
-      signSaveToDisk: "checked",
       signReturnB64: "checked",
-      signOverwrite: "checked",
       rootSignProfile: "value",
       rootTsaUrl: "value",
       rootPadesSubFilter: "value",
@@ -1032,13 +942,8 @@
       rootVisibleSealEnabled: "checked",
       rootSealPosition: "value",
       rootSealAllPages: "checked",
-      hashCreateMode: "value",
       hashCreateAlgorithm: "value",
-      hashCreateRecursive: "checked",
-      hashCreateSaveToDisk: "checked",
-      hashCheckMode: "value",
       hashCheckAlgorithm: "value",
-      hashCheckSaveReportToDisk: "checked",
       rememberConsoleCertificate: "checked",
       subjectFilter: "value",
       issuerFilter: "value",
@@ -1350,17 +1255,11 @@
       ui.certificateExpirySummary.innerHTML = resultBanner("status-warn", "Hay certificados visibles que caducan en los próximos 30 días: " + String(expiringSoon.length));
     }
 
-    function describeVerifySource(file, path, emptyText) {
+    function describeVerifySource(file, emptyText) {
       if (file) {
         return {
           label: "Archivo cargado",
           value: file.name
-        };
-      }
-      if (path) {
-        return {
-          label: "Ruta local",
-          value: path
         };
       }
       return {
@@ -1411,8 +1310,7 @@
 
     function renderVerifyArtifactSummary() {
       const signedFile = document.getElementById("verifyFile").files[0];
-      const signedPath = document.getElementById("verifyInputPath").value.trim();
-      const name = signedFile ? signedFile.name : signedPath;
+      const name = signedFile ? signedFile.name : "";
       if (!name) {
         ui.verifyArtifactSummary.innerHTML = resultBanner("status-warn", "Pendiente de documento firmado");
         return;
@@ -1437,8 +1335,7 @@
 
     function renderVerifyOriginalSummary() {
       const originalFile = document.getElementById("verifyOriginalFile").files[0];
-      const originalPath = document.getElementById("verifyOriginalPath").value.trim();
-      const name = originalFile ? originalFile.name : originalPath;
+      const name = originalFile ? originalFile.name : "";
       if (!name) {
         ui.verifyOriginalSummary.innerHTML = resultBanner("status-warn", "Sin documento original de referencia.");
         return;
@@ -1453,16 +1350,14 @@
 
     function renderVerifyPairSummary() {
       const signedFile = document.getElementById("verifyFile").files[0];
-      const signedPath = document.getElementById("verifyInputPath").value.trim();
       const originalFile = document.getElementById("verifyOriginalFile").files[0];
-      const originalPath = document.getElementById("verifyOriginalPath").value.trim();
-      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : signedPath, detectVerifyArtifactKind);
-      const originalKind = inferredKindLabelOrEmpty(originalFile ? originalFile.name : originalPath, detectOriginalReferenceKind);
-      if (!(signedFile || signedPath)) {
+      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : "", detectVerifyArtifactKind);
+      const originalKind = inferredKindLabelOrEmpty(originalFile ? originalFile.name : "", detectOriginalReferenceKind);
+      if (!signedFile) {
         ui.verifyPairSummary.innerHTML = resultBanner("status-warn", "Pendiente de pareja de validación.");
         return;
       }
-      if (!(originalFile || originalPath)) {
+      if (!originalFile) {
         ui.verifyPairSummary.innerHTML = resultBanner("status-ok", "Validación prevista sin original de referencia.");
         return;
       }
@@ -1479,12 +1374,10 @@
 
     function renderVerifyCompatibilitySummary() {
       const signedFile = document.getElementById("verifyFile").files[0];
-      const signedPath = document.getElementById("verifyInputPath").value.trim();
       const originalFile = document.getElementById("verifyOriginalFile").files[0];
-      const originalPath = document.getElementById("verifyOriginalPath").value.trim();
-      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : signedPath, detectVerifyArtifactKind);
-      const originalKind = inferredKindLabelOrEmpty(originalFile ? originalFile.name : originalPath, detectOriginalReferenceKind);
-      if (!(signedFile || signedPath) || !(originalFile || originalPath)) {
+      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : "", detectVerifyArtifactKind);
+      const originalKind = inferredKindLabelOrEmpty(originalFile ? originalFile.name : "", detectOriginalReferenceKind);
+      if (!signedFile || !originalFile) {
         ui.verifyCompatibilitySummary.innerHTML = resultBanner("status-ok", "Compatibilidad de validación no evaluable sin ambos artefactos.");
         return;
       }
@@ -1503,9 +1396,8 @@
 
     function renderVerifyAlgorithmSummary() {
       const signedFile = document.getElementById("verifyFile").files[0];
-      const signedPath = document.getElementById("verifyInputPath").value.trim();
-      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : signedPath, detectVerifyArtifactKind);
-      if (!(signedFile || signedPath)) {
+      const signedKind = inferredKindLabelOrEmpty(signedFile ? signedFile.name : "", detectVerifyArtifactKind);
+      if (!signedFile) {
         ui.verifyAlgorithmSummary.innerHTML = resultBanner("status-warn", "Pendiente de firmado para estimar el stack.");
         return;
       }
@@ -1519,13 +1411,11 @@
 
     function renderVerifyPlanSummary() {
       const signedFile = document.getElementById("verifyFile").files[0];
-      const signedPath = document.getElementById("verifyInputPath").value.trim();
       const originalFile = document.getElementById("verifyOriginalFile").files[0];
-      const originalPath = document.getElementById("verifyOriginalPath").value.trim();
-      const signedSource = describeVerifySource(signedFile, signedPath, "Pendiente de documento firmado");
-      const originalSource = describeVerifySource(originalFile, originalPath, "Sin original");
-      const hasSignedSource = !!(signedFile || signedPath);
-      const hasOriginalSource = !!(originalFile || originalPath);
+      const signedSource = describeVerifySource(signedFile, "Pendiente de documento firmado");
+      const originalSource = describeVerifySource(originalFile, "Sin original");
+      const hasSignedSource = !!signedFile;
+      const hasOriginalSource = !!originalFile;
       const mode = hasOriginalSource ? "con original de referencia" : "solo documento firmado";
       const banner = hasSignedSource
         ? resultBanner(hasOriginalSource ? "status-ok" : "status-warn", hasOriginalSource ? "Plan de validación listo con original de referencia." : "Plan de validación listo sin documento original.")
@@ -1541,43 +1431,25 @@
     }
 
     function renderHashCreatePlanSummary() {
-      const mode = document.getElementById("hashCreateMode").value;
       const algorithm = document.getElementById("hashCreateAlgorithm").value.toUpperCase();
       const format = document.getElementById("hashCreateFormat").value;
       const inputFile = document.getElementById("hashCreateFile").files[0];
-      const inputPath = document.getElementById("hashCreatePath").value.trim();
-      const outputPath = document.getElementById("hashCreateOutputPath").value.trim();
-      const saveToDisk = document.getElementById("hashCreateSaveToDisk").checked;
-      const recursive = document.getElementById("hashCreateRecursive").checked;
-      const source = inputFile ? ("Archivo cargado: " + inputFile.name) : (inputPath ? ("Ruta local: " + inputPath) : "Pendiente de origen");
-      const output = outputPath ? ("Ruta local: " + outputPath) : (saveToDisk ? "Misma ruta o nombre derivado" : "Solo en memoria");
-      const modeLabel = mode === "directory" ? "Directorio" : "Fichero";
-      const ready = !!(inputFile || inputPath);
-      const banner = ready
-        ? resultBanner("status-ok", mode === "directory" ? "Plan de huella listo para manifiesto de directorio." : "Plan de huella listo para fichero.")
+      const source = inputFile ? ("Archivo cargado: " + inputFile.name) : "Pendiente de origen";
+      const banner = inputFile
+        ? resultBanner("status-ok", "Plan de huella listo para fichero.")
         : resultBanner("status-warn", "Pendiente de origen para crear huella.");
       ui.hashCreatePlanSummary.innerHTML =
         banner +
         '<div class="result-block">' +
           '<div class="kv"><strong>Plan de huella</strong>' + escapeHtml("crear") + '</div>' +
           '<div class="kv"><strong>Origen</strong>' + escapeHtml(source) + '</div>' +
-          '<div class="kv"><strong>Modo</strong>' + escapeHtml(modeLabel) + '</div>' +
           '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(algorithm) + '</div>' +
           '<div class="kv"><strong>Formato</strong>' + escapeHtml(format || "No disponible") + '</div>' +
-          '<div class="kv"><strong>Salida prevista</strong>' + escapeHtml(output) + '</div>' +
-          (mode === "directory" ? ('<div class="kv"><strong>Recursivo</strong>' + escapeHtml(recursive ? t("__GRXFIRMA_BOOLEAN_YES__") : t("__GRXFIRMA_BOOLEAN_NO__")) + '</div>') : '') +
         '</div>';
     }
 
-    function expectedHashCreateArtifactSuffix(mode, format) {
-      const normalizedMode = String(mode || "").toLowerCase();
+    function expectedHashCreateArtifactSuffix(format) {
       const normalizedFormat = String(format || "").toLowerCase();
-      if (normalizedMode === "directory") {
-        if (normalizedFormat === "xml") return ".hashfiles";
-        if (normalizedFormat === "txt") return ".txthashfiles";
-        if (normalizedFormat === "csv") return ".csv";
-        return "";
-      }
       if (normalizedFormat === "hex") return ".hexhash";
       if (normalizedFormat === "base64") return ".hashb64";
       if (normalizedFormat === "bin") return ".hash";
@@ -1585,43 +1457,24 @@
     }
 
     function renderHashCreateArtifactSummary() {
-      const mode = document.getElementById("hashCreateMode").value;
       const format = document.getElementById("hashCreateFormat").value;
-      const outputPath = document.getElementById("hashCreateOutputPath").value.trim();
-      const suffix = expectedHashCreateArtifactSuffix(mode, format);
+      const suffix = expectedHashCreateArtifactSuffix(format);
       if (!suffix) {
         ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-warn", "No se pudo inferir el artefacto esperado de huella.");
         return;
       }
-      if (!outputPath) {
-        ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-ok", "Artefacto de huella esperado: " + suffix);
-        return;
-      }
-      if (!outputPath.toLowerCase().endsWith(suffix.toLowerCase())) {
-        ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-warn", "La ruta de salida no termina en " + suffix);
-        return;
-      }
-      ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-ok", "La ruta de salida coincide con el artefacto esperado: " + suffix);
+      ui.hashCreateArtifactSummary.innerHTML = resultBanner("status-ok", "Artefacto de huella esperado: " + suffix);
     }
 
     function renderHashCheckPlanSummary() {
-      const mode = document.getElementById("hashCheckMode").value;
       const algorithm = document.getElementById("hashCheckAlgorithm").value.toUpperCase();
       const inputFile = document.getElementById("hashCheckFile").files[0];
-      const inputPath = document.getElementById("hashCheckPath").value.trim();
       const manifestFile = document.getElementById("hashCheckManifestFile").files[0];
-      const manifestPath = document.getElementById("hashCheckManifestPath").value.trim();
-      const reportPath = document.getElementById("hashCheckReportOutputPath").value.trim();
-      const saveReport = document.getElementById("hashCheckSaveReportToDisk").checked;
-      const source = inputFile ? ("Archivo cargado: " + inputFile.name) : (inputPath ? ("Ruta local: " + inputPath) : "Pendiente de origen");
-      const manifest = manifestFile ? ("Archivo cargado: " + manifestFile.name) : (manifestPath ? ("Ruta local: " + manifestPath) : "Pendiente de huella o manifiesto");
-      const report = mode === "directory"
-        ? (reportPath ? ("Ruta local: " + reportPath) : (saveReport ? "Ruta pendiente de informe" : "Sin informe en disco"))
-        : "No aplica";
-      const modeLabel = mode === "directory" ? "Directorio" : "Fichero";
-      const ready = !!((inputFile || inputPath) && (manifestFile || manifestPath));
+      const source = inputFile ? ("Archivo cargado: " + inputFile.name) : "Pendiente de origen";
+      const manifest = manifestFile ? ("Archivo cargado: " + manifestFile.name) : "Pendiente de huella o manifiesto";
+      const ready = !!(inputFile && manifestFile);
       const banner = ready
-        ? resultBanner("status-ok", mode === "directory" ? "Plan de comprobación listo para manifiesto de directorio." : "Plan de comprobación listo para fichero.")
+        ? resultBanner("status-ok", "Plan de comprobación listo para fichero.")
         : resultBanner("status-warn", "Pendiente de origen o huella para comprobar.");
       ui.hashCheckPlanSummary.innerHTML =
         banner +
@@ -1629,9 +1482,7 @@
           '<div class="kv"><strong>Plan de huella</strong>' + escapeHtml("comprobar") + '</div>' +
           '<div class="kv"><strong>Origen</strong>' + escapeHtml(source) + '</div>' +
           '<div class="kv"><strong>Huella o manifiesto</strong>' + escapeHtml(manifest) + '</div>' +
-          '<div class="kv"><strong>Modo</strong>' + escapeHtml(modeLabel) + '</div>' +
           '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(algorithm || "Auto") + '</div>' +
-          (mode === "directory" ? ('<div class="kv"><strong>Informe</strong>' + escapeHtml(report) + '</div>') : '') +
         '</div>';
     }
 
@@ -1648,10 +1499,8 @@
     }
 
     function renderHashCheckArtifactSummary() {
-      const mode = document.getElementById("hashCheckMode").value;
       const manifestFile = document.getElementById("hashCheckManifestFile").files[0];
-      const manifestPath = document.getElementById("hashCheckManifestPath").value.trim();
-      const manifestName = manifestFile ? manifestFile.name : manifestPath;
+      const manifestName = manifestFile ? manifestFile.name : "";
       const detectedKind = detectHashArtifactKind(manifestName);
       if (!manifestName) {
         ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-warn", "Pendiente de huella o manifiesto");
@@ -1661,8 +1510,8 @@
         ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-warn", "No se pudo inferir el tipo del artefacto de huella.");
         return;
       }
-      if (detectedKind !== mode) {
-        ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-warn", "El artefacto de huella parece de " + (detectedKind === "directory" ? "directorio" : "fichero") + " y no coincide con el modo actual.");
+      if (detectedKind !== "file") {
+        ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-warn", "El artefacto de huella parece de " + "directorio" + " y no coincide con el modo actual.");
         return;
       }
       ui.hashCheckArtifactSummary.innerHTML = resultBanner("status-ok", "El artefacto de huella coincide con el modo seleccionado.");
@@ -1838,10 +1687,7 @@
       const effectiveContainer = profile === "alto" ? "json" : requestedContainer;
       const outputHint = protectionContainerSuffix(effectiveContainer);
       const file = document.getElementById("protectFile").files[0];
-      const inputPath = document.getElementById("protectInputPath").value.trim();
-      const outputPath = document.getElementById("protectOutputPath").value.trim();
-      const sourceLabel = file ? file.name : (inputPath || "No disponible");
-      const saveToDisk = document.getElementById("protectSaveToDisk").checked;
+      const sourceLabel = file ? file.name : "No disponible";
       const returnB64 = document.getElementById("protectReturnB64").checked;
       ui.protectPlanSummary.innerHTML =
         '<div class="result-block">' +
@@ -1849,8 +1695,8 @@
           '<div class="kv"><strong>Destinatarios</strong>' + escapeHtml(String(selected.length)) + '</div>' +
           '<div class="kv"><strong>Perfil</strong>' + escapeHtml(profile) + '</div>' +
           '<div class="kv"><strong>Contenedor efectivo</strong>' + escapeHtml(effectiveContainer + " (" + outputHint + ")") + '</div>' +
-          '<div class="kv"><strong>Salida prevista</strong>' + escapeHtml(outputPath || ("automática " + outputHint)) + '</div>' +
-          '<div class="kv"><strong>Entrega</strong>' + escapeHtml((saveToDisk ? "disco" : "memoria") + (returnB64 ? " + base64" : "")) + '</div>' +
+          '<div class="kv"><strong>Salida prevista</strong>' + escapeHtml("memoria") + '</div>' +
+          '<div class="kv"><strong>Entrega</strong>' + escapeHtml("memoria" + (returnB64 ? " + base64" : "")) + '</div>' +
         '</div>';
     }
 
@@ -1859,16 +1705,7 @@
       const requestedContainer = String(document.getElementById("protectionContainer").value || "json").toLowerCase();
       const effectiveContainer = profile === "alto" ? "json" : requestedContainer;
       const suffix = protectionContainerSuffix(effectiveContainer);
-      const outputPath = document.getElementById("protectOutputPath").value.trim();
-      if (!outputPath) {
-        ui.protectArtifactSummary.innerHTML = resultBanner("status-ok", "Artefacto protegido esperado: " + suffix);
-        return;
-      }
-      if (!outputPath.toLowerCase().endsWith(suffix.toLowerCase())) {
-        ui.protectArtifactSummary.innerHTML = resultBanner("status-warn", "La ruta protegida no termina en " + suffix);
-        return;
-      }
-      ui.protectArtifactSummary.innerHTML = resultBanner("status-ok", "La ruta protegida coincide con el artefacto esperado: " + suffix);
+      ui.protectArtifactSummary.innerHTML = resultBanner("status-ok", "Artefacto protegido esperado: " + suffix);
     }
 
     function updateProtectionRecipientsForProfile() {
@@ -2303,39 +2140,19 @@
     }
 
     function setHashCreateFormatOptions() {
-      const mode = document.getElementById("hashCreateMode").value;
       const select = document.getElementById("hashCreateFormat");
-      const options = mode === "directory"
-        ? [
-            ['xml', 'xml (.hashfiles)'],
-            ['txt', 'txt (.txthashfiles)'],
-            ['csv', 'csv']
-          ]
-        : [
-            ['hex', 'hex (.hexhash)'],
-            ['base64', 'base64 (.hashb64)'],
-            ['bin', 'bin (.hash)']
-          ];
+      const options = [
+        ['hex', 'hex (.hexhash)'],
+        ['base64', 'base64 (.hashb64)'],
+        ['bin', 'bin (.hash)']
+      ];
       select.innerHTML = options.map(([value, label]) =>
         '<option value="' + escapeHtml(value) + '">' + escapeHtml(label) + '</option>'
       ).join("");
     }
 
     function updateHashPanels() {
-      const createMode = document.getElementById("hashCreateMode").value;
-      document.getElementById("hashCreateRecursiveWrap").style.display = createMode === "directory" ? "flex" : "none";
-      document.getElementById("hashCreateFile").disabled = createMode === "directory";
-      if (createMode === "directory") {
-        document.getElementById("hashCreateFile").value = "";
-      }
       setHashCreateFormatOptions();
-
-      const checkMode = document.getElementById("hashCheckMode").value;
-      document.getElementById("hashCheckReportRow").style.display = checkMode === "directory" ? "flex" : "none";
-      document.getElementById("hashCheckFile").disabled = checkMode === "directory";
-      if (checkMode === "directory") {
-        document.getElementById("hashCheckFile").value = "";
-      }
       renderHashCreateArtifactSummary();
       renderHashCreatePlanSummary();
       renderHashCheckAlgorithmSummary();
@@ -2344,59 +2161,15 @@
     }
 
     function handleHashCreateFileChange() {
-      const fileInput = document.getElementById("hashCreateFile");
-      const pathInput = document.getElementById("hashCreatePath");
-      if ((fileInput.files || []).length > 0) {
-        pathInput.value = "";
-      }
-      renderHashCreatePlanSummary();
-    }
-
-    function handleHashCreatePathInput() {
-      const fileInput = document.getElementById("hashCreateFile");
-      const pathInput = document.getElementById("hashCreatePath");
-      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
-        fileInput.value = "";
-      }
       renderHashCreatePlanSummary();
     }
 
     function handleHashCheckFileChange() {
-      const fileInput = document.getElementById("hashCheckFile");
-      const pathInput = document.getElementById("hashCheckPath");
-      if ((fileInput.files || []).length > 0) {
-        pathInput.value = "";
-      }
-      renderHashCheckPlanSummary();
-      renderHashCheckArtifactSummary();
-    }
-
-    function handleHashCheckPathInput() {
-      const fileInput = document.getElementById("hashCheckFile");
-      const pathInput = document.getElementById("hashCheckPath");
-      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
-        fileInput.value = "";
-      }
       renderHashCheckPlanSummary();
       renderHashCheckArtifactSummary();
     }
 
     function handleHashManifestFileChange() {
-      const fileInput = document.getElementById("hashCheckManifestFile");
-      const pathInput = document.getElementById("hashCheckManifestPath");
-      if ((fileInput.files || []).length > 0) {
-        pathInput.value = "";
-      }
-      renderHashCheckPlanSummary();
-      renderHashCheckArtifactSummary();
-    }
-
-    function handleHashManifestPathInput() {
-      const fileInput = document.getElementById("hashCheckManifestFile");
-      const pathInput = document.getElementById("hashCheckManifestPath");
-      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
-        fileInput.value = "";
-      }
       renderHashCheckPlanSummary();
       renderHashCheckArtifactSummary();
     }
@@ -2434,10 +2207,7 @@
       return "application/pkcs7-signature";
     }
 
-    function signedFilenameForResult(name, format, outputPath) {
-      if (outputPath) {
-        return outputPath.split(/[\\/]/).pop();
-      }
+    function signedFilenameForResult(name, format) {
       const source = String(name || "firmado").split(/[\\/]/).pop();
       const dot = source.lastIndexOf(".");
       const base = dot > 0 ? source.slice(0, dot) : source;
@@ -2452,10 +2222,7 @@
       return base + ".csig";
     }
 
-    function protectedFilenameForResult(name, outputPath) {
-      if (outputPath) {
-        return outputPath.split(/[\\/]/).pop();
-      }
+    function protectedFilenameForResult(name) {
       const source = String(name || "protegido").split(/[\\/]/).pop();
       if (/\.(afp|enveloped|p7m)$/i.test(source)) {
         return source;
@@ -2463,10 +2230,7 @@
       return source + ".afp";
     }
 
-    function unprotectedFilenameForResult(documentName, outputPath, fallbackName) {
-      if (outputPath) {
-        return outputPath.split(/[\\/]/).pop();
-      }
+    function unprotectedFilenameForResult(documentName, fallbackName) {
       const preferred = String(documentName || "").trim();
       if (preferred) {
         return preferred.split(/[\\/]/).pop();
@@ -2487,36 +2251,27 @@
 
     function updateSignFileMeta() {
       const files = selectedSignFiles();
-      const inputPath = document.getElementById("signInputPath").value.trim();
-      if (files.length === 0 && !inputPath) {
+      if (files.length === 0) {
         ui.signFileMeta.innerHTML = "";
         return;
       }
-      if (files.length > 0) {
-        const items = files.map((file) => {
-          const size = file.size > 0 ? (file.size / 1024).toFixed(1) + " KB" : "0 KB";
-          return '<li><strong>' + escapeHtml(sourceFileName(file)) + '</strong> <span class="muted">(' + escapeHtml(size + " · " + inferMimeType(file, file.name)) + ')</span></li>';
-        }).join("");
-        ui.signFileMeta.innerHTML =
-          '<strong>' + escapeHtml("Seleccionados") + ':</strong> ' + escapeHtml(String(files.length)) +
-          '<ul style="margin:6px 0 0 18px;padding:0">' + items + '</ul>';
-        return;
-      }
-      ui.signFileMeta.innerHTML = '<code>' + escapeHtml(inputPath) + '</code>';
+      const items = files.map((file) => {
+        const size = file.size > 0 ? (file.size / 1024).toFixed(1) + " KB" : "0 KB";
+        return '<li><strong>' + escapeHtml(sourceFileName(file)) + '</strong> <span class="muted">(' + escapeHtml(size + " · " + inferMimeType(file, file.name)) + ')</span></li>';
+      }).join("");
+      ui.signFileMeta.innerHTML =
+        '<strong>' + escapeHtml("Seleccionados") + ':</strong> ' + escapeHtml(String(files.length)) +
+        '<ul style="margin:6px 0 0 18px;padding:0">' + items + '</ul>';
     }
 
     function renderSignPlanSummary() {
       const files = selectedSignFiles();
-      const inputPath = document.getElementById("signInputPath").value.trim();
-      const outputPath = document.getElementById("signOutputPath").value.trim();
       const format = document.getElementById("signFormat").value;
       const action = document.getElementById("signAction").value;
       const profile = document.getElementById("rootSignProfile").value.trim();
       const tsaUrl = document.getElementById("rootTsaUrl").value.trim();
       const padesSubFilter = document.getElementById("rootPadesSubFilter").value.trim();
-      const saveToDisk = document.getElementById("signSaveToDisk").checked;
       const returnB64 = document.getElementById("signReturnB64").checked;
-      const overwrite = document.getElementById("signOverwrite").checked;
       const policyVersion = document.getElementById("rootFacturaePolicyVersion").value.trim();
       const signerRole = document.getElementById("rootFacturaeSignerRole").value.trim();
       const policyIdentifier = document.getElementById("rootFacturaePolicyIdentifier").value.trim();
@@ -2525,16 +2280,14 @@
       const signatureProvince = document.getElementById("rootFacturaeSignatureProvince").value.trim();
       const signaturePostalCode = document.getElementById("rootFacturaeSignaturePostalCode").value.trim();
       const signatureCountry = document.getElementById("rootFacturaeSignatureCountry").value.trim();
-      const ready = files.length > 0 || !!inputPath;
+      const ready = files.length > 0;
       const source = files.length > 1
         ? ("Lote: " + files.length + " fichero(s)")
         : (files.length === 1
             ? ("Fichero: " + sourceFileName(files[0]))
-            : (inputPath ? ("Ruta local: " + inputPath) : "Pendiente de origen"));
-      const output = outputPath
-        ? ("Ruta local: " + outputPath)
-        : (saveToDisk ? "ruta automática si el backend la resuelve" : "memoria");
-      const delivery = (saveToDisk ? "disco" : "memoria") + (returnB64 ? " + base64" : "");
+            : "Pendiente de origen");
+      const output = "memoria";
+      const delivery = "memoria" + (returnB64 ? " + base64" : "");
       let advanced = "Sin opciones avanzadas visibles.";
       const formatUpper = String(format || "").toUpperCase();
       if (formatUpper === "PADES" || formatUpper === "CADES" || formatUpper === "XADES") {
@@ -2564,17 +2317,14 @@
           '<div class="kv"><strong>Salida prevista</strong>' + escapeHtml(output) + '</div>' +
           '<div class="kv"><strong>Entrega</strong>' + escapeHtml(delivery) + '</div>' +
           '<div class="kv"><strong>Avanzado</strong>' + escapeHtml(advanced) + '</div>' +
-          '<div class="kv"><strong>Sobrescritura</strong>' + escapeHtml(overwrite ? "permitida" : "desactivada") + '</div>' +
         '</div>';
     }
 
     function handleSignFileChange() {
       const fileInput = document.getElementById("signFile");
       const directoryInput = document.getElementById("signDirectory");
-      const pathInput = document.getElementById("signInputPath");
       if ((fileInput.files || []).length > 0) {
         directoryInput.value = "";
-        pathInput.value = "";
       }
       updateSignFileMeta();
       renderSignPlanSummary();
@@ -2583,67 +2333,21 @@
     function handleSignDirectoryChange() {
       const fileInput = document.getElementById("signFile");
       const directoryInput = document.getElementById("signDirectory");
-      const pathInput = document.getElementById("signInputPath");
       if ((directoryInput.files || []).length > 0) {
         fileInput.value = "";
-        pathInput.value = "";
       }
       updateSignFileMeta();
       renderSignPlanSummary();
-    }
-
-    function handleSignPathInput() {
-      const fileInput = document.getElementById("signFile");
-      const directoryInput = document.getElementById("signDirectory");
-      const pathInput = document.getElementById("signInputPath");
-      if (pathInput.value.trim() !== "" && ((fileInput.files || []).length > 0 || (directoryInput.files || []).length > 0)) {
-        fileInput.value = "";
-        directoryInput.value = "";
-      }
-      updateSignFileMeta();
-      renderSignPlanSummary();
-    }
-
-    function handleProtectFileChange() {
-      const fileInput = document.getElementById("protectFile");
-      const pathInput = document.getElementById("protectInputPath");
-      if ((fileInput.files || []).length > 0) {
-        pathInput.value = "";
-      }
-    }
-
-    function handleProtectPathInput() {
-      const fileInput = document.getElementById("protectFile");
-      const pathInput = document.getElementById("protectInputPath");
-      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
-        fileInput.value = "";
-      }
     }
 
     function handleUnprotectFileChange() {
-      const fileInput = document.getElementById("unprotectFile");
-      const pathInput = document.getElementById("unprotectInputPath");
-      if ((fileInput.files || []).length > 0) {
-        pathInput.value = "";
-      }
-      renderUnprotectArtifactSummary();
-      renderUnprotectPlanSummary();
-    }
-
-    function handleUnprotectPathInput() {
-      const fileInput = document.getElementById("unprotectFile");
-      const pathInput = document.getElementById("unprotectInputPath");
-      if (pathInput.value.trim() !== "" && (fileInput.files || []).length > 0) {
-        fileInput.value = "";
-      }
       renderUnprotectArtifactSummary();
       renderUnprotectPlanSummary();
     }
 
     function renderUnprotectArtifactSummary() {
       const file = document.getElementById("unprotectFile").files[0];
-      const inputPath = document.getElementById("unprotectInputPath").value.trim();
-      const name = file ? file.name : inputPath;
+      const name = file ? file.name : "";
       if (!name) {
         ui.unprotectArtifactSummary.innerHTML = resultBanner("status-warn", "Pendiente de artefacto protegido.");
         return;
@@ -2658,14 +2362,11 @@
 
     function renderUnprotectPlanSummary() {
       const file = document.getElementById("unprotectFile").files[0];
-      const inputPath = document.getElementById("unprotectInputPath").value.trim();
-      const outputPath = document.getElementById("unprotectOutputPath").value.trim();
-      const saveToDisk = document.getElementById("unprotectSaveToDisk").checked;
       const returnB64 = document.getElementById("unprotectReturnB64").checked;
-      const source = file ? ("Archivo cargado: " + file.name) : (inputPath ? ("Ruta local: " + inputPath) : "Pendiente de origen");
-      const output = outputPath ? ("Ruta local: " + outputPath) : (saveToDisk ? ("automática " + "disco") : "memoria");
-      const delivery = (saveToDisk ? "disco" : "memoria") + (returnB64 ? " + base64" : "");
-      const ready = !!(file || inputPath);
+      const source = file ? ("Archivo cargado: " + file.name) : "Pendiente de origen";
+      const output = "memoria";
+      const delivery = "memoria" + (returnB64 ? " + base64" : "");
+      const ready = !!file;
       ui.unprotectPlanSummary.innerHTML =
         resultBanner(ready ? "status-ok" : "status-warn", ready ? "Plan de desprotección listo." : "Pendiente de origen para desproteger.") +
         '<div class="result-block">' +
@@ -2715,7 +2416,7 @@
       const parts = [];
       for (let index = 0; index < results.length; index++) {
         const item = results[index];
-        const filename = signedFilenameForResult(item.name, item.format, item.outputPath);
+        const filename = signedFilenameForResult(item.name, item.format);
         const mime = signedMimeTypeForFormat(item.format, filename);
         const downloadHtml = buildDownloadLinkFromB64(item.signed_content_base64, mime, filename);
         const originalItem = Array.isArray(originalItems) ? originalItems[index] : null;
@@ -2736,7 +2437,7 @@
             '<div class="kv"><strong>Formato</strong>' + escapeHtml(item.format || "") + '</div>' +
             '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(item.algorithm || "") + '</div>' +
             '<div class="kv"><strong>Certificado</strong><code>' + escapeHtml(item.certificate_id || "") + '</code></div>' +
-            '<div class="kv"><strong>Salida</strong>' + escapeHtml(item.outputPath || "en memoria") + '</div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml("en memoria") + '</div>' +
             (item.error ? '<div class="kv"><strong>' + escapeHtml(t("__GRXFIRMA_ERROR_LABEL__")) + '</strong>' + escapeHtml(item.error) + '</div>' : '') +
             (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
             renderVerificationBlock(verification) +
@@ -2754,24 +2455,6 @@
         '<div class="kv"><strong>Total</strong>' + escapeHtml(String(total)) + '</div>' +
         '<div class="kv"><strong>OK</strong>' + escapeHtml(String(successCount)) + '</div>' +
         '<div class="kv"><strong>KO</strong>' + escapeHtml(String(failureCount)) + '</div>' +
-      '</div>';
-    }
-
-    function renderHashDirectoryListBlock(title, values, emptyLabel) {
-      const items = Array.isArray(values) ? values.filter(Boolean) : [];
-      return '<div class="kv"><strong>' + escapeHtml(title) + '</strong>' +
-        (items.length
-          ? '<ul style="margin:8px 0 0 18px;padding:0">' + items.map((item) => '<li><code>' + escapeHtml(String(item)) + '</code></li>').join("") + '</ul>'
-          : '<div style="margin-top:8px">' + escapeHtml(emptyLabel) + '</div>') +
-      '</div>';
-    }
-
-    function renderDirectoryHashDiffBlock(response) {
-      return '<div class="result-block" style="margin-top:12px">' +
-        renderHashDirectoryListBlock("Coinciden", response.matching_hash, "Sin coincidencias registradas.") +
-        renderHashDirectoryListBlock("No coinciden", response.not_matching_hash, "No hay ficheros con hash distinto.") +
-        renderHashDirectoryListBlock("Hash sin fichero", response.hash_without_file, "No hay entradas huérfanas en el manifiesto.") +
-        renderHashDirectoryListBlock("Fichero sin hash", response.file_without_hash, "No hay ficheros nuevos fuera del manifiesto.") +
       '</div>';
     }
 
@@ -2931,14 +2614,12 @@
       releaseDownloadUrls();
       try {
         const files = selectedSignFiles();
-        const inputPath = document.getElementById("signInputPath").value.trim();
-        const outputPath = document.getElementById("signOutputPath").value.trim();
         const format = document.getElementById("signFormat").value;
         const action = document.getElementById("signAction").value;
         const optionsRaw = parseOptionsJson(document.getElementById("signOptions").value);
         const selectedCert = state.selectedCertificateId;
-        if (files.length === 0 && !inputPath) {
-          throw new Error("Selecciona un archivo o indica una ruta local.");
+        if (files.length === 0) {
+          throw new Error("Pendiente de origen para firmar.");
         }
         if (!selectedCert) {
           throw new Error("Selecciona primero un certificado.");
@@ -2960,12 +2641,10 @@
             format,
             action,
             certificate_id: selectedCert,
-            saveToDisk: document.getElementById("signSaveToDisk").checked,
             returnSignatureB64: document.getElementById("signReturnB64").checked,
             options: mergedOptions,
             items: []
           };
-          if (document.getElementById("signOverwrite").checked) batchPayload.overwrite = "true";
           for (const file of files) {
             batchPayload.items.push({
               name: sourceFileName(file) || file.name,
@@ -2994,24 +2673,14 @@
           format,
           action,
           certificate_id: selectedCert,
-          saveToDisk: document.getElementById("signSaveToDisk").checked,
           returnSignatureB64: document.getElementById("signReturnB64").checked,
           options: mergedOptions
         };
 
-        if (outputPath) payload.outputPath = outputPath;
-        if (document.getElementById("signOverwrite").checked) payload.overwrite = "true";
-
-        if (files.length === 1) {
-          const file = files[0];
-          payload.name = sourceFileName(file) || file.name;
-          payload.mime_type = inferMimeType(file, file.name);
-          payload.content_base64 = await fileToBase64(file);
-        } else {
-          payload.inputPath = inputPath;
-          payload.name = inputPath.split(/[\\/]/).pop();
-          payload.mime_type = inferMimeType(null, inputPath);
-        }
+        const file = files[0];
+        payload.name = sourceFileName(file) || file.name;
+        payload.mime_type = inferMimeType(file, file.name);
+        payload.content_base64 = await fileToBase64(file);
 
         const response = await apiFetch("/sign", {
           method: "POST",
@@ -3027,9 +2696,7 @@
 
         let downloadHtml = "";
         if (response.signed_content_base64) {
-          const filename = response.outputPath
-            ? response.outputPath.split(/[\\/]/).pop()
-            : signedFilenameForResult(payload.name || "firmado", response.format || format, "");
+          const filename = signedFilenameForResult(payload.name || "firmado", response.format || format);
           downloadHtml = buildDownloadLinkFromB64(
             response.signed_content_base64,
             signedMimeTypeForFormat(response.format || format, filename),
@@ -3043,7 +2710,7 @@
             '<div class="kv"><strong>Formato</strong>' + escapeHtml(response.format || "") + '</div>' +
             '<div class="kv"><strong>Algoritmo</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
             '<div class="kv"><strong>Certificado</strong><code>' + escapeHtml(response.certificate_id || "") + '</code></div>' +
-            '<div class="kv"><strong>Salida</strong>' + escapeHtml(response.outputPath || "en memoria") + '</div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml("en memoria") + '</div>' +
           '</div>' +
           renderVerificationBlock(verification) +
           (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
@@ -3059,27 +2726,18 @@
       ui.verifyResult.innerHTML = resultBanner("status-warn", "Validando documento...");
       try {
         const signedFile = document.getElementById("verifyFile").files[0];
-        const signedPath = document.getElementById("verifyInputPath").value.trim();
         const originalFile = document.getElementById("verifyOriginalFile").files[0];
-        const originalPath = document.getElementById("verifyOriginalPath").value.trim();
-
-        if (!signedFile && !signedPath) {
-          throw new Error("Selecciona un documento firmado o indica una ruta local.");
+        if (!signedFile) {
+          throw new Error("Pendiente de documento firmado");
         }
 
-        const payload = {};
-        if (signedFile) {
-          payload.name = signedFile.name;
-          payload.mime_type = inferMimeType(signedFile, signedFile.name);
-          payload.content_base64 = await fileToBase64(signedFile);
-        } else {
-          payload.inputPath = signedPath;
-        }
-
+        const payload = {
+          name: signedFile.name,
+          mime_type: inferMimeType(signedFile, signedFile.name),
+          content_base64: await fileToBase64(signedFile)
+        };
         if (originalFile) {
           payload.original_content_base64 = await fileToBase64(originalFile);
-        } else if (originalPath) {
-          payload.originalPath = originalPath;
         }
 
         const response = await apiFetch("/verify", {
@@ -3103,65 +2761,23 @@
       ui.hashCreateResult.innerHTML = resultBanner("status-warn", t("Calculando huella..."));
       releaseHashDownloadUrls();
       try {
-        const mode = document.getElementById("hashCreateMode").value;
         const algorithm = document.getElementById("hashCreateAlgorithm").value;
         const format = document.getElementById("hashCreateFormat").value;
-        const inputPath = document.getElementById("hashCreatePath").value.trim();
-        const outputPath = document.getElementById("hashCreateOutputPath").value.trim();
+        const file = document.getElementById("hashCreateFile").files[0];
+        if (!file) {
+          throw new Error(t("Pendiente de origen para crear huella."));
+        }
         const payload = {
           algorithm,
           format,
-          saveToDisk: document.getElementById("hashCreateSaveToDisk").checked
+          name: file.name,
+          content_base64: await fileToBase64(file)
         };
-        if (outputPath) payload.outputPath = outputPath;
-        if (mode === "directory") {
-          if (!inputPath) {
-            throw new Error(t("Indica una ruta local de directorio para generar el manifiesto."));
-          }
-          payload.inputPath = inputPath;
-          payload.name = inputPath.split(/[\\/]/).pop();
-          payload.recursive = document.getElementById("hashCreateRecursive").checked;
-        } else {
-          const file = document.getElementById("hashCreateFile").files[0];
-          if (file) {
-            payload.name = file.name;
-            payload.content_base64 = await fileToBase64(file);
-          } else if (inputPath) {
-            payload.inputPath = inputPath;
-            payload.name = inputPath.split(/[\\/]/).pop();
-          } else {
-            throw new Error(t("Selecciona un fichero o indica una ruta local."));
-          }
-        }
 
         const response = await apiFetch("/hash", {
           method: "POST",
           body: JSON.stringify(payload)
         });
-
-        if (mode === "directory") {
-          const extension = response.format === "txt" ? ".txthashfiles" : (response.format === "csv" ? ".csv" : ".hashfiles");
-          const filename = (payload.name || "directorio") + extension;
-          const downloadHtml = buildHashDownloadLinkFromB64(
-            response.manifest_base64,
-            response.format === "csv" ? "text/csv" : "application/xml",
-            filename,
-            t("Descargar manifiesto")
-          );
-          ui.hashCreateResult.innerHTML =
-            resultBanner("status-ok", t("Manifiesto de huellas generado.")) +
-            '<div class="result-block">' +
-              '<div class="kv"><strong>' + escapeHtml(t("Algoritmo")) + '</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Formato")) + '</strong>' + escapeHtml(response.format || "") + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Entradas")) + '</strong>' + escapeHtml(String(response.entries || 0)) + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Recursivo")) + '</strong>' + escapeHtml(response.recursive ? t("__GRXFIRMA_BOOLEAN_YES__") : t("__GRXFIRMA_BOOLEAN_NO__")) + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Salida")) + '</strong>' + escapeHtml(response.outputPath || t("en memoria")) + '</div>' +
-            '</div>' +
-            (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
-            jsonBlock(response);
-          setGlobalStatus("status-ok", t("Manifiesto hash de directorio generado."));
-          return;
-        }
 
         let hashFilename = (payload.name || "documento");
         if (response.format === "hex") hashFilename += ".hexhash";
@@ -3177,7 +2793,6 @@
             '<div class="kv"><strong>' + escapeHtml(t("Algoritmo")) + '</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
             '<div class="kv"><strong>' + escapeHtml(t("Formato")) + '</strong>' + escapeHtml(response.format || "") + '</div>' +
             '<div class="kv"><strong>' + escapeHtml(t("Huella")) + '</strong><code>' + escapeHtml(response.hash || "") + '</code></div>' +
-            '<div class="kv"><strong>' + escapeHtml(t("Salida")) + '</strong>' + escapeHtml(response.outputPath || t("en memoria")) + '</div>' +
           '</div>' +
           (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
           jsonBlock(response);
@@ -3192,76 +2807,27 @@
       ui.hashCheckResult.innerHTML = resultBanner("status-warn", t("Comprobando integridad..."));
       releaseHashDownloadUrls();
       try {
-        const mode = document.getElementById("hashCheckMode").value;
         const algorithm = document.getElementById("hashCheckAlgorithm").value;
-        const inputPath = document.getElementById("hashCheckPath").value.trim();
-        const manifestPath = document.getElementById("hashCheckManifestPath").value.trim();
         const payload = {};
         if (algorithm) payload.algorithm = algorithm;
 
-        if (mode === "directory") {
-          if (!inputPath) {
-            throw new Error(t("Indica una ruta local de directorio para comprobar el manifiesto."));
-          }
-          payload.inputPath = inputPath;
-        } else {
-          const file = document.getElementById("hashCheckFile").files[0];
-          if (file) {
-            payload.name = file.name;
-            payload.content_base64 = await fileToBase64(file);
-          } else if (inputPath) {
-            payload.inputPath = inputPath;
-          } else {
-            throw new Error(t("Selecciona un fichero o indica una ruta local."));
-          }
+        const file = document.getElementById("hashCheckFile").files[0];
+        if (!file) {
+          throw new Error(t("Pendiente de origen o huella para comprobar."));
         }
+        payload.name = file.name;
+        payload.content_base64 = await fileToBase64(file);
 
         const manifestFile = document.getElementById("hashCheckManifestFile").files[0];
-        if (manifestFile) {
-          payload.hash_content_base64 = await fileToBase64(manifestFile);
-        } else if (manifestPath) {
-          payload.hashPath = manifestPath;
-        } else {
-          throw new Error(t("Selecciona un fichero de huella/manifiesto o indica su ruta."));
+        if (!manifestFile) {
+          throw new Error(t("Pendiente de huella o manifiesto"));
         }
-
-        if (mode === "directory") {
-          payload.saveReportToDisk = document.getElementById("hashCheckSaveReportToDisk").checked;
-          const reportOutputPath = document.getElementById("hashCheckReportOutputPath").value.trim();
-          if (reportOutputPath) payload.reportOutputPath = reportOutputPath;
-        }
+        payload.hash_content_base64 = await fileToBase64(manifestFile);
 
         const response = await apiFetch("/hash/check", {
           method: "POST",
           body: JSON.stringify(payload)
         });
-
-        if (mode === "directory") {
-          const reportFilename = ((inputPath || "directorio").split(/[\\/]/).pop() || "directorio") + ".hashreport";
-          const downloadHtml = buildHashDownloadLinkFromB64(
-            response.report_base64,
-            "application/xml",
-            reportFilename,
-            t("Descargar informe")
-          );
-          ui.hashCheckResult.innerHTML =
-            resultBanner(response.valid ? "status-ok" : "status-warn",
-              response.valid ? t("Directorio íntegro.") : t("Directorio con diferencias respecto al manifiesto.")) +
-            '<div class="result-block">' +
-              '<div class="kv"><strong>' + escapeHtml(t("Algoritmo")) + '</strong>' + escapeHtml(response.algorithm || "") + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Recursivo")) + '</strong>' + escapeHtml(response.recursive ? t("__GRXFIRMA_BOOLEAN_YES__") : t("__GRXFIRMA_BOOLEAN_NO__")) + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Coinciden")) + '</strong>' + escapeHtml(String((response.matching_hash || []).length)) + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("No coinciden")) + '</strong>' + escapeHtml(String((response.not_matching_hash || []).length)) + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Hash sin fichero")) + '</strong>' + escapeHtml(String((response.hash_without_file || []).length)) + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Fichero sin hash")) + '</strong>' + escapeHtml(String((response.file_without_hash || []).length)) + '</div>' +
-              '<div class="kv"><strong>' + escapeHtml(t("Informe")) + '</strong>' + escapeHtml(response.report_output_path || t("en memoria")) + '</div>' +
-            '</div>' +
-            renderDirectoryHashDiffBlock(response) +
-            (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
-            jsonBlock(response);
-          setGlobalStatus(response.valid ? "status-ok" : "status-warn", t("Comprobación de directorio finalizada."));
-          return;
-        }
 
         ui.hashCheckResult.innerHTML =
           resultBanner(response.valid ? "status-ok" : "status-bad",
@@ -3364,11 +2930,9 @@
       releaseProtectionDownloadUrls();
       try {
         const file = document.getElementById("protectFile").files[0];
-        const inputPath = document.getElementById("protectInputPath").value.trim();
-        const outputPath = document.getElementById("protectOutputPath").value.trim();
         const recipientIds = selectedProtectionRecipientIDs();
-        if (!file && !inputPath) {
-          throw new Error("Selecciona un fichero para proteger o indica una ruta local.");
+        if (!file) {
+          throw new Error("Pendiente de origen");
         }
         if (recipientIds.length === 0) {
           throw new Error("Selecciona al menos un destinatario de protección.");
@@ -3384,26 +2948,16 @@
           throw new Error("AuthEnvelopedData requiere destinatarios compatibles con certificado X.509 RSA válido.");
         }
         payload.options = { container: protectionContainer };
-        if (outputPath) payload.outputPath = outputPath;
-        if (document.getElementById("protectOverwrite").checked) payload.overwrite = "true";
-        payload.saveToDisk = document.getElementById("protectSaveToDisk").checked;
         payload.returnProtectedB64 = document.getElementById("protectReturnB64").checked;
-
-        if (file) {
-          payload.name = file.name;
-          payload.mime_type = inferMimeType(file, file.name);
-          payload.content_base64 = await fileToBase64(file);
-        } else {
-          payload.inputPath = inputPath;
-          payload.name = inputPath.split(/[\\/]/).pop();
-          payload.mime_type = inferMimeType(null, inputPath);
-        }
+        payload.name = file.name;
+        payload.mime_type = inferMimeType(file, file.name);
+        payload.content_base64 = await fileToBase64(file);
 
         const response = await apiFetch("/protect", {
           method: "POST",
           body: JSON.stringify(payload)
         });
-        const filename = protectedFilenameForResult(response.documentName || payload.name || "protegido", response.outputPath || outputPath);
+        const filename = protectedFilenameForResult(response.documentName || payload.name || "protegido");
         const downloadHtml = buildProtectionDownloadLinkFromB64(
           response.protected_content_base64,
           response.mime_type || "application/vnd.grxfirma.protected-envelope",
@@ -3416,7 +2970,7 @@
             '<div class="kv"><strong>Perfil</strong>' + escapeHtml(response.profile || payload.profile || "") + '</div>' +
             '<div class="kv"><strong>Contenedor</strong>' + escapeHtml(protectionContainer) + '</div>' +
             '<div class="kv"><strong>Destinatarios</strong>' + escapeHtml(String(response.recipientCount || recipientIds.length)) + '</div>' +
-            '<div class="kv"><strong>Salida</strong>' + escapeHtml(response.outputPath || "en memoria") + '</div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml("en memoria") + '</div>' +
           '</div>' +
           (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
           jsonBlock(response);
@@ -3432,33 +2986,22 @@
       releaseProtectionDownloadUrls();
       try {
         const file = document.getElementById("unprotectFile").files[0];
-        const inputPath = document.getElementById("unprotectInputPath").value.trim();
-        const outputPath = document.getElementById("unprotectOutputPath").value.trim();
-        if (!file && !inputPath) {
-          throw new Error("Selecciona un fichero protegido o indica una ruta local.");
+        if (!file) {
+          throw new Error("Pendiente de origen para desproteger.");
         }
 
-        const payload = {};
-        if (outputPath) payload.outputPath = outputPath;
-        if (document.getElementById("unprotectOverwrite").checked) payload.overwrite = "true";
-        payload.saveToDisk = document.getElementById("unprotectSaveToDisk").checked;
-        payload.returnUnprotectedB64 = document.getElementById("unprotectReturnB64").checked;
-
-        if (file) {
-          payload.name = file.name;
-          payload.mime_type = "application/vnd.grxfirma.protected-envelope";
-          payload.content_base64 = await fileToBase64(file);
-        } else {
-          payload.inputPath = inputPath;
-          payload.name = inputPath.split(/[\\/]/).pop();
-          payload.mime_type = "application/vnd.grxfirma.protected-envelope";
-        }
+        const payload = {
+          returnUnprotectedB64: document.getElementById("unprotectReturnB64").checked,
+          name: file.name,
+          mime_type: "application/vnd.grxfirma.protected-envelope",
+          content_base64: await fileToBase64(file)
+        };
 
         const response = await apiFetch("/unprotect", {
           method: "POST",
           body: JSON.stringify(payload)
         });
-        const filename = unprotectedFilenameForResult(response.documentName, response.outputPath || outputPath, payload.name || "documento");
+        const filename = unprotectedFilenameForResult(response.documentName, payload.name || "documento");
         const downloadHtml = buildProtectionDownloadLinkFromB64(
           response.unprotected_content_base64,
           response.mime_type || "application/octet-stream",
@@ -3467,11 +3010,14 @@
         );
         ui.unprotectResult.innerHTML =
           resultBanner("status-ok", "Desprotección completada correctamente.") +
+          (Array.isArray(response.warnings) && response.warnings.length
+            ? resultBanner("status-warn", response.warnings.join(" "))
+            : "") +
           '<div class="result-block">' +
             '<div class="kv"><strong>Perfil</strong>' + escapeHtml(response.profile || "") + '</div>' +
             '<div class="kv"><strong>Destinatario</strong>' + escapeHtml(response.recipientId || "") + '</div>' +
             '<div class="kv"><strong>Documento</strong>' + escapeHtml(response.documentName || filename) + '</div>' +
-            '<div class="kv"><strong>Salida</strong>' + escapeHtml(response.outputPath || "en memoria") + '</div>' +
+            '<div class="kv"><strong>Salida</strong>' + escapeHtml("en memoria") + '</div>' +
           '</div>' +
           (downloadHtml ? '<div style="margin-top:10px">' + downloadHtml + '</div>' : '') +
           jsonBlock(response);
@@ -3756,11 +3302,7 @@
     document.getElementById("signAction").addEventListener("change", renderSignPlanSummary);
     document.getElementById("signFile").addEventListener("change", handleSignFileChange);
     document.getElementById("signDirectory").addEventListener("change", handleSignDirectoryChange);
-    document.getElementById("signInputPath").addEventListener("input", handleSignPathInput);
-    document.getElementById("signOutputPath").addEventListener("input", renderSignPlanSummary);
-    document.getElementById("signSaveToDisk").addEventListener("change", renderSignPlanSummary);
     document.getElementById("signReturnB64").addEventListener("change", renderSignPlanSummary);
-    document.getElementById("signOverwrite").addEventListener("change", renderSignPlanSummary);
     document.getElementById("rootSignProfile").addEventListener("change", renderSignPlanSummary);
     document.getElementById("rootTsaUrl").addEventListener("input", renderSignPlanSummary);
     document.getElementById("rootPadesSubFilter").addEventListener("change", renderSignPlanSummary);
@@ -3782,18 +3324,9 @@
       renderProtectArtifactSummary();
       renderProtectPlanSummary();
     });
-    document.getElementById("protectFile").addEventListener("change", handleProtectFileChange);
-    document.getElementById("protectInputPath").addEventListener("input", handleProtectPathInput);
-    document.getElementById("protectOutputPath").addEventListener("input", renderProtectArtifactSummary);
     document.getElementById("protectFile").addEventListener("change", renderProtectPlanSummary);
-    document.getElementById("protectInputPath").addEventListener("input", renderProtectPlanSummary);
-    document.getElementById("protectOutputPath").addEventListener("input", renderProtectPlanSummary);
-    document.getElementById("protectSaveToDisk").addEventListener("change", renderProtectPlanSummary);
     document.getElementById("protectReturnB64").addEventListener("change", renderProtectPlanSummary);
     document.getElementById("unprotectFile").addEventListener("change", handleUnprotectFileChange);
-    document.getElementById("unprotectInputPath").addEventListener("input", handleUnprotectPathInput);
-    document.getElementById("unprotectOutputPath").addEventListener("input", renderUnprotectPlanSummary);
-    document.getElementById("unprotectSaveToDisk").addEventListener("change", renderUnprotectPlanSummary);
     document.getElementById("unprotectReturnB64").addEventListener("change", renderUnprotectPlanSummary);
     document.getElementById("rootSealAllPages").addEventListener("change", () => {
       updateRootSealPageMode();
@@ -3809,40 +3342,20 @@
     document.getElementById("verifyFile").addEventListener("change", renderVerifyCompatibilitySummary);
     document.getElementById("verifyFile").addEventListener("change", renderVerifyAlgorithmSummary);
     document.getElementById("verifyFile").addEventListener("change", renderVerifyPlanSummary);
-    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyArtifactSummary);
-    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyPairSummary);
-    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyCompatibilitySummary);
-    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyAlgorithmSummary);
-    document.getElementById("verifyInputPath").addEventListener("input", renderVerifyPlanSummary);
     document.getElementById("verifyOriginalFile").addEventListener("change", renderVerifyOriginalSummary);
     document.getElementById("verifyOriginalFile").addEventListener("change", renderVerifyPairSummary);
     document.getElementById("verifyOriginalFile").addEventListener("change", renderVerifyCompatibilitySummary);
     document.getElementById("verifyOriginalFile").addEventListener("change", renderVerifyPlanSummary);
-    document.getElementById("verifyOriginalPath").addEventListener("input", renderVerifyOriginalSummary);
-    document.getElementById("verifyOriginalPath").addEventListener("input", renderVerifyPairSummary);
-    document.getElementById("verifyOriginalPath").addEventListener("input", renderVerifyCompatibilitySummary);
-    document.getElementById("verifyOriginalPath").addEventListener("input", renderVerifyPlanSummary);
     document.getElementById("verifyBtn").addEventListener("click", verifyDocument);
-    document.getElementById("hashCreateMode").addEventListener("change", updateHashPanels);
-    document.getElementById("hashCheckMode").addEventListener("change", updateHashPanels);
     document.getElementById("hashCreateAlgorithm").addEventListener("change", renderHashCreateArtifactSummary);
     document.getElementById("hashCreateAlgorithm").addEventListener("change", renderHashCreatePlanSummary);
     document.getElementById("hashCreateFormat").addEventListener("change", renderHashCreateArtifactSummary);
     document.getElementById("hashCreateFormat").addEventListener("change", renderHashCreatePlanSummary);
-    document.getElementById("hashCreateOutputPath").addEventListener("input", renderHashCreateArtifactSummary);
-    document.getElementById("hashCreateOutputPath").addEventListener("input", renderHashCreatePlanSummary);
-    document.getElementById("hashCreateRecursive").addEventListener("change", renderHashCreatePlanSummary);
-    document.getElementById("hashCreateSaveToDisk").addEventListener("change", renderHashCreatePlanSummary);
     document.getElementById("hashCreateFile").addEventListener("change", handleHashCreateFileChange);
-    document.getElementById("hashCreatePath").addEventListener("input", handleHashCreatePathInput);
     document.getElementById("hashCheckAlgorithm").addEventListener("change", renderHashCheckAlgorithmSummary);
     document.getElementById("hashCheckAlgorithm").addEventListener("change", renderHashCheckPlanSummary);
     document.getElementById("hashCheckFile").addEventListener("change", handleHashCheckFileChange);
-    document.getElementById("hashCheckPath").addEventListener("input", handleHashCheckPathInput);
     document.getElementById("hashCheckManifestFile").addEventListener("change", handleHashManifestFileChange);
-    document.getElementById("hashCheckManifestPath").addEventListener("input", handleHashManifestPathInput);
-    document.getElementById("hashCheckReportOutputPath").addEventListener("input", renderHashCheckPlanSummary);
-    document.getElementById("hashCheckSaveReportToDisk").addEventListener("change", renderHashCheckPlanSummary);
     document.getElementById("hashCreateBtn").addEventListener("click", createHash);
     document.getElementById("hashCheckBtn").addEventListener("click", checkHash);
     document.getElementById("protectBtn").addEventListener("click", protectDocument);

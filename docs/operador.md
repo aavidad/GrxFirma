@@ -14,7 +14,8 @@ Este documento resume cómo instalar, operar, diagnosticar y transicionar de Aut
 La identidad reforzada (`identidad-reforzada/v1`) es una función experimental y
 no está activada en los paquetes publicados. Los endpoints legacy
 `/auth/challenge` y `/auth/verify` solo protegen el REST local y no acreditan
-una sesión, rol o permiso de la aplicación integradora.
+una sesión, rol o permiso de la aplicación integradora. Rechazan las
+peticiones que un navegador manda desde otro origen y los cuerpos de más de 64 KB.
 
 ## Requisitos por plataforma
 
@@ -101,6 +102,40 @@ para mantener la compatibilidad; una política de organización puede imponer
 `false` aunque el usuario habilite WebSocket. Las sedes que requieran
 AutoScript 1.9 por WebSocket dejarán de funcionar con el corte total.
 
+Si el enlace `afirma://websocket` trae `idsession`, GrxFirma exige ese mismo
+valor en cada mensaje y cierra el canal si falta o no coincide. Algunas sedes
+antiguas no lo mandan; siguen funcionando, pero el registro anota
+`websocket_sesion_no_identificada` y el diálogo de aprobación de cada firma
+avisa de que la web no identifica la sesión.
+
+En la firma trifásica con servidor (`serverUrl`), el servidor tiene que estar
+en los dominios de confianza y aparece en el diálogo de aprobación. Una
+contrafirma de varios nodos le pide a GrxFirma varias firmas con esa única
+aprobación: se admiten hasta 100 y el registro anota
+`triphase_server_varias_firmas` con el número de firmas hechas. Como ese
+número no se sabe al aprobar, el diálogo de toda firma trifásica con servidor
+avisa de que el servidor puede pedir más de una firma. Una prefirma
+sin ninguna firma o con más de 100 se rechaza sin firmar.
+
+Si `serverUrl` lleva usuario y contraseña (`https://usuario:clave@servidor/...`),
+se admite como antes. La comprobación de confianza se hace con el esquema y el
+servidor, el diálogo solo enseña esos dos datos y las credenciales no se
+escriben en el registro; este anota `afirma_server_url_con_credenciales`.
+
+Por WebSocket o `service`, una aplicación de intranet puede seguir usando
+servidores `http://` (por ejemplo `http://intranet:8080`) si su origen está en
+la lista de confianza o el usuario lo aprueba al preguntarle, como antes. El
+registro anota `afirma_destino_sin_cifrar` y el diálogo de aprobación avisa de
+que la conexión no está cifrada. El enlace `afirma://` directo sigue exigiendo
+`https://` (o `http://` solo hacia el propio equipo).
+
+Si un servidor de firma de `afirma://` redirige a otro servidor (un
+balanceador o un inicio de sesión único), GrxFirma sigue la redirección solo
+si el nuevo servidor también está en la lista de confianza o el usuario lo
+aprueba al preguntarle; el registro anota `triphase_redireccion_otro_origen`.
+Nunca sigue una redirección de `https://` a `http://` y admite hasta 10
+saltos.
+
 ### Política de organización
 
 Ruta en Linux y macOS:
@@ -113,6 +148,19 @@ En Windows la política se lee **exclusivamente** de
 `HKLM\SOFTWARE\Policies\GrxFirma` (desplegable por GPO); no se usa
 `C:\etc`. Se aplica con mayor precedencia que el fichero de usuario. Valores y
 ejemplos: [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md).
+
+### TSA interna indicada en la petición
+
+Si el organismo usa una TSA en su red interna y la pasa como opción `tsaURL`:
+
+- por la CLI y la interfaz de escritorio funciona sin más;
+- por REST funciona y el registro anota `tsa_opciones_red_local` con el host;
+- por `afirma://`, WebSocket o el host nativo, donde la opción la pone una
+  página web, solo funciona si la TSA está en `tsa_permitidas` de la política
+  de máquina.
+
+Si `tsa_permitidas` está definida, REST solo admite las TSA de esa lista.
+Detalle en [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md#tsa-indicada-en-la-petición-tsa_permitidas).
 
 ### Allowlist del sistema y TOFU
 
@@ -230,7 +278,11 @@ Compatibilidad heredada, solo cuando el portal la exija y **solo mediante la
 política de máquina** (las variables de entorno antiguas ya no tienen efecto;
 véase [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md)):
 
-- `permitir_des_legacy`: habilita el formato de sesión DES de V1.9.
+- `permitir_des_legacy`: habilita el formato de sesión DES de V1.9. Los sobres
+  CMS `EnvelopedData`/`EncryptedData` con DES, 3DES u otro cifrado antiguo se
+  descifran siempre con aviso.
+- `prohibir_cifrado_cms_heredado`: impide descifrar esos sobres CMS con
+  cifrados antiguos.
 - `permitir_sha1_legacy`: habilita generación de firmas SHA-1.
 - `permitir_rutas_directas_protocolo`: permite rutas absolutas entregadas
   por el portal en `load`, `save` y `signandsave`.
@@ -397,6 +449,25 @@ confianza del almacén del sistema y borra después solo sus artefactos conocido
 No elimina certificados `.pem`/`.crt` ajenos; si no puede retirar la confianza,
 conserva el material local para permitir un reintento seguro.
 
+La CA local solo sirve para certificados de servidor TLS en `localhost` y
+`127.0.0.1`. En Windows se instala con ese único uso y en macOS con confianza
+solo para SSL (`-p ssl`); en Linux, NSS la confía solo para sitios web
+(`C,,`). Si queda instalada una CA de una versión anterior sin esa
+restricción, GrxFirma crea una nueva y retira la antigua del inventario. En
+macOS la confianza también queda inventariada y se retira al vaciar el almacén
+o al rotar la CA. En Linux, si GrxFirma rebajó a `C,,` la raíz anterior con
+alias fijo de `~/.pki/nssdb`, la anota y la retira igual. La clave de la CA se
+guarda cifrada: en Windows con DPAPI y en Linux y macOS con una clave del
+almacén de secretos del sistema. En macOS, sin ese almacén no se genera la CA.
+En Linux, si no hay almacén (escritorios sin gnome-keyring ni kwallet), la
+clave se guarda sin cifrar en un fichero 0600 dentro del directorio TLS 0700 y
+el registro avisa una vez con el evento `localtlstrust_ca_key_unprotected_file`.
+Así el canal TLS local sigue funcionando; como la CA solo vale para servidor TLS
+en `localhost`, quien lea esa clave no puede emitir certificados para otros
+nombres ni para firmar. Cuando aparece el almacén, GrxFirma pasa la clave a él
+y borra el fichero en claro sobrescribiéndolo. La identidad del perfil `alto`
+no tiene esta excepción: sin almacén no se crea.
+
 Acciones sensibles expuestas en esa consola:
 
 - `Instalar confianza TLS local`
@@ -558,7 +629,14 @@ Estado actual:
   - contenedor CMS DER estándar `cms` de tipo `EnvelopedData` (`.enveloped`)
   - contenedor CMS DER estándar `cms-encrypted` de tipo `EncryptedData` (`.encrypted.p7m`) con `secret_b64` transitorio de 32 bytes para AES-256-GCM
   - contenedor CMS DER estándar `signedandenvelopeddata` de tipo `SignedAndEnvelopedData` (`.signedenveloped.p7m`) mediante la operación separada `proteger-firmando`
-- el perfil `alto` genera automáticamente una identidad local fuerte del usuario si todavía no existe
+- el perfil `alto` genera automáticamente una identidad local fuerte del usuario si todavía no existe.
+  La clave privada se guarda en el almacén de secretos del sistema (Secret Service en
+  Linux, Llavero en macOS y Administrador de credenciales en Windows) y nunca en un
+  fichero. La parte pública va al directorio de datos locales (`~/.local/share/grxfirma`
+  o `%LOCALAPPDATA%\GrxFirma`), que no viaja con el perfil itinerante. Si el almacén no
+  está disponible, el perfil `alto` no se ofrece. Una identidad antigua guardada en
+  claro bajo `protection/strong` del directorio de configuración se pasa al almacén la
+  primera vez que se usa y el fichero antiguo se sobrescribe y se borra
 - los destinatarios se resuelven desde el catálogo local ya disponible
 - en `compat` solo se ofrecen certificados RSA que autorizan
   `KeyEncipherment` y cuya clave privada es realmente recuperable por el motor
@@ -617,6 +695,25 @@ Operaciones útiles:
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.encrypted.p7m -clave-proteccion-stdin`
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.signedenveloped.p7m`
   - `grxfirma -modo-cli -operacion desproteger -entrada /ruta/secreto.pdf.authenveloped.p7m`
+- un `.afp` no prueba quién lo envió: lo puede crear cualquiera que tenga el
+  certificado o el destinatario público. Para saber quién lo envía, usar
+  `proteger-firmando`. Al desproteger, GrxFirma limpia el nombre que trae el
+  sobre: quita carpetas y caracteres de control y, si la extensión no es de
+  documento (`pdf`, `xml`, `docx`, `odt`, `txt`, imágenes, firmas…), la cambia
+  por `.bin`. Un tipo MIME que no es válido pasa a `application/octet-stream`
+- los `.afp` se escriben en la versión 1 del sobre, la que abren también las
+  versiones anteriores de GrxFirma. Antes de cifrar se quitan los saltos de
+  línea del nombre (y un tipo MIME con saltos de línea pasa a
+  `application/octet-stream`), así que el nombre y el tipo quedan ligados al
+  cifrado sin ambigüedad
+- la versión 2 del sobre (cada campo con su longitud) se pide con
+  `-contenedor-proteccion json-v2`. Las versiones anteriores de GrxFirma no la
+  abren; usarla solo si todos los destinatarios tienen esta versión o una
+  posterior. GrxFirma abre las dos
+- si un `.afp` de versión 1 trae saltos de línea en el nombre o en el tipo
+  (lo hizo una versión anterior o alguien lo ha manipulado), se abre con el
+  nombre saneado, se avisa de que el nombre y el tipo pudieron cambiarse y la
+  auditoría lo anota como `afp_v1_aad_ambigua` en `compatibilidad`
 
 Estado del frente CMS heredado de 1.9:
 - operativo hoy: `EnvelopedData`, `EncryptedData`, `SignedAndEnvelopedData` y
@@ -625,6 +722,16 @@ Estado del frente CMS heredado de 1.9:
   `AuthEnvelopedData` usa RSA-OAEP-SHA256/MGF1-SHA256 + AES-256-GCM
 - OpenSSL parsea el DER V2, V2 descifra AES-256-CBC de OpenSSL y el
   intercambio `AuthEnvelopedData` con OpenSSL 3.5 está probado en ambos sentidos
+- al desproteger `EnvelopedData` y `EncryptedData` el transporte de clave tiene
+  que ser RSA. AES-GCM y AES-CBC (128, 192 o 256 bits) se aceptan sin más. Los
+  cifrados antiguos que GrxFirma ya abría antes (DES, 3DES, AES-ECB, OFB, CFB o
+  CCM, RC2, RC5, SM4…) se siguen descifrando para no perder el acceso, con un
+  aviso para la persona y el código `cifrado_cms_heredado=<OID>` en
+  `compatibilidad` de la auditoría. Ya no hace falta `permitir_des_legacy`
+  para esto. Un administrador puede impedirlo con la política de máquina
+  `prohibir_cifrado_cms_heredado` (`true` en `/etc/grxfirma/policy.json` o
+  DWORD `1` en `HKLM\SOFTWARE\Policies\GrxFirma`). Un cifrado que la
+  biblioteca no conoce se rechaza siempre antes de intentar descifrar
 - el fixture V1.9 usa AES-ECB/PKCS5 y ASN.1 legacy; V2 no lo escribe. Para
   migrar sobres conocidos, su lector de solo lectura se activa con
   `GRXFIRMA_ENABLE_LEGACY_CMS_AES_ECB=1`, valida límites/padding, firma,
@@ -657,7 +764,8 @@ Estado del frente CMS heredado de 1.9:
 
 Estado actual:
 
- - utilidad de huellas de fichero y directorio ya operativa en CLI y REST local;
+ - utilidad de huellas de fichero operativa en CLI y REST local; la de directorio,
+   solo en CLI y en la GUI de escritorio (el REST no acepta rutas de fichero);
 - compatible con la semántica de `createdigest` / `checkdigest` de AutoFirma 1.9;
 - algoritmos soportados:
   - `SHA-1`
@@ -685,26 +793,22 @@ Operaciones útiles:
   - `grxfirma -modo-cli -operacion crear-hash -entrada /ruta/directorio -formato-hash xml -recursive`
 - comprobar manifiesto de directorio:
   - `grxfirma -modo-cli -operacion comprobar-hash -entrada /ruta/directorio -fichero-hash /ruta/directorio.hashfiles -salida /ruta/directorio.hashreport`
-- REST local:
+- REST local (solo contenido en Base64; `inputPath`, `outputPath` o `hashPath`
+  responden 403):
   - `POST /hash`
   - `POST /hash/check`
-  - al crear huellas, la consola `/` muestra también el artefacto esperado de salida
-    y avisa si la ruta no termina en la extensión coherente con el formato elegido;
-  - al comprobar huellas, la consola `/` infiere si el artefacto cargado parece
-    de fichero o de directorio y avisa cuando no coincide con el modo actual;
-  - `/hash/check` devuelve `report_base64` para directorios y puede guardar `report_output_path`
-  - la consola web `/` ya muestra también un detalle guiado de diferencias del manifiesto:
-    - entradas que coinciden;
-    - entradas con hash distinto;
-    - hashes sin fichero;
-    - ficheros nuevos fuera del manifiesto.
+  - al crear huellas, la consola `/` muestra también el artefacto esperado de salida;
+  - al comprobar huellas, la consola `/` avisa si el artefacto cargado parece un
+    manifiesto de directorio, que por REST no se puede comprobar;
+  - los manifiestos de directorio y el `.hashreport` se crean y comprueban con la
+    CLI o con la GUI de escritorio.
 - la consola web `/` muestra además un resumen guiado del destinatario de protección:
   - perfil (`alto` o `compat`);
   - algoritmo;
   - id;
   - y contenedor efectivo (`json/.afp` o `cms/.enveloped` cuando aplica).
 - la consola `/` muestra además un resumen del catálogo de destinatarios disponible
-  para el perfil seleccionado y del artefacto protegido esperado según la ruta de salida;
+  para el perfil seleccionado y del artefacto protegido esperado;
 - antes de proteger, la consola `/` muestra también un plan visible de protección:
   - origen;
   - número de destinatarios;
@@ -890,7 +994,7 @@ Solo para un checkout de desarrollo, nunca sobre el paquete distribuido:
 ```bash
 make desktop-user-debug
 xdg-mime query default x-scheme-handler/afirma
-tail -f /tmp/grxfirma-debug.log
+tail -f "${XDG_STATE_HOME:-$HOME/.local/state}/grxfirma/grxfirma-debug.log"
 ```
 
 Para volver al modo normal:
@@ -1027,7 +1131,7 @@ bash scripts/validar_pades_manual.sh <pdf-firmado> [<pdf-firmado>...]
 Para generar muestras locales desde V2:
 
 ```bash
-GOCACHE=/tmp/grxfirma-gocache go run ./scripts/generar_muestras_pades.go -out /tmp/grxfirma-pades-samples
+go run ./scripts/generar_muestras_pades.go -out /tmp/grxfirma-pades-samples
 bash scripts/validar_pades_manual.sh /tmp/grxfirma-pades-samples/pades-etsi.pdf /tmp/grxfirma-pades-samples/pades-adobe.pdf /tmp/grxfirma-pades-samples/pades-adobe-t.pdf
 ```
 

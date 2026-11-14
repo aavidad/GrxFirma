@@ -144,8 +144,6 @@ jobs:
     name: Chromium and Firefox extensions
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      WEB_EXT_VERSION: "10.5.0"
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -197,9 +195,14 @@ jobs:
           fi
           python3 -m zipfile -e "${firefox_xpi}" "${RUNNER_TEMP}/firefox-extension"
 
+      - name: Install web-ext from lockfile without scripts
+        run: >-
+          npm ci --ignore-scripts --no-audit --no-fund
+          --prefix packaging/browser-extensions/tools
+
       - name: Lint packaged Firefox extension
         run: >-
-          npx --yes "web-ext@${WEB_EXT_VERSION}" lint
+          packaging/browser-extensions/tools/node_modules/.bin/web-ext lint
           --source-dir "${RUNNER_TEMP}/firefox-extension"
           --output text | tee "${RUNNER_TEMP}/firefox-web-ext-lint.txt"
 
@@ -425,6 +428,7 @@ jobs:
           ./scripts/release/tests/test-windows-authenticode-contracts.ps1
           ./scripts/release/tests/test-windows-dual-gui-finalizer-contracts.ps1
           ./scripts/release/tests/test-windows-signpath-contracts.ps1
+          ./scripts/release/tests/test-windows-signing-provenance.ps1
 
       - name: Test WinUI core and application contracts
         shell: pwsh

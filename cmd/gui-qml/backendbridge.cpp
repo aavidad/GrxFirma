@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 #include "backendbridge.h"
+#include "openablefile.h"
 #include "executablelocator.h"
 #include "activediagnostics.h"
 #include "incidentprivacy.h"
@@ -26,6 +27,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#ifdef Q_OS_WIN
+#include "windowssystempath.h"
+#endif
 #include <QProcessEnvironment>
 #include <QRandomGenerator>
 #include <QSaveFile>
@@ -1090,33 +1094,33 @@ void BackendBridge::openExternal(const QString &path) {
     return;
   }
 
-  const QString suffix = info.suffix().trimmed().toLower();
-  const bool preferOpenDir =
-      suffix == QStringLiteral("enveloped") || suffix == QStringLiteral("afp");
-  if (preferOpenDir) {
+  // Solo se abren tipos documentales; para el resto (ejecutables, accesos
+  // directos, scripts, sobres .afp/.enveloped...) se muestra su carpeta y
+  // nunca se entrega el fichero al sistema.
+  if (!info.isDir() && !OpenableFile::isDocumentToOpen(info.fileName())) {
     const QString dirPath = info.absolutePath();
     if (!dirPath.isEmpty() &&
-        QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath))) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath)))
       return;
-    }
+    emit backendLogReceived(bt(QStringLiteral("❌ No se pudo abrir la carpeta: ")) +
+                            dirPath);
+    setStatus(bt(QStringLiteral("No se pudo abrir la carpeta del fichero")));
+    return;
   }
 
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(localPath)))
     return;
 
 #ifdef Q_OS_WIN
-  if (QProcess::startDetached("explorer.exe",
-                              {QDir::toNativeSeparators(localPath)}))
+  const QString explorer =
+      QString::fromStdWString(WindowsSystemPath::explorer());
+  if (!explorer.isEmpty() &&
+      QProcess::startDetached(explorer, {QDir::toNativeSeparators(localPath)}))
     return;
 #elif defined(Q_OS_MACOS)
   if (QProcess::startDetached("open", {localPath}))
     return;
 #else
-  if (preferOpenDir) {
-    const QString dirPath = info.absolutePath();
-    if (!dirPath.isEmpty() && QProcess::startDetached("xdg-open", {dirPath}))
-      return;
-  }
   if (QProcess::startDetached("xdg-open", {localPath}))
     return;
 #endif
@@ -1135,11 +1139,18 @@ void BackendBridge::openSignedDocument(const QString &path) {
     setStatus(bt(QStringLiteral("El fichero indicado no existe")));
     return;
   }
+  if (!OpenableFile::isDocumentToOpen(info.fileName())) {
+    openExternal(info.absoluteFilePath());
+    return;
+  }
   if (QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath())))
     return;
 #ifdef Q_OS_WIN
-  if (QProcess::startDetached(QStringLiteral("explorer.exe"),
-                              {QDir::toNativeSeparators(info.absoluteFilePath())}))
+  const QString explorer =
+      QString::fromStdWString(WindowsSystemPath::explorer());
+  if (!explorer.isEmpty() &&
+      QProcess::startDetached(
+          explorer, {QDir::toNativeSeparators(info.absoluteFilePath())}))
     return;
 #elif defined(Q_OS_MACOS)
   if (QProcess::startDetached(QStringLiteral("open"),
@@ -2130,7 +2141,10 @@ void BackendBridge::onNetworkReplyFinished(QNetworkReply *reply) {
 
 void BackendBridge::openCertManager() {
 #ifdef Q_OS_WIN
-  QProcess::startDetached("rundll32.exe", {"cryptext.dll,CryptExtOpenCER"});
+  const QString rundll32 =
+      QString::fromStdWString(WindowsSystemPath::rundll32());
+  if (!rundll32.isEmpty())
+    QProcess::startDetached(rundll32, {"cryptext.dll,CryptExtOpenCER"});
 #elif defined(Q_OS_MACOS)
   if (!QProcess::startDetached(
           "open", {"/System/Applications/Utilities/Keychain Access.app"})) {

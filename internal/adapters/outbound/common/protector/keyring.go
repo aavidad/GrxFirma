@@ -51,18 +51,22 @@ func (k *LocalCompatKeyring) Resolve(ctx context.Context, recipientIDs []string)
 	return k.listRecipients(ctx, wanted)
 }
 
-func (k *LocalCompatKeyring) DecryptionKeys(ctx context.Context) ([]domain.ProtectionKeyMaterial, error) {
+// DecryptionKeys devuelve solo las claves de los certificados que el documento
+// protegido nombra como destinatarios. Nunca pide al almacén la clave privada
+// de un certificado que no figure en el documento (F-01).
+func (k *LocalCompatKeyring) DecryptionKeys(ctx context.Context, protected domain.Document) ([]domain.ProtectionKeyMaterial, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 	if k == nil || k.Catalog == nil || k.Keys == nil {
 		return nil, fmt.Errorf("keyring local de compatibilidad no configurado")
 	}
+	destinatarios := destinatariosDe(protected)
 	refs, err := k.Catalog.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	keys := make([]domain.ProtectionKeyMaterial, 0, len(refs))
+	keys := make([]domain.ProtectionKeyMaterial, 0, 1)
 	seen := make(map[string]struct{}, len(refs))
 	for _, ref := range refs {
 		if err := ctx.Err(); err != nil {
@@ -72,6 +76,9 @@ func (k *LocalCompatKeyring) DecryptionKeys(ctx context.Context) ([]domain.Prote
 			continue
 		}
 		seen[ref.ID] = struct{}{}
+		if !destinatarios.incluyeCertificado(ref) {
+			continue
+		}
 
 		if material, ok := k.decryptionKeyFor(ctx, ref); ok {
 			keys = append(keys, material)
@@ -146,29 +153,21 @@ func (k *LocalCompatKeyring) decryptionKeyFor(ctx context.Context, ref domain.Ce
 	}, true
 }
 
-func (k *LocalCompatKeyring) recipientFor(ctx context.Context, ref domain.CertificateRef) (domain.ProtectionRecipient, bool) {
-	key, err := k.Keys.KeyFor(ctx, ref)
+func (k *LocalCompatKeyring) recipientFor(_ context.Context, ref domain.CertificateRef) (domain.ProtectionRecipient, bool) {
+	// Anunciar un destinatario no debe tocar ninguna clave privada (F-01): en
+	// NSS pedir la clave la exporta del perfil del navegador. Basta con el
+	// certificado público y con que el catálogo haya confirmado, al enumerar y
+	// sin abrir la clave, que hay una clave RSA local apta para Desproteger.
+	// Los firmantes opacos de CertStore, PKCS#11 o hardware no lo declaran y no
+	// se anuncian. Si después la clave no se puede usar, Desproteger falla.
+	if !ref.HasLocalDecryptionKey || len(ref.DER) == 0 {
+		return domain.ProtectionRecipient{}, false
+	}
+	cert, err := x509.ParseCertificate(ref.DER)
 	if err != nil {
-		ports.CloseSigningKey(key)
 		return domain.ProtectionRecipient{}, false
 	}
-	defer ports.CloseSigningKey(key)
-	local, err := extractLocalSigningKey(key)
-	if err != nil || local == nil {
-		return domain.ProtectionRecipient{}, false
-	}
-
-	// No basta con que el certificado publique una clave RSA: el destinatario
-	// solo puede anunciarse si este mismo proceso dispone de una clave privada
-	// RSA exportable apta para desproteger. Esta comprobación no serializa la
-	// clave al refrescar el catálogo. Los firmantes opacos de CertStore,
-	// PKCS#11 o hardware pueden seguir firmando, pero no se publican como
-	// destinatarios RSA mientras no exista un adaptador crypto.Decrypter.
-	_, ok := compatExportableRSA(local)
-	if !ok {
-		return domain.ProtectionRecipient{}, false
-	}
-	return buildCompatRecipientFromLocal(ref, local)
+	return buildCompatRecipient(ref, cert)
 }
 
 type localSigningKeySource interface {
@@ -192,11 +191,11 @@ func extractLocalSigningKey(key ports.SigningKey) (*commonsigner.LocalSigningKey
 	}
 }
 
-func buildCompatRecipientFromLocal(ref domain.CertificateRef, local *commonsigner.LocalSigningKey) (domain.ProtectionRecipient, bool) {
-	if local == nil || local.Certificate == nil || !puedeCifrarRSA(local.Certificate) {
+func buildCompatRecipient(ref domain.CertificateRef, cert *x509.Certificate) (domain.ProtectionRecipient, bool) {
+	if cert == nil || !puedeCifrarRSA(cert) {
 		return domain.ProtectionRecipient{}, false
 	}
-	pub, ok := local.Certificate.PublicKey.(*rsa.PublicKey)
+	pub, ok := cert.PublicKey.(*rsa.PublicKey)
 	if !ok {
 		return domain.ProtectionRecipient{}, false
 	}
@@ -206,7 +205,7 @@ func buildCompatRecipientFromLocal(ref domain.CertificateRef, local *commonsigne
 	}
 	label := strings.TrimSpace(ref.Subject)
 	if label == "" {
-		label = strings.TrimSpace(local.Certificate.Subject.String())
+		label = strings.TrimSpace(cert.Subject.String())
 	}
 	if label == "" {
 		label = ref.ID
@@ -216,7 +215,7 @@ func buildCompatRecipientFromLocal(ref domain.CertificateRef, local *commonsigne
 		Label:                  label,
 		Origin:                 "propio",
 		RSAOAEP256PublicKeyDER: pubDER,
-		CertificateDER:         append([]byte(nil), local.Certificate.Raw...),
+		CertificateDER:         append([]byte(nil), cert.Raw...),
 	}, true
 }
 

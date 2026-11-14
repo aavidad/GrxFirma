@@ -134,15 +134,13 @@ try {
     Copy-Item -LiteralPath $exeSource -Destination $exeTarget -Force
     Copy-Item -LiteralPath $iconSource -Destination $iconTarget -Force
 
-    $handler = Join-Path $InstallDir "afirmauri-handler.cmd"
-    $handlerContent = @"
-@echo off
-"$exeTarget" %*
-"@
-    Set-Content -LiteralPath $handler -Value $handlerContent -Encoding ASCII
-    $legacyDebugHandler = Join-Path $InstallDir "afirmauri-handler-debug.cmd"
-    if (Test-Path -LiteralPath $legacyDebugHandler -PathType Leaf) {
-        Remove-Item -LiteralPath $legacyDebugHandler -Force
+    # El protocolo apunta directamente al .exe con "%1". Versiones anteriores
+    # dejaban lanzadores .cmd que reenviaban la URI a cmd.exe; se borran.
+    foreach ($legacyHandlerName in @("afirmauri-handler.cmd", "afirmauri-handler-debug.cmd")) {
+        $legacyHandler = Join-Path $InstallDir $legacyHandlerName
+        if (Test-Path -LiteralPath $legacyHandler -PathType Leaf) {
+            Remove-Item -LiteralPath $legacyHandler -Force
+        }
     }
 
     if ($keepAutoFirma) {

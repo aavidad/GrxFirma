@@ -80,7 +80,15 @@ func solicitaLTVPAdES(options map[string]string) bool {
 	return valorBoolOpcionPAdES(options, "ltv", false)
 }
 
-func firmarPAdESConPdfsign(doc domain.Document, clave *ClaveLocal, options map[string]string, validation pdfsign.ValidationData, tsa pdfsign.TSA) (domain.SignatureResult, error) {
+func firmarPAdESConPdfsign(doc domain.Document, clave *ClaveLocal, options map[string]string, validation pdfsign.ValidationData, tsa pdfsign.TSA) (resultado domain.SignatureResult, err error) {
+	// El lector de PDF aborta con pánicos ante documentos malformados, también
+	// fuera de abrirPDF (páginas, sellos, leyenda CSV). Se convierten en error
+	// para no cerrar la aplicación (E2-03).
+	defer func() {
+		if p := recover(); p != nil {
+			resultado, err = domain.SignatureResult{}, fmt.Errorf("PDF no procesable: %v", p)
+		}
+	}()
 	if clave == nil || clave.cert == nil || clave.priv == nil {
 		return domain.SignatureResult{}, fmt.Errorf("PAdES pdfsign: clave local incompleta")
 	}

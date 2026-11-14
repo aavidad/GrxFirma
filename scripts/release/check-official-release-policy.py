@@ -80,7 +80,10 @@ def main() -> int:
         "check-firefox-signing-env.sh",
         "build-firefox-extension",
     )
-    require(firefox, "web-ext@10.5.0", "build-firefox-extension")
+    # G-03: web-ext y su árbol salen del lockfile, sin scripts de instalación.
+    require(firefox, "npm ci --ignore-scripts", "build-firefox-extension")
+    require(firefox, "--prefix packaging/browser-extensions/tools", "build-firefox-extension")
+    require(firefox, "GRXFIRMA_WEB_EXT:", "build-firefox-extension")
     require(
         firefox,
         'GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI: "1"',
@@ -93,6 +96,9 @@ def main() -> int:
     windows = job_block(text, "build-windows")
     require(windows, "environment: official-release", "build-windows")
     require(windows, "finalize-windows-release.ps1", "build-windows")
+    # G-01: inventario de Qt recién instalado para la lista cerrada de firma.
+    require(windows, "write-qt-provenance.ps1", "build-windows")
+    require(windows, "GRXFIRMA_QT_PROVENANCE_MANIFEST", "build-windows")
     require(windows, "WINDOWS_SIGNING_PFX_BASE64", "build-windows")
     require(windows, "windows-official", "build-windows")
     require(windows, "runs-on: windows-2022", "build-windows")

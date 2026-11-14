@@ -470,7 +470,7 @@ func TestMotorFirmaGo_XAdEST_UsaTsaURLDeOptionsSinTSAInyectada(t *testing.T) {
 
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
-	motor := signer.NuevoMotorFirmaGo(nil)
+	motor := signer.NuevoMotorFirmaGo(nil).PermitirTSADeOpcionesEnRedLocal() // TSA de prueba en 127.0.0.1
 
 	doc, _ := domain.NewDocument("doc.xml", []byte("<xml><dato>valor</dato></xml>"), "application/xml")
 	job := domain.SignatureJob{
@@ -949,7 +949,7 @@ func TestMotorFirmaGo_PAdESSinSello_PreservaPDFOriginal(t *testing.T) {
 func TestMotorFirmaGo_PAdEST_EmbebeTimestampEnCMS(t *testing.T) {
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
-	motor := signer.NuevoMotorFirmaGo(nil)
+	motor := signer.NuevoMotorFirmaGo(nil).PermitirTSADeOpcionesEnRedLocal() // TSA de prueba en 127.0.0.1
 
 	doc, _ := domain.NewDocument("doc.pdf", pdffixture.Minimal(), "application/pdf")
 	job := domain.SignatureJob{
@@ -1013,7 +1013,7 @@ func TestMotorFirmaGo_PAdEST_EmbebeTimestampEnCMS(t *testing.T) {
 func TestMotorFirmaGo_PAdEST_UsaSubFilterAdobeSiSeSolicita(t *testing.T) {
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
-	motor := signer.NuevoMotorFirmaGo(nil)
+	motor := signer.NuevoMotorFirmaGo(nil).PermitirTSADeOpcionesEnRedLocal() // TSA de prueba en 127.0.0.1
 
 	doc, _ := domain.NewDocument("doc.pdf", pdffixture.Minimal(), "application/pdf")
 	job := domain.SignatureJob{
@@ -1042,7 +1042,7 @@ func TestMotorFirmaGo_PAdEST_UsaSubFilterAdobeSiSeSolicita(t *testing.T) {
 func TestMotorFirmaGo_PAdEST_UsaBaselineConTSAComoPerfilT(t *testing.T) {
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
-	motor := signer.NuevoMotorFirmaGo(nil)
+	motor := signer.NuevoMotorFirmaGo(nil).PermitirTSADeOpcionesEnRedLocal() // TSA de prueba en 127.0.0.1
 
 	doc, _ := domain.NewDocument("doc.pdf", pdffixture.Minimal(), "application/pdf")
 	job := domain.SignatureJob{
@@ -1077,7 +1077,7 @@ func TestMotorFirmaGo_PAdEST_UsaTsaURLDeOptionsSinTSAInyectada(t *testing.T) {
 
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
-	motor := signer.NuevoMotorFirmaGo(nil)
+	motor := signer.NuevoMotorFirmaGo(nil).PermitirTSADeOpcionesEnRedLocal() // TSA de prueba en 127.0.0.1
 
 	doc, _ := domain.NewDocument("doc.pdf", pdffixture.Minimal(), "application/pdf")
 	job := domain.SignatureJob{
@@ -1104,7 +1104,7 @@ func TestMotorFirmaGo_PAdEST_ValidaConPdfsig(t *testing.T) {
 
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
-	motor := signer.NuevoMotorFirmaGo(nil)
+	motor := signer.NuevoMotorFirmaGo(nil).PermitirTSADeOpcionesEnRedLocal() // TSA de prueba en 127.0.0.1
 
 	doc, _ := domain.NewDocument("doc.pdf", pdffixture.Minimal(), "application/pdf")
 	job := domain.SignatureJob{
@@ -1222,7 +1222,7 @@ func TestMotorFirmaGo_PAdEST_EsEstructuralmenteValidoConQPDF(t *testing.T) {
 
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
-	motor := signer.NuevoMotorFirmaGo(nil)
+	motor := signer.NuevoMotorFirmaGo(nil).PermitirTSADeOpcionesEnRedLocal() // TSA de prueba en 127.0.0.1
 
 	doc, _ := domain.NewDocument("doc.pdf", pdffixture.Minimal(), "application/pdf")
 	job := domain.SignatureJob{

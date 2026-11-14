@@ -56,9 +56,10 @@ type CertificateRef struct {
 	// vaya a autorizar la operación cuando se solicite la firma.
 	HasSigningKey bool `json:"-"`
 
-	// HasLocalDecryptionKey confirma que la identidad se importó con una clave
-	// RSA local compatible con Desproteger. El catálogo puede informar esto sin
-	// abrir ni usar la clave durante la exportación del certificado público.
+	// HasLocalDecryptionKey confirma que la identidad tiene una clave RSA local
+	// (P12 importado o base NSS) compatible con Desproteger. El catálogo lo
+	// informa al enumerar, sin abrir ni usar la clave. Es lo único que se mira
+	// para anunciar la identidad como destinataria de Proteger.
 	HasLocalDecryptionKey bool `json:"-"`
 
 	// SigningKeyNeedsUnlock means the token requires login and enumeration

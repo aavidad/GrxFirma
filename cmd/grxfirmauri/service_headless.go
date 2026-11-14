@@ -90,6 +90,11 @@ func (a aprobacionHeadless) Request(context.Context, string) (bool, error) {
 	return false, errors.New("no hay interfaz gráfica disponible para confirmar la operación")
 }
 
+// SinInterfaz indica que este aprobador no puede preguntar al usuario: el
+// guardado desde la web de tipos poco habituales se hace con aviso en el
+// registro en lugar de con confirmación (lote 13c).
+func (a aprobacionHeadless) SinInterfaz() bool { return true }
+
 func newSignApproval() aprobacionHeadless {
 	return aprobacionHeadless{}
 }
@@ -112,7 +117,7 @@ func construirServicioWebSocket(configDir, p12Dir, p12Password string) (*legacyw
 		approval,
 		auditor,
 		nil,
-	)
+	).WithComponedorAprobacion(componerAprobacionProtocolo)
 	if firmarDirecto == nil {
 		return nil, nil, errors.New("no se pudo construir el caso de uso de firma para WebSocket")
 	}
@@ -123,8 +128,8 @@ func construirServicioWebSocket(configDir, p12Dir, p12Password string) (*legacyw
 		approval,
 		auditor,
 		nil,
-	)
-	triphaseExec := triphase.New(runtime.clienteHTTP)
+	).WithComponedorAprobacion(componerAprobacionProtocolo)
+	triphaseExec := triphase.New(runtime.clienteHTTP).ConValidadorDestino(validadorDestinoRuntime(runtime))
 	legacyHandler := newLegacyWebSocketHandler(
 		firmarDirecto,
 		batchUC,

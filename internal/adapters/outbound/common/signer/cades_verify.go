@@ -29,6 +29,30 @@ import (
 
 const motivoCertificadoSinRevocacion = "certificado vigente en fechas; revocación no comprobada"
 
+// Motivos de la evaluación de confianza del firmante. Son claves técnicas:
+// la presentación las traduce con el catálogo de cada idioma.
+const (
+	motivoConfianzaAnclaConfigurada = "cadena X.509 verificada contra las anclas de confianza configuradas"
+	// La raíz del sistema solo acredita una cadena reconocida por el equipo;
+	// no dice nada de que el certificado sea cualificado.
+	motivoConfianzaRaizSistema = "cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado"
+	motivoFirmanteNoApto       = "el certificado firmante no está destinado a firmar documentos"
+	// motivoClaveRSADebil avisa de una clave RSA del firmante por debajo de
+	// 2048 bits: hoy no basta para dar una firma por válida.
+	motivoClaveRSADebil = "clave RSA del firmante de menos de 2048 bits"
+)
+
+// cargarRaicesSistema lee el almacén raíz del sistema; las pruebas lo
+// sustituyen para simular un almacén ilegible.
+var cargarRaicesSistema = x509.SystemCertPool
+
+// Usos extendidos de clave que declaran expresamente la firma de documentos.
+var ekuFirmaDocumentos = []asn1.ObjectIdentifier{
+	{1, 3, 6, 1, 4, 1, 311, 10, 3, 12}, // Microsoft documentSigning
+	{1, 3, 6, 1, 5, 5, 7, 3, 36},       // id-kp-documentSigning (RFC 9336)
+	{1, 2, 840, 113583, 1, 1, 5},       // Adobe authenticDocumentsTrust
+}
+
 // RevocationStatus representa el estado de revocación de un certificado.
 type RevocationStatus int
 
@@ -94,6 +118,9 @@ func revocationDetailText(cert *x509.Certificate, index int, res RevocationResul
 // RevocationChecker comprueba la revocación de certificados usando OCSP y CRL.
 type RevocationChecker struct {
 	client *revocationclient.Client
+	// consulta sustituye a la consulta en línea; solo lo usan las pruebas
+	// para simular respuestas autenticadas sin red.
+	consulta func(ctx context.Context, cert, issuer *x509.Certificate) (RevocationResult, error)
 }
 
 // NewRevocationChecker crea un verificador de revocación con timeout de 15s.
@@ -114,6 +141,9 @@ func NewRevocationCheckerWithClient(c *http.Client) *RevocationChecker {
 func (r *RevocationChecker) Check(ctx context.Context, cert, issuer *x509.Certificate) (RevocationResult, error) {
 	if cert == nil || issuer == nil {
 		return RevocationResult{Status: RevocationUnknown, Reason: "certificado o emisor nulo"}, nil
+	}
+	if r != nil && r.consulta != nil {
+		return r.consulta(ctx, cert, issuer)
 	}
 	if r == nil || r.client == nil {
 		return RevocationResult{Status: RevocationUnknown, Reason: "cliente de revocación no configurado"}, nil
@@ -206,26 +236,74 @@ type signerInfoRaw struct {
 // validez criptográfica de SignerInfo y extracción del certificado firmante.
 // Si la cadena embebida lo permite, añade además el estado de revocación real.
 func (v *CAdESVerifier) Verify(ctx context.Context, signedDocument domain.Document, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
-	return v.verifyCMS(ctx, signedDocument.Content, nil, anchors)
+	return v.verifyCMS(ctx, signedDocument.Content, nil, cmsContenidoEncapsulado, anchors)
 }
 
-// VerifyDetached verifica un CMS detached con contenido externo ya resuelto
-// por el adaptador llamante (por ejemplo, PAdES tras aplicar ByteRange).
+// VerifyDetachedCMS verifica un CMS detached con contenido externo ya resuelto
+// por el adaptador llamante (por ejemplo, PAdES tras aplicar ByteRange). Un
+// CMS con contenido encapsulado se rechaza: lo firmado es el externo.
 func (v *CAdESVerifier) VerifyDetachedCMS(ctx context.Context, cmsDER, content []byte) (domain.VerificationResult, []domain.CertificateRef, error) {
-	return v.verifyCMS(ctx, cmsDER, content, domain.CertificateChain{})
+	return v.verifyCMS(ctx, cmsDER, content, cmsContenidoExterno, domain.CertificateChain{})
 }
 
 // VerifyDetachedCMSWithAnchors verifica un CMS detached y valida su cadena
 // contra las anclas X.509 proporcionadas.
 func (v *CAdESVerifier) VerifyDetachedCMSWithAnchors(ctx context.Context, cmsDER, content []byte, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
-	return v.verifyCMS(ctx, cmsDER, content, anchors)
+	return v.verifyCMS(ctx, cmsDER, content, cmsContenidoExterno, anchors)
 }
 
+// VerifyDetached verifica una firma CAdES contra el original aportado. El
+// resumen se comprueba siempre contra ese original; una firma implícita solo
+// se admite si su contenido encapsulado es idéntico byte a byte.
 func (v *CAdESVerifier) VerifyDetached(ctx context.Context, signedDocument domain.Document, originalDocument domain.Document, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
-	return v.verifyCMS(ctx, signedDocument.Content, originalDocument.Content, anchors)
+	return v.verifyCMS(ctx, signedDocument.Content, originalDocument.Content, cmsContenidoOriginalAportado, anchors)
 }
 
-func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent []byte, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
+// modoContenidoCMS fija de dónde sale el contenido cuyo resumen se compara
+// con el atributo messageDigest.
+type modoContenidoCMS int
+
+const (
+	// cmsContenidoEncapsulado: sin contenido externo; se exige eContent.
+	cmsContenidoEncapsulado modoContenidoCMS = iota
+	// cmsContenidoExterno: firma detached (PAdES, ASiC-CAdES, identidad);
+	// un CMS con eContent se rechaza.
+	cmsContenidoExterno
+	// cmsContenidoOriginalAportado: CAdES con original del usuario; si el CMS
+	// trae eContent tiene que ser idéntico al original.
+	cmsContenidoOriginalAportado
+)
+
+// contenidoFirmadoCMS devuelve el contenido contra el que se comprueba el
+// messageDigest. Si el llamante aporta contenido externo, es siempre ese.
+func contenidoFirmadoCMS(encap asn1.RawValue, externalContent []byte, modo modoContenidoCMS) ([]byte, error) {
+	if modo == cmsContenidoEncapsulado {
+		return parseEncapsulatedContent(encap)
+	}
+	var eci encapContentInfoRaw
+	if _, err := asn1.Unmarshal(encap.FullBytes, &eci); err != nil {
+		return nil, fmt.Errorf("parseando EncapContentInfo: %w", err)
+	}
+	if len(externalContent) == 0 {
+		return nil, errors.New("falta el contenido firmado para verificar la firma detached")
+	}
+	if len(eci.Content.FullBytes) == 0 {
+		return externalContent, nil
+	}
+	if modo == cmsContenidoExterno {
+		return nil, errors.New("la firma contiene contenido adjunto; se esperaba una firma explícita sobre el documento")
+	}
+	encapsulado, err := parseEncapsulatedContent(encap)
+	if err != nil {
+		return nil, err
+	}
+	if !bytes.Equal(encapsulado, externalContent) {
+		return nil, errors.New("el contenido adjunto a la firma no coincide con el original aportado")
+	}
+	return externalContent, nil
+}
+
+func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent []byte, modo modoContenidoCMS, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
 	contentInfo, err := parseContentInfo(cmsDER)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
@@ -239,12 +317,9 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		return domain.VerificationResult{}, nil, err
 	}
 
-	content, err := parseEncapsulatedContent(signedData.EncapContentInfo)
+	content, err := contenidoFirmadoCMS(signedData.EncapContentInfo, externalContent, modo)
 	if err != nil {
-		if len(externalContent) == 0 {
-			return domain.VerificationResult{}, nil, err
-		}
-		content = externalContent
+		return domain.VerificationResult{}, nil, err
 	}
 
 	certs, certRefs, err := parseCertificateSet(signedData.Certificates)
@@ -265,20 +340,31 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	signerCerts := make([]*x509.Certificate, 0, len(signerInfos))
 	signerDetails := make([][]string, 0, len(signerInfos))
 	signerCertsPorSignerInfo := make([]*x509.Certificate, 0, len(signerInfos))
+	var antiguos []string
 
 	for _, signerInfo := range signerInfos {
 		signerCert, err := findSignerCertificate(certs, signerInfo.SID)
 		if err != nil {
 			return domain.VerificationResult{}, certRefs, err
 		}
-		spec, err := validarAlgoritmosSignerInfo(signerCert, signerInfo)
+		spec, antiguo, err := validarAlgoritmosSignerInfo(signerCert, signerInfo)
 		if err != nil {
 			return domain.VerificationResult{}, certRefs, err
+		}
+		if antiguo {
+			antiguos = append(antiguos, detalleAlgoritmoSHA1)
 		}
 		if err := verifyMessageDigest(signerInfo.SignedAttributes, content, spec.hash); err != nil {
 			return domain.VerificationResult{}, certRefs, err
 		}
 		if err := verifyCMSignature(signerCert, signerInfo, spec.hash); err != nil {
+			return domain.VerificationResult{}, certRefs, err
+		}
+		if err := verificarContentTypeFirmado(signerInfo.SignedAttributes, signedData.EncapContentInfo); err != nil {
+			return domain.VerificationResult{}, certRefs, err
+		}
+		conSigningCertificate, err := verificarSigningCertificate(signerInfo.SignedAttributes, signerCert)
+		if err != nil {
 			return domain.VerificationResult{}, certRefs, err
 		}
 		signerCerts = append(signerCerts, signerCert)
@@ -289,10 +375,14 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 				Fingerprint: certificateFingerprint(signerCert), Time: fecha, Source: origen,
 			})
 		}
-		signerDetails = append(signerDetails, []string{
+		detalles := []string{
 			fmt.Sprintf("firmante=%s", certutil.NombreLegible(signerCert.Subject)),
 			fmt.Sprintf("algoritmo=%s", signerInfo.SignatureAlgorithm.Algorithm.String()),
-		})
+		}
+		if !conSigningCertificate {
+			detalles = append(detalles, detalleSigningCertificateAusente)
+		}
+		signerDetails = append(signerDetails, detalles)
 	}
 	if len(signers) > 1 {
 		reverseCertificateRefs(signers)
@@ -313,18 +403,23 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	// guarda la cadena al revés se emparejaban certificados que no eran
 	// emisor/sujeto, OCSP quedaba "desconocido" y una firma con un
 	// certificado revocado se presentaba como válida.
+	// Las anclas explícitas también sirven para completar la cadena: así se
+	// comprueba la revocación de la intermedia aunque la firma no traiga la raíz.
+	candidatos := append(append([]*x509.Certificate(nil), certs...), certificadosDeAnclas(anchors)...)
 	for _, signerCert := range signerCerts {
-		chain := chainForRevocation(ctx, v.revChecker, signerCert, certs)
+		chain := chainForRevocation(ctx, v.revChecker, signerCert, candidatos)
 		if len(chain) < 2 {
 			result = markRevocationNotChecked(result, signerCert)
 			continue
 		}
+		result = marcarCadenaRevocacionIncompleta(result, chain)
 		revocation, err := v.verifyRevocationWithEmbedded(ctx, chain, signerInfos)
 		if err == nil {
 			result = mergeRevocationResult(result, revocation)
 		}
 	}
 	result = exigirRevocacionConcluyente(result)
+	result = marcarAlgoritmoAntiguo(result, antiguos)
 
 	return result.Normalize(), signers, nil
 }
@@ -342,29 +437,31 @@ func exigirRevocacionConcluyente(result domain.VerificationResult) domain.Verifi
 
 // validarAlgoritmosSignerInfo admite SHA-256, SHA-384 y SHA-512 (AutoFirma
 // Java firma con SHA-512 en sedes como JCyL) y exige que el algoritmo de
-// firma declarado sea coherente con el resumen y con la clave.
-func validarAlgoritmosSignerInfo(cert *x509.Certificate, signerInfo signerInfoRaw) (cmsHashSpec, error) {
+// firma declarado sea coherente con el resumen y con la clave. SHA-1 se
+// admite solo para leer firmas antiguas: antiguo=true y la firma no saldrá
+// válida (ver algoritmo_antiguo.go).
+func validarAlgoritmosSignerInfo(cert *x509.Certificate, signerInfo signerInfoRaw) (spec cmsHashSpec, antiguo bool, err error) {
 	if cert == nil {
-		return cmsHashSpec{}, errors.New("certificado firmante nulo")
+		return cmsHashSpec{}, false, errors.New("certificado firmante nulo")
 	}
-	spec, ok := cmsHashForDigestOID(signerInfo.DigestAlgorithm.Algorithm)
+	spec, antiguo, ok := cmsHashParaVerificar(signerInfo.DigestAlgorithm.Algorithm)
 	if !ok {
-		return cmsHashSpec{}, errors.New("SignerInfo no declara SHA-256, SHA-384 ni SHA-512")
+		return cmsHashSpec{}, false, errors.New("SignerInfo no declara SHA-1, SHA-256, SHA-384 ni SHA-512")
 	}
 	switch cert.PublicKey.(type) {
 	case *rsa.PublicKey:
 		if !signerInfo.SignatureAlgorithm.Algorithm.Equal(spec.rsaOID) &&
 			!signerInfo.SignatureAlgorithm.Algorithm.Equal(oidSignatureRSAEncryption) {
-			return cmsHashSpec{}, fmt.Errorf("SignerInfo RSA no declara un algoritmo PKCS#1 compatible con %s", spec.hash)
+			return cmsHashSpec{}, false, fmt.Errorf("SignerInfo RSA no declara un algoritmo PKCS#1 compatible con %s", spec.hash)
 		}
 	case *ecdsa.PublicKey:
 		if !signerInfo.SignatureAlgorithm.Algorithm.Equal(spec.ecdsaOID) {
-			return cmsHashSpec{}, fmt.Errorf("SignerInfo ECDSA no declara ecdsa-with-%s", spec.hash)
+			return cmsHashSpec{}, false, fmt.Errorf("SignerInfo ECDSA no declara ecdsa-with-%s", spec.hash)
 		}
 	default:
-		return cmsHashSpec{}, fmt.Errorf("tipo de clave pública no soportado: %T", cert.PublicKey)
+		return cmsHashSpec{}, false, fmt.Errorf("tipo de clave pública no soportado: %T", cert.PublicKey)
 	}
-	return spec, nil
+	return spec, antiguo, nil
 }
 
 func (v *CAdESVerifier) verifyRevocationWithEmbedded(ctx context.Context, chain []*x509.Certificate, signerInfos []signerInfoRaw) (domain.VerificationResult, error) {
@@ -376,7 +473,11 @@ func (v *CAdESVerifier) verifyRevocationWithEmbedded(ctx context.Context, chain 
 		if len(evidence.OCSPResponses) == 0 && len(evidence.CRLs) == 0 {
 			continue
 		}
-		return verifyEmbeddedRevocation(chain, evidence)
+		// La evidencia embebida no sustituye a la consulta en línea: si para
+		// algún certificado no es aplicable o no concluye, se consulta.
+		return verifyEmbeddedRevocationConConsulta(chain, evidence, func(cert, issuer *x509.Certificate) (RevocationResult, error) {
+			return v.revChecker.Check(ctx, cert, issuer)
+		})
 	}
 	return v.VerifyRevocation(ctx, chain)
 }
@@ -478,6 +579,7 @@ func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, s
 			result = markRevocationNotChecked(result, signer)
 			continue
 		}
+		result = marcarCadenaRevocacionIncompleta(result, chain)
 		revocation, err := checker.VerifyRevocation(ctx, chain)
 		if err == nil {
 			result = mergeRevocationResult(result, revocation)
@@ -487,12 +589,13 @@ func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, s
 }
 
 // chainForRevocation obtiene la cadena del firmante para comprobar su
-// revocación. Si la firma no incluye el emisor (p. ej. XAdES con solo el
-// certificado del firmante en KeyInfo), la completa con el almacén del
-// sistema; en Windows, CryptoAPI puede descargar la CA intermedia por AIA.
+// revocación. Si la firma no incluye la cadena completa hasta un certificado
+// autofirmado (p. ej. XAdES con solo el certificado del firmante en KeyInfo,
+// o hoja e intermedia sin la raíz), la completa con el almacén del sistema;
+// en Windows, CryptoAPI puede descargar la CA intermedia por AIA.
 func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x509.Certificate, embedded []*x509.Certificate) []*x509.Certificate {
 	chain := buildIssuerChain(leaf, embedded)
-	if len(chain) >= 2 || leaf == nil {
+	if leaf == nil || esAutofirmado(chain[len(chain)-1]) {
 		return chain
 	}
 	intermediates := x509.NewCertPool()
@@ -505,7 +608,7 @@ func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x
 		Intermediates: intermediates,
 		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 	})
-	if err == nil && len(chains) > 0 && len(chains[0]) >= 2 {
+	if err == nil && len(chains) > 0 && len(chains[0]) > len(chain) {
 		return chains[0]
 	}
 	// Último recurso: descargar el emisor por AIA (CA Issuers) con el
@@ -524,6 +627,32 @@ func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x
 		current = issuer
 	}
 	return chain
+}
+
+func esAutofirmado(cert *x509.Certificate) bool {
+	return cert != nil && bytes.Equal(cert.RawIssuer, cert.RawSubject)
+}
+
+// marcarCadenaRevocacionIncompleta deja la revocación en advertencia cuando la
+// cadena no llega a un certificado autofirmado: el último certificado tiene
+// un emisor que no se ha podido obtener y su revocación queda sin comprobar.
+func marcarCadenaRevocacionIncompleta(result domain.VerificationResult, chain []*x509.Certificate) domain.VerificationResult {
+	if len(chain) == 0 || esAutofirmado(chain[len(chain)-1]) {
+		return result
+	}
+	return markRevocationNotChecked(result, chain[len(chain)-1])
+}
+
+// certificadosDeAnclas devuelve los certificados explícitos de las anclas
+// (no el almacén del sistema) para completar cadenas de revocación.
+func certificadosDeAnclas(anchors domain.CertificateChain) []*x509.Certificate {
+	var out []*x509.Certificate
+	for _, der := range anchors.DERCertificates {
+		if cert, err := x509.ParseCertificate(der); err == nil {
+			out = append(out, cert)
+		}
+	}
+	return out
 }
 
 // markRevocationNotChecked deja constancia de que no se pudo comprobar la
@@ -781,6 +910,17 @@ func extractEmbeddedRevocationEvidence(signerInfo signerInfoRaw) (ports.Revocati
 }
 
 func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.RevocationEvidence) (domain.VerificationResult, error) {
+	return verifyEmbeddedRevocationConConsulta(chain, evidence, nil)
+}
+
+// consultaRevocacion obtiene el estado de un certificado por otra vía cuando
+// la evidencia embebida no basta (normalmente, la consulta en línea).
+type consultaRevocacion func(cert, issuer *x509.Certificate) (RevocationResult, error)
+
+// verifyEmbeddedRevocationConConsulta evalúa la evidencia embebida y, para
+// cada certificado en el que no es aplicable o no concluye, usa la consulta
+// indicada. Sin consulta, ese certificado queda no concluyente.
+func verifyEmbeddedRevocationConConsulta(chain []*x509.Certificate, evidence ports.RevocationEvidence, consulta consultaRevocacion) (domain.VerificationResult, error) {
 	if len(chain) == 0 {
 		return domain.NewVerificationFailure(string(domain.FormatCAdES), "cadena de certificados vacía", nil), nil
 	}
@@ -799,6 +939,12 @@ func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.Revocati
 		cert := chain[i]
 		issuer := chain[i+1]
 		res, err := evaluateEmbeddedRevocation(evidence, cert, issuer)
+		if (err != nil || res.Status == RevocationUnknown) && consulta != nil {
+			if enLinea, errLinea := consulta(cert, issuer); errLinea == nil &&
+				(enLinea.Status == RevocationGood || enLinea.Status == RevocationRevoked) {
+				res, err = enLinea, nil
+			}
+		}
 		if err != nil {
 			allAuthenticatedGood = false
 			detail := fmt.Sprintf("cert[%d] %s: sin evidencias embebidas utilizables", i, cert.Subject.CommonName)
@@ -830,8 +976,8 @@ func verifyEmbeddedRevocation(chain []*x509.Certificate, evidence ports.Revocati
 			result.Reason = "cadena válida con revocación embebida autenticada"
 			result.Certificate.Status = domain.VerificationStatusValid
 			result.Certificate.Reason = result.Reason
-			result.Trust.Status = domain.VerificationStatusValid
-			result.Trust.Reason = "evidencias embebidas autenticadas y vigentes"
+			// La evidencia de revocación no dice nada de la confianza en la
+			// raíz: la confianza se queda como la evaluaron las anclas.
 		} else {
 			result.Reason = "cadena válida con revocación embebida no concluyente"
 			if result.Certificate.Status == domain.VerificationStatusUnknown {
@@ -1056,6 +1202,23 @@ func applySignerVerificationMetadata(result domain.VerificationResult, signerCer
 		if result.Trust.Reason != "" {
 			result.Warnings = appendUniqueString(result.Warnings, result.Trust.Reason)
 		}
+		// Si el llamante pidió evaluar la confianza (hay anclas o almacén del
+		// sistema) y no se pudo concluir, la firma no puede salir válida.
+		// Sin anclas, el llamante solo pidió el formato y evalúa aparte.
+		if !anchors.IsEmpty() && result.Valid {
+			result.Valid = false
+			result.Reason = result.Trust.Reason
+		}
+	}
+	for _, cert := range signerCerts {
+		if clave, ok := cert.PublicKey.(*rsa.PublicKey); ok && clave.N != nil && clave.N.BitLen() < 2048 {
+			if result.Valid {
+				result.Valid = false
+				result.Reason = motivoClaveRSADebil
+			}
+			result.Warnings = appendUniqueString(result.Warnings, motivoClaveRSADebil)
+			result.Certificate.Details = append(result.Certificate.Details, fmt.Sprintf("rsa_bits=%d", clave.N.BitLen()))
+		}
 	}
 	return result.Normalize()
 }
@@ -1112,7 +1275,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 	systemRootsUnavailable := false
 
 	if anchors.UseSystemRoots {
-		systemRoots, err := x509.SystemCertPool()
+		systemRoots, err := cargarRaicesSistema()
 		if err != nil {
 			systemRootsUnavailable = true
 			details = append(details, "system_roots_error="+err.Error())
@@ -1194,6 +1357,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 		intermediates.AddCert(cert)
 	}
 
+	raizSistema := false
 	for i, signerCert := range signerCerts {
 		if signerCert == nil {
 			return domain.VerificationAspect{
@@ -1220,13 +1384,63 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 			}
 		}
 		details = append(details, fmt.Sprintf("signer[%d].chain_length=%d", i, len(chains[0])))
+		if !certificadoAptoParaFirmar(signerCert) {
+			return domain.VerificationAspect{
+				Status:  domain.VerificationStatusInvalid,
+				Reason:  motivoFirmanteNoApto,
+				Details: append(details, fmt.Sprintf("signer[%d].eku_no_apto_para_firma", i)),
+			}
+		}
+		if _, explicita := rootFingerprints[certificateFingerprint(chains[0][len(chains[0])-1])]; !explicita {
+			raizSistema = true
+			details = append(details, fmt.Sprintf("signer[%d].root=system", i))
+		}
 	}
 
+	reason := motivoConfianzaAnclaConfigurada
+	if raizSistema {
+		reason = motivoConfianzaRaizSistema
+	}
 	return domain.VerificationAspect{
 		Status:  domain.VerificationStatusValid,
-		Reason:  "cadena X.509 verificada contra las anclas de confianza configuradas",
+		Reason:  reason,
 		Details: details,
 	}
+}
+
+// certificadoAptoParaFirmar decide si el uso extendido de clave (EKU) del
+// firmante admite firmar documentos. Sin EKU, decide el KeyUsage (se comprueba
+// en evaluateCertificateAspect). Con EKU, valen la protección de correo, la
+// firma de documentos y «cualquier uso»; también la autenticación de cliente
+// sin autenticación de servidor, que es como vienen muchos certificados de
+// firma españoles. Un certificado de servidor TLS, de firma de código, de
+// sellado de tiempo o de OCSP no es un firmante de documentos.
+func certificadoAptoParaFirmar(cert *x509.Certificate) bool {
+	if cert == nil {
+		return false
+	}
+	if len(cert.ExtKeyUsage) == 0 && len(cert.UnknownExtKeyUsage) == 0 {
+		return true
+	}
+	var cliente, servidor bool
+	for _, uso := range cert.ExtKeyUsage {
+		switch uso {
+		case x509.ExtKeyUsageAny, x509.ExtKeyUsageEmailProtection:
+			return true
+		case x509.ExtKeyUsageClientAuth:
+			cliente = true
+		case x509.ExtKeyUsageServerAuth:
+			servidor = true
+		}
+	}
+	for _, oid := range cert.UnknownExtKeyUsage {
+		for _, firma := range ekuFirmaDocumentos {
+			if oid.Equal(firma) {
+				return true
+			}
+		}
+	}
+	return cliente && !servidor
 }
 
 // EvaluateCertificateTrust comprueba una o varias cadenas de firmante contra

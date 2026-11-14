@@ -8,22 +8,21 @@
 package main
 
 import (
-	"context"
 	"strings"
 	"testing"
-
-	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
 )
 
-type aprobacionWebFyneStub struct {
-	approved bool
-	err      error
-	calls    int
-}
-
-func (a *aprobacionWebFyneStub) Request(context.Context, string) (bool, error) {
-	a.calls++
-	return a.approved, a.err
+// A-09: el aprobador de escritorio admite otro título para el guardado.
+func TestAprobacionInteractivaConTitulo(t *testing.T) {
+	var aprobador any = aprobacionInteractiva{titulo: "firma"}
+	conTitulo, ok := aprobador.(aprobacionConTitulo)
+	if !ok {
+		t.Fatal("aprobacionInteractiva no admite otro título")
+	}
+	otro, ok := conTitulo.ConTitulo("guardado").(aprobacionInteractiva)
+	if !ok || otro.titulo != "guardado" || aprobador.(aprobacionInteractiva).titulo != "firma" {
+		t.Fatalf("ConTitulo = %#v", otro)
+	}
 }
 
 func TestRenderEstadoWebSocketActivo_MuestraEstadoYDireccion(t *testing.T) {
@@ -45,77 +44,5 @@ func TestRenderEstadoWebSocketActivo_UsaDireccionPorDefecto(t *testing.T) {
 	texto := renderEstadoWebSocketActivo(" ")
 	if !strings.Contains(texto, "`wss://127.0.0.1:8080`") {
 		t.Fatalf("se esperaba dirección por defecto en el estado visible:\n%s", texto)
-	}
-}
-
-func TestSolicitarAprobacionFirmaWeb_RechazoBloqueaOperacionesDeFirma(t *testing.T) {
-	t.Parallel()
-
-	for _, operation := range []afirmauri.TipoOperacion{
-		afirmauri.OperacionFirma,
-		afirmauri.OperacionLote,
-		afirmauri.OperacionSignSave,
-	} {
-		operation := operation
-		t.Run(string(operation), func(t *testing.T) {
-			t.Parallel()
-			approval := &aprobacionWebFyneStub{approved: false}
-			err := solicitarAprobacionFirmaWeb(
-				context.Background(),
-				afirmauri.Solicitud{Operacion: operation},
-				approval,
-			)
-			if err == nil || !strings.Contains(err.Error(), "cancelado") {
-				t.Fatalf("solicitarAprobacionFirmaWeb() error = %v, want cancellation", err)
-			}
-			if approval.calls != 1 {
-				t.Fatalf("approval.calls = %d, want 1", approval.calls)
-			}
-		})
-	}
-}
-
-func TestSolicitarAprobacionFirmaWeb_SinAprobadorFallaCerrado(t *testing.T) {
-	t.Parallel()
-
-	err := solicitarAprobacionFirmaWeb(
-		context.Background(),
-		afirmauri.Solicitud{Operacion: afirmauri.OperacionFirma},
-		nil,
-	)
-	if err == nil || !strings.Contains(err.Error(), "no configurado") {
-		t.Fatalf("solicitarAprobacionFirmaWeb() error = %v, want fail-closed", err)
-	}
-}
-
-func TestSolicitarAprobacionFirmaWeb_AprobacionPositivaSeSolicitaUnaVez(t *testing.T) {
-	t.Parallel()
-
-	approval := &aprobacionWebFyneStub{approved: true}
-	if err := solicitarAprobacionFirmaWeb(
-		context.Background(),
-		afirmauri.Solicitud{Operacion: afirmauri.OperacionFirma},
-		approval,
-	); err != nil {
-		t.Fatalf("solicitarAprobacionFirmaWeb() error = %v", err)
-	}
-	if approval.calls != 1 {
-		t.Fatalf("approval.calls = %d, want exactly 1", approval.calls)
-	}
-}
-
-func TestSolicitarAprobacionFirmaWeb_SelectCertNoFirma(t *testing.T) {
-	t.Parallel()
-
-	approval := &aprobacionWebFyneStub{approved: false}
-	if err := solicitarAprobacionFirmaWeb(
-		context.Background(),
-		afirmauri.Solicitud{Operacion: afirmauri.OperacionSelectCert},
-		approval,
-	); err != nil {
-		t.Fatalf("solicitarAprobacionFirmaWeb() error = %v", err)
-	}
-	if approval.calls != 0 {
-		t.Fatalf("approval.calls = %d, want 0", approval.calls)
 	}
 }

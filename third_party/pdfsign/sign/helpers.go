@@ -3,6 +3,7 @@ package sign
 import (
 	"crypto"
 	"encoding/asn1"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -31,9 +32,13 @@ func pdfString(text string) string {
 		enc := unicode.UTF16(unicode.BigEndian, unicode.UseBOM).NewEncoder()
 		res, _, err := transform.String(enc, text)
 		if err != nil {
-			panic(err)
+			// AutoFirmaV2: sin pánico; se escribe solo la parte ASCII.
+			return pdfString(soloASCII(text))
 		}
-		return "(" + res + ")"
+		// AutoFirmaV2: cadena hexadecimal. Los bytes UTF-16 0x28, 0x29 y 0x5C
+		// sin escapar cerraban la cadena literal o se tomaban como escapes, y
+		// el portal podía inyectar claves en el diccionario de firma (E2-06).
+		return "<" + hex.EncodeToString([]byte(res)) + ">"
 	}
 
 	// UTF-8
@@ -183,4 +188,14 @@ func isASCII(s string) bool {
 		}
 	}
 	return true
+}
+
+// soloASCII sustituye por '?' lo que no es ASCII. AutoFirmaV2.
+func soloASCII(text string) string {
+	return strings.Map(func(r rune) rune {
+		if r >= 0x80 {
+			return '?'
+		}
+		return r
+	}, text)
 }

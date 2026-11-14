@@ -86,7 +86,7 @@ Al activarlo, la app:
 | Firma via `afirma://` | Puerto + proceso efímero | Proceso efímero, sin puerto |
 | Firma via extensión navegador | Puerto + Native Messaging | Solo Native Messaging |
 | Compatibilidad web antigua | Puerto siempre activo | Puerto opt-in, solo si el usuario lo activa |
-| Proceso malicioso en el equipo | Puede enviar solicitudes de firma | No puede, no hay puerto |
+| Proceso malicioso en el equipo | Puede enviar solicitudes de firma | No puede, no hay puerto; el IPC de escritorio solo atiende al PID del frontend que lanzó el backend (ADR-005) |
 
 ---
 
@@ -96,7 +96,17 @@ Al activarlo, la app:
 
 El servidor WebSocket se implementa con estas restricciones:
 
-- Arranca **solo** si `websocket_habilitado: true` en la configuración.
+- El servicio residente arranca **solo** si `websocket_habilitado: true` en la
+  configuración.
+- El canal temporal que una sede abre con `afirma://websocket` no depende de
+  `websocket_habilitado`: se abre para esa operación y se cierra al terminar.
+  Si el enlace trae `idsession`, todo mensaje debe llevar ese mismo valor; uno
+  distinto o ausente cierra el canal. Las sedes antiguas que no mandan
+  `idsession` siguen funcionando por compatibilidad: el canal se abre como
+  antes, queda un aviso en el registro y el diálogo de aprobación de cada firma
+  dice que la web no identifica la sesión. Para impedirlo también hay que poner
+  `websocket_permitido: false`, que corta el residente y los canales temporales
+  y prevalece sobre el ajuste del usuario (véase `docs/POLITICA_MAQUINA.md`).
 - Si arranca, registra el evento en auditoría.
 - Muestra aviso en la GUI cuando está activo (icono o indicador visible).
 - Se detiene cuando la ventana principal se cierra (no como demonio de fondo).
@@ -120,8 +130,9 @@ Para materializar este modelo se necesita un sistema de configuración mínimo:
 
 Los límites y tiempos de espera incluyen:
 
-- Verificación al arrancar de que no se abre ningún puerto si la configuración
-  indica `websocket_habilitado: false`.
+- Verificación al arrancar de que no se abre ningún puerto residente si la
+  configuración indica `websocket_habilitado: false`, y de que no se abre
+  ninguno, ni siquiera temporal, con `websocket_permitido: false`.
 - Test que arranca el binario con configuración por defecto y verifica que no
   hay ningún socket en estado LISTEN.
 
@@ -163,3 +174,43 @@ Ambos modelos comparten el mismo principio. La diferencia es de mecanismo:
   se abre únicamente al firmar, en `adquirirClaveWindows`, y si la tarjeta no
   está o el usuario cancela, el resto de la misma operación no vuelve a
   pedirla. Un contrato en `wincertstore` comprueba ambas reglas.
+
+---
+
+## Llamantes autorizados del host nativo
+
+Este es el único inventario de las extensiones que pueden abrir el host de
+Native Messaging (`cmd/nativehost/caller.go` y los manifiestos que escriben los
+instaladores de Linux, Windows y macOS). Revisión del 13/11/2026 (hallazgos
+C-07 y G-04), actualizada al llevar los arreglos a la 0.0.125.
+
+| Navegador | ID | Host nativo | Titular | Estado |
+|---|---|---|---|---|
+| Chromium | `pkefjandjcgdmhoonmhnllikibobijgg` | `io.github.aavidad.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | En uso |
+| Firefox | `grxfirma@aavidad.github.io` | `io.github.aavidad.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | Falta confirmar que el ID está reservado en AMO |
+
+Además, el host acepta el ID que el instalador deja en
+`extensions/chromium/grxfirma-extension-chromium.id` y los que figuren en un
+manifiesto de host instalado con uno de esos dos nombres que apunte a este
+mismo ejecutable.
+
+Las extensiones «portafirmas» (`com.dipgra.portafirmas`) ya no son llamantes de
+GrxFirma desde la 0.0.125: ni sus ID ni su manifiesto autorizan llamadas
+(`TestNativeCaller_RechazaManifiestoEIDsDePortafirmas`).
+
+- Solo la extensión oficial cuenta como «oficial»: los ID de la tabla, el del
+  fichero `.id` y los de los manifiestos anteriores. Un ID admitido solo por el
+  modo de desarrollo no lo es.
+- La política de máquina `aprobacion_automatica_nativehost` solo se aplica a la
+  extensión oficial. Con cualquier otro llamante el host pide siempre
+  confirmación, porque el origen solicitante que declara no se puede comprobar:
+  la extensión oficial lo calcula a partir de la URL que da el navegador.
+
+### Portales que pueden pedir pruebas de identidad
+
+La extensión acepta `proveIdentity` desde cualquier subdominio de `dipgra.es` y
+de `savia.net`. Es una decisión expresa de Alberto del 13/11/2026 (hallazgo
+C-08): se mantienen todos los subdominios. La lista está en
+`FACTORY_PORTAL_PATTERNS` (`background.js`), `FACTORY_SITES`
+(`trusted_sites.js`) y en `content_scripts` y `host_permissions` de los
+`manifest.json` de Chromium y Firefox.

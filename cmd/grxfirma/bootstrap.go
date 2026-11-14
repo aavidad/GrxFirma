@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"grxfirma/internal/adapters/inbound/common/cli"
+	"grxfirma/internal/adapters/outbound/common/auditlog"
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/hashmanifest"
 	"grxfirma/internal/adapters/outbound/common/localizador"
@@ -108,14 +109,6 @@ func (a *aprobacionAutomatica) Request(_ context.Context, _ string) (bool, error
 	return true, nil
 }
 
-// loggerSilencioso registra evidencias sin volcarlas en consola.
-// En versiones futuras puede persistir en un fichero de auditoria.
-type loggerSilencioso struct{}
-
-func (l *loggerSilencioso) Log(_ context.Context, _ ports.Evidence) error {
-	return nil
-}
-
 // relojReal delega en time.Now.
 type relojReal struct{}
 
@@ -150,6 +143,10 @@ type serviciosGrxFirma struct {
 	exportarProteccion *application.ExportProtectionRecipientUseCase
 	importarProteccion *application.ImportProtectionRecipientUseCase
 	proteccion         *protector.LocalCombinedKeyring
+	// motor y tsaPermitidas permiten al servidor REST fijar su modo de TSA de
+	// opciones (lote 13a) después de construir los servicios.
+	motor         *deskSigner.MotorFirmaGo
+	tsaPermitidas []string
 }
 
 func construirMotorFirmaConHTTP(httpClient *http.Client) *deskSigner.MotorFirmaGo {
@@ -161,6 +158,16 @@ func construirMotorFirmaConHTTP(httpClient *http.Client) *deskSigner.MotorFirmaG
 	}
 	motor.WithRevocationProvider(revocationclient.NewWithHTTPClient(httpClient))
 	return motor
+}
+
+// configurarTSAOpcionesREST fija el modo de TSA de opciones del servidor REST
+// (lote 13a): una TSA interna se admite con aviso en el registro y, si la
+// política de máquina define tsa_permitidas, solo valen las de la lista.
+func configurarTSAOpcionesREST(servicios *serviciosGrxFirma) {
+	if servicios == nil || servicios.motor == nil {
+		return
+	}
+	servicios.motor.AvisarTSADeOpcionesEnRedLocal().ConTSAPermitidas(servicios.tsaPermitidas)
 }
 
 func cargarDirectorioP12(dir, password string, metricas ports.OperationMetrics) ([]entradaCert, error) {
@@ -335,18 +342,15 @@ func construirServiciosCon(rutaP12, password, rutaCert, rutaClave string, remota
 	if override := os.Getenv("GRXFIRMA_PKCS12_DIR"); override != "" {
 		p12Dir = override
 	}
-	p12Password := password
-	if compatible, present := os.LookupEnv("GRXFIRMA_PKCS12_PASSWORD"); present {
-		p12Password = compatible
-	}
-
+	// main ya retiró GRXFIRMA_PKCS12_PASSWORD del entorno y la transfiere al
+	// adaptador CLI; aquí no queda nada que leer (H-04).
 	var catalogo ports.CertificateCatalog
 	var claves ports.SigningKeyProvider
 	if remota != nil {
 		catalogo = &catalogoMemoria{certs: []domain.CertificateRef{remota.ref}}
 		claves = &proveedorClavesMemoria{claves: map[string]ports.SigningKey{remota.ref.ID: remota.clave}}
 	} else {
-		catalogo, claves, err = construirFuentesCertificados(ctx, rutaP12, password, rutaCert, rutaClave, p12Dir, p12Password, metricas)
+		catalogo, claves, err = construirFuentesCertificados(ctx, rutaP12, password, rutaCert, rutaClave, p12Dir, password, metricas)
 		if err != nil {
 			return nil, err
 		}
@@ -358,8 +362,16 @@ func construirServiciosCon(rutaP12, password, rutaCert, rutaClave string, remota
 	}
 
 	httpClient := proxyhttp.New(configDir)
-	motor := construirMotorFirmaConHTTP(httpClient)
-	auditor := application.NuevoAuditUseCase(relojReal{}, &loggerSilencioso{})
+	// Lote 13a (retrocompatibilidad, revisa E1-12): en la CLI y en el
+	// escritorio la tsaURL la teclea o la elige el propio usuario, así que
+	// vale una TSA interna sin más. El servidor REST cambia este modo en
+	// runRESTServer (aviso en el registro y lista de la política).
+	motor := construirMotorFirmaConHTTP(httpClient).PermitirTSADeOpcionesEnRedLocal()
+	registradorAuditoria, err := auditlog.NewDefault()
+	if err != nil {
+		return nil, err
+	}
+	auditor := application.NuevoAuditUseCase(relojReal{}, registradorAuditoria)
 	aprobador := &aprobacionAutomatica{}
 	verificador := application.NuevoVerifySignatureUseCase(
 		systemtrust.New(),
@@ -380,7 +392,7 @@ func construirServiciosCon(rutaP12, password, rutaCert, rutaClave string, remota
 	manifestCodec := hashmanifest.NuevoCodec()
 	ucCrearHashDir := application.NuevoCreateDirectoryHashManifestUseCase(treeReader, manifestCodec)
 	ucComprobarHashDir := application.NuevoCheckDirectoryHashManifestUseCase(treeReader, manifestCodec)
-	keyringProteccion := protector.NuevoLocalCombinedKeyring(configDir, catalogo, claves)
+	keyringProteccion := protector.NuevoLocalCombinedKeyring(configDir, appdirs.Data(home), catalogo, claves)
 	motorProteccion := protector.NuevoAdaptiveProtector()
 	motorProteccionFirmada := protector.NuevoCMSSignedEnvelopedProtector()
 	ucProteger := application.NuevoProtectDocumentUseCase(keyringProteccion, motorProteccion, aprobador, auditor, nil)
@@ -413,6 +425,8 @@ func construirServiciosCon(rutaP12, password, rutaCert, rutaClave string, remota
 		exportarProteccion: ucExportarProteccion,
 		importarProteccion: ucImportarProteccion,
 		proteccion:         keyringProteccion,
+		motor:              motor,
+		tsaPermitidas:      cfg.TSAPermitidas,
 	}, nil
 }
 

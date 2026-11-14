@@ -318,6 +318,37 @@ EOF
   [ ! -e "${ipc_bootstrap}" ]
 }
 
+@test "el desinstalador retira la CA local antes de borrar AfirmaURI (G-06)" {
+  local base="${TEST_HOME}/Library/Application Support/GrxFirma"
+  local record="${BATS_TEST_TMPDIR}/afirmauri-args"
+  printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$@" >> "%s"\nexit 0\n' "${record}" \
+    > "${SUITE}/GrxFirma AfirmaURI.app/Contents/MacOS/grxfirma-afirmauri"
+
+  run env HOME="${TEST_HOME}" bash "${SUITE}/install-suite.sh"
+  [ "$status" -eq 0 ]
+  rm -f "${record}"
+
+  run env HOME="${TEST_HOME}" bash "${base}/uninstall-suite.sh"
+  [ "$status" -eq 0 ]
+  [ -f "${record}" ]
+  grep -qx -- '--remove-local-tls-trust' "${record}"
+  [ ! -e "${TEST_HOME}/Applications/GrxFirma AfirmaURI.app" ]
+}
+
+@test "el desinstalador avisa y sigue si no puede retirar la CA local (G-06)" {
+  local base="${TEST_HOME}/Library/Application Support/GrxFirma"
+  # shellcheck disable=SC2016 # el $1 es del script falso, no de la prueba
+  printf '#!/usr/bin/env bash\n[[ "$1" == --remove-local-tls-trust ]] && exit 3\nexit 0\n' \
+    > "${SUITE}/GrxFirma AfirmaURI.app/Contents/MacOS/grxfirma-afirmauri"
+
+  run env HOME="${TEST_HOME}" bash "${SUITE}/install-suite.sh"
+  [ "$status" -eq 0 ]
+  run env HOME="${TEST_HOME}" bash "${base}/uninstall-suite.sh"
+  [ "$status" -eq 0 ]
+  [[ "${output}" == *"--remove-local-tls-trust"* ]]
+  [ ! -e "${TEST_HOME}/Applications/GrxFirma AfirmaURI.app" ]
+}
+
 @test "Safari build request fails before compilation outside macOS" {
   run env GRXFIRMA_BUILD_SAFARI=1 bash "${BATS_TEST_DIRNAME}/../build-suite.sh"
 

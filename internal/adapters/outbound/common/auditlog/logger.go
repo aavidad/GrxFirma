@@ -6,7 +6,9 @@
 package auditlog
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -123,9 +125,15 @@ func (l *Logger) Log(ctx context.Context, evidence ports.Evidence) error {
 	return nil
 }
 
+// pruneExpired aplica la retención por registro: retira del principio del
+// historial (primero la rotación, después el activo) los registros cuya fecha
+// es anterior al corte. Un registro sin fecha legible usa la del fichero. Solo
+// se retira un tramo inicial, para que la cadena de huellas siga siendo
+// verificable: el primer registro conservado queda como inicio retirado.
 func (l *Logger) pruneExpired() error {
 	cutoff := l.now().UTC().Add(-l.maxAge)
-	for _, path := range []string{l.path, l.path + ".1"} {
+	retirando := true
+	for _, path := range []string{l.path + ".1", l.path} {
 		info, err := os.Lstat(path)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -139,14 +147,52 @@ func (l *Logger) pruneExpired() error {
 				filepath.Base(path),
 			)
 		}
-		if !info.ModTime().UTC().Before(cutoff) {
+		if !retirando {
 			continue
 		}
-		if err := securefile.RemoveFile(path); err != nil {
-			return fmt.Errorf("no se pudo retirar la auditoria fuera de retencion: %w", err)
+		data, err := leerRegistro(path)
+		if err != nil {
+			return err
 		}
+		lineas := lineasRegistro(data)
+		primera := 0
+		for primera < len(lineas) && fechaRegistro(lineas[primera], info.ModTime()).Before(cutoff) {
+			primera++
+		}
+		if primera < len(lineas) {
+			retirando = false
+		}
+		if primera == 0 {
+			continue
+		}
+		if primera == len(lineas) {
+			if err := securefile.RemoveFile(path); err != nil {
+				return fmt.Errorf("no se pudo retirar la auditoria fuera de retencion: %w", err)
+			}
+		} else {
+			resto := append(bytes.Join(lineas[primera:], []byte("\n")), '\n')
+			if err := securefile.WriteFileAtomic(path, resto, 0o600); err != nil {
+				return fmt.Errorf("no se pudo recortar la auditoria fuera de retencion: %w", err)
+			}
+		}
+		// La cadena se recalcula desde lo que queda.
+		l.cadenaLista = false
 	}
 	return nil
+}
+
+// fechaRegistro devuelve la fecha del registro (campo "timestamp" que añade
+// AuditUseCase) o, si no la tiene o no se entiende, la de respaldo.
+func fechaRegistro(linea []byte, respaldo time.Time) time.Time {
+	var r struct {
+		Timestamp string `json:"timestamp"`
+	}
+	if json.Unmarshal(linea, &r) == nil && r.Timestamp != "" {
+		if t, err := time.Parse(time.RFC3339Nano, r.Timestamp); err == nil {
+			return t.UTC()
+		}
+	}
+	return respaldo.UTC()
 }
 
 func (l *Logger) rotateIfNeeded(incoming int64) error {

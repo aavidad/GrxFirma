@@ -344,6 +344,15 @@ class ProtectFunctionalContractTests(unittest.TestCase):
         self.assertIn("ValidateProtectedOutputForOpening()", self.code)
         self.assertIn("ValidateUnprotectedOutputForOpening()", self.code)
         self.assertIn("UseShellExecute = true", self.code)
+        # D-02: el nombre desprotegido lo elige el remitente; solo se abre
+        # con ShellExecute un tipo documental y, si no, su carpeta.
+        open_body = self.code[self.code.index("private async Task OpenOutputAsync("):]
+        open_body = open_body[:open_body.index("\n    }\n")]
+        policy = open_body.index("OutputOpeningPolicy.IsDocumentToOpen(outputPath)")
+        self.assertLess(policy, open_body.index("Process.Start("))
+        self.assertIn("Path.GetDirectoryName(outputPath)", open_body)
+        self.assertIn("FileName = target,", open_body)
+        self.assertNotIn("FileName = outputPath,", open_body)
 
     def test_double_click_cancel_and_failures_have_visual_diagnostics(self) -> None:
         self.assertIn("Interlocked.CompareExchange(", self.view_model)

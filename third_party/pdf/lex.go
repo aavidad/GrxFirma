@@ -209,11 +209,19 @@ func (b *buffer) readHexString() token {
 			break
 		}
 		if isSpace(c) {
+			// AutoFirmaV2: sin el '>' de cierre, readByte devuelve '\n' sin
+			// fin al final de un flujo de objetos (E2-03).
+			if b.eof {
+				b.errorf("malformed PDF: unterminated hex string")
+			}
 			goto Loop
 		}
 	Loop2:
 		c2 := b.readByte()
 		if isSpace(c2) {
+			if b.eof {
+				b.errorf("malformed PDF: unterminated hex string")
+			}
 			goto Loop2
 		}
 		x := unhex(c)<<4 | unhex(c2)
@@ -245,6 +253,10 @@ func (b *buffer) readLiteralString() token {
 Loop:
 	for {
 		c := b.readByte()
+		// AutoFirmaV2: cadena sin cerrar al final de un flujo de objetos (E2-03).
+		if b.eof {
+			b.errorf("malformed PDF: unterminated string")
+		}
 		switch c {
 		default:
 			tmp = append(tmp, c)
@@ -504,6 +516,10 @@ func (b *buffer) readArray() object {
 		tok := b.readToken()
 		if tok == nil || tok == keyword("]") {
 			break
+		}
+		// AutoFirmaV2: array sin cerrar al final de un flujo de objetos (E2-03).
+		if tok == io.EOF {
+			b.errorf("malformed PDF: unterminated array")
 		}
 		b.unreadToken(tok)
 		x = append(x, b.readObject())

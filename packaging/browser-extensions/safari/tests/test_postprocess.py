@@ -156,7 +156,7 @@ class PostprocessTests(unittest.TestCase):
                 project_dir / "Shared (Extension)" / "Resources" / "background.js"
             ).read_text(encoding="utf-8")
             self.assertIn(MODULE.NATIVE_ONLY_START, background)
-            self.assertIn("disableSignRestFallback", background)
+            self.assertIn("disableRestFallback", background)
             self.assertEqual(
                 report["background"], "Shared (Extension)/Resources/background.js"
             )
@@ -486,7 +486,7 @@ class PostprocessTests(unittest.TestCase):
         self.assertIn("kSecAttrAccessGroup", app)
         self.assertIn("previousToken", app)
         self.assertNotIn("UserDefaults", app)
-        self.assertIn("disableSignRestFallback", native_only)
+        self.assertIn("disableRestFallback", native_only)
         self.assertIn("pingThroughSafariHandler", native_only)
         self.assertNotIn("fetch(", native_only)
 

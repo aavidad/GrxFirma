@@ -58,6 +58,29 @@
   "identity.local.selector.no_expiry": "iraungitze-data ez dago erabilgarri",
   "identity.local.selector.use": "Erabili ziurtagiria",
   "identity.local.selector.cancel": "Utzi",
+  "approval.question.sign": "«%s» ziurtagiriarekin sinatu nahi duzu?",
+  "approval.question.cosign": "Zure sinadura gehitu nahi duzu (kosinadura) «%s» ziurtagiriarekin?",
+  "approval.question.countersign": "Kontrasinatu nahi duzu «%s» ziurtagiriarekin?",
+  "approval.question.batch": "%d dokumentu sinatu nahi dituzu «%s» ziurtagiriarekin?",
+  "approval.question.batch_unknown": "Dokumentu-sorta bat sinatu nahi duzu «%s» ziurtagiriarekin?",
+  "approval.certificate.unknown": "izenik gabe",
+  "approval.requester.origin": "Eskatzen duen webgunea: %s",
+  "approval.requester.application": "Eskatzen duen aplikazioa: %s",
+  "approval.document": "Dokumentua: %s",
+  "approval.document.sized": "Dokumentua: %s (%s)",
+  "approval.documents": "Dokumentuak: %s",
+  "approval.documents.more": "%s eta beste %d",
+  "approval.format": "Sinadura-formatua: %s",
+  "approval.destinations": "Dokumentua edo sinadura jasoko duten zerbitzariak: %s",
+  "approval.origin.unverifiable": "GrxFirmak ezin du egiaztatu zein webgunek eskatu duen sinadura hau. Zerrendako zerbitzariak webgune horrek aukeratu ditu. Jarraitu ezagutzen badituzu bakarrik.",
+  "approval.session.unidentified": "Webgune honek sistema zahar bat erabiltzen du, eta ez du saioa GrxFirmarekin identifikatzen. Jarraitu sinadura hau zeuk webgunean hasi berri baduzu bakarrik.",
+  "approval.triphase.server_multiple": "Webaren zerbitzariak prestatzen du sinadura hau, eta baieztapen bakar honekin sinadura bat baino gehiago eska ditzake.",
+  "approval.destination.unencrypted": "Zerrendako zerbitzariren batek zifratu gabeko konexioa erabiltzen du (http): bidaltzen dena bidean irakur daiteke. Jarraitu zure erakundeko zerbitzaria bada bakarrik.",
+  "approval.size.bytes": "%d byte",
+  "approval.size.kb": "%d KB",
+  "approval.save.extension": "Webguneak %s fitxategi bat gorde nahi du hemen: %s. Sinadurak eta dokumentuak .pdf, .xml, .csig edo .xsig izan ohi dira. Gorde ezazu zer den badakizu bakarrik. Gorde nahi duzu?",
+  "approval.save.extension.risky": "Webak %s fitxategi bat %s helbidean gorde nahi du. Fitxategi mota honek irekitzean exekutatzen diren makroak edo kodea izan ditzake. Gorde ezazu web honetatik jasotzea espero bazenuen bakarrik. Gorde nahi duzu?",
+  "approval.save.title": "Gordetzea berretsi",
   "cli.error.no_operation": "ez da CLI eragiketarik adierazi",
   "cli.error.p12_secret_input": "ezin izan da PKCS#12 pasahitza irakurri",
   "cli.error.prefix": "errorea:",
@@ -85,9 +108,10 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Erregistro zaharrenak atxikipen-politikak kendu zituen; katea gordetako lehenengotik egiaztatzen da.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d erregistro hash-katea baino lehenagokoak dira eta ezin dira egiaztatu.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Auditoria-erregistroaren hash-katea egiaztatzen du: aldatutako, txertatutako edo ezabatutako erregistroak detektatzen ditu. Amaiera moztu ez dela ere egiaztatzeko, sinatu fitxategia zure ziurtagiriarekin ematean.",
+  "cli.help.audit": "Auditoria-erregistroaren hash-katea egiaztatzen du: nahi gabeko aldaketak detektatzen ditu; ez du babesten fitxategian idatz dezakeenaren aurrean. Amaiera moztu ez dela ere egiaztatzeko, sinatu fitxategia zure ziurtagiriarekin ematean.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Egiaztapenarekin batera, HTML inprimagarrian balioztatze-txosten bat gordetzen du: ebazpena, egiaztapenak, sinatzaileak eta egiaztatutako fitxategiaren SHA-256 hash-a.",
+  "cli.help.verify_exit": "Egiaztapenaren irteera-kodeak: 0 sinadura baliozkoa bada; 2 baliozkoa ez bada; 1 egiaztatu ezin izan bada (fitxategi irakurezina, formatu ezezaguna edo beste errore bat).",
   "Informe de validación": "Balioztatze-txostena",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Oihartzunik gabe irakurtzen du PDF zifratu baten pasahitza (erabiltzailearena edo jabearena), zifratzea mantenduz sinatzeko. GRXFIRMA_PDF_PASSWORD aldagaia ere onartzen da, irakurtzean ezabatzen dena; ez da inoiz argumentu gisa onartzen.",
@@ -128,6 +152,9 @@
   "security.secret.hint.p12": "erabili -contrasena-stdin edo, automatizazio-bateragarritasunerako soilik, GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12 pasahitza: ",
   "security.secret.prompt.protection": "Base64 babes-gakoa: ",
+  "desktop.ipc.server.client_pid_required": "--server moduak --ipc-client-pid behar du, konektatuko den programaren PIDarekin; hori gabe ez da IPC kanala irekitzen",
+  "desktop.ipc.peer_binding_unsupported": "sistema honek ez du uzten egiaztatzen zein programa konektatzen den sinadura-motorrera; horregatik, GrxFirma ez da abiarazten",
+  "desktop.ipc.flag.parent_stdin": "zerbitzaria gelditzen du abiarazi duen programa grafikoak irekita mantentzen duen sarrera estandarra ixten denean",
   "rest.error.private_credential": "ezin izan da REST kredentzialaren entrega pribatua prestatu",
   "rest.help.private_delivery": "Sekretu-kudeatzaile batek GRXFIRMA_REST_TOKEN txerta dezake. Tokena automatikoki sortzen bada, curl --config erabiltzeko fitxategi pribatu eta iragankorraren bidea bakarrik erakusten da.",
   "rest.output.bearer_file": "Aldi baterako Bearer kredentziala: %s fitxategi pribatua",
@@ -860,6 +887,15 @@
   "Firma electrónica avanzada": "Sinadura elektroniko aurreratua",
   "Firma guardada exitosamente en: ": "Sinadura behar bezala gorde da hemen: ",
   "Firma inválida o integridad no garantizada.": "Sinadura baliogabea edo osotasuna ez dago bermatuta.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "Sinadura zuzena da, baina dokumentuaren edukiaren zati bat ez dago sinatuta.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Ezin izan da egiaztatu sinadurak estaltzen duen guztia; beraz, ez da baliozkotzat jotzen.",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "Sinadura baliozkoa da, baina ez ditu dokumentuaren metadatu batzuk estaltzen, formatuak kanpoan uzten dituelako. Xehetasunetan adierazten da zein diren.",
+  "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "Dokumentua ez da aldatu sinatu zenetik, baina sinadurak SHA-1 erabiltzen du, gaur egun segurutzat jotzen ez den algoritmo zaharra. Horregatik ez da baliozkotzat hartzen: SHA-1 onartzen zenean egindako sinadura baten froga gisa balio du.",
+  "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida.": "Sinadura GrxFirmaren aurreko bertsioek XMLa prestatzeko erabiltzen zuten moduarekin bat dator, ez estandarrarekin. Ziurrenik bertsio horietako batek egin zuen. Ez da baliozkotzat hartzen.",
+  "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "Modu zahar horrekin ez ziren sinatzen erro-elementutik kanpoko prozesatze-argibideak (adibidez, estilo-orri bat), eta dokumentu honek baditu. Sinatu ondoren gehitu zitezkeen.",
+  "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "Dokumentuak GrxFirmak irakurtzen ez duen kanpoko DTD bat adierazten du. DTD horrek dokumentuari balioak gehitzen badizkio, beste programa batek erakusten duena ez da agian sinatutakoa izango; horregatik sinadura ez da baliozkotzat hartzen.",
+  "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "Babestutako fitxategi honen izena edo mota babestu ondoren alda zitezkeen; GrxFirmaren aurreko bertsio batek egindakoekin gertatu ohi da. Edukia egiaztatuta dago. GrxFirmak izena segurtasunagatik egokitu du: berrikusi fitxategia ireki aurretik.",
+  "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "Fitxategi hau gaur egun segurutzat jotzen ez den algoritmo zahar batekin zifratu zen. Deszifratu egin da sarbidea gal ez dezazun, baina bidali zizunak algoritmo berri batekin babestu beharko luke berriro.",
   "Firma múltiple completada (": "Sinadura anizkoitza amaitu da (",
   "Firma múltiple completada con incidencias (": "Sinadura anizkoitza gorabeherekin amaitu da (",
   "Firma múltiple finalizada.": "Sinadura anitza amaitu da.",
@@ -1163,6 +1199,7 @@
   "No se pudo conectar al backend tras 10 segundos": "Ezin izan da backend-arekin konektatu 10 segundo igarota",
   "No se pudo conectar con el backend local.": "Ezin izan da backend lokalarekin konektatu.",
   "No se pudo conectar con el servicio local de firma (¿está bloqueado?).": "Ezin izan da sinadura-zerbitzu lokalarekin konektatu (blokeatuta al dago?).",
+  "No se pudo abrir la carpeta del fichero": "Ezin izan da fitxategiaren karpeta ireki",
   "No se pudo confirmar el guardado de preferencias.": "Ezin izan da hobespenak gorde direla baieztatu.",
   "No se pudo confirmar el guardado de preferencias. Cerrando igualmente.": "Ezin izan da hobespenak gorde direla baieztatu. Hala ere itxiko da.",
   "No se pudo copiar el JSON de verificación.": "Ezin izan da egiaztapenaren JSONa kopiatu.",
@@ -2402,6 +2439,13 @@
   "✅ Conexión establecida con el motor de firma.": "✅ Konexioa ezarri da sinadura-motorrarekin.",
   "✅ Firma guardada exitosamente en: ": "✅ Sinadura behar bezala gorde da hemen: ",
   "✅ Proceso de instalación finalizado.": "✅ Instalazio-prozesua amaitu da.",
+  "Conectando con el motor de firma del lanzador...": "Abiarazlearen sinadura-motorrera konektatzen...",
+  "Arrancando el motor de firma de esta ventana...": "Leiho honen sinadura-motorra abiarazten...",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ Ez dago karpeta pribaturik sinadura-motorrarekiko konexiorako.",
+  "Error: no se pudo preparar la conexión con el motor de firma": "Errorea: ezin izan da prestatu sinadura-motorrarekiko konexioa",
+  "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "Konexioa ez doa GrxFirmak ireki duen sinadura-motorrera, eta inolako daturik bidali gabe moztu da. Itxi GrxFirma eta ireki berriro.",
+  "Error: no se reconoce el motor de firma": "Errorea: ez da sinadura-motorra ezagutzen",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ Sinadura-motorraren erantzuna handiegia da; konexioa mozten da.",
   "✅ Validar Documento": "✅ Balioztatu dokumentua",
   "✅ VÁLIDA": "✅ BALIOZKOA",
   "✍ FIRMA DIGITAL": "✍ SINADURA DIGITALA",
@@ -2427,6 +2471,7 @@
   "❌ No se pudo abrir la URL: ": "❌ Ezin izan da URLa ireki: ",
   "❌ No se pudo arrancar GrxFirma: ": "❌ Ezin izan da GrxFirma abiarazi: ",
   "❌ No se puede instalar: Backend no configurado.": "❌ Ezin da instalatu: backend-a konfiguratu gabe.",
+  "❌ No se pudo abrir la carpeta: ": "❌ Ezin izan da karpeta ireki: ",
   "🌐  Configuración de Proxy": "🌐 Proxy ezarpenak",
   "🌐  Servidor API REST Local": "🌐 REST API zerbitzari lokala",
   "📤 Enviando petición (JSON): ": "📤 Eskaera bidaltzen (JSON): ",
@@ -2738,6 +2783,12 @@
   ,"Entendido": "Ulertuta"
   ,"Actualizado a %1: ver novedades": "%1 bertsiora eguneratuta: ikusi berritasunak"
   ,"revocación no concluyente": "Ezin izan da ziurtagiriaren errebokazioa egiaztatu. Sinadura ez da baliozkotzat hartzen."
+  ,"clave RSA del firmante de menos de 2048 bits": "Sinatzailearen gakoa 2048 bit baino gutxiagoko RSA da, eta tamaina hori ez da gaur egun segurutzat jotzen. Sinadura ez da baliozkotzat jotzen."
+  ,"el certificado firmante no está destinado a firmar documentos": "Sinatzeko erabilitako ziurtagiria ez da dokumentuak sinatzeko (adibidez, web zerbitzari batena izan daiteke). Sinadura ez da baliozkotzat jotzen."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "Ziurtagiria sistemaren konfiantzazko erro baten mende dago. Horrek ez du bermatzen ziurtagiri kualifikatua denik."
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "Sinatutako datuek ez dute esaten zein ziurtagiri erabili zen; beraz, ezin da egiaztatu erakutsitako ziurtagiria sinatu zuena denik."
+  ,"el PDF contiene firmas que no se han podido verificar": "PDFak GrxFirmak egiaztatu ezin dituen sinadurak ditu; beraz, ezin da baliozkotzat hartu."
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "PDFak egiaztatu gabeko dokumentu-denbora-zigilu bat du."
   ,"rest.verify_v2.error.limit": "v2 egiaztapenaren muga baimendutako tartetik kanpo dago"
   ,"portal.seal.title": "Jarri zigilua PDFan"
   ,"portal.seal.instructions": "Sinatzen ari zaren webguneak sinadura non jarri aukeratzeko eskatzen dizu. Arrastatu zigilua mugitzeko, erabili beheko eskuineko izkina tamaina aldatzeko eta gezidun zirkulua (↻) biratzeko. Posizioa «Doikuntza zehatza» atalean ere idatz dezakezu."
@@ -3923,6 +3974,9 @@
   ,"El sello visible permite elegir su posición en el PDF desde la aplicación y en los portales que solicitan esa elección.": "Zigilu ikusgaiaren kokapena PDFan hauta daiteke aplikaziotik eta aukera hori eskatzen duten atarietan."
   ,"Se reforzó la lectura de PDF cifrados o dañados para evitar cierres inesperados.": "Zifratutako edo hondatutako PDFen irakurketa indartu da ustekabeko itxierak saihesteko."
   ,"Próxima versión (sin publicar)": "Hurrengo bertsioa (argitaratu gabe)"
+  ,"Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.": "Webgune batetik sinatzean (afirma://), ziurtagiri-hautatzaileak ez du jada «Gogoratu hautapen hau» erakusten. Laukiak ez zuen ezer egiten: webgune batetik sinatzean, GrxFirmak ziurtagiria eskatzen du aldi bakoitzean, lehen bezala."
+  ,"GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva prohibir_cifrado_cms_heredado. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.": "GrxFirmak berriro irekitzen ditu algoritmo zaharrekin (DES edo 3DES, adibidez) zifratutako fitxategiak (CMS gutun-azalak). Ireki egiten ditu eta zifratzea jada segurutzat jotzen ez dela ohartarazten du; administratzaile batek eragotzi dezake prohibir_cifrado_cms_heredado gidalerroarekin. Abisua aplikazioan, komando-lerroan eta REST kontsolan ere ikusten da."
+  ,"Los archivos .afp que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.": "Bertsio honek babesten dituen .afp fitxategiak GrxFirmaren aurreko bertsioekin ere irekitzen dira. Formatu berriena eskuragarri dago oraindik, berariaz eskatzen bada."
   ,"Histórico: nombre anterior AutoFirmaV2, versiones 2.0.x": "Historia: aurreko izena AutoFirmaV2, 2.0.x bertsioak"
   ,"Contenido de firma": "Sinaduraren edukia"
   ,"Disponibilidad de firma": "Sinaduraren erabilgarritasuna"
@@ -5104,7 +5158,7 @@
   ,"sin certificado firmante para evaluar confianza": "Ez dago sinatzailearen ziurtagiririk konfiantza ebaluatzeko"
   ,"sin anclas de confianza disponibles": "Ez dago konfiantzazko erro-ziurtagiririk eskuragarri"
   ,"ancla de confianza X.509 inválida": "X.509 konfiantzazko erro-ziurtagiri baliogabea"
-  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Ezin izan da sistemako erro-ziurtagirien biltegi erabilgarririk kontsultatu"
+  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Ezin izan da sistemaren erro-ziurtagirien biltegia irakurri; beraz, ez dakigu ziurtagiria fidagarria den. Sinadura ez da baliozkotzat jotzen."
   ,"ninguna ancla de confianza configurada contiene material X.509 verificable": "Konfiguratutako konfiantzazko erro-ziurtagiri batek ere ez du X.509 datu egiaztagarririk"
   ,"cadena X.509 verificada contra las anclas de confianza configuradas": "X.509 katea egiaztatuta konfiguratutako konfiantzazko erro-ziurtagiriekin"
   ,"cadena de certificados vacía": "Ziurtagiri-katea hutsik dago"

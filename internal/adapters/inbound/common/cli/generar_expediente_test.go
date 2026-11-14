@@ -80,8 +80,10 @@ func TestRunGenerarExpediente_FirmaElIndice(t *testing.T) {
 	}
 	doc, _ := domain.NewDocument("expediente.xml", exp, "application/xml")
 	res, _, err := commonsigner.NewXAdESVerifier().Verify(context.Background(), doc, domain.CertificateChain{})
-	if err != nil || res.Integrity.Status != domain.VerificationStatusValid {
-		t.Fatalf("la firma del índice debe verificarse: %v %+v", err, res.Integrity)
+	// La firma ENI cubre el índice; los metadatos del expediente quedan fuera
+	// de ella por norma y se dicen en un aviso, sin impedir que sea válida.
+	if err != nil || !res.Valid || res.Integrity.Status != domain.VerificationStatusValid || res.Coverage != domain.CoberturaCompleta || len(res.Warnings) == 0 {
+		t.Fatalf("la firma del índice debe verificarse: %v %+v %s %v", err, res.Integrity, res.Coverage, res.Warnings)
 	}
 	stdout.Reset()
 	stderr.Reset()

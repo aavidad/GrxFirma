@@ -125,7 +125,7 @@ func newPlatformFacade(platform string, includeAndroidIntent bool, temporaryDire
 		facade.androidIntentAdapter = androidintent.New(nil)
 	}
 
-	contract, err := buildMobileContract(platform, includeAndroidIntent)
+	contract, err := buildMobileContract(platform)
 	if err != nil {
 		return nil, newFacadeError("no se pudo construir el contrato mobile")
 	}
@@ -317,7 +317,10 @@ type mobileLimitsContract struct {
 	QRImageBytes      int `json:"qr_image_bytes"`
 }
 
-func buildMobileContract(platform string, androidIntent bool) (string, error) {
+// buildMobileContract declara solo servicios que la app móvil usa de verdad.
+// android_intent queda en false: la app Android resuelve sus intents en Kotlin
+// y ninguna pantalla llama a TranslateAndroidIntentJSON (H-07).
+func buildMobileContract(platform string) (string, error) {
 	contract := mobileContract{
 		EngineVersion:   engineVersion,
 		ContractVersion: mobileContractVersion,
@@ -332,7 +335,7 @@ func buildMobileContract(platform string, androidIntent bool) (string, error) {
 			"external_signer":    true,
 			"platform_profile":   true,
 			"clear_session":      true,
-			"android_intent":     androidIntent,
+			"android_intent":     false,
 			"process_batch":      true,
 			"hash":               true,
 			"protect":            true,

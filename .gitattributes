@@ -7,3 +7,5 @@
 third_party/pdf/testdata/*.pdf -text
 # Corpus del dictamen v2: huellas SHA-256 sobre los bytes exactos.
 testdata/dictamen-v2/** -text
+# Firmas XML de versiones anteriores de GrxFirma (lote 13b): bytes exactos, con CR y tabuladores.
+internal/adapters/outbound/common/signer/testdata/grxfirma_anterior/** -text

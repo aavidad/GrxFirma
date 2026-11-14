@@ -25,6 +25,7 @@ import (
 	"grxfirma/internal/appdirs"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -39,7 +40,6 @@ import (
 	"grxfirma/internal/adapters/outbound/common/secmem"
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/adapters/outbound/common/signer"
-	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
 	"grxfirma/internal/adapters/outbound/desktop/proxysecretstore"
 	"grxfirma/internal/adapters/outbound/desktop/usersettings"
@@ -71,16 +71,6 @@ type CreateHashUseCase interface {
 // CheckHashUseCase define el contrato minimo esperado por el endpoint de comprobacion de huellas.
 type CheckHashUseCase interface {
 	Execute(ctx context.Context, cmd application.CheckHashCommand) (application.CheckHashResult, error)
-}
-
-// CreateDirectoryHashUseCase define el contrato minimo esperado por el endpoint de hashes de directorio.
-type CreateDirectoryHashUseCase interface {
-	Execute(ctx context.Context, cmd application.CreateDirectoryHashManifestCommand) (application.CreateDirectoryHashManifestResult, error)
-}
-
-// CheckDirectoryHashUseCase define el contrato minimo esperado por el endpoint de comprobacion de hashes de directorio.
-type CheckDirectoryHashUseCase interface {
-	Execute(ctx context.Context, cmd application.CheckDirectoryHashManifestCommand) (application.CheckDirectoryHashManifestResult, error)
 }
 
 // PDFPreviewUseCase define el contrato minimo esperado por la previsualizacion
@@ -174,9 +164,6 @@ type Adaptador struct {
 	MaxV2PDFBytes      int
 	CrearHash          CreateHashUseCase
 	ComprobarHash      CheckHashUseCase
-	CrearHashDir       CreateDirectoryHashUseCase
-	ComprobarHashDir   CheckDirectoryHashUseCase
-	InformeHashDir     ports.DirectoryHashReportCodec
 	PreviewPDF         PDFPreviewUseCase
 	Proteger           ProtectDocumentUseCase
 	ProtegerFirmando   ProtectAndSignDocumentUseCase
@@ -199,11 +186,6 @@ type Adaptador struct {
 	// CertificateAuthEnabled solo se activa con una allowlist SHA-256
 	// explícita. La confianza genérica del sistema no autoriza clientes REST.
 	CertificateAuthEnabled bool
-	// AllowFileSystemPaths habilita el uso de inputPath/outputPath en las peticiones
-	// REST. Por defecto está desactivado: aceptar solo content_base64 por la red
-	// evita que cualquier proceso local o página web lea/escriba ficheros arbitrarios
-	// del usuario (CWE-22, H-01).
-	AllowFileSystemPaths bool
 	// AllowPDFPreviewPaths habilita exclusivamente la lectura segura de PDF para
 	// /pdf/preview. No concede permisos de lectura o escritura a otros endpoints.
 	AllowPDFPreviewPaths bool
@@ -255,25 +237,6 @@ func (a *Adaptador) WithHashes(crear CreateHashUseCase, comprobar CheckHashUseCa
 	return a
 }
 
-// WithDirectoryHashes conecta los casos de uso de hashes de directorio.
-func (a *Adaptador) WithDirectoryHashes(crear CreateDirectoryHashUseCase, comprobar CheckDirectoryHashUseCase) *Adaptador {
-	if a == nil {
-		return nil
-	}
-	a.CrearHashDir = crear
-	a.ComprobarHashDir = comprobar
-	return a
-}
-
-// WithDirectoryHashReports conecta el codec del informe de comprobación de directorios.
-func (a *Adaptador) WithDirectoryHashReports(codec ports.DirectoryHashReportCodec) *Adaptador {
-	if a == nil {
-		return nil
-	}
-	a.InformeHashDir = codec
-	return a
-}
-
 // WithPDFPreview conecta el caso de uso de previsualizacion PDF.
 func (a *Adaptador) WithPDFPreview(preview PDFPreviewUseCase) *Adaptador {
 	if a == nil {
@@ -322,17 +285,6 @@ func (a *Adaptador) WithIntercambioProteccion(exportar ExportProtectionRecipient
 	return a
 }
 
-// WithFileSystemPaths habilita las operaciones inputPath/outputPath en los endpoints
-// REST. Por defecto están desactivadas (H-01). Actívalo solo en entornos locales de
-// confianza donde el cliente sea el propio usuario del sistema.
-func (a *Adaptador) WithFileSystemPaths() *Adaptador {
-	if a == nil {
-		return nil
-	}
-	a.AllowFileSystemPaths = true
-	return a
-}
-
 // WithPDFPreviewPaths habilita exclusivamente las rutas locales del endpoint
 // /pdf/preview. Está pensado para el backend REST autenticado de la GUI local.
 func (a *Adaptador) WithPDFPreviewPaths() *Adaptador {
@@ -343,7 +295,8 @@ func (a *Adaptador) WithPDFPreviewPaths() *Adaptador {
 	return a
 }
 
-// WithBearerToken activa autenticación Bearer opcional para los endpoints mutables.
+// WithBearerToken configura el token Bearer de las rutas protegidas. Sin token
+// ni huellas de certificado (WithCertificateAuth) esas rutas responden 503.
 func (a *Adaptador) WithBearerToken(token string) *Adaptador {
 	if a == nil {
 		return nil
@@ -449,10 +402,10 @@ func (a *Adaptador) Routes() http.Handler {
 	mux.Handle("/certificates", a.authorize(http.HandlerFunc(a.handleCertificates)))
 	mux.HandleFunc("/openapi.json", a.handleOpenAPI)
 	if enabled, _ := a.certificateAuthSnapshot(); enabled {
-		mux.HandleFunc("/auth/challenge", a.handleAuthChallenge)
-		mux.HandleFunc("/auth/verify", a.handleAuthVerify)
-		mux.HandleFunc("/autenticacion/reto", a.handleAuthChallenge)
-		mux.HandleFunc("/autenticacion/verificar", a.handleAuthVerify)
+		mux.Handle("/auth/challenge", guardCertificateLogin(http.HandlerFunc(a.handleAuthChallenge)))
+		mux.Handle("/auth/verify", guardCertificateLogin(http.HandlerFunc(a.handleAuthVerify)))
+		mux.Handle("/autenticacion/reto", guardCertificateLogin(http.HandlerFunc(a.handleAuthChallenge)))
+		mux.Handle("/autenticacion/verificar", guardCertificateLogin(http.HandlerFunc(a.handleAuthVerify)))
 	}
 	if a.PrepararIdentidad != nil && a.ConfirmarIdentidad != nil {
 		mux.Handle("/identity/challenges", a.authorizeIdentity(http.HandlerFunc(a.handleIdentityChallenge)))
@@ -499,6 +452,44 @@ func (a *Adaptador) Routes() http.Handler {
 	// H-07: el límite sigue siendo la capa exterior. La correlación se genera
 	// después de acotar el body y antes de autorización y dispatch.
 	return limitBodyMiddleware(restCorrelationMiddleware(mux), limit)
+}
+
+// maxCertificateLoginBodyBytes acota el cuerpo de las rutas de login por
+// certificado, que se atienden sin autenticar (B-08).
+const maxCertificateLoginBodyBytes = 64 * 1024
+
+// guardCertificateLogin protege las rutas de login por certificado, que no
+// llevan autenticación: rechaza las peticiones que un navegador envía desde
+// otro origen (una web ajena podría llenar la tabla de retos con POST simples
+// sin preflight) y limita el cuerpo. Los clientes que no son navegador no
+// envían Origin; la consola local envía su propio origen.
+func guardCertificateLogin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" && !sameOriginRequest(r, origin) {
+			writeError(w, http.StatusForbidden, "origen no permitido")
+			return
+		}
+		body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxCertificateLoginBodyBytes))
+		if err != nil {
+			var tooLarge *http.MaxBytesError
+			if errors.As(err, &tooLarge) {
+				writeError(w, http.StatusRequestEntityTooLarge, "cuerpo demasiado grande")
+				return
+			}
+			writeError(w, http.StatusBadRequest, "cuerpo ilegible")
+			return
+		}
+		r.Body = io.NopCloser(bytes.NewReader(body))
+		next.ServeHTTP(w, r)
+	})
+}
+
+func sameOriginRequest(r *http.Request, origin string) bool {
+	u, err := url.Parse(origin)
+	if err != nil || u.Scheme != "https" || u.Host == "" || u.Path != "" {
+		return false
+	}
+	return strings.EqualFold(u.Host, r.Host)
 }
 
 // limitBodyMiddleware limita el tamaño del body de toda petición entrante (CWE-770, H-07).
@@ -676,6 +667,9 @@ type unprotectResponse struct {
 	MIMEType                 string `json:"mime_type,omitempty"`
 	UnprotectedContentBase64 string `json:"unprotected_content_base64,omitempty"`
 	OutputPath               string `json:"outputPath,omitempty"`
+	// Warnings son avisos para la persona cuando el contenedor se ha abierto
+	// por compatibilidad con algo antiguo (ya traducidos al idioma de la petición).
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type protectionRecipientEntryResponse struct {
@@ -1018,10 +1012,7 @@ func (a *Adaptador) handleSign(w http.ResponseWriter, r *http.Request) {
 	}
 	r = correlatedRequest
 	if strings.TrimSpace(req.InputPath) != "" {
-		if a.rejectPathOps(w) {
-			return
-		}
-		a.handleSignByPath(w, r, req)
+		rejectPathOps(w)
 		return
 	}
 
@@ -1058,12 +1049,14 @@ func (a *Adaptador) handleSign(w http.ResponseWriter, r *http.Request) {
 	if !a.acceptSignRequestID(w, req.RequestID) {
 		return
 	}
+	extendSignWriteDeadline(w)
 	result, err := a.Firmar.Execute(r.Context(), cmd)
 	if err != nil {
+		a.releaseSignRequestID(req.RequestID)
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, signResponse{
+	a.deliverSignResponse(w, req.RequestID, signResponse{
 		OK:                  true,
 		RequestID:           strings.TrimSpace(req.RequestID),
 		Format:              string(result.Result.Format),
@@ -1071,96 +1064,6 @@ func (a *Adaptador) handleSign(w http.ResponseWriter, r *http.Request) {
 		SignedContentBase64: base64.StdEncoding.EncodeToString(result.Result.Data),
 		CertificateID:       result.CertificateUsed.ID,
 	})
-}
-
-func (a *Adaptador) handleSignByPath(w http.ResponseWriter, r *http.Request, req signRequest) {
-	inputPath := strings.TrimSpace(req.InputPath)
-
-	// H-01: Validar que la ruta no es un path traversal / acceso a sistema
-	if errMsg := validatePathSecurity(inputPath); errMsg != "" {
-		writeError(w, http.StatusBadRequest, "ruta no valida: "+errMsg)
-		return
-	}
-
-	data, err := a.readPathFile(inputPath)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "no se pudo leer inputPath")
-		return
-	}
-
-	nombre := strings.TrimSpace(req.Name)
-	if nombre == "" {
-		nombre = filepath.Base(inputPath)
-	}
-	mimeType := strings.TrimSpace(req.MIMEType)
-	if mimeType == "" {
-		mimeType = inferirTipoMIMERuta(inputPath)
-	}
-
-	formato := inferirFormatoSolicitud(req.Format, inputPath)
-	action := normalizarAccionFirmaTexto(req.Action)
-	if strings.TrimSpace(action) == "" {
-		action = "sign"
-	}
-
-	certificateID, err := a.resolveCertificateIDFromRequest(r.Context(), req)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	options, err := a.prepareSignOptionsWithDefaults(r.Context(), formato, req.Options)
-	if err != nil {
-		writeSignOptionsError(w, err)
-		return
-	}
-	addBoolOption(options, "strictCompat", req.StrictCompat)
-	addBoolOption(options, "allowInvalidPDF", req.AllowBadPDF)
-
-	cmd, err := application.NewSignCommand(nombre, data, mimeType, formato, action, certificateID, options)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	if !a.acceptSignRequestID(w, req.RequestID) {
-		return
-	}
-	result, err := a.Firmar.Execute(r.Context(), cmd)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	saveToDisk := req.SaveToDisk == nil || *req.SaveToDisk
-	outputPath := strings.TrimSpace(req.OutputPath)
-	if saveToDisk && outputPath == "" {
-		outputPath = construirSalidaRuta(inputPath, result.Result.Format)
-	}
-	if saveToDisk {
-		politica := filesystem.PoliticaRenombrar
-		if valorBoolTexto(req.Overwrite) {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
-		outputPath, err = writer.Escribir(outputPath, result.Result.Data)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-	}
-
-	resp := signResponse{
-		OK:            true,
-		RequestID:     strings.TrimSpace(req.RequestID),
-		Format:        string(result.Result.Format),
-		Algorithm:     result.Result.Algorithm,
-		CertificateID: result.CertificateUsed.ID,
-		OutputPath:    outputPath,
-	}
-	if req.ReturnB64 == nil || *req.ReturnB64 || !saveToDisk {
-		resp.SignedContentBase64 = base64.StdEncoding.EncodeToString(result.Result.Data)
-	}
-	writeJSON(w, http.StatusOK, resp)
 }
 
 func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
@@ -1208,10 +1111,8 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 	preferenciasCargadas := false
 
 	type batchItemMeta struct {
-		name       string
-		inputPath  string
-		outputPath string
-		mimeType   string
+		name     string
+		mimeType string
 	}
 
 	inputs := make([]application.BatchItemInput, 0, len(req.Items))
@@ -1219,35 +1120,24 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 	for _, itemReq := range req.Items {
 		itemPath := strings.TrimSpace(itemReq.InputPath)
 		if itemPath != "" || strings.TrimSpace(itemReq.OutputPath) != "" {
-			if a.rejectPathOps(w) {
-				return
-			}
+			rejectPathOps(w)
+			return
 		}
-		data, err := a.decodeBatchItemContent(itemReq)
+		data, err := decodeBatchItemContent(itemReq)
 		if err != nil {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 		name := strings.TrimSpace(itemReq.Name)
-		if name == "" && itemPath != "" {
-			name = filepath.Base(itemPath)
-		}
 		if name == "" {
 			writeError(w, http.StatusBadRequest, "cada fichero del lote debe tener nombre")
 			return
 		}
 		mimeType := strings.TrimSpace(itemReq.MIMEType)
 		if mimeType == "" {
-			sourceName := itemPath
-			if sourceName == "" {
-				sourceName = name
-			}
-			mimeType = inferirTipoMIMERuta(sourceName)
+			mimeType = inferirTipoMIMERuta(name)
 		}
-		sourceName := itemPath
-		if sourceName == "" {
-			sourceName = name
-		}
+		sourceName := name
 		itemOptions, err := a.prepareSignOptions(itemReq.Options)
 		if err != nil {
 			writeSignOptionsError(w, err)
@@ -1271,10 +1161,8 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 			Opciones:  itemOptions,
 		})
 		metas = append(metas, batchItemMeta{
-			name:       name,
-			inputPath:  itemPath,
-			outputPath: strings.TrimSpace(itemReq.OutputPath),
-			mimeType:   mimeType,
+			name:     name,
+			mimeType: mimeType,
 		})
 	}
 
@@ -1288,13 +1176,14 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 	if !a.acceptSignRequestID(w, req.RequestID) {
 		return
 	}
+	extendSignWriteDeadline(w)
 	result, err := a.ProcesarLote.Execute(r.Context(), cmd)
 	if err != nil {
+		a.releaseSignRequestID(req.RequestID)
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	saveToDisk := req.SaveToDisk != nil && *req.SaveToDisk
 	results := make([]signBatchItemResponse, 0, len(metas))
 	successIndex := 0
 	successCount := 0
@@ -1324,39 +1213,16 @@ func (a *Adaptador) handleSignBatch(w http.ResponseWriter, r *http.Request) {
 		itemResp.Algorithm = signed.Result.Algorithm
 		itemResp.CertificateID = signed.CertificateUsed.ID
 
-		wantsDisk := saveToDisk && (meta.inputPath != "" || meta.outputPath != "")
-		outputPath := meta.outputPath
-		if wantsDisk && outputPath == "" && meta.inputPath != "" {
-			outputPath = construirSalidaRuta(meta.inputPath, signed.Result.Format)
-		}
-		if wantsDisk && outputPath != "" {
-			politica := filesystem.PoliticaRenombrar
-			if valorBoolTexto(req.Overwrite) {
-				politica = filesystem.PoliticaForzar
-			}
-			writer := filesystem.NuevoEscritorResultado(politica)
-			realPath, writeErr := writer.Escribir(outputPath, signed.Result.Data)
-			if writeErr != nil {
-				itemResp.OK = false
-				itemResp.Error = writeErr.Error()
-				failureCount++
-				if req.ReturnB64 == nil || *req.ReturnB64 {
-					itemResp.SignedContentBase64 = base64.StdEncoding.EncodeToString(signed.Result.Data)
-				}
-				results = append(results, itemResp)
-				continue
-			}
-			itemResp.OutputPath = realPath
-		}
-
-		if req.ReturnB64 == nil || *req.ReturnB64 || !wantsDisk || itemResp.OutputPath == "" {
-			itemResp.SignedContentBase64 = base64.StdEncoding.EncodeToString(signed.Result.Data)
-		}
+		itemResp.SignedContentBase64 = base64.StdEncoding.EncodeToString(signed.Result.Data)
 		successCount++
 		results = append(results, itemResp)
 	}
 
-	writeJSON(w, http.StatusOK, signBatchResponse{
+	if successCount == 0 {
+		// Ninguna firma producida: el reintento con el mismo request_id es legítimo.
+		a.releaseSignRequestID(req.RequestID)
+	}
+	a.deliverSignResponse(w, req.RequestID, signBatchResponse{
 		OK:           failureCount == 0,
 		RequestID:    strings.TrimSpace(req.RequestID),
 		Total:        len(results),
@@ -1382,10 +1248,7 @@ func (a *Adaptador) handleProtect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if strings.TrimSpace(req.InputPath) != "" {
-		if a.rejectPathOps(w) {
-			return
-		}
-		a.handleProtectByPath(w, r, req)
+		rejectPathOps(w)
 		return
 	}
 
@@ -1437,10 +1300,7 @@ func (a *Adaptador) handleProtectSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if strings.TrimSpace(req.InputPath) != "" {
-		if a.rejectPathOps(w) {
-			return
-		}
-		a.handleProtectSignByPath(w, r, req)
+		rejectPathOps(w)
 		return
 	}
 
@@ -1488,164 +1348,6 @@ func (a *Adaptador) handleProtectSign(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (a *Adaptador) handleProtectSignByPath(w http.ResponseWriter, r *http.Request, req protectRequest) {
-	inputPath := strings.TrimSpace(req.InputPath)
-
-	// H-01: Validar que la ruta no es un path traversal / acceso a sistema
-	if errMsg := validatePathSecurity(inputPath); errMsg != "" {
-		writeError(w, http.StatusBadRequest, "ruta no valida: "+errMsg)
-		return
-	}
-
-	data, err := a.readPathFile(inputPath)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "no se pudo leer inputPath")
-		return
-	}
-
-	name := strings.TrimSpace(req.Name)
-	if name == "" {
-		name = filepath.Base(inputPath)
-	}
-	mimeType := strings.TrimSpace(req.MIMEType)
-	if mimeType == "" {
-		mimeType = inferirTipoMIMERuta(inputPath)
-	}
-	certificateID, err := a.resolveProtectionCertificateID(r.Context(), req)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	options := normalizarOpcionesProteccion(req.Options, req.SecretB64)
-	if err := normalizarContenedorProteccionFirmada(options); err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	cmd, err := application.NewProtectAndSignCommand(
-		name,
-		data,
-		mimeType,
-		normalizarPerfilProteccion(req.Profile),
-		normalizarDestinatariosProteccion(req.RecipientID, req.RecipientIDs),
-		certificateID,
-		options,
-	)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	result, err := a.ProtegerFirmando.Execute(r.Context(), cmd)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	saveToDisk := req.SaveToDisk == nil || *req.SaveToDisk
-	outputPath := strings.TrimSpace(req.OutputPath)
-	if saveToDisk && outputPath == "" {
-		outputPath = construirSalidaProtegidaRuta(inputPath, result.Protected.Document.Name)
-	}
-	if saveToDisk {
-		politica := filesystem.PoliticaRenombrar
-		if valorBoolTexto(req.Overwrite) {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
-		outputPath, err = writer.Escribir(outputPath, result.Protected.Document.Content)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-	}
-
-	resp := protectResponse{
-		OK:             true,
-		Profile:        string(result.Protected.Profile),
-		RecipientCount: result.Protected.RecipientCount,
-		CertificateID:  result.CertificateUsed.ID,
-		DocumentName:   result.Protected.Document.Name,
-		MIMEType:       result.Protected.Document.MIMEType,
-		OutputPath:     outputPath,
-	}
-	if req.ReturnB64 == nil || *req.ReturnB64 || !saveToDisk {
-		resp.ProtectedContentBase64 = base64.StdEncoding.EncodeToString(result.Protected.Document.Content)
-	}
-	writeJSON(w, http.StatusOK, resp)
-}
-
-func (a *Adaptador) handleProtectByPath(w http.ResponseWriter, r *http.Request, req protectRequest) {
-	inputPath := strings.TrimSpace(req.InputPath)
-
-	// H-01: Validar que la ruta no es un path traversal / acceso a sistema
-	if errMsg := validatePathSecurity(inputPath); errMsg != "" {
-		writeError(w, http.StatusBadRequest, "ruta no valida: "+errMsg)
-		return
-	}
-
-	data, err := a.readPathFile(inputPath)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "no se pudo leer inputPath")
-		return
-	}
-
-	name := strings.TrimSpace(req.Name)
-	if name == "" {
-		name = filepath.Base(inputPath)
-	}
-	mimeType := strings.TrimSpace(req.MIMEType)
-	if mimeType == "" {
-		mimeType = inferirTipoMIMERuta(inputPath)
-	}
-	cmd, err := application.NewProtectCommand(
-		name,
-		data,
-		mimeType,
-		normalizarPerfilProteccion(req.Profile),
-		normalizarDestinatariosProteccion(req.RecipientID, req.RecipientIDs),
-		normalizarOpcionesProteccion(req.Options, req.SecretB64),
-	)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	result, err := a.Proteger.Execute(r.Context(), cmd)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	saveToDisk := req.SaveToDisk == nil || *req.SaveToDisk
-	outputPath := strings.TrimSpace(req.OutputPath)
-	if saveToDisk && outputPath == "" {
-		outputPath = construirSalidaProtegidaRuta(inputPath, result.Protected.Document.Name)
-	}
-	if saveToDisk {
-		politica := filesystem.PoliticaRenombrar
-		if valorBoolTexto(req.Overwrite) {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
-		outputPath, err = writer.Escribir(outputPath, result.Protected.Document.Content)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-	}
-
-	resp := protectResponse{
-		OK:             true,
-		Profile:        string(result.Protected.Profile),
-		RecipientCount: result.Protected.RecipientCount,
-		DocumentName:   result.Protected.Document.Name,
-		MIMEType:       result.Protected.Document.MIMEType,
-		OutputPath:     outputPath,
-	}
-	if req.ReturnB64 == nil || *req.ReturnB64 || !saveToDisk {
-		resp.ProtectedContentBase64 = base64.StdEncoding.EncodeToString(result.Protected.Document.Content)
-	}
-	writeJSON(w, http.StatusOK, resp)
-}
-
 func (a *Adaptador) handleUnprotect(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "metodo no permitido")
@@ -1662,10 +1364,7 @@ func (a *Adaptador) handleUnprotect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if strings.TrimSpace(req.InputPath) != "" {
-		if a.rejectPathOps(w) {
-			return
-		}
-		a.handleUnprotectByPath(w, r, req)
+		rejectPathOps(w)
 		return
 	}
 
@@ -1687,7 +1386,17 @@ func (a *Adaptador) handleUnprotect(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	var avisos []string
+	traducir := a.tForLocale(a.requestLocale(r))
+	for _, aviso := range result.Unprotected.Avisos {
+		if texto := traducir(aviso); texto != "" {
+			avisos = append(avisos, texto)
+		} else {
+			avisos = append(avisos, aviso)
+		}
+	}
 	writeJSON(w, http.StatusOK, unprotectResponse{
+		Warnings:                 avisos,
 		OK:                       true,
 		Profile:                  string(result.Unprotected.Profile),
 		RecipientID:              result.Unprotected.RecipientID,
@@ -1695,66 +1404,6 @@ func (a *Adaptador) handleUnprotect(w http.ResponseWriter, r *http.Request) {
 		MIMEType:                 result.Unprotected.Document.MIMEType,
 		UnprotectedContentBase64: base64.StdEncoding.EncodeToString(result.Unprotected.Document.Content),
 	})
-}
-
-func (a *Adaptador) handleUnprotectByPath(w http.ResponseWriter, r *http.Request, req unprotectRequest) {
-	inputPath := strings.TrimSpace(req.InputPath)
-
-	// H-01: Validar que la ruta no es un path traversal / acceso a sistema
-	if errMsg := validatePathSecurity(inputPath); errMsg != "" {
-		writeError(w, http.StatusBadRequest, "ruta no valida: "+errMsg)
-		return
-	}
-
-	data, err := a.readPathFile(inputPath)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "no se pudo leer inputPath")
-		return
-	}
-	doc, err := domain.NewDocument(filepath.Base(inputPath), data, normalizarMIMEProtegido(filepath.Base(inputPath), req.MIMEType))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	result, err := a.Desproteger.Execute(r.Context(), application.UnprotectCommand{
-		ProtectedDocument: doc,
-		Options:           normalizarOpcionesProteccion(nil, req.SecretB64),
-	})
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	saveToDisk := req.SaveToDisk == nil || *req.SaveToDisk
-	outputPath := strings.TrimSpace(req.OutputPath)
-	if saveToDisk && outputPath == "" {
-		outputPath = construirSalidaDesprotegidaRuta(inputPath, result.Unprotected.Document.Name)
-	}
-	if saveToDisk {
-		politica := filesystem.PoliticaRenombrar
-		if valorBoolTexto(req.Overwrite) {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
-		outputPath, err = writer.Escribir(outputPath, result.Unprotected.Document.Content)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-	}
-
-	resp := unprotectResponse{
-		OK:           true,
-		Profile:      string(result.Unprotected.Profile),
-		RecipientID:  result.Unprotected.RecipientID,
-		DocumentName: result.Unprotected.Document.Name,
-		MIMEType:     result.Unprotected.Document.MIMEType,
-		OutputPath:   outputPath,
-	}
-	if req.ReturnB64 == nil || *req.ReturnB64 || !saveToDisk {
-		resp.UnprotectedContentBase64 = base64.StdEncoding.EncodeToString(result.Unprotected.Document.Content)
-	}
-	writeJSON(w, http.StatusOK, resp)
 }
 
 func (a *Adaptador) handleProtectionRecipients(w http.ResponseWriter, r *http.Request) {
@@ -1880,10 +1529,7 @@ func (a *Adaptador) handleVerify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if strings.TrimSpace(req.InputPath) != "" {
-		if a.rejectPathOps(w) {
-			return
-		}
-		a.handleVerifyByPath(w, r, req)
+		rejectPathOps(w)
 		return
 	}
 	content, err := base64.StdEncoding.DecodeString(req.ContentBase64)
@@ -1934,31 +1580,11 @@ func (a *Adaptador) handleHashCreate(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "json de huella invalido")
 		return
 	}
-	name := strings.TrimSpace(req.Name)
 	data := []byte(nil)
 	switch {
 	case strings.TrimSpace(req.InputPath) != "":
-		if a.rejectPathOps(w) {
-			return
-		}
-		path := strings.TrimSpace(req.InputPath)
-		if errMsg := validatePathSecurity(path); errMsg != "" {
-			writeError(w, http.StatusBadRequest, "inputPath no valida: "+errMsg)
-			return
-		}
-		if info, err := os.Stat(path); err == nil && info.IsDir() {
-			a.handleDirectoryHashCreate(w, r, req, path)
-			return
-		}
-		content, err := a.readPathFile(path)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "no se pudo leer inputPath")
-			return
-		}
-		if name == "" {
-			name = filepath.Base(path)
-		}
-		data = content
+		rejectPathOps(w)
+		return
 	default:
 		content, err := base64.StdEncoding.DecodeString(req.ContentBase64)
 		if err != nil {
@@ -1990,50 +1616,8 @@ func (a *Adaptador) handleHashCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	saveToDisk := req.SaveToDisk == nil || *req.SaveToDisk
 	if saveToDisk && strings.TrimSpace(req.OutputPath) != "" {
-		if a.rejectPathOps(w) {
-			return
-		}
-		outputPath := strings.TrimSpace(req.OutputPath)
-		if errMsg := validatePathSecurity(outputPath); errMsg != "" {
-			writeError(w, http.StatusBadRequest, "outputPath no valida: "+errMsg)
-			return
-		}
-		payload := []byte(result.Encoded)
-		if result.Format == application.HashFormatBinary {
-			payload = append([]byte(nil), result.Digest...)
-		}
-		politica := filesystem.PoliticaRenombrar
-		if valorBoolTexto(req.Overwrite) {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
-		outputPath, err := writer.Escribir(outputPath, payload)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		resp.OutputPath = outputPath
-	} else if saveToDisk && strings.TrimSpace(req.InputPath) != "" {
-		outputPath := filepath.Join(filepath.Dir(strings.TrimSpace(req.InputPath)), filepath.Base(defaultHashFilename(name, result.Format)))
-		if errMsg := validatePathSecurity(outputPath); errMsg != "" {
-			writeError(w, http.StatusBadRequest, "outputPath no valida: "+errMsg)
-			return
-		}
-		payload := []byte(result.Encoded)
-		if result.Format == application.HashFormatBinary {
-			payload = append([]byte(nil), result.Digest...)
-		}
-		politica := filesystem.PoliticaRenombrar
-		if valorBoolTexto(req.Overwrite) {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
-		outputPath, err := writer.Escribir(outputPath, payload)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		resp.OutputPath = outputPath
+		rejectPathOps(w)
+		return
 	}
 	writeJSON(w, http.StatusOK, resp)
 }
@@ -2053,24 +1637,8 @@ func (a *Adaptador) handleHashCheck(w http.ResponseWriter, r *http.Request) {
 	var data []byte
 	switch {
 	case strings.TrimSpace(req.InputPath) != "":
-		if a.rejectPathOps(w) {
-			return
-		}
-		inputPath := strings.TrimSpace(req.InputPath)
-		if errMsg := validatePathSecurity(inputPath); errMsg != "" {
-			writeError(w, http.StatusBadRequest, "inputPath no valida: "+errMsg)
-			return
-		}
-		if info, err := os.Stat(inputPath); err == nil && info.IsDir() {
-			a.handleDirectoryHashCheck(w, r, req, inputPath)
-			return
-		}
-		content, err := a.readPathFile(inputPath)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "no se pudo leer inputPath")
-			return
-		}
-		data = content
+		rejectPathOps(w)
+		return
 	default:
 		content, err := base64.StdEncoding.DecodeString(req.ContentBase64)
 		if err != nil {
@@ -2088,19 +1656,8 @@ func (a *Adaptador) handleHashCheck(w http.ResponseWriter, r *http.Request) {
 	hashHint := strings.TrimSpace(req.HashPath)
 	switch {
 	case hashHint != "":
-		if a.rejectPathOps(w) {
-			return
-		}
-		if errMsg := validatePathSecurity(hashHint); errMsg != "" {
-			writeError(w, http.StatusBadRequest, "hashPath no valida: "+errMsg)
-			return
-		}
-		content, err := a.readPathFile(hashHint)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "no se pudo leer hashPath")
-			return
-		}
-		hashRaw = content
+		rejectPathOps(w)
+		return
 	default:
 		content, err := base64.StdEncoding.DecodeString(req.HashContentBase64)
 		if err != nil {
@@ -2137,187 +1694,6 @@ func (a *Adaptador) handleHashCheck(w http.ResponseWriter, r *http.Request) {
 		ExpectedHash: result.ExpectedEncoded,
 		ActualHash:   result.ActualEncoded,
 	})
-}
-
-func (a *Adaptador) handleDirectoryHashCreate(w http.ResponseWriter, r *http.Request, req hashRequest, inputPath string) {
-	if a.CrearHashDir == nil {
-		writeError(w, http.StatusNotImplemented, "caso de uso de hash de directorio no configurado")
-		return
-	}
-	format, err := parseDirectoryHashRequestFormat(req.Format)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	result, err := a.CrearHashDir.Execute(r.Context(), application.CreateDirectoryHashManifestCommand{
-		RootPath:  inputPath,
-		Algorithm: req.Algorithm,
-		Format:    format,
-		Recursive: req.Recursive != nil && *req.Recursive,
-	})
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	resp := map[string]any{
-		"ok":              true,
-		"algorithm":       result.Algorithm,
-		"format":          string(result.Format),
-		"entries":         len(result.Manifest.Entries),
-		"recursive":       result.Manifest.Recursive,
-		"manifest_base64": base64.StdEncoding.EncodeToString(result.Data),
-	}
-	saveToDisk := req.SaveToDisk == nil || *req.SaveToDisk
-	if saveToDisk {
-		outputPath := strings.TrimSpace(req.OutputPath)
-		if outputPath == "" {
-			outputPath = filepath.Join(filepath.Dir(inputPath), filepath.Base(defaultDirectoryHashFilename(filepath.Base(inputPath), result.Format)))
-		}
-		if errMsg := validatePathSecurity(outputPath); errMsg != "" {
-			writeError(w, http.StatusBadRequest, "outputPath no valida: "+errMsg)
-			return
-		}
-		politica := filesystem.PoliticaRenombrar
-		if valorBoolTexto(req.Overwrite) {
-			politica = filesystem.PoliticaForzar
-		}
-		writer := filesystem.NuevoEscritorResultado(politica)
-		outputPath, err = writer.Escribir(outputPath, result.Data)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		resp["outputPath"] = outputPath
-	}
-	writeJSON(w, http.StatusOK, resp)
-}
-
-func (a *Adaptador) handleDirectoryHashCheck(w http.ResponseWriter, r *http.Request, req hashCheckRequest, inputPath string) {
-	if a.ComprobarHashDir == nil {
-		writeError(w, http.StatusNotImplemented, "caso de uso de comprobacion de hash de directorio no configurado")
-		return
-	}
-	var hashRaw []byte
-	hashHint := strings.TrimSpace(req.HashPath)
-	switch {
-	case hashHint != "":
-		if errMsg := validatePathSecurity(hashHint); errMsg != "" {
-			writeError(w, http.StatusBadRequest, "hashPath no valida: "+errMsg)
-			return
-		}
-		content, err := a.readPathFile(hashHint)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "no se pudo leer hashPath")
-			return
-		}
-		hashRaw = content
-	default:
-		content, err := base64.StdEncoding.DecodeString(req.HashContentBase64)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "hash_content_base64 no es valido")
-			return
-		}
-		hashRaw = content
-	}
-	result, err := a.ComprobarHashDir.Execute(r.Context(), application.CheckDirectoryHashManifestCommand{
-		RootPath:     inputPath,
-		ManifestData: hashRaw,
-		ManifestHint: hashHint,
-	})
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	resp := map[string]any{
-		"ok":                true,
-		"valid":             result.Valid,
-		"algorithm":         result.Report.Algorithm,
-		"recursive":         result.Report.Recursive,
-		"matching_hash":     result.Report.MatchingHash,
-		"not_matching_hash": result.Report.NotMatchingHash,
-		"hash_without_file": result.Report.HashWithoutFile,
-		"file_without_hash": result.Report.FileWithoutHash,
-	}
-	if a.InformeHashDir != nil {
-		reportData, err := a.InformeHashDir.EncodeReport(r.Context(), result.Report)
-		if err != nil {
-			writeError(w, http.StatusInternalServerError, "no se pudo generar el informe de comprobacion")
-			return
-		}
-		resp["report_base64"] = base64.StdEncoding.EncodeToString(reportData)
-		saveToDisk := req.SaveReportToDisk != nil && *req.SaveReportToDisk
-		if saveToDisk {
-			outputPath := strings.TrimSpace(req.ReportOutputPath)
-			if outputPath == "" {
-				outputPath = filepath.Join(filepath.Dir(inputPath), filepath.Base(defaultDirectoryHashReportFilename(filepath.Base(inputPath))))
-			}
-			if errMsg := validatePathSecurity(outputPath); errMsg != "" {
-				writeError(w, http.StatusBadRequest, "reportOutputPath no valida: "+errMsg)
-				return
-			}
-			politica := filesystem.PoliticaRenombrar
-			if valorBoolTexto(req.Overwrite) {
-				politica = filesystem.PoliticaForzar
-			}
-			writer := filesystem.NuevoEscritorResultado(politica)
-			outputPath, err = writer.Escribir(outputPath, reportData)
-			if err != nil {
-				writeError(w, http.StatusBadRequest, err.Error())
-				return
-			}
-			resp["report_output_path"] = outputPath
-		}
-	}
-	writeJSON(w, http.StatusOK, resp)
-}
-
-func (a *Adaptador) handleVerifyByPath(w http.ResponseWriter, r *http.Request, req verifyRequest) {
-	inputPath := strings.TrimSpace(req.InputPath)
-
-	// H-01: Validar que la ruta no es un path traversal / acceso a sistema
-	if errMsg := validatePathSecurity(inputPath); errMsg != "" {
-		writeError(w, http.StatusBadRequest, "ruta no valida: "+errMsg)
-		return
-	}
-
-	signedData, err := a.readPathFile(inputPath)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "no se pudo leer inputPath")
-		return
-	}
-	signedDoc, err := domain.NewDocument(filepath.Base(inputPath), signedData, inferirTipoMIMERuta(inputPath))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	cmd := application.VerifyCommand{SignedDocument: signedDoc}
-	if originalPath := strings.TrimSpace(req.OriginalPath); originalPath != "" {
-		// H-01: Validar también originalPath
-		if errMsg := validatePathSecurity(originalPath); errMsg != "" {
-			writeError(w, http.StatusBadRequest, "originalPath no valida: "+errMsg)
-			return
-		}
-		originalData, err := a.readPathFile(originalPath)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, "no se pudo leer originalPath")
-			return
-		}
-		originalDoc, err := domain.NewDocument(filepath.Base(originalPath), originalData, inferirTipoMIMERuta(originalPath))
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		cmd.OriginalDocument = &originalDoc
-	}
-
-	result, err := a.Verificar.Execute(r.Context(), cmd)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	resp := buildVerifyResponse(result)
-	writeJSON(w, http.StatusOK, resp)
 }
 
 func buildVerifyResponse(result application.VerifyResult) verifyResponse {
@@ -2393,57 +1769,6 @@ func buildVerifyRichResult(v domain.VerificationResult, signerRefs []domain.Cert
 		}
 	}
 	return out
-}
-
-func defaultHashFilename(name string, format application.HashOutputFormat) string {
-	base := strings.TrimSpace(name)
-	if base == "" {
-		base = "documento"
-	}
-	switch format {
-	case application.HashFormatBinary:
-		return base + ".hash"
-	case application.HashFormatBase64:
-		return base + ".hashb64"
-	default:
-		return base + ".hexhash"
-	}
-}
-
-func defaultDirectoryHashFilename(name string, format domain.DirectoryHashManifestFormat) string {
-	base := strings.TrimSpace(name)
-	if base == "" {
-		base = "directorio"
-	}
-	switch format {
-	case domain.DirectoryHashFormatTXT:
-		return base + ".txthashfiles"
-	case domain.DirectoryHashFormatCSV:
-		return base + ".csv"
-	default:
-		return base + ".hashfiles"
-	}
-}
-
-func defaultDirectoryHashReportFilename(name string) string {
-	base := strings.TrimSpace(name)
-	if base == "" {
-		base = "directorio"
-	}
-	return base + ".hashreport"
-}
-
-func parseDirectoryHashRequestFormat(raw string) (domain.DirectoryHashManifestFormat, error) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "", "xml", "hashfiles":
-		return domain.DirectoryHashFormatXML, nil
-	case "txt", "txthashfiles":
-		return domain.DirectoryHashFormatTXT, nil
-	case "csv":
-		return domain.DirectoryHashFormatCSV, nil
-	default:
-		return "", errors.New("formato de manifiesto no soportado")
-	}
 }
 
 func (a *Adaptador) handleSelectCertificate(w http.ResponseWriter, r *http.Request) {
@@ -3680,30 +3005,19 @@ func (a *Adaptador) handleValidator(w http.ResponseWriter, r *http.Request) {
 	writeHTML(w, http.StatusOK, trustedHTMLResponse(consoleValidatorPage(locale, a.tForLocale(locale))))
 }
 
-// rejectPathOps devuelve true y escribe 403 si las operaciones de sistema de
-// ficheros (inputPath/outputPath) no están habilitadas en este adaptador.
-func (a *Adaptador) rejectPathOps(w http.ResponseWriter) bool {
-	if a != nil && a.AllowFileSystemPaths {
-		return false
-	}
+// rejectPathOps responde 403 a las peticiones con rutas de fichero
+// (inputPath, outputPath, hashPath). La API REST solo trabaja con contenido en
+// base64; la única lectura por ruta es la de /pdf/preview (B-05).
+func rejectPathOps(w http.ResponseWriter) {
 	writeError(w, http.StatusForbidden, "operaciones con rutas de fichero deshabilitadas; use content_base64")
-	return true
 }
 
 func (a *Adaptador) rejectPDFPreviewPathOps(w http.ResponseWriter) bool {
-	if a != nil && (a.AllowFileSystemPaths || a.AllowPDFPreviewPaths) {
+	if a != nil && a.AllowPDFPreviewPaths {
 		return false
 	}
 	writeError(w, http.StatusForbidden, "operaciones con rutas de fichero deshabilitadas")
 	return true
-}
-
-func (a *Adaptador) readPathFile(path string) ([]byte, error) {
-	limit := a.MaxBodyBytes
-	if limit <= 0 {
-		limit = 100 * 1024 * 1024
-	}
-	return securefile.ReadFileLimit(path, limit)
 }
 
 func (a *Adaptador) readPDFPreviewPath(path string) ([]byte, error) {
@@ -3726,18 +3040,7 @@ func (a *Adaptador) prepareSignOptions(options map[string]string) (map[string]st
 	if imagePath == "" {
 		return out, nil
 	}
-	if !a.AllowFileSystemPaths {
-		return nil, errSignOptionPathDisabled
-	}
-	if errMsg := validatePathSecurity(imagePath); errMsg != "" {
-		return nil, errors.New("ruta de imagen de sello no válida: " + errMsg)
-	}
-	data, err := securefile.ReadFileLimit(imagePath, maxVisibleSealImageBytes)
-	if err != nil {
-		return nil, fmt.Errorf("no se pudo leer la imagen de sello: %w", err)
-	}
-	out["visibleSealImageBase64"] = base64.StdEncoding.EncodeToString(data)
-	return out, nil
+	return nil, errSignOptionPathDisabled
 }
 
 func (a *Adaptador) prepareSignOptionsWithDefaults(ctx context.Context, formato string, options map[string]string) (map[string]string, error) {
@@ -3919,13 +3222,12 @@ func pathIsWithin(candidate, directory string) bool {
 		strings.HasPrefix(cleanCandidate, cleanDirectory+string(filepath.Separator))
 }
 
+// authorize falla cerrado: sin credencial configurada no se sirve ninguna ruta
+// protegida, igual que RoutesSoloVerificacion y las rutas de identidad.
 func (a *Adaptador) authorize(next http.Handler) http.Handler {
-	if a == nil {
-		return next
-	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !a.authenticationConfigured() {
-			next.ServeHTTP(w, r)
+		if a == nil || !a.authenticationConfigured() {
+			writeError(w, http.StatusServiceUnavailable, "autorizacion no configurada")
 			return
 		}
 		if !a.authOK(r) {
@@ -4179,19 +3481,7 @@ func copiarOpcionesFirma(options map[string]string) map[string]string {
 	return out
 }
 
-func (a *Adaptador) decodeBatchItemContent(item signBatchItemRequest) ([]byte, error) {
-	inputPath := strings.TrimSpace(item.InputPath)
-	if inputPath != "" {
-		// H-01: Validar seguridad de ruta
-		if errMsg := validatePathSecurity(inputPath); errMsg != "" {
-			return nil, errors.New("ruta no valida: " + errMsg)
-		}
-		data, err := a.readPathFile(inputPath)
-		if err != nil {
-			return nil, errors.New("no se pudo leer inputPath del lote")
-		}
-		return data, nil
-	}
+func decodeBatchItemContent(item signBatchItemRequest) ([]byte, error) {
 	data, err := base64.StdEncoding.DecodeString(item.ContentBase64)
 	if err != nil {
 		return nil, errors.New("content_base64 del lote no es valido")
@@ -4216,15 +3506,6 @@ func inferirFormatoSolicitud(raw, sourceName string) string {
 		return inferirFormatoRuta(sourceName)
 	}
 	return formato
-}
-
-func valorBoolTexto(raw string) bool {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "1", "true", "yes", "si", "sí", "overwrite":
-		return true
-	default:
-		return false
-	}
 }
 
 func inferirFormatoRuta(ruta string) string {
@@ -4359,49 +3640,6 @@ func normalizarMIMEProtegido(name, raw string) string {
 		return domain.MIMETypeProtectedEnvelope
 	}
 	return raw
-}
-
-func construirSalidaRuta(rutaEntrada string, formato domain.SignatureFormat) string {
-	base := strings.TrimSuffix(rutaEntrada, filepath.Ext(rutaEntrada))
-	switch formato {
-	case domain.FormatPAdES:
-		return base + "_firmado.pdf"
-	case domain.FormatXAdES:
-		return base + ".xsig"
-	case domain.SignatureFormat("XMLdSig"):
-		return base + ".dsig"
-	case domain.SignatureFormat("FacturaE"):
-		return base + "_firmada.xml"
-	case domain.SignatureFormat("ASiC-XAdES"):
-		return base + ".asics"
-	default:
-		return base + ".csig"
-	}
-}
-
-func construirSalidaProtegidaRuta(rutaEntrada, suggestedName string) string {
-	if trimmed := strings.TrimSpace(suggestedName); trimmed != "" {
-		return filepath.Join(filepath.Dir(rutaEntrada), filepath.Base(trimmed))
-	}
-	base := strings.TrimSpace(rutaEntrada)
-	if base == "" {
-		base = "documento"
-	}
-	return base + ".afp"
-}
-
-func construirSalidaDesprotegidaRuta(rutaEntrada, suggestedName string) string {
-	if trimmed := strings.TrimSpace(suggestedName); trimmed != "" {
-		return filepath.Join(filepath.Dir(rutaEntrada), filepath.Base(trimmed))
-	}
-	if strings.HasSuffix(strings.ToLower(rutaEntrada), ".afp") {
-		return strings.TrimSuffix(rutaEntrada, filepath.Ext(rutaEntrada))
-	}
-	base := strings.TrimSuffix(rutaEntrada, filepath.Ext(rutaEntrada))
-	if base == "" {
-		base = rutaEntrada
-	}
-	return base + "_desprotegido"
 }
 
 func describirDestinatarioProteccion(recipient domain.ProtectionRecipient) (profile, algorithm string) {

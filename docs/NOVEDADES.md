@@ -7,6 +7,13 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
+## Próxima versión (sin publicar)
+
+- Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.
+- GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva `prohibir_cifrado_cms_heredado`. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.
+- Los archivos `.afp` que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.
+- En Windows, la instalación y las actualizaciones guardan los programas en `%LOCALAPPDATA%\Programs\GrxFirma`. Los datos de uso y la configuración permanecen en sus carpetas de usuario al desinstalar.
+
 ## 0.0.125 — 2026-10-07
 
 - Accesibilidad revisada según WCAG 2.1 AA en las tres plataformas: mejor contraste, foco visible y orden de tabulación, avisos para lectores de pantalla y errores señalados en su campo.
@@ -216,10 +223,6 @@ Estas notas describen los cambios visibles para quienes usan la aplicación.
 ## 0.0.95 — 2026-09-28
 
 - En Windows, los programas se instalan en %LOCALAPPDATA%\Programs\GrxFirma y los datos del usuario se guardan aparte en %LOCALAPPDATA%\GrxFirma, de modo que reinstalar o actualizar ya no falla después de haber usado la aplicación.
-
-## Próxima versión (sin publicar)
-
-- En Windows, la instalación y las actualizaciones guardan los programas en `%LOCALAPPDATA%\Programs\GrxFirma`. Los datos de uso y la configuración permanecen en sus carpetas de usuario al desinstalar.
 
 ## 0.0.94 — 2026-09-28
 

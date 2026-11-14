@@ -22,12 +22,39 @@ paths = ['''^cmd/grxfirma/main\.go$''']
 regexes = ['''envProtectionToken\s*=\s*"GRXFIRMA_PROTECTION_SECRET_B64"''']
 
 [[allowlists]]
+description = "Same environment variable name, now declared in secretinput"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^internal/adapters/inbound/common/secretinput/input\.go$''']
+regexes = ['''EnvProtectionSecret\s*=\s*"GRXFIRMA_PROTECTION_SECRET_B64"''']
+
+[[allowlists]]
+description = "Legacy environment variable name listed in a secretinput test, not a token"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^internal/adapters/inbound/common/secretinput/input_test\.go$''']
+regexes = ['''"AUTOFIRMAV2_REST_TOKEN",''']
+
+[[allowlists]]
+description = "Fixed dummy value in the environment of a desktop launcher test"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^cmd/grxfirma/desktop_common_test\.go$''']
+regexes = ['''"GRXFIRMA_REST_TOKEN=token",''']
+
+[[allowlists]]
 description = "WebSocket RFC 6455 nonces used only in protocol tests"
 targetRules = ["generic-api-key"]
 condition = "AND"
 regexTarget = "line"
-paths = ['''^internal/adapters/inbound/legacy/websocket/adapter_test\.go$''']
-regexes = ['''Sec-WebSocket-Key:''']
+paths = [
+  '''^internal/adapters/inbound/legacy/websocket/adapter_test\.go$''',
+  '''^internal/adapters/inbound/legacy/websocket/session_binding_test\.go$''',
+]
+regexes = ['''Sec-WebSocket-Key(?::|",)''']
 
 [[allowlists]]
 description = "CLI option names that contain the word secret but no credential"

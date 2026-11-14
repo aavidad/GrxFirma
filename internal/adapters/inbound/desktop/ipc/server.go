@@ -50,8 +50,9 @@ const (
 
 // Servidor escucha en un endpoint IPC local y despacha peticiones al Manejador.
 type Servidor struct {
-	// SocketPath es la ruta del socket Unix o named pipe. Si esta vacio se
-	// genera automaticamente.
+	// SocketPath es la ruta del socket Unix o named pipe. La elige siempre el
+	// llamante (nombre aleatorio en un directorio privado); no hay valor por
+	// defecto.
 	SocketPath string
 
 	manejador  *Manejador
@@ -119,10 +120,11 @@ func SoportaVinculacionPIDFrontend() bool {
 }
 
 // Escuchar arranca el servidor en la ruta de socket indicada.
-// Bloquea hasta que ctx se cancela o se llama a Cerrar.
+// Bloquea hasta que ctx se cancela o se llama a Cerrar. La ruta es obligatoria:
+// un nombre fijo por defecto podría ocuparlo antes otro proceso.
 func (s *Servidor) Escuchar(ctx context.Context, socketPath string) error {
 	if socketPath == "" {
-		socketPath = socketPathPorDefecto()
+		return errors.New("falta la ruta del endpoint IPC")
 	}
 
 	s.mu.Lock()

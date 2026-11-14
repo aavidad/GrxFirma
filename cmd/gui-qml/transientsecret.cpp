@@ -5,6 +5,8 @@
 
 #include "transientsecret.h"
 
+#include <QJsonDocument>
+
 namespace TransientSecret {
 
 bool isCanonicalAES256Base64(const QString &value) {
@@ -50,6 +52,52 @@ void zeroize(QByteArray &value) {
   value.fill('\0');
   value.clear();
   value.squeeze();
+}
+
+static QByteArray compactObjectBody(const QJsonObject &object) {
+  // "{...}" sin las llaves; vacío si el objeto no tiene campos.
+  const QByteArray json = QJsonDocument(object).toJson(QJsonDocument::Compact);
+  return json.mid(1, json.size() - 2);
+}
+
+QByteArray buildSecretRequestFrame(const QJsonObject &header,
+                                   const QJsonObject &plainParams,
+                                   const QList<SecretField> &secrets) {
+  const QByteArray headerBody = compactObjectBody(header);
+  const QByteArray paramsBody = compactObjectBody(plainParams);
+  qsizetype capacity = headerBody.size() + paramsBody.size() + 32;
+  for (const SecretField &field : secrets) {
+    const qsizetype raw = field.second ? field.second->size() : 0;
+    capacity += field.first.size() + 8 + (raw + 2) / 3 * 4;
+  }
+  QByteArray frame;
+  // Reservar de una vez evita realojamientos que dejarían trozos del secreto
+  // en memoria ya liberada.
+  frame.reserve(capacity);
+  frame.append('{');
+  frame.append(headerBody);
+  if (!headerBody.isEmpty())
+    frame.append(',');
+  frame.append("\"params\":{");
+  frame.append(paramsBody);
+  bool first = paramsBody.isEmpty();
+  for (const SecretField &field : secrets) {
+    if (!first)
+      frame.append(',');
+    first = false;
+    frame.append('"');
+    frame.append(field.first.toLatin1());
+    frame.append("\":\"");
+    if (field.second) {
+      QByteArray encoded = field.second->toBase64();
+      frame.append(encoded);
+      zeroize(encoded);
+      field.second->fill('\0');
+    }
+    frame.append('"');
+  }
+  frame.append("}}\n");
+  return frame;
 }
 
 } // namespace TransientSecret

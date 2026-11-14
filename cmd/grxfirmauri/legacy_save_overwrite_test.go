@@ -20,7 +20,7 @@ func TestWriteLegacySavedFile_SoloReemplazaConConfirmacion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	guardado, err := writeLegacySavedFile(destino, []byte("nuevo"), false)
+	guardado, err := writeLegacySavedFile(destino, []byte("nuevo"), false, "")
 	if err != nil {
 		t.Fatalf("sin confirmación: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestWriteLegacySavedFile_SoloReemplazaConConfirmacion(t *testing.T) {
 		t.Fatalf("contenido en la ruta devuelta = %q", got)
 	}
 
-	guardado, err = writeLegacySavedFile(destino, []byte("confirmado"), true)
+	guardado, err = writeLegacySavedFile(destino, []byte("confirmado"), true, "")
 	if err != nil || guardado != destino {
 		t.Fatalf("con confirmación: ruta=%q err=%v", guardado, err)
 	}

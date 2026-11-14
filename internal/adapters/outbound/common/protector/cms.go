@@ -45,6 +45,10 @@ const (
 	maxCMSPrivateKeyPKCS8Bytes   = 1 << 20
 )
 
+// protectionContainerJSONV2 pide un .afp v2 (AAD con longitudes), que las
+// versiones anteriores de GrxFirma no abren.
+const protectionContainerJSONV2 = "jsonv2"
+
 type cmsContentType string
 
 const (
@@ -189,10 +193,17 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 	if err != nil {
 		return domain.UnprotectedPayload{}, fmt.Errorf("contenedor CMS no valido: %w", err)
 	}
+	var heredado asn1.ObjectIdentifier
 	switch contentType {
 	case cmsContentTypeEnvelopedData, cmsContentTypeEncryptedData:
-		// Se sigue intentando con el parser estándar; EncryptedData se trata luego
+		// Las bibliotecas aceptan cualquier cifrado que conozcan: se mira
+		// antes cuál es (F-06). Uno heredado se descifra con aviso, salvo que
+		// la política de máquina lo prohíba. EncryptedData se trata luego
 		// para dar un error más claro si falta PSK.
+		heredado, err = validarAlgoritmosCMS(protected.Content)
+		if err != nil {
+			return domain.UnprotectedPayload{}, err
+		}
 	case cmsContentTypeSignedEnvelopedData:
 		var anchors ports.TrustAnchorProvider
 		if p != nil {
@@ -226,11 +237,11 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 			if err != nil {
 				return domain.UnprotectedPayload{}, err
 			}
-			return domain.UnprotectedPayload{
+			return conAvisoCifradoHeredado(domain.UnprotectedPayload{
 				Document:    doc,
 				Profile:     domain.ProtectionProfileCompat,
 				RecipientID: key.RecipientID,
-			}, nil
+			}, heredado), nil
 		}
 		if invalidSecretLength && !validSecretLength {
 			return domain.UnprotectedPayload{}, errors.New("el secreto simetrico para CMS EncryptedData debe tener exactamente 32 bytes")
@@ -256,11 +267,11 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 		if err != nil {
 			return domain.UnprotectedPayload{}, err
 		}
-		return domain.UnprotectedPayload{
+		return conAvisoCifradoHeredado(domain.UnprotectedPayload{
 			Document:    doc,
 			Profile:     domain.ProtectionProfileCompat,
 			RecipientID: key.RecipientID,
-		}, nil
+		}, heredado), nil
 	}
 	return domain.UnprotectedPayload{}, errors.New("no se pudo desproteger el sobre CMS con las claves disponibles")
 }
@@ -271,7 +282,7 @@ func requestedCMSContentType(options map[string]string) (cmsContentType, error) 
 	}
 	raw := normalizeProtectionContainerToken(options[protectionContainerOptionKey])
 	switch raw {
-	case "", protectionContainerJSON:
+	case "", protectionContainerJSON, protectionContainerJSONV2:
 		return cmsContentTypeNone, nil
 	case protectionContainerCMS, "cmsenveloped", "cmsenvelopeddata", "enveloped", "envelopeddata":
 		return cmsContentTypeEnvelopedData, nil
@@ -506,6 +517,9 @@ func parseCMSRSAKeyMaterial(key domain.ProtectionKeyMaterial) (*x509.Certificate
 }
 
 func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.PrivateKey) ([]byte, error) {
+	if err := comprobarAnidamientoCMS(data); err != nil {
+		return nil, err
+	}
 	compatCert, err := cryptobinx509.ParseCertificate(cert.Raw)
 	if err == nil {
 		var (
@@ -532,6 +546,9 @@ func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.Priv
 }
 
 func decryptCMSEncryptedData(data, secret []byte) ([]byte, error) {
+	if err := comprobarAnidamientoCMS(data); err != nil {
+		return nil, err
+	}
 	var (
 		plaintext  []byte
 		decryptErr error

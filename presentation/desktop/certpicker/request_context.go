@@ -19,6 +19,10 @@ type claveContextoSolicitud struct{}
 type ContextoSolicitud struct {
 	Origen    string
 	Operacion string
+	// OrigenEsDestino indica que Origen no es quien pide la operación sino el
+	// servidor que recibirá el resultado (afirma:// directo, donde no se sabe
+	// qué web lanzó la URI).
+	OrigenEsDestino bool
 }
 
 // ConContextoSolicitud adjunta el origen y la operación al contexto.
@@ -26,6 +30,16 @@ func ConContextoSolicitud(ctx context.Context, origen, operacion string) context
 	return context.WithValue(ctx, claveContextoSolicitud{}, ContextoSolicitud{
 		Origen:    textoSeguroSolicitud(origen, 256),
 		Operacion: textoSeguroSolicitud(operacion, 64),
+	})
+}
+
+// ConContextoDestino adjunta el servidor que recibirá el resultado cuando no
+// se conoce quién pidió la operación.
+func ConContextoDestino(ctx context.Context, destino, operacion string) context.Context {
+	return context.WithValue(ctx, claveContextoSolicitud{}, ContextoSolicitud{
+		Origen:          textoSeguroSolicitud(destino, 256),
+		Operacion:       textoSeguroSolicitud(operacion, 64),
+		OrigenEsDestino: true,
 	})
 }
 
@@ -47,7 +61,7 @@ func textoSeguroSolicitud(valor string, maximo int) string {
 		if n >= maximo {
 			break
 		}
-		if unicode.IsControl(r) || unicode.Is(unicode.Bidi_Control, r) || r == 0x200B || r == 0xFEFF {
+		if unicode.IsControl(r) || unicode.Is(unicode.Bidi_Control, r) || unicode.Is(unicode.Cf, r) || r == 0x200B || r == 0xFEFF {
 			r = ' '
 		}
 		b.WriteRune(r)

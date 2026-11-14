@@ -332,6 +332,12 @@ func newNativeWindowsApproval(title string) ports.UserApproval {
 	return nativeWindowsApproval{title: title}
 }
 
+// ConTitulo devuelve el mismo aprobador con otro título (A-09).
+func (a nativeWindowsApproval) ConTitulo(title string) ports.UserApproval {
+	a.title = title
+	return a
+}
+
 func (a nativeWindowsApproval) Request(
 	ctx context.Context,
 	message string,
@@ -398,7 +404,7 @@ func (nativeWindowsCertSelector) Select(
 	button, radio, err := showNativeTaskDialog(ctx, nativeDialogSpec{
 		Title:       "GrxFirma — Seleccionar certificado",
 		Instruction: "Elige el certificado para esta operación",
-		Content:     "Selecciona un certificado del sistema o abre un archivo P12/PFX para esta operación. No hay ningún certificado preseleccionado.\r\n\r\nOtras formas de firmar: Cl@ve Firma requiere que la sede ofrezca esa integración. DNIe y tokens dependen del almacén y del dispositivo; aún no están validados aquí.",
+		Content:     anteponerContextoSelector(ctx, "Selecciona un certificado del sistema o abre un archivo P12/PFX para esta operación. No hay ningún certificado preseleccionado.\r\n\r\nOtras formas de firmar: Cl@ve Firma requiere que la sede ofrezca esa integración. DNIe y tokens dependen del almacén y del dispositivo; aún no están validados aquí."),
 		Buttons: []nativeDialogChoice{
 			{ID: nativeButtonAccept, Label: "Usar el certificado seleccionado"},
 			{ID: nativeButtonLoadCertificate, Label: "Usar un archivo P12/PFX…"},

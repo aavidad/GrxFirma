@@ -9,12 +9,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"path"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"grxfirma/internal/adapters/inbound/legacy/afirmauri/originvalidator"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -42,17 +44,24 @@ const MaxURISize = 10 * 1024 * 1024
 
 // Solicitud es la traduccion neutra de una URI afirma:// al nucleo interno.
 type Solicitud struct {
-	Operacion       TipoOperacion
-	AccionFirma     domain.SignatureAction
-	Formato         domain.SignatureFormat
-	Options         map[string]string
-	LegacyParams    url.Values
-	Origenes        []string
-	Sesion          domain.ExchangeSession
-	SignCommand     *application.SignCommand
-	BatchCommand    *application.ProcessBatchCommand
-	RemoteBatch     *RemoteBatchCommand
-	RetrieveCommand *application.RetrieveRequestCommand
+	Operacion    TipoOperacion
+	AccionFirma  domain.SignatureAction
+	Formato      domain.SignatureFormat
+	Options      map[string]string
+	LegacyParams url.Values
+	Origenes     []string
+	// OrigenSolicitante es la cabecera Origin real del navegador en el canal
+	// socket. En afirma:// directo está vacío: no se sabe qué web lanzó la URI.
+	OrigenSolicitante string
+	// DestinoSinCifrar indica que, por el canal socket, algún destino usa
+	// http:// fuera de loopback y se ha admitido por compatibilidad porque la
+	// política autoriza su origen. El canal lo convierte en aviso.
+	DestinoSinCifrar bool
+	Sesion           domain.ExchangeSession
+	SignCommand      *application.SignCommand
+	BatchCommand     *application.ProcessBatchCommand
+	RemoteBatch      *RemoteBatchCommand
+	RetrieveCommand  *application.RetrieveRequestCommand
 	// Version es la version del protocolo afirma:// indicada por el parametro v o ver (0-4).
 	// El valor 0 indica que no se especifico version (o se especifico explicitamente la 0).
 	Version int
@@ -153,6 +162,13 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 		solicitud.Formato = f
 	}
 
+	// A-01: el servidor trifásico (serverUrl) recibe el documento y decide qué
+	// firma la clave; es un destino más y pasa por la misma política que los
+	// servlets, en Parse y en ParseSocket, antes de cualquier retorno.
+	if err := a.validarServidoresTrifasicos(ctx, &solicitud); err != nil {
+		return Solicitud{}, err
+	}
+
 	if operacionLegacyLocal(action) {
 		if action == "signandsave" {
 			if accion := accionCopSignAndSave(parametro(parametros, "cop")); accion != "" {
@@ -200,7 +216,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 						return Solicitud{}, err
 					}
 					solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenesExtra)
-					if err := a.validarOrigenes(ctx, origenesExtra); err != nil {
+					if err := a.validarDestinos(ctx, origenesExtra, true, &solicitud); err != nil {
 						return Solicitud{}, err
 					}
 					solicitud.RemoteBatch = remote
@@ -221,9 +237,9 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 		return Solicitud{}, err
 	}
 	solicitud.Sesion = sesion
-	solicitud.Origenes = origenes
+	solicitud.Origenes = fusionarOrigenes(origenes, solicitud.Origenes)
 
-	if err := a.validarOrigenes(ctx, origenes); err != nil {
+	if err := a.validarDestinos(ctx, origenes, opts.bySocket, &solicitud); err != nil {
 		return Solicitud{}, err
 	}
 
@@ -257,7 +273,7 @@ func (a *Adaptador) parse(ctx context.Context, rawURI string, opts parseOptions)
 					return Solicitud{}, err
 				}
 				solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenesExtra)
-				if err := a.validarOrigenes(ctx, origenesExtra); err != nil {
+				if err := a.validarDestinos(ctx, origenesExtra, opts.bySocket, &solicitud); err != nil {
 					return Solicitud{}, err
 				}
 				solicitud.RemoteBatch = remote
@@ -377,7 +393,7 @@ func (a *Adaptador) parseSocketRawLocalCompatibility(ctx context.Context, rawURI
 		}
 		solicitud.SignCommand = cmd
 	}
-	if err := a.validarOrigenes(ctx, nil); err != nil {
+	if err := a.validarServidoresTrifasicos(ctx, &solicitud); err != nil {
 		return Solicitud{}, true, err
 	}
 	return solicitud, true, nil
@@ -567,6 +583,98 @@ func deriveRetrieveEndpointFromLegacyProperties(parametros url.Values) string {
 		}
 	}
 	return ""
+}
+
+// ServidoresTrifasicos devuelve todos los valores de serverUrl de las opciones,
+// sin distinguir mayúsculas ni la variante server_url: si la web manda varias
+// claves con valores distintos, todas tienen que pasar la política.
+func ServidoresTrifasicos(opciones map[string]string) []string {
+	var out []string
+	for clave, valor := range opciones {
+		normalizada := strings.ReplaceAll(strings.ToLower(strings.TrimSpace(clave)), "_", "")
+		if normalizada != "serverurl" {
+			continue
+		}
+		if valor = strings.TrimSpace(valor); valor != "" {
+			out = append(out, valor)
+		}
+	}
+	return out
+}
+
+func (a *Adaptador) validarServidoresTrifasicos(ctx context.Context, solicitud *Solicitud) error {
+	servidores := ServidoresTrifasicos(solicitud.Options)
+	if len(servidores) == 0 {
+		return nil
+	}
+	for _, servidor := range servidores {
+		u, err := url.Parse(normalizarEndpoint(servidor))
+		if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Host == "" {
+			return errors.New("el servidor de firma trifásica (serverUrl) debe ser una URL HTTPS válida")
+		}
+		if u.User != nil {
+			// Lote 13c: credenciales en la URL, como antes del lote 4. Se
+			// valida el origen (esquema y host, sin credenciales) y no se
+			// registran.
+			slog.Warn("afirma_server_url_con_credenciales")
+		}
+	}
+	normalizados := make([]string, 0, len(servidores))
+	for _, servidor := range servidores {
+		normalizados = append(normalizados, normalizarEndpoint(servidor))
+	}
+	origenes, err := origenesDesdeEndpoints(normalizados...)
+	if err != nil {
+		return err
+	}
+	solicitud.Origenes = fusionarOrigenes(solicitud.Origenes, origenes)
+	// serverUrl ya se ha exigido https arriba; el canal no cambia nada aquí.
+	return a.validarDestinos(ctx, origenes, false, solicitud)
+}
+
+// validarDestinos aplica a los endpoints que trae la URI el mismo formato que
+// originvalidator (https, o http solo en loopback) y después la política. Se
+// usa en todos los caminos, directo y socket (A-03). Por el canal socket
+// (socket=true) se admite además http fuera de loopback, como antes del lote
+// 4, si la política autoriza el origen: queda marcado en la solicitud y se
+// registra un aviso sin el origen. El camino directo sigue sin admitirlo,
+// como ya hacía el orquestador antes del lote 4.
+func (a *Adaptador) validarDestinos(ctx context.Context, origenes []string, socket bool, solicitud *Solicitud) error {
+	sinCifrar := false
+	for _, origen := range origenes {
+		if socket {
+			http, err := originvalidator.ValidarFormatoSocket(origen)
+			if err != nil {
+				return fmt.Errorf("el destino %s no es válido: %w", origen, err)
+			}
+			sinCifrar = sinCifrar || http
+			continue
+		}
+		if err := originvalidator.ValidarFormato(origen); err != nil {
+			return fmt.Errorf("el destino %s no es válido: %w", origen, err)
+		}
+	}
+	if err := a.validarOrigenes(ctx, origenes); err != nil {
+		return err
+	}
+	if sinCifrar {
+		slog.Warn("afirma_destino_sin_cifrar", "canal", "socket")
+		if solicitud != nil {
+			solicitud.DestinoSinCifrar = true
+		}
+	}
+	return nil
+}
+
+// OrigenesDestinoSolicitud devuelve los orígenes de todos los destinos de una
+// solicitud ya resuelta (subida, recuperación y serverUrl), para revalidarlos
+// cuando un contenido recuperado los cambia.
+func OrigenesDestinoSolicitud(solicitud Solicitud) ([]string, error) {
+	endpoints := []string{solicitud.Sesion.UploadEndpoint, solicitud.Sesion.RetrieveEndpoint}
+	for _, servidor := range ServidoresTrifasicos(solicitud.Options) {
+		endpoints = append(endpoints, normalizarEndpoint(servidor))
+	}
+	return origenesDesdeEndpoints(endpoints...)
 }
 
 func origenesDesdeEndpoints(endpoints ...string) ([]string, error) {

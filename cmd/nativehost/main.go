@@ -37,7 +37,9 @@ import (
 	"syscall"
 	"time"
 
+	"grxfirma/internal/adapters/inbound/common/aprobacion"
 	nativehost "grxfirma/internal/adapters/inbound/desktop/nativehost"
+	"grxfirma/internal/adapters/outbound/common/auditlog"
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/identityjcs"
 	"grxfirma/internal/adapters/outbound/common/limits"
@@ -157,16 +159,14 @@ func (a *aprobacionSistema) Request(ctx context.Context, mensaje string) (bool, 
 	return ok, nil
 }
 
-type loggerSilencioso struct{}
-
-func (l *loggerSilencioso) Log(_ context.Context, _ ports.Evidence) error { return nil }
-
 type relojReal struct{}
 
 func (r relojReal) Now() time.Time { return time.Now() }
 
 func construirMotorFirmaConHTTP(httpClient *http.Client) *deskSigner.MotorFirmaGo {
-	motor := deskSigner.NuevoMotorFirmaGo(relojReal{})
+	// La tsaURL llega de una página web: TSA interna rechazada salvo que esté
+	// en la lista tsa_permitidas de la política de máquina (lote 13a).
+	motor := deskSigner.NuevoMotorFirmaGo(relojReal{}).ConTSAPermitidas(config.TSAPermitidasDeMaquina())
 	if tsaURL := strings.TrimSpace(os.Getenv("GRXFIRMA_TSA_URL")); tsaURL != "" {
 		tsa := tsaclient.New(tsaURL)
 		tsa.HTTPClient = httpClient
@@ -259,7 +259,10 @@ func construirFuentesCertificados(p12Dir, p12Password string, metricas ports.Ope
 	return &catalogoFirmable{base: agregadoCatalogo}, agregadoClaves, nil
 }
 
-func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.OperationMetrics, logger *slog.Logger) (*nativehost.Adaptador, error) {
+// autoAprobacionPermitida limita la política de aprobación automática a la
+// extensión oficial (C-07): con cualquier otro llamante se pide siempre
+// confirmación, porque el host no puede comprobar el origen que declara.
+func construirAdaptador(configDir, p12Dir, p12Password string, autoAprobacionPermitida bool, metricas ports.OperationMetrics, logger *slog.Logger) (*nativehost.Adaptador, error) {
 	catalogo, proveedor, err := construirFuentesCertificados(p12Dir, p12Password, metricas)
 	if err != nil {
 		return nil, err
@@ -274,14 +277,23 @@ func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.Op
 	// petición que lo necesita.
 
 	aprobador := &aprobacionSistema{
-		autoApprove: machinepolicy.OptIn(machinepolicy.AprobacionAutomaticaHost),
+		autoApprove: autoAprobacionPermitida && machinepolicy.OptIn(machinepolicy.AprobacionAutomaticaHost),
 		logger:      logger,
 	}
 	httpClient := proxyhttp.New(configDir)
 	motor := construirMotorFirmaConHTTP(httpClient)
-	auditor := application.NuevoAuditUseCase(relojReal{}, &loggerSilencioso{})
+	registradorAuditoria, err := auditlog.NewDefault()
+	if err != nil {
+		return nil, err
+	}
+	auditor := application.NuevoAuditUseCase(relojReal{}, registradorAuditoria)
 
-	ucFirmar := application.NuevoSignDocumentUseCase(catalogo, proveedor, motor, aprobador, auditor, nil).WithMetrics(metricas)
+	// Texto de aprobación común: dice qué se firma y quién lo pide, traducido
+	// y con el texto externo neutralizado (H-08, C-02).
+	componerAprobacion := aprobacion.NuevoComponedor(localizador.Detectar())
+	ucFirmar := application.NuevoSignDocumentUseCase(catalogo, proveedor, motor, aprobador, auditor, nil).
+		WithMetrics(metricas).
+		WithComponedorAprobacion(componerAprobacion)
 	firmadorIdentidad := application.NuevoSignDocumentUseCase(
 		catalogo,
 		proveedor,
@@ -289,7 +301,7 @@ func construirAdaptador(configDir, p12Dir, p12Password string, metricas ports.Op
 		&aprobacionSistema{logger: logger},
 		auditor,
 		nil,
-	).WithMetrics(metricas)
+	).WithMetrics(metricas).WithComponedorAprobacion(componerAprobacion)
 	ucVerificar := application.NuevoVerifySignatureUseCase(
 		systemtrust.New(),
 		commonsigner.NewMultiVerifierWithHTTPClient(httpClient),
@@ -373,16 +385,14 @@ func main() {
 	}
 	p12Password := os.Getenv("GRXFIRMA_PKCS12_PASSWORD")
 
-	adaptador, err := construirAdaptador(configDir, p12Dir, p12Password, metricas, logger)
+	adaptador, err := construirAdaptador(configDir, p12Dir, p12Password, callerPolicy.isOfficialCaller(callerID), metricas, logger)
 	if err != nil {
 		writeErrorToLog(logger, ctx, "bootstrap", err)
 		os.Exit(1)
 	}
 	limites := limits.FromEnv(limits.Default())
-	operationTimeout := time.Duration(limites.MaxSessionSec) * time.Second
-	if operationTimeout <= 0 {
-		operationTimeout = time.Duration(limits.Default().MaxSessionSec) * time.Second
-	}
+	// El plazo del host queda por debajo del de la extensión (C-04).
+	operationTimeout := nativehost.PlazoOperacion(time.Duration(limites.MaxSessionSec) * time.Second)
 
 	// El navegador mantiene el proceso vivo y envía mensajes hasta desconectarse.
 	// Leemos en bucle hasta EOF (desconexión de la extensión).
@@ -433,16 +443,27 @@ func solicitarAprobacionSistema(ctx context.Context, titulo, mensaje string) (bo
 	}
 }
 
-func solicitarAprobacionLinux(ctx context.Context, titulo, mensaje string) (bool, error) {
-	candidatos := []struct {
-		bin  string
-		args []string
-	}{
-		{"zenity", []string{"--question", "--title", titulo, "--text", mensaje, "--width", "520", "--ok-label", "Firmar", "--cancel-label", "Cancelar"}},
-		{"qarma", []string{"--question", "--title", titulo, "--text", mensaje, "--width", "520", "--ok-label", "Firmar", "--cancel-label", "Cancelar"}},
-		{"kdialog", []string{"--warningcontinuecancel", mensaje, "--title", titulo}},
+type dialogoLinux struct {
+	bin  string
+	args []string
+}
+
+// dialogosAprobacionLinux devuelve los diálogos candidatos con el texto ya
+// preparado para cada herramienta: zenity y qarma sin marcado Pango
+// (--no-markup) y con las barras invertidas duplicadas; kdialog con el texto
+// escapado como HTML de Qt (C-02).
+func dialogosAprobacionLinux(titulo, mensaje string) []dialogoLinux {
+	textoZenity := aprobacion.TextoZenity(mensaje)
+	tituloZenity := aprobacion.TextoZenity(titulo)
+	return []dialogoLinux{
+		{"zenity", []string{"--question", "--no-markup", "--title", tituloZenity, "--text", textoZenity, "--width", "520", "--ok-label", "Firmar", "--cancel-label", "Cancelar"}},
+		{"qarma", []string{"--question", "--no-markup", "--title", tituloZenity, "--text", textoZenity, "--width", "520", "--ok-label", "Firmar", "--cancel-label", "Cancelar"}},
+		{"kdialog", []string{"--warningcontinuecancel", aprobacion.TextoKDialog(mensaje), "--title", titulo}},
 	}
-	for _, candidato := range candidatos {
+}
+
+func solicitarAprobacionLinux(ctx context.Context, titulo, mensaje string) (bool, error) {
+	for _, candidato := range dialogosAprobacionLinux(titulo, mensaje) {
 		path, err := exec.LookPath(candidato.bin)
 		if err != nil {
 			continue

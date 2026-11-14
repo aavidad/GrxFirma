@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 	"unicode"
@@ -46,15 +47,16 @@ func (uc *AuditUseCase) Registrar(ctx context.Context, cmd AuditCommand) error {
 	}
 
 	registro := AuditRecord{
-		Timestamp:     ahora,
-		OperationType: cmd.OperationType,
-		Origin:        sanitizarOrigen(cmd.Origin),
-		DocumentName:  sanitizarNombre(cmd.DocumentName),
-		DocumentHash:  calcularHashDocumento(cmd.DocumentData, cmd.DocumentHash),
-		Format:        sanitizarFormato(cmd.Format),
-		Success:       cmd.Success,
-		Result:        resultadoAudit(cmd.Success),
-		ErrorSummary:  sanitizarResumenError(cmd.ErrorSummary),
+		Timestamp:      ahora,
+		OperationType:  cmd.OperationType,
+		Origin:         sanitizarOrigen(cmd.Origin),
+		DocumentName:   sanitizarNombre(cmd.DocumentName),
+		DocumentHash:   calcularHashDocumento(cmd.DocumentData, cmd.DocumentHash),
+		Format:         sanitizarFormato(cmd.Format),
+		Success:        cmd.Success,
+		Result:         resultadoAudit(cmd.Success),
+		ErrorSummary:   sanitizarResumenError(cmd.ErrorSummary),
+		Compatibilidad: sanitizarCompatibilidad(cmd.Compatibilidad),
 	}
 
 	if cmd.CertificateFingerprint != "" {
@@ -69,7 +71,14 @@ func (uc *AuditUseCase) Registrar(ctx context.Context, cmd AuditCommand) error {
 		Payload:   serializarRegistro(registro),
 	}
 
-	return uc.logger.Log(ctx, evidencia)
+	if err := uc.logger.Log(ctx, evidencia); err != nil {
+		// Los llamantes no interrumpen la operación por un fallo de auditoría,
+		// pero no puede pasar en silencio. El aviso no lleva datos del documento.
+		slog.Warn("no se pudo guardar la evidencia de auditoría",
+			"operacion", registro.OperationType, "error", err)
+		return err
+	}
+	return nil
 }
 
 // sanitizarOrigen limita la longitud del origen y elimina caracteres no imprimibles.
@@ -86,6 +95,22 @@ func sanitizarNombre(nombre string) string {
 // No debe contener rutas de sistema, stacktraces ni datos de payload.
 func sanitizarResumenError(resumen string) string {
 	return truncarYLimpiar(resumen, 500)
+}
+
+// sanitizarCompatibilidad acota los códigos de compatibilidad: son pocos y
+// cortos, y nunca llevan datos del documento.
+func sanitizarCompatibilidad(codigos []string) []string {
+	const maxCodigos, maxLen = 8, 96
+	var out []string
+	for _, codigo := range codigos {
+		if len(out) == maxCodigos {
+			break
+		}
+		if limpio := truncarYLimpiar(codigo, maxLen); limpio != "" {
+			out = append(out, limpio)
+		}
+	}
+	return out
 }
 
 func sanitizarFormato(formato string) string {

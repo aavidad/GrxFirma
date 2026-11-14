@@ -62,12 +62,12 @@ func assessmentSignature(t *testing.T, key crypto.Signer, cert *x509.Certificate
 
 func assessDocument(t *testing.T, document, payload []byte) (domain.VerificationResult, error) {
 	t.Helper()
-	verification, err := verifyXMLSignatureDocument(document, false, func(uri string) ([]byte, error) {
+	verification, err := verifyXMLSignatureDocument(context.Background(), document, false, func(uri string) ([]byte, error) {
 		if uri != "payload.xml" {
 			return nil, fmt.Errorf("URI inesperada")
 		}
 		return payload, nil
-	}, domain.CertificateChain{}, "XMLDSig", "firma válida", []string{"referencias=ok"})
+	}, domain.CertificateChain{}, "XMLDSig", "firma válida", []string{"referencias=ok"}, coberturaDelContenedor)
 	return verification.result, err
 }
 
@@ -524,8 +524,10 @@ func TestXMLAssessment_OfficeMultiSignatureContextAndCompatibility(t *testing.T)
 				verify := func(sig []byte) (domain.VerificationResult, []domain.CertificateRef, error) {
 					entries := map[string][]byte{"payload.xml": payload}
 					if format == "ODF" {
+						// Sin META-INF/manifest.xml: estas firmas sintéticas solo
+						// referencian payload.xml y una entrada sin firmar dejaría
+						// la cobertura en parcial.
 						entries["mimetype"] = []byte("application/vnd.oasis.opendocument.text")
-						entries["META-INF/manifest.xml"] = []byte(`<manifest/>`)
 						entries["META-INF/documentsignatures.xml"] = sig
 						return NewODFVerifier().Verify(context.Background(), domain.Document{Content: makeZipBytes(t, entries)}, domain.CertificateChain{})
 					}

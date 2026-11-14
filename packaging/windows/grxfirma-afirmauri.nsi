@@ -90,6 +90,8 @@ Section "Handler afirma://" SEC01
   IfSilent 0 +2
   StrCpy $SilentInstallArg "-SilentInstall"
   !insertmacro GrxFirmaShowWarning \
+    "Desde ahora GrxFirma abrirá los enlaces afirma:// de los portales, en lugar de AutoFirma si lo tiene instalado, salvo que en Configuración haya elegido AutoFirma. Si desinstala GrxFirma, esos enlaces volverán a abrirse con AutoFirma."
+  !insertmacro GrxFirmaShowWarning \
     "Windows pedirá confirmar el certificado local de GrxFirma. Si se está renovando, también pedirá retirar el anterior. Pulse 'Sí' en los avisos de Windows para permitir la conexión segura con los portales."
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-afirmauri.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\AfirmaURI" $SilentInstallArg'
   Pop $0

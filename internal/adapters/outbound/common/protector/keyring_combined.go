@@ -7,9 +7,11 @@ package protector
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
+	"grxfirma/internal/adapters/outbound/common/keyringstore"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 )
@@ -22,19 +24,30 @@ type LocalCombinedKeyring struct {
 	Public *LocalPublicRecipientBook
 }
 
-func NuevoLocalCombinedKeyring(configDir string, catalog ports.CertificateCatalog, keys ports.SigningKeyProvider) *LocalCombinedKeyring {
+// NuevoLocalCombinedKeyring monta el keyring de protección del usuario.
+// dataDir debe ser el directorio de datos locales (appdirs.Data), que en
+// Windows no viaja con el perfil itinerante. La clave privada del perfil alto
+// se guarda en el almacén de secretos del sistema.
+func NuevoLocalCombinedKeyring(configDir, dataDir string, catalog ports.CertificateCatalog, keys ports.SigningKeyProvider) *LocalCombinedKeyring {
 	return &LocalCombinedKeyring{
 		Compat: NuevoLocalCompatKeyring(catalog, keys),
-		Strong: NuevoLocalStrongKeyring(configDir),
+		Strong: NuevoLocalStrongKeyring(configDir, dataDir, keyringstore.New()),
 		Public: NuevoLocalPublicRecipientBook(configDir),
 	}
+}
+
+// strongUnavailable indica que el perfil alto no se puede usar porque falta el
+// almacén seguro del sistema. En ese caso se siguen ofreciendo los demás
+// destinatarios y claves en lugar de fallar todo.
+func strongUnavailable(ctx context.Context, err error) bool {
+	return ctx.Err() == nil && errors.Is(err, ErrAlmacenSeguroNoDisponible)
 }
 
 func (k *LocalCombinedKeyring) List(ctx context.Context) ([]domain.ProtectionRecipient, error) {
 	var all []domain.ProtectionRecipient
 	if k != nil && k.Strong != nil {
 		recipients, err := k.Strong.List(ctx)
-		if err != nil {
+		if err != nil && !strongUnavailable(ctx, err) {
 			return nil, err
 		}
 		all = append(all, recipients...)
@@ -69,7 +82,7 @@ func (k *LocalCombinedKeyring) Resolve(ctx context.Context, recipientIDs []strin
 	var all []domain.ProtectionRecipient
 	if k != nil && k.Strong != nil {
 		recipients, err := k.Strong.Resolve(ctx, recipientIDs)
-		if err != nil {
+		if err != nil && !strongUnavailable(ctx, err) {
 			return nil, err
 		}
 		all = append(all, recipients...)
@@ -123,17 +136,17 @@ func (k *LocalCombinedKeyring) RemovePublic(ctx context.Context, id string) erro
 	return k.Public.Remove(ctx, id)
 }
 
-func (k *LocalCombinedKeyring) DecryptionKeys(ctx context.Context) ([]domain.ProtectionKeyMaterial, error) {
+func (k *LocalCombinedKeyring) DecryptionKeys(ctx context.Context, protected domain.Document) ([]domain.ProtectionKeyMaterial, error) {
 	var all []domain.ProtectionKeyMaterial
 	if k != nil && k.Strong != nil {
-		keys, err := k.Strong.DecryptionKeys(ctx)
-		if err != nil {
+		keys, err := k.Strong.DecryptionKeys(ctx, protected)
+		if err != nil && !strongUnavailable(ctx, err) {
 			return nil, err
 		}
 		all = append(all, keys...)
 	}
 	if k != nil && k.Compat != nil {
-		keys, err := k.Compat.DecryptionKeys(ctx)
+		keys, err := k.Compat.DecryptionKeys(ctx, protected)
 		if err != nil {
 			return nil, err
 		}

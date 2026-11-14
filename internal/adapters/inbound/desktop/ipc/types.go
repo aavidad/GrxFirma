@@ -401,6 +401,8 @@ type resultadoDesproteccion struct {
 	RecipientID           string `json:"recipientId,omitempty"`
 	DocumentName          string `json:"documentName,omitempty"`
 	MIMEType              string `json:"mimeType,omitempty"`
+	// Warnings son los avisos de compatibilidad (claves de los catálogos).
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type resultadoHash struct {

@@ -92,6 +92,27 @@ remove_manifest_if_owned() {
   fi
 }
 
+# Retira la CA local que grxfirma-afirmauri dejó como raíz de confianza en el
+# llavero del usuario, igual que hacen Windows y Linux al desinstalar (G-06).
+# Si falla, avisa y sigue: la desinstalación no debe quedarse a medias.
+remove_local_tls_trust() {
+  local afirma_app="$1"
+  local run_as="${2:-}"
+  local binary="${afirma_app}/Contents/MacOS/grxfirma-afirmauri"
+  if [[ -L "${afirma_app}" || -L "${binary}" || ! -f "${binary}" || ! -x "${binary}" ]]; then
+    return 0
+  fi
+  local status=0
+  if [[ -n "${run_as}" ]]; then
+    sudo -u "${run_as}" -H -- "${binary}" --remove-local-tls-trust || status=$?
+  else
+    "${binary}" --remove-local-tls-trust || status=$?
+  fi
+  if [[ "${status}" -ne 0 ]]; then
+    echo "Aviso: no se pudo retirar la CA local de GrxFirma del llavero. Retírala a mano con Acceso a Llaveros o ejecuta \"${binary}\" --remove-local-tls-trust antes de borrar la aplicación." >&2
+  fi
+}
+
 add_extension_id() {
   local candidate="$1"
   local existing
@@ -174,6 +195,9 @@ uninstall_user() {
   done
 
   remove_firefox_extension_if_owned "${base}"
+  if ! has_symlink_between "$(dirname "${afirma_app}")" "${HOME}"; then
+    remove_local_tls_trust "${afirma_app}"
+  fi
   remove_user_tree "${afirma_app}"
   remove_user_tree "${desktop_app}"
   remove_user_tree "${base}/CLI"
@@ -307,6 +331,14 @@ uninstall_system() {
     echo "Aviso: se conserva una CLI no simbolica: ${cli_link}" >&2
   fi
 
+  # La CA vive en el llavero de cada usuario. Se retira la del usuario que
+  # lanzó sudo; los demás usuarios deben ejecutar antes el desinstalador de
+  # usuario o la orden que indica el aviso.
+  if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+    remove_local_tls_trust "${afirma_app}" "${SUDO_USER}"
+  else
+    echo "Aviso: cada usuario que haya usado GrxFirma debe ejecutar \"${afirma_app}/Contents/MacOS/grxfirma-afirmauri\" --remove-local-tls-trust antes de esta desinstalación para retirar la CA local de su llavero." >&2
+  fi
   remove_exact_tree "${afirma_app}"
   remove_exact_tree "${desktop_app}"
   rm -f -- "${launch_agent}" "${legacy_launch_agent}"

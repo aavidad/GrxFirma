@@ -26,6 +26,13 @@ type MotorFirmaGo struct {
 	reloj      ports.Clock
 	tsa        ports.TimestampAuthority
 	revocation ports.RevocationProvider
+	// tsaOpciones decide qué destinos admite la tsaURL recibida en las
+	// opciones del trabajo (véase tsa_opciones.go). Por defecto, los de los
+	// caminos web: sin loopback ni redes privadas salvo las de la lista.
+	tsaOpciones modoTSAOpciones
+	// tsaPermitidas son los orígenes de la lista de la política de máquina;
+	// nil si la lista no está definida.
+	tsaPermitidas map[string]struct{}
 }
 
 // NuevoMotorFirmaGo crea un MotorFirmaGo.
@@ -196,14 +203,16 @@ func solicitaPerfilLTA(options map[string]string) bool {
 
 func (m *MotorFirmaGo) resolverTSA(options map[string]string) ports.TimestampAuthority {
 	if tsaURL := strings.TrimSpace(valorOpcion(options, "tsaURL")); tsaURL != "" {
+		client := tsaclient.New(tsaURL)
 		if m != nil {
 			if configured, ok := m.tsa.(*tsaclient.Client); ok && configured != nil {
-				client := *configured
-				client.URL = tsaURL
-				return &client
+				copia := *configured
+				copia.URL = tsaURL
+				client = &copia
 			}
 		}
-		return tsaclient.New(tsaURL)
+		client.HTTPClient = m.clienteHTTPTSAOpciones(tsaURL, client.HTTPClient)
+		return client
 	}
 	if m == nil {
 		return nil

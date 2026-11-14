@@ -962,7 +962,8 @@ public sealed class DesktopOperationsClientTests
             "profile",
             "recipientId",
             "documentName",
-            "mimeType");
+            "mimeType",
+            "warnings");
         AssertJsonPropertyNames<CheckCertificatesSummaryResult>(
             "okCount",
             "failCount");

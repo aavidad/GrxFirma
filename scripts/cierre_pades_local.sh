@@ -20,7 +20,7 @@ mkdir -p "${OUT_DIR}"
 } > "${REPORT_PATH}"
 
 {
-  GOCACHE=/tmp/grxfirma-gocache go run ./scripts/generar_muestras_pades.go -out "${OUT_DIR}"
+  go run ./scripts/generar_muestras_pades.go -out "${OUT_DIR}"
   echo
   echo "2. Validando muestras V2 con qpdf/pdfsig"
   bash scripts/validar_pades_manual.sh \

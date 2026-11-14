@@ -49,11 +49,11 @@ import (
 const SignatureFormatsHelp = "auto|pades|cades|xades|xmldsig|odf|ooxml|facturae|verifactu|asic-xades"
 
 const (
-	envPKCS12PasswordCLI = "GRXFIRMA_PKCS12_PASSWORD"
-	envProtectionSecret  = "GRXFIRMA_PROTECTION_SECRET_B64"
+	envPKCS12PasswordCLI = secretinput.EnvPKCS12Password
+	envProtectionSecret  = secretinput.EnvProtectionSecret
 	// envPDFPassword es la contraseña de un PDF cifrado; se consume y se
 	// borra del entorno al arrancar, como las demás claves.
-	envPDFPassword = "GRXFIRMA_PDF_PASSWORD"
+	envPDFPassword = secretinput.EnvPDFPassword
 )
 
 // SignDocumentUseCase define el contrato mínimo esperado por el adaptador CLI.
@@ -158,7 +158,7 @@ type Adaptador struct {
 	Escribir           func(string, []byte, os.FileMode) error
 	Limits             limits.Limits
 	// escrituraConPolitica indica que Escribir es la escritura real por
-	// defecto; entonces los resultados se guardan con guardarSalidaCLI. Un
+	// defecto (escribirFicheroSalida, sin seguir enlaces: H-09); entonces los resultados se guardan con guardarSalidaCLI. Un
 	// Escribir inyectado (pruebas con sistema de ficheros simulado) se usa tal
 	// cual.
 	escrituraConPolitica bool
@@ -308,7 +308,7 @@ func New(firmar SignDocumentUseCase, procesarLote ProcessBatchUseCase) *Adaptado
 		Stderr:               os.Stderr,
 		Stdin:                os.Stdin,
 		LeerFichero:          os.ReadFile,
-		Escribir:             os.WriteFile,
+		Escribir:             escribirFicheroSalida,
 		escrituraConPolitica: true,
 		Limits:               limits.FromEnv(limits.Default()),
 		instalarConfianzaTLS: localtlstrust.EnsureManagedTrusted,
@@ -397,6 +397,13 @@ func (a *Adaptador) WithCompatibilitySecrets(passwordP12, protection string) *Ad
 	return a
 }
 
+// WithCompatiblePDFPassword transfiere la contraseña de PDF que el proceso
+// principal ya retiró de GRXFIRMA_PDF_PASSWORD (H-04).
+func (a *Adaptador) WithCompatiblePDFPassword(password string) *Adaptador {
+	a.pdfPasswordCompat = password
+	return a
+}
+
 // WithVersion fija la versión en ejecución, usada por la comprobación
 // opt-in de actualizaciones del diagnóstico.
 func (a *Adaptador) WithVersion(version string) *Adaptador {
@@ -419,14 +426,14 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		a.LeerFichero = os.ReadFile
 	}
 	if a.Escribir == nil {
-		a.Escribir = os.WriteFile
+		a.Escribir = escribirFicheroSalida
 		a.escrituraConPolitica = true
 	}
 	if a.Limits.MaxPayloadBytes == 0 {
 		a.Limits = limits.FromEnv(limits.Default())
 	}
 	environment, err := secretinput.ConsumeEnvironment(
-		[]string{envPKCS12PasswordCLI, envProtectionSecret, envPDFPassword, "GRXFIRMA_REST_TOKEN"},
+		secretinput.NombresEntornoSecretos(),
 		os.LookupEnv,
 		os.Unsetenv,
 	)
@@ -443,7 +450,8 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 	if value, present := environment.Take(envPDFPassword); present {
 		a.pdfPasswordCompat = value
 	}
-	_, _ = environment.Take("GRXFIRMA_REST_TOKEN")
+	_, _ = environment.Take(secretinput.EnvRESTToken)
+	_, _ = environment.Take(secretinput.EnvRESTTokenHeredado)
 
 	cfg, err := parsearArgs(args)
 	if err != nil {
@@ -1295,7 +1303,7 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 			a.escribirErrorCLI("JSON", err)
 			return 1
 		}
-		return 0
+		return codigoSalidaVerificacion(resultado.Verification)
 	}
 	if resultado.Verification.Valid {
 		fmt.Fprintln(a.Stdout, a.t("Firma válida.", "Firma válida."))
@@ -1322,6 +1330,21 @@ func (a *Adaptador) ejecutarVerificacion(ctx context.Context, cfg configCLI) int
 		for _, warning := range resultado.Verification.Warnings {
 			fmt.Fprintf(a.Stdout, "- %s\n", a.textoMotor(warning))
 		}
+	}
+	return codigoSalidaVerificacion(resultado.Verification)
+}
+
+// codigoSalidaVerificacion traduce el veredicto a código de salida para los
+// scripts que deciden con `grxfirma ... && aceptar`: 0 solo si la firma es
+// válida; 2 si no lo es (o si algún aspecto comprobado resulta inválido). Los
+// errores de entrada o de ejecución, que impiden comprobar la firma, ya
+// devuelven 1 antes de llegar aquí.
+func codigoSalidaVerificacion(v domain.VerificationResult) int {
+	if !v.Valid ||
+		v.Integrity.Status == domain.VerificationStatusInvalid ||
+		v.Certificate.Status == domain.VerificationStatusInvalid ||
+		v.Trust.Status == domain.VerificationStatusInvalid {
+		return 2
 	}
 	return 0
 }
@@ -2113,6 +2136,9 @@ func (a *Adaptador) ejecutarDesproteccion(ctx context.Context, cfg configCLI) in
 		if cfg.noGuardar || cfg.imprimirFirma {
 			payload["contenido_desprotegido_base64"] = plainB64
 		}
+		if avisos := resultado.Unprotected.Avisos; len(avisos) > 0 {
+			payload["advertencias"] = append([]string(nil), avisos...)
+		}
 		if err := escribirJSON(a.Stdout, payload); err != nil {
 			a.escribirErrorCLI("JSON", err)
 			return 1
@@ -2129,6 +2155,12 @@ func (a *Adaptador) ejecutarDesproteccion(ctx context.Context, cfg configCLI) in
 		a.t("Destinatario", "Destinatario"),
 		resultado.Unprotected.RecipientID,
 	)
+	if len(resultado.Unprotected.Avisos) > 0 {
+		fmt.Fprintf(a.Stdout, "%s:\n", a.t("Advertencias", "Advertencias"))
+		for _, aviso := range resultado.Unprotected.Avisos {
+			fmt.Fprintf(a.Stdout, "- %s\n", a.textoCatalogo(aviso))
+		}
+	}
 	if salidaFinal != "" {
 		fmt.Fprintf(a.Stdout, "%s: %s\n", a.t("Salida", "Salida"), salidaFinal)
 	}
@@ -3306,6 +3338,7 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    " + a.t("cli.help.audit", "Comprueba la cadena de huellas del registro de auditoría: detecta registros alterados, insertados o borrados. Para acreditar también que no se ha recortado el final, firma el fichero con tu certificado al entregarlo.") + "\n")
 	b.WriteString("  " + a.t("cli.help.report_usage", "-informe <informe.html>") + "\n")
 	b.WriteString("    " + a.t("cli.help.report", "Con la verificación, guarda un informe de validación en HTML imprimible con el veredicto, las comprobaciones, los firmantes y la huella SHA-256 del fichero verificado.") + "\n")
+	b.WriteString("    " + a.t("cli.help.verify_exit", "Códigos de salida de la verificación: 0 si la firma es válida; 2 si no es válida; 1 si no se pudo comprobar (fichero ilegible, formato desconocido u otro error).") + "\n")
 	b.WriteString("  " + a.t("cli.help.pdf_password_usage", "-contrasena-pdf-stdin | -pdf-password-stdin") + "\n")
 	b.WriteString("    " + a.t("cli.help.pdf_password", "Lee sin eco la contraseña de un PDF cifrado (de usuario o de propietario) para firmarlo conservando su cifrado. También se admite la variable GRXFIRMA_PDF_PASSWORD, que se borra al leerla; nunca se acepta como argumento.") + "\n")
 	b.WriteString("  " + a.t("cli.help.batch_usage", "-lote <manifiesto.json|carpeta>") + "\n")
@@ -3425,6 +3458,17 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("  grxfirma -modo-cli -operacion generar-certificados-tls -salida-json\n")
 	b.WriteString("  grxfirma -modo-cli -operacion instalar-confianza-tls -salida-json\n")
 	_, _ = io.WriteString(a.Stdout, b.String())
+}
+
+// textoCatalogo traduce un texto que llega como dato (por ejemplo, un aviso
+// del motor) y cuya clave es el propio texto en castellano.
+func (a *Adaptador) textoCatalogo(clave string) string {
+	if a.Localizador != nil {
+		if traducido := a.Localizador.T(clave); traducido != "" {
+			return traducido
+		}
+	}
+	return clave
 }
 
 func (a *Adaptador) t(id, fallback string, args ...any) string {

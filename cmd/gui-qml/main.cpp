@@ -6,6 +6,7 @@
 #include "backendbridge.h"
 #include "incidentprivacy.h"
 #include "ipcbridge.h"
+#include "ipcpeer.h"
 #include "officialupdatechecker.h"
 #include "processarguments.h"
 #include "processenvironment.h"
@@ -279,6 +280,7 @@ int main(int argc, char *argv[]) {
   // El modo REST queda solo para uso explícito.
   bool useIpc = true;
   QString forcedIpcPath;
+  qint64 launcherBackendPid = 0;
   QString portalSealRequest;
   for (int i = 1; i < argc; ++i) {
     QString arg = QString::fromLocal8Bit(argv[i]);
@@ -288,6 +290,11 @@ int main(int argc, char *argv[]) {
                i + 1 < argc) {
       forcedIpcPath = QString::fromLocal8Bit(argv[++i]);
       useIpc = true;
+    } else if (arg == "--backend-pid" && i + 1 < argc) {
+      // PID del motor que atiende --ipc-socket; la GUI lo comprueba con el
+      // sistema antes de enviar nada por el canal.
+      launcherBackendPid =
+          IpcPeer::parseProcessId(QString::fromLocal8Bit(argv[++i]));
     } else if (arg == "--ipc" || arg == "-ipc") {
       useIpc = true;
     } else if (arg == "--portal-seal-request" && i + 1 < argc) {
@@ -371,25 +378,18 @@ int main(int argc, char *argv[]) {
   ipcPath = QStringLiteral("\\\\.\\pipe\\grxfirma_ipc_%1_%2")
                 .arg(QCoreApplication::applicationPid())
                 .arg(nonce);
-#else
-  QString userName = QDir::home().dirName();
-  if (userName.isEmpty())
-    userName = "default";
-  // Usar /run/user/UID (XDG_RUNTIME_DIR) para mayor seguridad si está
-  // disponible
-  QString runtimeDir =
-      QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
-  if (runtimeDir.isEmpty())
-    runtimeDir = QDir::tempPath();
-  ipcPath =
-      QDir(runtimeDir).absoluteFilePath("grxfirma_ipc_" + userName + ".sock");
 #endif
+  // En Unix, sin --ipc-socket, IpcBridge::startBackend genera una ruta nueva y
+  // aleatoria en un directorio privado del usuario (IpcPeer).
   if (!forcedIpcPath.isEmpty())
     ipcPath = forcedIpcPath;
   qDebug() << "[Main] Ruta IPC privada preparada.";
 
   BackendBridge restBridge;
   IpcBridge ipcBridge;
+  // El PID del lanzador solo vale para la ruta que él mismo indicó.
+  if (!forcedIpcPath.isEmpty() && !portalSeal.active())
+    ipcBridge.setLauncherBackendPid(launcherBackendPid);
   ResidentAgent residentAgent;
   connectResidentEvents(&restBridge, &residentAgent);
   connectResidentEvents(&ipcBridge, &residentAgent);

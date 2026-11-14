@@ -1505,6 +1505,33 @@ func TestRun_ConsumeTodosLosSecretosDelEntornoAntesDeAyuda(t *testing.T) {
 	}
 }
 
+// H-04: Run retira del entorno todos los secretos de la lista común, también
+// el token REST heredado.
+func TestRun_RetiraDelEntornoTodosLosSecretos(t *testing.T) {
+	for _, nombre := range secretinput.NombresEntornoSecretos() {
+		t.Setenv(nombre, "valor")
+	}
+	adaptador := New(nil, nil)
+	adaptador.ConfigDir = filepath.Join(t.TempDir(), "config")
+	adaptador.Stdout = io.Discard
+	adaptador.Stderr = io.Discard
+	_ = adaptador.Run(context.Background(), []string{"-operacion", "desconocida"})
+	for _, nombre := range secretinput.NombresEntornoSecretos() {
+		if _, sigue := os.LookupEnv(nombre); sigue {
+			t.Errorf("%s sigue en el entorno tras Run", nombre)
+		}
+	}
+}
+
+// H-04: la contraseña de PDF retirada por el proceso principal llega al
+// adaptador.
+func TestWithCompatiblePDFPassword(t *testing.T) {
+	adaptador := New(nil, nil).WithCompatiblePDFPassword("clave-pdf")
+	if adaptador.pdfPasswordCompat != "clave-pdf" {
+		t.Fatal("no se transfirió la contraseña de PDF")
+	}
+}
+
 func TestRunImportarP12_RecibeCompatYaRetiradaDelEntorno(t *testing.T) {
 	tmp := t.TempDir()
 	p12Path := filepath.Join(tmp, "transferida.p12")

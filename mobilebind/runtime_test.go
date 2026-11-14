@@ -709,3 +709,16 @@ func decodeResponse(t *testing.T, raw string, target any) {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
 }
+
+// H-07: el contrato no anuncia servicios que la app no usa.
+func TestContratoAndroidSoloAnunciaServiciosUsados(t *testing.T) {
+	android, err := NewAndroidFacade(t.TempDir(), t.TempDir())
+	if err != nil {
+		t.Fatalf("NewAndroidFacade() error = %v", err)
+	}
+	var contract mobileContract
+	decodeResponse(t, android.MobileContractJSON(), &contract)
+	if contract.Services["android_intent"] {
+		t.Fatal("el contrato Android anuncia android_intent, que la app no usa")
+	}
+}

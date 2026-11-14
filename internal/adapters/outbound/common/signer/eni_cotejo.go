@@ -51,8 +51,10 @@ func CotejarCAdESExplicita(cmsDER, original []byte) error {
 		if err != nil {
 			return ErrFirmaNoCorrespondeOriginal
 		}
-		spec, err := validarAlgoritmosSignerInfo(cert, si)
-		if err != nil {
+		// Como antes de admitir SHA-1 para leer firmas antiguas: el cotejo
+		// no da por correspondiente una firma CMS con SHA-1.
+		spec, antiguo, err := validarAlgoritmosSignerInfo(cert, si)
+		if err != nil || antiguo {
 			return ErrFirmaNoCorrespondeOriginal
 		}
 		if verifyMessageDigest(si.SignedAttributes, original, spec.hash) != nil ||
@@ -76,7 +78,7 @@ func CotejarXAdESSeparada(firma, original []byte) error {
 		externa = true
 		return original, nil
 	}
-	if _, err := verifyXMLSignatureDocument(firma, false, resolver, domain.CertificateChain{}, string(domain.FormatXAdES), "", nil); err != nil {
+	if _, err := verifyXMLSignatureDocument(context.Background(), firma, false, resolver, domain.CertificateChain{}, string(domain.FormatXAdES), "", nil, coberturaDelContenedor); err != nil {
 		return ErrFirmaNoCorrespondeOriginal
 	}
 	if externa {

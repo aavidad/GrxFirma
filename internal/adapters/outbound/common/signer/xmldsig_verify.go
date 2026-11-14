@@ -21,7 +21,7 @@ func (v *XMLDSigVerifier) Verify(ctx context.Context, signedDocument domain.Docu
 	if err := ctx.Err(); err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	verification, err := verifyXMLSignatureDocument(signedDocument.Content, false, nil, anchors, "XMLdSig", "firma XMLdSig valida", []string{"referencias=ok", "perfil=xmldsig-basic"})
+	verification, err := verifyXMLSignatureDocument(ctx, signedDocument.Content, false, nil, anchors, "XMLdSig", "firma XMLdSig valida", []string{"referencias=ok", "perfil=xmldsig-basic"}, coberturaDelDocumento)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}

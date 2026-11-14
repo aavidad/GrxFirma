@@ -140,7 +140,7 @@ func TestVeriFactuSigningRejectsOtherXMLWithClosedKey(t *testing.T) {
 }
 
 func TestContractDeclaresNewFormatsAndDocumentServices(t *testing.T) {
-	raw, err := buildMobileContract("android", true)
+	raw, err := buildMobileContract("android")
 	if err != nil {
 		t.Fatal(err)
 	}

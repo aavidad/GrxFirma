@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/digitorus/timestamp"
+	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
 	"grxfirma/internal/ports"
 )
 
@@ -179,6 +180,12 @@ func validateTimestampToken(
 	expectedAlgorithm crypto.Hash,
 	expectedNonce *big.Int,
 ) error {
+	// E2-05: timestamp.Parse recorre el BER de forma recursiva y sin límite.
+	// Hoy la respuesta está limitada a 1 MiB, que no agota la pila; la guarda
+	// evita depender de ese límite. Solo se rechaza por profundidad.
+	if err := anidamientoasn1.Comprobar(token, anidamientoasn1.MaxProfundidad); errors.Is(err, anidamientoasn1.ErrDemasiadoProfundo) {
+		return fmt.Errorf("TimeStampToken invalido: %w", err)
+	}
 	parsed, err := timestamp.Parse(token)
 	if err != nil {
 		return fmt.Errorf("TimeStampToken invalido: %w", err)

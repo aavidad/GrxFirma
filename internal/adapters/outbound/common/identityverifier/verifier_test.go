@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/digitorus/pkcs7"
+
 	"grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -63,6 +65,55 @@ func TestVerificadorRechazaManipulacionEKUYPolitica(t *testing.T) {
 	}
 }
 
+// E2-01: una firma CAdES implícita del mismo certificado sobre otro contenido
+// no demuestra la posesión de la clave en el momento del reto.
+func TestVerificadorRechazaCAdESImplicitoSobreOtroContenido(t *testing.T) {
+	fixture := nuevaFixtureVerificador(t, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, []asn1.ObjectIdentifier{oidPoliticaPrueba})
+	antiguo, _ := domain.NewDocument("antiguo.txt", []byte("documento firmado hace meses"), "text/plain")
+	firma, err := signer.NewCAdESBESDetached().Sign(context.Background(), domain.SignatureJob{Document: antiguo, Format: domain.FormatCAdES,
+		Action: domain.ActionSign, Options: map[string]string{"mode": "implicit"}},
+		&signer.LocalSigningKey{ID: "clave:1", Signer: fixture.hojaClave, Certificate: fixture.hoja, Chain: []*x509.Certificate{fixture.raiz}})
+	if err != nil {
+		t.Fatalf("firmar contenido antiguo: %v", err)
+	}
+	prueba := fixture.prueba
+	prueba.Firma = firma.Data
+	resultado, err := fixture.nuevo(t, ports.EstadoRevocacionConforme).Verificar(context.Background(), fixture.reto, prueba)
+	if err != nil || resultado.Resultado != domain.ResultadoIdentidadRechazada {
+		t.Fatalf("una firma implícita de otro contenido no acredita el reto: resultado=%+v error=%v", resultado, err)
+	}
+}
+
+// Lote 13b: el verificador CAdES admite SHA-1 para leer firmas antiguas, pero
+// una prueba de identidad con SHA-1 se sigue rechazando.
+func TestVerificadorRechazaPruebaConSHA1(t *testing.T) {
+	fixture := nuevaFixtureVerificador(t, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, []asn1.ObjectIdentifier{oidPoliticaPrueba})
+	datos, err := pkcs7.NewSignedData(fixture.reto.ContenidoCanonico)
+	if err != nil {
+		t.Fatal(err)
+	}
+	datos.SetDigestAlgorithm(pkcs7.OIDDigestAlgorithmSHA1)
+	if err := datos.AddSigner(fixture.hoja, fixture.hojaClave, pkcs7.SignerInfoConfig{}); err != nil {
+		t.Fatal(err)
+	}
+	datos.Detach()
+	firma, err := datos.Finish()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// La firma SHA-1 es criptográficamente correcta sobre el reto.
+	verificacion, _, err := signer.NewCAdESVerifier().VerifyDetachedCMS(context.Background(), firma, fixture.reto.ContenidoCanonico)
+	if err != nil || verificacion.Integrity.Status != domain.VerificationStatusValid || verificacion.Valid {
+		t.Fatalf("la firma SHA-1 de la prueba debía cuadrar sin salir válida: %+v err=%v", verificacion, err)
+	}
+	prueba := fixture.prueba
+	prueba.Firma = firma
+	resultado, err := fixture.nuevo(t, ports.EstadoRevocacionConforme).Verificar(context.Background(), fixture.reto, prueba)
+	if err != nil || resultado.Resultado != domain.ResultadoIdentidadRechazada {
+		t.Fatalf("una prueba de identidad con SHA-1 no debe aceptarse: resultado=%+v error=%v", resultado, err)
+	}
+}
+
 func TestVerificadorDistingueRevocacionEIndeterminacion(t *testing.T) {
 	fixture := nuevaFixtureVerificador(t, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, []asn1.ObjectIdentifier{oidPoliticaPrueba})
 	for _, caso := range []struct {
@@ -86,6 +137,7 @@ func TestVerificadorDistingueRevocacionEIndeterminacion(t *testing.T) {
 type fixtureVerificador struct {
 	ahora      time.Time
 	raiz, hoja *x509.Certificate
+	hojaClave  *rsa.PrivateKey
 	reto       domain.RetoIdentidad
 	prueba     domain.PruebaIdentidad
 }
@@ -136,7 +188,7 @@ func nuevaFixtureVerificador(t *testing.T, eku []x509.ExtKeyUsage, politicas []a
 		Origen: "https://integrador.example", ConsentimientoID: "consentimiento",
 		VersionConsentimiento: "1", PoliticaID: "politica", VersionPolitica: "1",
 		Nonce: make([]byte, 32), EmitidoEn: ahora, ExpiraEn: ahora.Add(time.Minute)}
-	return fixtureVerificador{ahora: ahora, raiz: raiz, hoja: hoja,
+	return fixtureVerificador{ahora: ahora, raiz: raiz, hoja: hoja, hojaClave: hojaClave,
 		reto: domain.RetoIdentidad{Solicitud: solicitud, ContenidoCanonico: canon},
 		prueba: domain.PruebaIdentidad{RetoID: "reto:1", Formato: "cades-detached",
 			AlgoritmoFirma: "sha256-rsa-pkcs1v15", AlgoritmoHuella: "sha-256",

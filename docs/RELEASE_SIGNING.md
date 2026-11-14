@@ -17,6 +17,10 @@ Todo tag `v*` activa un release oficial y el workflow falla de forma cerrada.
 No se publica ningún asset si falta una credencial o si falla cualquiera de
 estos controles:
 
+- ningún job de `release.yml` ni de `msix.yml` restaura caché de Actions
+  (`cache: false` en `setup-go` e `install-qt-action`,
+  `package-manager-cache: false` en `setup-node`); lo vigila
+  `scripts/ci/audit_workflows.py`;
 - Authenticode y sello de tiempo de todos los instaladores y ejecutables
   distribuidos en Windows, firmados con SignPath Foundation o con un PFX
   propio; los binarios propios exigen la huella oficial y las firmas válidas
@@ -89,7 +93,15 @@ elimina en un paso `always()`. Windows valida primero el PFX en memoria con
 bloque de limpieza aunque falle la finalización.
 
 El workflow oficial activa `GRXFIRMA_REQUIRE_SIGNED_FIREFOX_XPI=1` y usa
-`web-ext@10.5.0` para obtener una única copia firmada por AMO. Linux, Windows y
+`web-ext` 10.5.0 para obtener una única copia firmada por AMO. La versión de
+primer nivel y todo su árbol de dependencias se fijan con
+`packaging/browser-extensions/tools/package.json` y su `package-lock.json`
+(hashes `integrity`). Se instala con `npm ci --ignore-scripts` en un paso que no
+recibe las credenciales de AMO, y `build.py` pasa esas credenciales a `web-ext`
+por variables de entorno, nunca por la línea de órdenes. Si falta el lockfile,
+`npm ci` falla y no se firma nada. Para regenerarlo, con red y fuera del job de
+firma: `npm install --package-lock-only --ignore-scripts --prefix
+packaging/browser-extensions/tools`, y revisar el diff del lockfile. Linux, Windows y
 macOS descargan ese mismo artefacto verificado antes de construir sus paquetes.
 Si AMO no devuelve un XPI firmado que conserve la versión y el identificador
 Gecko de las fuentes, ninguna plataforma se compila ni publica.
@@ -98,6 +110,22 @@ El workflow referencia el entorno GitHub `official-release`. Hay que crearlo
 con revisores obligatorios, restringir el despliegue a tags protegidos y, de
 forma preferente, guardar ahí los secretos anteriores. Sin esas reglas, el
 nombre del entorno por sí solo no aporta separación de funciones.
+
+Esas reglas viven en GitHub y no en el repositorio, así que hay que comprobarlas
+a mano y apuntar quién y cuándo:
+
+- [ ] `official-release` exige al menos un revisor distinto de quien crea el tag
+  (comprobado por: ____, fecha: ____);
+- [ ] `official-release` solo admite despliegues desde tags protegidos `v*`
+  (comprobado por: ____, fecha: ____);
+- [ ] hay una regla de protección de tags `v*` que impide crearlos o moverlos a
+  quien no publica (comprobado por: ____, fecha: ____).
+
+Formato de las etiquetas: `release.yml` solo se dispara con tags `v*` y
+`validate-official-tag.py` exige la `v`. Las etiquetas del repositorio hasta
+`0.0.125` no la llevan, así que ninguna de esas versiones ha pasado por esta
+cadena de firma. Falta decidir si las próximas se etiquetan como `vX.Y.Z`. La
+receta de F-Droid apunta al hash del commit, no a la etiqueta.
 
 ## Variables de GitHub
 
@@ -160,7 +188,12 @@ oficial:
    `vc_redist.*.exe`;
 3. firma una sola vez el backend canónico y los demás PE propios;
 4. conserva las firmas Authenticode válidas de proveedor y falla si son
-   inválidas o carecen de timestamp;
+   inválidas o carecen de timestamp. Un binario ajeno sin firma solo se firma
+   con la identidad oficial si su SHA-256 está en el inventario de Qt que el
+   job calcula justo después de instalar Qt (`write-qt-provenance.ps1`,
+   variable `GRXFIRMA_QT_PROVENANCE_MANIFEST`) con el mismo nombre de fichero,
+   o en el `PUBLISH-MANIFEST.sha256` de su etapa WinUI con la misma ruta. Si no
+   está en ninguno, la publicación se para;
 5. después de terminar todas las firmas, replica los bytes exactos del backend
    canónico a los payloads WinUI y Qt;
 6. regenera el inventario SHA-256 completo de WinUI y lo verifica antes de

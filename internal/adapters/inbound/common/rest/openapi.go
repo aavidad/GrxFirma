@@ -94,7 +94,7 @@ func openAPIDocument(certificateAuthEnabled, identidadHabilitada bool) map[strin
 			},
 			"/hash/check": map[string]any{
 				"post": map[string]any{
-					"summary":     "Comprueba la integridad de un documento o directorio con un fichero de huella",
+					"summary":     "Comprueba la integridad de un documento con un fichero de huella",
 					"requestBody": jsonRequestBody(hashCheckRequestSchema()),
 				},
 			},
@@ -296,13 +296,13 @@ func jsonRequestBody(schema map[string]any) map[string]any {
 func signRequestSchema() map[string]any {
 	return map[string]any{
 		"type":        "object",
-		"description": "Petición de firma de un único documento. Puede enviarse contenido Base64 o una ruta local inputPath.",
+		"description": "Petición de firma de un único documento con contenido Base64. Las rutas locales (inputPath, outputPath) se rechazan con 403.",
 		"properties": map[string]any{
 			"request_id": map[string]any{
 				"type":        "string",
 				"maxLength":   128,
 				"pattern":     `^[A-Za-z0-9._:-]+$`,
-				"description": "Identificador opcional de idempotencia. Un valor ya procesado se rechaza para impedir firmas duplicadas.",
+				"description": "Identificador opcional de idempotencia. Un valor ya procesado se rechaza para impedir firmas duplicadas. Si la firma falla o la respuesta no se entrega, el valor queda libre para reintentar.",
 			},
 			"name":               map[string]any{"type": "string"},
 			"content_base64":     map[string]any{"type": "string"},
@@ -333,7 +333,7 @@ func signBatchRequestSchema() map[string]any {
 				"type":        "string",
 				"maxLength":   128,
 				"pattern":     `^[A-Za-z0-9._:-]+$`,
-				"description": "Identificador opcional de idempotencia del lote. Un valor ya procesado se rechaza para impedir firmas duplicadas.",
+				"description": "Identificador opcional de idempotencia del lote. Un valor ya procesado se rechaza para impedir firmas duplicadas. Si no se firma ningún documento o la respuesta no se entrega, el valor queda libre para reintentar.",
 			},
 			"items": map[string]any{
 				"type": "array",
@@ -367,7 +367,7 @@ func signBatchRequestSchema() map[string]any {
 func hashRequestSchema() map[string]any {
 	return map[string]any{
 		"type":        "object",
-		"description": "Calcula una huella compatible con las utilidades createdigest/checkdigest de AutoFirma 1.9. Puede trabajar con contenido Base64 o con inputPath. Si inputPath es un directorio, genera un manifiesto de hashes XML/TXT/CSV.",
+		"description": "Calcula una huella compatible con las utilidades createdigest/checkdigest de AutoFirma 1.9 a partir de contenido Base64. Las rutas locales se rechazan con 403.",
 		"properties": map[string]any{
 			"name":           map[string]any{"type": "string"},
 			"content_base64": map[string]any{"type": "string"},
@@ -385,7 +385,7 @@ func hashRequestSchema() map[string]any {
 func hashCheckRequestSchema() map[string]any {
 	return map[string]any{
 		"type":        "object",
-		"description": "Comprueba una huella almacenada en formato .hexhash, .hashb64 o .hash. Si inputPath es un directorio, comprueba un manifiesto .hashfiles o .txthashfiles y puede generar un informe .hashreport interoperable con AutoFirma 1.9.",
+		"description": "Comprueba una huella almacenada en formato .hexhash, .hashb64 o .hash a partir de contenido Base64. Las rutas locales se rechazan con 403.",
 		"properties": map[string]any{
 			"name":                map[string]any{"type": "string"},
 			"content_base64":      map[string]any{"type": "string"},
@@ -404,7 +404,7 @@ func hashCheckRequestSchema() map[string]any {
 func verifyRequestSchema() map[string]any {
 	return map[string]any{
 		"type":        "object",
-		"description": "Verifica un documento firmado. Puede enviarse contenido Base64 o una ruta local inputPath. Para firmas detached puede aportarse el original por original_content_base64 u originalPath.",
+		"description": "Verifica un documento firmado enviado en Base64. Para firmas detached el original se aporta por original_content_base64. Las rutas locales se rechazan con 403.",
 		"properties": map[string]any{
 			"name":                    map[string]any{"type": "string"},
 			"mime_type":               map[string]any{"type": "string"},

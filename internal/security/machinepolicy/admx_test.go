@@ -60,6 +60,7 @@ func TestPlantillaADMXCoherente(t *testing.T) {
 		DominiosDeConfianza, NivelLog, TimeoutOperacionSegundos, MaxTamanoDocumentoBytes,
 		PermitirOrigenVacio, PermitirDESLegacy, PermitirRutasDirectas, AprobacionAutomaticaHost,
 		PermitirSHA1Legacy, PermitirCMSAESECBLegacy, FirmaRemotaCSC, FirmaRemotaCSCOAuth,
+		ProhibirCifradoCMSHeredado, TSAPermitidas,
 	}
 	for _, v := range esperados {
 		if !cubiertos[v] {

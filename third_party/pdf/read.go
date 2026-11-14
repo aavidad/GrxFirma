@@ -80,6 +80,22 @@ import (
 	"sync/atomic"
 )
 
+// AutoFirmaV2: límites ante documentos maliciosos (hallazgo E2-03). Un
+// desbordamiento de pila o una falta de memoria son fatales en Go y ningún
+// recover los para, así que el lector corta antes con un pánico recuperable.
+const (
+	// maxProfundidadResolucion acota las resoluciones de objetos indirectos
+	// anidadas (objeto en un flujo de objetos cuyo /Length, /Type o /N es a
+	// su vez un objeto de ese flujo, etc.). Un documento real no pasa de
+	// unos pocos niveles.
+	maxProfundidadResolucion = 64
+	// maxBytesFlujoObjetos acota los bytes descomprimidos que se leen de un
+	// flujo de objetos (/ObjStm), que solo contiene objetos sin flujo.
+	maxBytesFlujoObjetos = 32 << 20
+	// maxColumnasPredictor acota /Columns del predictor PNG.
+	maxColumnasPredictor = 1 << 16
+)
+
 // A Reader is a single PDF file open for reading.
 type Reader struct {
 	f               io.ReaderAt
@@ -97,6 +113,10 @@ type Reader struct {
 	// Un flujo de objetos cuyo /Length o /Extends lleva a un objeto de ese
 	// mismo flujo recursaba sin fin.
 	resolviendoObjStm atomic.Int32
+	// AutoFirmaV2: resoluciones indirectas en curso (E2-03). Es atómico
+	// porque un Reader puede leerse desde varias gorrutinas; en ese caso el
+	// contador suma las de todas y el límite sigue muy por encima del uso real.
+	resolviendo atomic.Int32
 }
 
 const (
@@ -605,7 +625,9 @@ func readXrefStreamData(r *Reader, strm stream, table []xref, size int64) ([]xre
 				}
 				table[x] = xref{ptr: objptr{uint32(x), uint16(v3)}, offset: int64(v2), defined: true} // #nosec G115 -- x y v3 en rango.
 			case 2:
-				if v2 < 0 || v2 > maxObjetosPDF {
+				// AutoFirmaV2: un objeto no puede estar comprimido dentro de sí
+				// mismo; resolverlo recursaba sin fin (E2-03).
+				if v2 < 0 || v2 > maxObjetosPDF || v2 == x {
 					return nil, fmt.Errorf("malformed xref stream object %d", v2)
 				}
 				table[x] = xref{ptr: objptr{uint32(x), 0}, inStream: true, stream: objptr{uint32(v2), 0}, offset: int64(v3), defined: true} // #nosec G115 -- x y v2 en rango.
@@ -1059,6 +1081,13 @@ func (r *Reader) resolve(parent objptr, x interface{}) Value {
 		if xref.ptr != ptr || !xref.inStream && xref.offset == 0 {
 			return Value{}
 		}
+		// AutoFirmaV2: profundidad de resolución acotada (E2-03). El contador
+		// se restaura con defer para que un pánico recuperado no lo deje alto.
+		if r.resolviendo.Add(1) > maxProfundidadResolucion {
+			r.resolviendo.Add(-1)
+			panic(fmt.Errorf("malformed PDF: resolving %v: indirect reference loop or nesting too deep", ptr))
+		}
+		defer r.resolviendo.Add(-1)
 		var obj object
 		if xref.inStream {
 			if r.resolviendoObjStm.Add(1) > maxAnidamientoObjStm {
@@ -1068,6 +1097,8 @@ func (r *Reader) resolve(parent objptr, x interface{}) Value {
 			defer r.resolviendoObjStm.Add(-1)
 			strm := r.resolve(parent, xref.stream)
 			saltos := 0
+			// AutoFirmaV2: flujos ya recorridos por /Extends, para cortar ciclos.
+			recorridos := map[objptr]bool{}
 		Search:
 			for {
 				if saltos++; saltos > maxCadenaExtends {
@@ -1076,17 +1107,26 @@ func (r *Reader) resolve(parent objptr, x interface{}) Value {
 				if strm.Kind() != Stream {
 					panic("not a stream")
 				}
+				if recorridos[strm.ptr] {
+					panic(fmt.Errorf("malformed PDF: object stream /Extends loop at %v", strm.ptr))
+				}
+				recorridos[strm.ptr] = true
 				if strm.Key("Type").Name() != "ObjStm" {
 					panic("not an object stream")
 				}
-				n := int(strm.Key("N").Int64())
+				// AutoFirmaV2: /N y /First los fija el fichero; se acotan.
+				n64 := strm.Key("N").Int64()
+				if n64 < 0 || n64 > maxObjetosPDF {
+					panic(fmt.Errorf("malformed PDF: object stream /N %d out of range", n64))
+				}
+				n := int(n64)
 				first := strm.Key("First").Int64()
-				if first == 0 {
+				if first <= 0 {
 					panic("missing First")
 				}
-				b := newBuffer(strm.Reader(), 0)
+				b := newBuffer(&lectorAcotado{r: strm.Reader(), restante: maxBytesFlujoObjetos}, 0)
 				b.allowEOF = true
-				for i := 0; i < n; i++ {
+				for i := 0; i < n && !b.eof; i++ {
 					id, _ := b.readToken().(int64)
 					off, _ := b.readToken().(int64)
 					// AutoFirmaV2: identificadores fuera de rango no se truncan.
@@ -1191,6 +1231,10 @@ func applyFilter(rd io.Reader, name string, param Value) io.Reader {
 			return zr
 		}
 		columns := param.Key("Columns").Int64()
+		// AutoFirmaV2: /Columns enorme reservaba la memoria de golpe (E2-03).
+		if columns < 1 || columns > maxColumnasPredictor {
+			panic(fmt.Errorf("malformed PDF: predictor /Columns %d out of range", columns))
+		}
 		switch pred.Int64() {
 		default:
 			fmt.Println("unknown predictor", pred)
@@ -1199,6 +1243,25 @@ func applyFilter(rd io.Reader, name string, param Value) io.Reader {
 			return &pngUpReader{r: zr, hist: make([]byte, 1+columns), tmp: make([]byte, 1+columns)}
 		}
 	}
+}
+
+// lectorAcotado falla con error al pasar de restante bytes. AutoFirmaV2:
+// limita la salida descomprimida de un flujo de objetos (E2-03).
+type lectorAcotado struct {
+	r        io.Reader
+	restante int64
+}
+
+func (l *lectorAcotado) Read(p []byte) (int, error) {
+	if l.restante <= 0 {
+		return 0, fmt.Errorf("malformed PDF: object stream larger than %d bytes", maxBytesFlujoObjetos)
+	}
+	if int64(len(p)) > l.restante {
+		p = p[:l.restante]
+	}
+	n, err := l.r.Read(p)
+	l.restante -= int64(n)
+	return n, err
 }
 
 type pngUpReader struct {

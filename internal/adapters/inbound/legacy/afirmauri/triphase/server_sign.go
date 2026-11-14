@@ -8,6 +8,7 @@ package triphase
 import (
 	"context"
 	"encoding/base64"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -75,6 +76,19 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	if err != nil || !strings.EqualFold(servidor.Scheme, "https") || servidor.Host == "" {
 		return nil, errors.New("el servidor de firma trifásica debe ser una URL HTTPS válida")
 	}
+	if servidor.User != nil {
+		// Lote 13c: se admite como antes del lote 4 (algunos servidores piden
+		// autenticación básica en la URL), pero las credenciales no salen en el
+		// registro ni en los errores, y se valida solo esquema y host.
+		slog.Warn("triphase_server_url_con_credenciales")
+	}
+	// A-01: el servidor recibe el documento y la cadena del certificado y
+	// decide qué datos firma la clave. Se valida aquí aunque el parser ya lo
+	// hiciera, porque un manifiesto recuperado puede traer otro serverUrl. Sin
+	// validador configurado no se firma.
+	if err := e.ValidarDestino(ctx, servidor.Scheme+"://"+servidor.Host); err != nil {
+		return nil, fmt.Errorf("servidor de firma trifásica no autorizado: %w", err)
+	}
 	formato, err := formatoServidorTrifasico(req.FormatoLegacy)
 	if err != nil {
 		return nil, err
@@ -126,7 +140,7 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	pre, err := e.postFormularioTrifasico(ctx, preURL)
 	if err != nil {
 		trazaServidorTrifasico("pre", "transporte")
-		return nil, fmt.Errorf("prefirma trifásica fallida: %w", err)
+		return nil, fmt.Errorf("prefirma trifásica fallida: %w", errorSinCredenciales(err, servidor))
 	}
 	if err := errorServidorTrifasico(pre, "prefirma"); err != nil {
 		trazaServidorTrifasico("pre", "rechazada")
@@ -138,6 +152,22 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 		return nil, fmt.Errorf("respuesta de prefirma no válida: %w", err)
 	}
 	trazaServidorTrifasico("pre", "ok")
+	// A-01 y lote 13a (retrocompatibilidad): la contrafirma trifásica de
+	// varios nodos pide varias <firma> en una prefirma, así que se admiten
+	// hasta maxFirmasTrifasicasPorAprobacion con aviso en el registro. Cero
+	// firmas o más del tope se rechazan sin firmar ninguna.
+	n, err := contarFirmasTrifasicas(datosTrifasicos)
+	if err != nil {
+		trazaServidorTrifasico("pre", "respuesta_no_valida")
+		return nil, fmt.Errorf("respuesta de prefirma no válida: %w", err)
+	}
+	if n < 1 || n > maxFirmasTrifasicasPorAprobacion {
+		trazaServidorTrifasico("pre", "numero_de_firmas")
+		return nil, fmt.Errorf("el servidor de firma trifásica pidió %d firmas para una sola aprobación; se admiten entre 1 y %d", n, maxFirmasTrifasicasPorAprobacion)
+	}
+	if n > 1 {
+		slog.Warn("triphase_server_varias_firmas", "firmas", n, "operacion", cop)
+	}
 	firmados, err := signLegacyBatchTriphaseXML(datosTrifasicos, key, algoritmo, req.ExtraParams, nil)
 	if err != nil {
 		trazaServidorTrifasico("firma_local", "error")
@@ -152,7 +182,7 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	post, err := e.postFormularioTrifasico(ctx, postURL)
 	if err != nil {
 		trazaServidorTrifasico("post", "transporte")
-		return nil, fmt.Errorf("postfirma trifásica fallida: %w", err)
+		return nil, fmt.Errorf("postfirma trifásica fallida: %w", errorSinCredenciales(err, servidor))
 	}
 	if err := errorServidorTrifasico(post, "postfirma"); err != nil {
 		trazaServidorTrifasico("post", "rechazada")
@@ -173,6 +203,39 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	return firma, nil
 }
 
+// errorSinCredenciales quita de un error de transporte el usuario y la
+// contraseña que traiga la URL del servidor (net/http deja el usuario y pone
+// *** en la contraseña, pero conviene no depender de eso). Conserva la cadena
+// de errores para errors.Is.
+func errorSinCredenciales(err error, servidor *url.URL) error {
+	if err == nil || servidor == nil || servidor.User == nil {
+		return err
+	}
+	texto := err.Error()
+	usuario := servidor.User.Username()
+	contrasena, _ := servidor.User.Password()
+	for _, fragmento := range []string{
+		servidor.User.String() + "@",
+		url.User(usuario).String() + ":***@", // forma de net/http (stripPassword)
+		url.User(usuario).String() + "@",
+	} {
+		texto = strings.ReplaceAll(texto, fragmento, "")
+	}
+	// Una contraseña muy corta no se busca suelta: taparía letras al azar.
+	if len(contrasena) >= 4 {
+		texto = strings.ReplaceAll(texto, contrasena, "***")
+	}
+	return errorRedactado{texto: texto, causa: err}
+}
+
+type errorRedactado struct {
+	texto string
+	causa error
+}
+
+func (e errorRedactado) Error() string { return e.texto }
+func (e errorRedactado) Unwrap() error { return e.causa }
+
 // trazaServidorTrifasico registra la fase y su resultado con un vocabulario
 // cerrado, sin datos del documento, del certificado ni del servidor.
 func trazaServidorTrifasico(fase, resultado string) {
@@ -180,6 +243,21 @@ func trazaServidorTrifasico(fase, resultado string) {
 }
 
 func sinEscapar(v string) string { return v }
+
+// maxFirmasTrifasicasPorAprobacion es el tope de <firma> que el servidor
+// trifásico puede pedir con una sola aprobación del usuario (lote 13a). Una
+// firma simple pide una; la contrafirma de varios nodos pide una por nodo.
+// No hay otro tope de lote en el código; cien nodos firmantes en un mismo
+// documento ya es un caso que no se da en la práctica.
+const maxFirmasTrifasicasPorAprobacion = 100
+
+func contarFirmasTrifasicas(rawTD []byte) (int, error) {
+	var td legacyXMLTriphaseData
+	if err := xml.Unmarshal(rawTD, &td); err != nil {
+		return 0, err
+	}
+	return len(td.Firmas.Firmas), nil
+}
 
 // postFormularioTrifasico envía los parámetros en el cuerpo del POST como
 // formulario, igual que AutoFirma Java: el servicio trifásico de @firma y de

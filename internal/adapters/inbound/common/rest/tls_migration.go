@@ -40,7 +40,9 @@ func retireLegacyRESTCertificate(ctx context.Context, dir string) error {
 
 	rootFile := filepath.Join(dir, legacyRESTPrefix+"-root.crt.pem")
 	root, ok := cargarCertificadoLocal(rootFile)
-	if !ok || !localtlstrust.IsManagedLocalCA(root) || !localCANameConstraintsValid(root) {
+	// Basta la propiedad: una CA REST anterior a las restricciones de B-01
+	// también es de GrxFirma y se tiene que retirar.
+	if !ok || !localtlstrust.IsManagedLocalCAOwned(root) {
 		return nil
 	}
 	// La retirada gestionada valida las huellas y los almacenes inventariados.
@@ -73,7 +75,7 @@ func retireLegacyRESTCertificate(ctx context.Context, dir string) error {
 			if parseErr == nil {
 				if public, yes := root.PublicKey.(*rsa.PublicKey); yes &&
 					key.PublicKey.E == public.E && key.PublicKey.N.Cmp(public.N) == 0 {
-					if err := os.Remove(rootKeyFile); err != nil {
+					if err := localtlstrust.RemoveManagedCAKey(rootKeyFile); err != nil {
 						return err
 					}
 				}
@@ -152,7 +154,8 @@ func ClearManagedLocalhostTLS(ctx context.Context, dir string) (int, error) {
 	}
 	rootFile := filepath.Join(dir, ManagedLocalhostPrefix+"-root.crt.pem")
 	if root, ok := cargarCertificadoLocal(rootFile); ok {
-		if !localtlstrust.IsManagedLocalCA(root) || !localCANameConstraintsValid(root) {
+		// Propiedad, no vigencia: una CA propia anterior a B-01 se puede retirar.
+		if !localtlstrust.IsManagedLocalCAOwned(root) {
 			return 0, errors.New("rest: CA TLS ajena")
 		}
 	} else if _, err := os.Lstat(rootFile); err == nil {
@@ -163,5 +166,18 @@ func ClearManagedLocalhostTLS(ctx context.Context, dir string) (int, error) {
 	if err := localtlstrust.RemoveManagedTrusted(ctx, rootFile); err != nil {
 		return 0, err
 	}
-	return removeTLSRESTManagedArtifacts(paths)
+	// La clave de la CA se retira aparte: olvida su clave de cifrado en el
+	// almacén del sistema y, si quedó en claro, la sobrescribe antes de borrarla.
+	removedKey := 0
+	rootKeyFile := filepath.Join(dir, ManagedLocalhostPrefix+"-root.key.pem")
+	if _, err := os.Lstat(rootKeyFile); err == nil {
+		if err := localtlstrust.RemoveManagedCAKey(rootKeyFile); err != nil {
+			return 0, err
+		}
+		removedKey = 1
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return 0, err
+	}
+	removed, err := removeTLSRESTManagedArtifacts(paths)
+	return removed + removedKey, err
 }

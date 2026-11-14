@@ -69,6 +69,16 @@ func validarPixelesSello(width, height, maxEdge, maxPixels int) error {
 	return nil
 }
 
+// validarCabeceraImagenSello comprueba las dimensiones de la cabecera sin
+// decodificar la imagen, para las que decodifica después el motor.
+func validarCabeceraImagenSello(raw []byte) error {
+	config, _, err := image.DecodeConfig(bytes.NewReader(raw))
+	if err != nil {
+		return fmt.Errorf("no se pudo leer la imagen del sello")
+	}
+	return validarPixelesSello(config.Width, config.Height, maxSealImageEdge, maxSealImagePixels)
+}
+
 // decodificarImagenSello inspecciona la cabecera antes de reservar el mapa de píxeles.
 func decodificarImagenSello(raw []byte) (image.Image, error) {
 	config, _, err := image.DecodeConfig(bytes.NewReader(raw))

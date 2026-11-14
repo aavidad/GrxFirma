@@ -131,7 +131,10 @@ func comprobarDSSV2(data []byte, before, after pdf.XRefSnapshot, changed []uint3
 		}
 		body := cuerpoActivoPDF(data, after, n)
 		dict, valid := parsePDFObjectDict(body)
-		if !valid || pdfName(dict["/Type"]) != "/XRef" {
+		// Solo el flujo xref de esta misma actualización es estructural; un
+		// objeto nuevo que se declara /XRef podría ocupar una referencia
+		// colgante del documento firmado y pintarse.
+		if !valid || pdfName(dict["/Type"]) != "/XRef" || after.Entries[n].Offset != after.StartXRef {
 			return false
 		}
 	}
@@ -207,8 +210,13 @@ func addDSSFieldObjects(data []byte, protected map[uint32]bool) (ok bool) {
 	if err != nil {
 		return false
 	}
-	acro := r.Trailer().Key("Root").Key("AcroForm")
-	if n, _ := acro.ObjectReference(); n != 0 {
+	root := r.Trailer().Key("Root")
+	rootNumber, _ := root.ObjectReference()
+	acro := root.Key("AcroForm")
+	// Un /AcroForm directo devuelve la referencia del catálogo que lo
+	// contiene; el catálogo ya se compara clave a clave y no puede quedar
+	// protegido, o ningún DSS sería admisible tras una firma de pdfsign.
+	if n, _ := acro.ObjectReference(); n != 0 && n != rootNumber {
 		protected[n] = true
 	}
 	fields := acro.Key("Fields")

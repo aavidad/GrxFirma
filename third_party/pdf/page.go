@@ -27,8 +27,16 @@ func (r *Reader) Page(num int) Page {
 }
 
 // NumPage returns the number of pages in the PDF file.
+// AutoFirmaV2: /Count lo fija el fichero. Cada página es un objeto indirecto,
+// así que un /Count negativo o mayor que el número de objetos del documento
+// no es válido y se devuelve 0; antes los llamadores reservaban memoria con
+// ese número (E2-03).
 func (r *Reader) NumPage() int {
-	return int(r.Trailer().Key("Root").Key("Pages").Key("Count").Int64())
+	count := r.Trailer().Key("Root").Key("Pages").Key("Count").Int64()
+	if count < 0 || count > int64(len(r.xref)) {
+		return 0
+	}
+	return int(count)
 }
 
 // AutoFirmaV2: la cadena /Parent no es de confianza; se corta si repite un

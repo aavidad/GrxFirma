@@ -52,7 +52,15 @@ class NoCertificateFlowContractTest(unittest.TestCase):
         )[0]
         self.assertIn('"credentialB64"', method)
         self.assertNotIn('"path"', method)
-        self.assertIn("data.fill('\\0')", method)
+        self.assertIn("sendCredentialRequest(", method)
+        sender = IPC_CPP.split(
+            "void IpcBridge::sendCredentialRequest", 1
+        )[1].split("void IpcBridge::sendSecretRequest", 1)[0]
+        # D-06: el P12 y la contraseña van como QByteArray a la trama.
+        self.assertIn('"passwordB64"', sender)
+        self.assertIn("TransientSecret::zeroize(data)", sender)
+        self.assertIn("TransientSecret::zeroize(passwordBytes)", sender)
+        self.assertNotIn("QVariantMap params", sender)
         self.assertIn(
             'action == QStringLiteral("use_temporary_certificate")',
             IPC_CPP,

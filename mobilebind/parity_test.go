@@ -109,7 +109,7 @@ func TestMobileSigningProfilesAndTSAValidation(t *testing.T) {
 }
 
 func TestMobileContractDeclaresParityCapabilities(t *testing.T) {
-	raw, err := buildMobileContract("android", true)
+	raw, err := buildMobileContract("android")
 	if err != nil {
 		t.Fatal(err)
 	}

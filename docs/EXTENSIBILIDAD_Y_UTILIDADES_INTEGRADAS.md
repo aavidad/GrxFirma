@@ -27,7 +27,7 @@ Esto permite que todas las capacidades compartan:
 | Capacidad heredada | Implementación V2 | Superficies |
 |---|---|---|
 | Hash de fichero | Creación y comprobación con `SHA-1`, `SHA-256`, `SHA-384` y `SHA-512` | CLI, REST, consola web, `/validator`, Qt/QML |
-| Hash de directorio | Manifiestos XML/TXT y `.hashreport`, lectura legacy defensiva | CLI, REST, consola web, `/validator`, Qt/QML |
+| Hash de directorio | Manifiestos XML/TXT y `.hashreport`, lectura legacy defensiva | CLI y Qt/QML (IPC); no por REST, que no acepta rutas de fichero |
 | Validación de firma | Resultado rico, documento original opcional y confianza X.509 | CLI, REST, Qt/QML, `/signer`, `/validator` |
 | Validación de certificado | Vigencia, `DigitalSignature`, cadena contra raíces del sistema y estado online OCSP/CRL | REST y `/validator` |
 | Informes | Firma, certificado y hash exportables como JSON | `/validator` |

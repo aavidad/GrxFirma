@@ -87,16 +87,19 @@ Entrada publica resumida del estado real:
 
 Capacidades presentes:
 
-- canal confidencial y SLA orientativo documentados en
-  [../SECURITY.md](../SECURITY.md);
+- canal de contacto por correo para informar de vulnerabilidades, documentado
+  en [../SECURITY.md](../SECURITY.md), que no fija plazos de respuesta ni una
+  política LTS;
 - `SBOM` `SPDX JSON` de CI y release;
-- gates `govulncheck`, `grype` y OSV por ecosistema;
-- auditorías internas y pruebas de regresión enlazadas desde `SECURITY.md`.
+- gates `govulncheck`, `grype` y OSV por ecosistema.
 
 Lineas de trabajo abiertas:
 
 - asignación formal de propietario para triage y aceptación de release;
-- SLA contractual y matriz de soporte por versiones;
+- plazos de respuesta (SLA) y matriz de soporte por versiones, que hoy no
+  existen y que `SECURITY.md` tampoco promete;
+- enlazar desde `SECURITY.md` las auditorías internas y sus pruebas de
+  regresión, si se decide publicarlas;
 - histórico único de incidencias, decisiones y backports;
 - cierre del expediente proveedor `NIS2` / `CRA`.
 

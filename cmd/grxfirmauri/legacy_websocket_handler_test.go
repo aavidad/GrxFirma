@@ -24,6 +24,7 @@ import (
 
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
 	"grxfirma/internal/adapters/inbound/legacy/legacycrypto"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	desktopdocumentpicker "grxfirma/internal/adapters/outbound/desktop/documentpicker"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
@@ -990,7 +991,10 @@ func TestLegacyWebSocketHandler_HandleLocalBatchCancelacionDevuelveCancel(t *tes
 	t.Parallel()
 
 	handler := &legacyWebSocketHandler{
-		batchUC: batchExecutorStub{err: errors.New("el usuario ha cancelado el procesado del lote")},
+		batchUC:  batchExecutorStub{err: errors.New("el usuario ha cancelado el procesado del lote")},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	cmd := application.ProcessBatchCommand{}
@@ -1014,7 +1018,10 @@ func TestLegacyWebSocketHandler_HandleLocalBatchErrorDevuelveSAF20(t *testing.T)
 	t.Parallel()
 
 	handler := &legacyWebSocketHandler{
-		batchUC: batchExecutorStub{err: errors.New("fallo interno del lote")},
+		batchUC:  batchExecutorStub{err: errors.New("fallo interno del lote")},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	resp, err := handler.handleLocalBatch(context.Background(), application.ProcessBatchCommand{}, afirmauri.Solicitud{
@@ -1042,6 +1049,9 @@ func TestLegacyWebSocketHandler_HandleLocalBatchPropagaStopYFirmaObservableV19(t
 				Errores: map[int]error{},
 			},
 		},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{certLoteLocal("uno")}},
+		selector: &certSelectorContador{},
+		keys:     keyProviderStub{key: signingKeyStub{id: "uno", chain: [][]byte{[]byte("cert-der")}}},
 	}
 
 	resp, err := handler.handleLocalBatch(
@@ -1947,7 +1957,7 @@ func TestLegacyWebSocketHandler_FormatoTriUsaServidorTrifasico(t *testing.T) {
 		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{cert}},
 		selector: certSelectorStub{result: certpicker.ResultadoSeleccion{Certificado: cert}},
 		keys:     keyProviderStub{key: digestKeyStub{signingKeyStub{id: "c1", chain: [][]byte{[]byte("cert-der")}}}},
-		retrieve: triphase.New(srv.Client()),
+		retrieve: triphase.New(srv.Client()).ConValidadorDestino(func(context.Context, string) error { return nil }),
 		approval: aprobacion,
 	}
 	props := base64.StdEncoding.EncodeToString([]byte("serverUrl=" + srv.URL + "/SignatureService\n"))
@@ -1967,5 +1977,46 @@ func TestLegacyWebSocketHandler_FormatoTriUsaServidorTrifasico(t *testing.T) {
 	}
 	if aprobacion.calls == 0 || executor.cmd.CertificateID != "" {
 		t.Fatalf("debe confirmar el usuario y no firmar en local: aprobado=%v cmd=%+v", aprobacion.calls > 0, executor.cmd)
+	}
+}
+
+// aprobacionConTexto guarda el texto del diálogo de aprobación.
+type aprobacionConTexto struct{ textos []string }
+
+func (a *aprobacionConTexto) Request(_ context.Context, texto string) (bool, error) {
+	a.textos = append(a.textos, texto)
+	return false, nil
+}
+
+// Lote 13c: la aprobación de la trifásica con servidor por socket dice que
+// el servidor puede pedir más de una firma.
+func TestLegacyWebSocketHandler_TrifasicaAvisaVariasFirmas(t *testing.T) {
+	cert := domain.CertificateRef{ID: "c1", Subject: "CN=Firmante", NotAfter: time.Now().Add(time.Hour), Fingerprint: "AA"}
+	aprobacion := &aprobacionConTexto{}
+	h := &legacyWebSocketHandler{
+		signUC:   &signExecutorStub{},
+		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{cert}},
+		selector: certSelectorStub{result: certpicker.ResultadoSeleccion{Certificado: cert}},
+		keys:     keyProviderStub{key: digestKeyStub{signingKeyStub{id: "c1", chain: [][]byte{[]byte("cert-der")}}}},
+		retrieve: triphase.New(nil).ConValidadorDestino(func(context.Context, string) error { return nil }),
+		approval: aprobacion,
+	}
+	props := base64.StdEncoding.EncodeToString([]byte("serverUrl=https://fire.example/SignatureService\n"))
+	raw := "afirma://sign?op=sign&format=CAdEStri&algorithm=SHA256withRSA&dat=" +
+		base64.StdEncoding.EncodeToString([]byte("documento")) + "&properties=" + url.QueryEscape(props)
+	sol, err := afirmauri.New(nil).ParseSocket(context.Background(), raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp, err := h.handleSign(context.Background(), sol); err != nil || resp != "CANCEL" {
+		t.Fatalf("handleSign = %q, %v", resp, err)
+	}
+	loc := localizadorProtocolo()
+	if loc == nil {
+		loc = localizador.Detectar()
+	}
+	aviso := loc.T("approval.triphase.server_multiple")
+	if len(aprobacion.textos) != 1 || !strings.Contains(aprobacion.textos[0], aviso) {
+		t.Fatalf("la aprobación debía avisar de varias firmas: %q", aprobacion.textos)
 	}
 }

@@ -34,6 +34,23 @@ func defaultEndpointPolicy() endpointPolicy {
 	return endpointPolicy{lookupIP: resolver.LookupIPAddr}
 }
 
+// ProtegerClienteHTTP devuelve una copia del cliente con la política de
+// destinos de las consultas de revocación: solo http/https, sin credenciales
+// en la URL y sin loopback, redes privadas, enlace local ni rangos especiales,
+// comprobado al resolver y al conectar, y redirecciones solo al mismo origen.
+// Sirve para cualquier llamada saliente cuya URL llegue de fuera.
+func ProtegerClienteHTTP(base *http.Client) *http.Client {
+	return hardenHTTPClient(base, defaultEndpointPolicy())
+}
+
+// EsDireccionPublica dice si la IP es un destino que la política de
+// ProtegerClienteHTTP admitiría (ni loopback, ni red privada, ni enlace local
+// ni rangos especiales). Sirve para avisar de un destino interno sin
+// bloquearlo.
+func EsDireccionPublica(ip net.IP) bool {
+	return defaultEndpointPolicy().validateIP(ip) == nil
+}
+
 func hardenHTTPClient(base *http.Client, policy endpointPolicy) *http.Client {
 	if base == nil {
 		base = &http.Client{}

@@ -21,6 +21,7 @@ import (
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/originvalidator"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/triphase"
+	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/common/metrics"
 	"grxfirma/internal/adapters/outbound/common/pkcs12importer"
 	"grxfirma/internal/adapters/outbound/common/revocationclient"
@@ -91,7 +92,10 @@ type relojReal struct{}
 func (r relojReal) Now() time.Time { return time.Now() }
 
 func construirMotorFirma(configDir string, client *http.Client) *deskSigner.MotorFirmaGo {
-	motor := deskSigner.NuevoMotorFirmaGo(relojReal{})
+	// La tsaURL llega de una página web (afirma://, WebSocket): TSA interna
+	// rechazada salvo que esté en la lista tsa_permitidas de la política de
+	// máquina (lote 13a).
+	motor := deskSigner.NuevoMotorFirmaGo(relojReal{}).ConTSAPermitidas(config.TSAPermitidasDeMaquina())
 	clienteHTTP := resolverClienteHTTPRuntime(configDir, client)
 	if tsaURL := strings.TrimSpace(os.Getenv("GRXFIRMA_TSA_URL")); tsaURL != "" {
 		motor.WithTimestampAuthority(construirTSAClienteRuntime(tsaURL, clienteHTTP))
@@ -202,7 +206,7 @@ func construirRuntimeAfirmaURIConDependencias(
 	clienteHTTP := construirClienteHTTPRuntimeSeguro(configDir)
 	motor := construirMotorFirma(configDir, clienteHTTP)
 	slog.Info("grxfirma_afirmauri_runtime_http_signer_ready", "elapsed_ms", time.Since(httpStart).Milliseconds())
-	ejecutor := triphase.New(clienteHTTP)
+	ejecutor := triphase.New(clienteHTTP).ConValidadorDestino(originvalidator.New(politica).Validate)
 	lote := triphase.NewBatch(ejecutor)
 	crearOrquestador := func(preferencias preferenceStore) *session.Orchestrator {
 		return session.New(session.Config{
@@ -220,6 +224,7 @@ func construirRuntimeAfirmaURIConDependencias(
 			Eventos:                             nil,
 			RequireExplicitCertificateSelection: nativeProtocolUIEnabled() || tokenruntime.EnabledInBuild(),
 			Timeout:                             5 * time.Minute,
+			ComponerAprobacion:                  componerAprobacionProtocolo,
 		})
 	}
 	preferencias := certselectionstore.New(configDir)
@@ -241,6 +246,18 @@ func construirRuntimeAfirmaURIConDependencias(
 	}
 	slog.Info("grxfirma_afirmauri_runtime_ready", "elapsed_ms", time.Since(start).Milliseconds())
 	return runtime, nil
+}
+
+// validadorDestinoRuntime aplica a los destinos del canal socket la misma
+// política que el camino directo. Por compatibilidad con aplicaciones de
+// intranet (lote 13c) admite http fuera de loopback si la política autoriza el
+// origen, con aviso, como el parser del canal socket. Sin política devuelve
+// nil y el ejecutor falla cerrado.
+func validadorDestinoRuntime(r *runtimeAfirmaURI) triphase.ValidadorDestino {
+	if r == nil || r.trustPolicy == nil {
+		return nil
+	}
+	return originvalidator.New(r.trustPolicy).ValidateSocket
 }
 
 func (r *runtimeAfirmaURI) orquestadorPara(solicitud afirmauri.Solicitud) *session.Orchestrator {

@@ -56,6 +56,9 @@ public:
                                 bool useTLS = false);
   Q_INVOKABLE void stopBackend();
   Q_INVOKABLE bool canStopOwnedBackend() const;
+  // PID del backend que lanzó grxfirma-gui (--backend-pid). Con él la GUI se
+  // conecta a ese backend y no lanza el suyo; sin él siempre lanza el suyo.
+  void setLauncherBackendPid(qint64 pid) { m_launcherBackendPid = pid; }
   Q_INVOKABLE bool startTemporaryWebCompatibility(
       const QString &addr, const QString &token,
       const QString &fingerprints, bool useTLS, int durationMinutes);
@@ -290,7 +293,17 @@ private:
   void failActionDueToConnection(const QString &action, const QString &message);
   void sendRequest(const QString &action,
                    const QVariantMap &params = QVariantMap());
+  // Envía una petición con P12 o contraseña sin pasarlos por QVariantMap ni
+  // QJsonObject; nunca se difiere. Pone a cero los QByteArray de `secrets`.
+  void sendSecretRequest(const QString &action, const QJsonObject &plainParams,
+                         const QList<QPair<QString, QByteArray *>> &secrets);
+  void sendCredentialRequest(const QString &action, const QString &path,
+                             const QString &password,
+                             const QString &credentialField,
+                             const QJsonObject &plainParams);
   void launchBackendProcess();
+  bool verifyConnectedServer();
+  void rejectConnectedServer();
   void stopOwnedWebCompatibilityServer();
   void tryConnect();
   void setStatus(const QString &s);
@@ -310,6 +323,11 @@ private:
   QString m_addr;
   QString m_token;
   QString m_socketPath; // For socket connection
+  // PID del único proceso con el que se puede hablar por m_socketPath: el
+  // backend propio (QProcess) o el del lanzador. 0 = ninguno conocido.
+  qint64 m_expectedServerPid = 0;
+  qint64 m_launcherBackendPid = 0;
+  bool m_serverRejected = false;
   QString m_serverMode = "ipc";
   QString m_fingerprints;
   bool m_useTLS = false;

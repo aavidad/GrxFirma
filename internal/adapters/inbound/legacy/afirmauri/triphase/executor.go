@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -48,6 +49,29 @@ type Executor struct {
 	httpClient         *http.Client
 	fallbackHTTPClient *http.Client
 	limits             limits.Limits
+	validarDestino     ValidadorDestino
+}
+
+// ValidadorDestino decide si un origen (esquema://host[:puerto]) puede recibir
+// datos o decidir qué firma la clave. Lo habitual es originvalidator.Validate.
+type ValidadorDestino func(ctx context.Context, origen string) error
+
+// ValidarDestino aplica el validador configurado a un origen. Sin validador
+// falla cerrado.
+func (e *Executor) ValidarDestino(ctx context.Context, origen string) error {
+	if e == nil || e.validarDestino == nil {
+		return errors.New("no se puede comprobar si el destino está autorizado")
+	}
+	return e.validarDestino(ctx, origen)
+}
+
+// ConValidadorDestino fija el validador que se aplica en el punto de uso a los
+// destinos que no llegan ya validados por el parser (servidor trifásico).
+func (e *Executor) ConValidadorDestino(validar ValidadorDestino) *Executor {
+	if e != nil {
+		e.validarDestino = validar
+	}
+	return e
 }
 
 // ContextWithSigningKey fija en el contexto la clave de firma que debe usar el
@@ -73,13 +97,75 @@ func New(httpClient *http.Client) *Executor {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: time.Duration(limits.Default().HTTPTimeoutSec) * time.Second}
 	}
-	legacyClient := legacyCompatHTTPClient(httpClient)
-	fallbackClient := http2CapableHTTPClient(httpClient)
-	return &Executor{
-		httpClient:         legacyClient,
-		fallbackHTTPClient: fallbackClient,
-		limits:             limits.Default(),
+	// A-04 (lote 13c): una redirección a otro origen solo se sigue si ese
+	// origen pasa el mismo validador de destino que el servidor inicial; de
+	// https a http nunca. freshHTTPClient y los clones heredan la política
+	// porque copian el http.Client; el validador se lee al redirigir, así que
+	// vale el que fije ConValidadorDestino después.
+	e := &Executor{limits: limits.Default()}
+	conPolitica := *httpClient
+	conPolitica.CheckRedirect = politicaRedireccionTrifasica(httpClient.CheckRedirect, e)
+	httpClient = &conPolitica
+	e.httpClient = legacyCompatHTTPClient(httpClient)
+	e.fallbackHTTPClient = http2CapableHTTPClient(httpClient)
+	return e
+}
+
+// maxRedireccionesTrifasicas es el máximo de saltos, el mismo que aplicaba
+// net/http por defecto antes del lote 4.
+const maxRedireccionesTrifasicas = 10
+
+// politicaRedireccionTrifasica sigue las redirecciones al mismo origen
+// (esquema, host y puerto) y, a otro origen, solo si e.ValidarDestino lo
+// admite (lista de confianza o TOFU, como el servidor inicial), con aviso en
+// el registro. Rechaza siempre el paso de https a http, los esquemas que no
+// son http(s) y más de maxRedireccionesTrifasicas saltos. Sin validador, una
+// redirección a otro origen se rechaza (falla cerrado).
+func politicaRedireccionTrifasica(previa func(*http.Request, []*http.Request) error, e *Executor) func(*http.Request, []*http.Request) error {
+	return func(req *http.Request, via []*http.Request) error {
+		if len(via) >= maxRedireccionesTrifasicas {
+			return errors.New("redirección rechazada: demasiados saltos")
+		}
+		esquema := strings.ToLower(req.URL.Scheme)
+		if esquema != "https" && esquema != "http" {
+			return errors.New("redirección rechazada: solo se admite HTTPS o HTTP")
+		}
+		if esquema == "http" {
+			for _, previo := range via {
+				if strings.EqualFold(previo.URL.Scheme, "https") {
+					return errors.New("redirección rechazada: de HTTPS a HTTP")
+				}
+			}
+		}
+		if len(via) > 0 && !mismoOrigenHTTP(via[0].URL, req.URL) {
+			origen := esquema + "://" + req.URL.Host
+			if err := e.ValidarDestino(req.Context(), origen); err != nil {
+				return fmt.Errorf("redirección a otro origen rechazada: %s: %w", origen, err)
+			}
+			slog.Warn("triphase_redireccion_otro_origen", "saltos", len(via))
+		}
+		if previa != nil {
+			return previa(req, via)
+		}
+		return nil
 	}
+}
+
+func mismoOrigenHTTP(a, b *url.URL) bool {
+	if a == nil || b == nil {
+		return false
+	}
+	return strings.EqualFold(a.Scheme, b.Scheme) && strings.EqualFold(a.Hostname(), b.Hostname()) && puertoEfectivo(a) == puertoEfectivo(b)
+}
+
+func puertoEfectivo(u *url.URL) string {
+	if p := u.Port(); p != "" {
+		return p
+	}
+	if strings.EqualFold(u.Scheme, "http") {
+		return "80"
+	}
+	return "443"
 }
 
 func legacyCompatHTTPClient(client *http.Client) *http.Client {

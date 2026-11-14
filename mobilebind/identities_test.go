@@ -177,13 +177,30 @@ func TestProtectAndSignNeedsTheCertificateWhenSeveralAreOpen(t *testing.T) {
 	if _, ok := facade.session.certificateDER(""); ok {
 		t.Fatal("con varias identidades no se puede elegir el destinatario propio sin identificador")
 	}
-	keys, err := mobileSessionDecryptionKeys{facade.session}.DecryptionKeys(context.Background())
+	snapshots := facade.session.snapshots()
+	if len(snapshots) != 2 {
+		t.Fatalf("identidades abiertas: %d", len(snapshots))
+	}
+	sobre := func(ids ...string) domain.Document {
+		var destinatarios []string
+		for _, id := range ids {
+			destinatarios = append(destinatarios, fmt.Sprintf(`{"id":%q}`, id))
+		}
+		return domain.Document{Content: []byte(`{"version":1,"recipients":[` + strings.Join(destinatarios, ",") + `]}`)}
+	}
+	keys, err := mobileSessionDecryptionKeys{facade.session}.DecryptionKeys(context.Background(), sobre(snapshots[0].id, snapshots[1].id))
 	if err != nil || len(keys) != 2 {
-		t.Fatalf("desproteger debe probar con todas las claves RSA abiertas: %d, %v", len(keys), err)
+		t.Fatalf("desproteger debe probar con todas las claves RSA abiertas que el documento nombra: %d, %v", len(keys), err)
 	}
 	for _, key := range keys {
 		zeroBytes(key.RSAOAEP256PrivateKeyPKCS8)
 	}
+	// F-01: una identidad abierta que el documento no nombra no entrega su clave.
+	keys, err = mobileSessionDecryptionKeys{facade.session}.DecryptionKeys(context.Background(), sobre(snapshots[1].id))
+	if err != nil || len(keys) != 1 || keys[0].RecipientID != snapshots[1].id {
+		t.Fatalf("solo debe salir la clave del destinatario nombrado: %d, %v", len(keys), err)
+	}
+	zeroBytes(keys[0].RSAOAEP256PrivateKeyPKCS8)
 }
 
 func veriFactuQRPNG(t *testing.T, content string) []byte {

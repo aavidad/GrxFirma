@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
-	"io"
 	"path"
 	"sort"
 	"strings"
@@ -173,16 +172,14 @@ func openMutableZip(data []byte) (*mutableZip, error) {
 		order:   make([]string, 0, len(reader.File)),
 		entries: make(map[string][]byte, len(reader.File)),
 	}
+	// Mismos topes que al verificar (E1-10): el tamaño declarado de cada
+	// entrada lo pone quien fabrica el documento.
+	lector := &contenedorZIP{}
 	for _, f := range reader.File {
 		if f.FileInfo().IsDir() {
 			continue
 		}
-		rc, err := f.Open()
-		if err != nil {
-			return nil, err
-		}
-		content, err := io.ReadAll(rc)
-		_ = rc.Close()
+		content, err := lector.leer(f)
 		if err != nil {
 			return nil, err
 		}

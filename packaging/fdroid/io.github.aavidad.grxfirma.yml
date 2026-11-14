@@ -34,7 +34,7 @@ Repo: https://github.com/aavidad/GrxFirma.git
 Builds:
   - versionName: 0.0.124
     versionCode: 124
-    commit: v0.0.124
+    commit: 08904f6974279acce063b7c3a3f3a7e32b12b16d
     subdir: mobile/android
     sudo:
       - apt-get update

@@ -46,6 +46,7 @@ SOURCES += \
         backendbridge.cpp \
         incidentprivacy.cpp \
         ipcbridge.cpp \
+        ipcpeer.cpp \
         portalsealbridge.cpp \
         residentagent.cpp \
         transientsecret.cpp \
@@ -59,10 +60,12 @@ HEADERS += \
         executablelocator.h \
         incidentprivacy.h \
         ipcbridge.h \
+        ipcpeer.h \
         portalsealbridge.h \
         verificationurl.h \
         ipcsocketpath.h \
         officialupdatechecker.h \
+        openablefile.h \
         linuxstartupregistration.h \
         processarguments.h \
         savedialognames.h \
@@ -71,7 +74,8 @@ HEADERS += \
         releasenotes.h \
         transientsecret.h \
         translatorbridge.h \
-        webcompatibilitylease.h
+        webcompatibilitylease.h \
+        windowssystempath.h
 
 RESOURCES += qml.qrc
 

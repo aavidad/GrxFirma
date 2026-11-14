@@ -117,6 +117,11 @@ type ProcessBatchCommand struct {
 
 	// Session es la sesion de intercambio remoto para subir y recuperar resultados.
 	Session domain.ExchangeSession
+
+	// RequesterOrigin y RequesterApplication identifican a quien pide el lote,
+	// igual que en SignCommand; solo se usan en el texto de aprobación.
+	RequesterOrigin      string
+	RequesterApplication string
 }
 
 // UploadResultCommand representa la solicitud de subida de un resultado al servidor remoto.
@@ -305,4 +310,9 @@ type AuditCommand struct {
 	// ErrorSummary es un resumen sanitizado del error, si hubo alguno.
 	// Nunca debe contener payloads, valor-pruebas ni material criptografico.
 	ErrorSummary string
+
+	// Compatibilidad lista los códigos de lo que se aceptó solo por
+	// compatibilidad con versiones anteriores (algoritmos o formatos que hoy
+	// no se escribirían).
+	Compatibilidad []string
 }

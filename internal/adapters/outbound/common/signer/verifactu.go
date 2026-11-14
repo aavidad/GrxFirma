@@ -257,8 +257,8 @@ func vfCheckSignature(data []byte, n *vfNode, at time.Time) []vfProblem {
 	if ph == nil || ph.child(nsXMLDSig, "DigestValue").value() != "G7roucf600+f03r/o0bAOQ6WAs0=" || vfAttribute(ph.child(nsXMLDSig, "DigestMethod"), "Algorithm") != algSHA1 {
 		return fail("profile")
 	}
-	verification, e := verifyXMLSignatureDocument(data, true, nil, domain.CertificateChain{}, string(FormatVeriFactu), "", nil)
-	if e != nil || len(xmlCompatibilityDetails(verification.result)) > 0 {
+	verification, e := verifyXMLSignatureDocument(context.Background(), data, true, nil, domain.CertificateChain{}, string(FormatVeriFactu), "", nil, coberturaDelDocumento)
+	if e != nil || len(xmlCompatibilityDetails(verification.result)) > 0 || len(algoritmosAntiguos(verification.result)) > 0 {
 		return fail("signature")
 	}
 	for _, c := range verification.signerCertificates {

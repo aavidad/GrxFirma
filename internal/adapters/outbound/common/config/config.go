@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -61,6 +62,11 @@ type Config struct {
 	// FirmaRemotaCSCOAuth lista pares "servicio=oauth" (host[:puerto]) que
 	// autorizan un servidor OAuth en otro host que el servicio CSC.
 	FirmaRemotaCSCOAuth []string `json:"firma_remota_csc_oauth_permitidos"`
+	// TSAPermitidas es la lista de TSA que una petición puede pedir en sus
+	// opciones (tsaURL). Solo la fija la política de máquina, nunca el
+	// fichero del usuario: nil si no está definida. Véase
+	// docs/POLITICA_MAQUINA.md.
+	TSAPermitidas []string `json:"-"`
 }
 
 // Policy representa únicamente los overrides definidos explícitamente en
@@ -81,6 +87,13 @@ type Policy struct {
 	FirmaRemotaCSC *bool `json:"firma_remota_csc"`
 	// FirmaRemotaCSCOAuth sustituye la lista de pares del usuario.
 	FirmaRemotaCSCOAuth []string `json:"firma_remota_csc_oauth_permitidos"`
+	TSAPermitidas       []string `json:"tsa_permitidas"`
+
+	// Control de lectura (no forman parte del JSON). ilegible indica que la
+	// política existe pero no se pudo leer ni interpretar; invalidos, los
+	// ajustes presentes con un valor que no se entiende.
+	ilegible  bool
+	invalidos []string
 }
 
 // Default devuelve la configuración con valores seguros por defecto.
@@ -151,6 +164,26 @@ func FirmaRemotaCSCEnFicheroUsuario(userConfigDir string) bool {
 	return cfg.FirmaRemotaCSC
 }
 
+// TSAPermitidasDeMaquina devuelve la lista de TSA permitidas de la política
+// de máquina del sistema (nil si no está definida), sin leer ni crear el
+// fichero del usuario. La usan los binarios que atienden a páginas web.
+func TSAPermitidasDeMaquina() []string {
+	var cfg Config
+	raw, err := loadSystemPolicy(DirPolicyDefecto)
+	if err != nil {
+		slog.Warn("la política de máquina tiene errores; se revisa la lista de TSA permitidas", "error", err)
+	}
+	if raw.TSAPermitidas != nil {
+		cfg.TSAPermitidas = append([]string{}, raw.TSAPermitidas...)
+	}
+	for _, nombre := range raw.invalidos {
+		if nombre == machinepolicy.TSAPermitidas {
+			cfg.TSAPermitidas = []string{}
+		}
+	}
+	return cfg.TSAPermitidas
+}
+
 // LoadPolicy carga el contenido bruto de policy.json sin mezclarlo con config
 // del usuario ni variables de entorno. Si el fichero no existe, devuelve una
 // política vacía y nil.
@@ -192,10 +225,14 @@ func loadMachinePolicy() (Policy, error) {
 func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 	var p Policy
 	var errs []error
+	fallo := func(nombre string, err error) {
+		p.invalidos = append(p.invalidos, nombre)
+		errs = append(errs, fmt.Errorf("%s: %w", nombre, err))
+	}
 	leerBool := func(nombre string, destino **bool) {
 		v, ok, err := lector.boolean(nombre)
 		if err != nil {
-			errs = append(errs, err)
+			fallo(nombre, err)
 		} else if ok {
 			*destino = &v
 		}
@@ -203,7 +240,7 @@ func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 	leerTexto := func(nombre string, destino **string) {
 		v, ok, err := lector.texto(nombre)
 		if err != nil {
-			errs = append(errs, err)
+			fallo(nombre, err)
 		} else if ok {
 			*destino = &v
 		}
@@ -215,24 +252,29 @@ func loadMachinePolicyDesde(lector lectorPoliticaMaquina) (Policy, error) {
 	leerTexto(machinepolicy.DirectorioP12, &p.DirectorioP12)
 	leerTexto(machinepolicy.NivelLog, &p.NivelLog)
 	if v, ok, err := lector.textos(machinepolicy.DominiosDeConfianza); err != nil {
-		errs = append(errs, err)
+		fallo(machinepolicy.DominiosDeConfianza, err)
 	} else if ok {
 		p.DominiosDeConfianza = v
 	}
+	if v, ok, err := lector.textos(machinepolicy.TSAPermitidas); err != nil {
+		fallo(machinepolicy.TSAPermitidas, err)
+	} else if ok {
+		p.TSAPermitidas = append([]string{}, v...)
+	}
 	if v, ok, err := lector.entero(machinepolicy.TimeoutOperacionSegundos); err != nil {
-		errs = append(errs, err)
+		fallo(machinepolicy.TimeoutOperacionSegundos, err)
 	} else if ok {
 		n := int(v)
 		p.TimeoutOperacionSegundos = &n
 	}
 	leerBool(machinepolicy.FirmaRemotaCSC, &p.FirmaRemotaCSC)
 	if v, ok, err := lector.textos(machinepolicy.FirmaRemotaCSCOAuth); err != nil {
-		errs = append(errs, err)
+		fallo(machinepolicy.FirmaRemotaCSCOAuth, err)
 	} else if ok {
 		p.FirmaRemotaCSCOAuth = v
 	}
 	if v, ok, err := lector.entero(machinepolicy.MaxTamanoDocumentoBytes); err != nil {
-		errs = append(errs, err)
+		fallo(machinepolicy.MaxTamanoDocumentoBytes, err)
 	} else if ok {
 		p.MaxTamanoDocumentoBytes = &v
 	}
@@ -311,17 +353,67 @@ func aplicarEntorno(cfg *Config) {
 	}
 }
 
+// leerFicheroPolicy lee policy.json. El de la ruta del sistema debe ser de root
+// y no escribible por otros (en Linux); una ruta inyectada (pruebas) se lee
+// sin seguir enlaces.
+func leerFicheroPolicy(path string) ([]byte, error) {
+	if filepath.Dir(path) == DirPolicyDefecto {
+		return securefile.ReadTrustedSystemFileLimit(path, maxConfigFileBytes)
+	}
+	return securefile.ReadFileLimit(path, maxConfigFileBytes)
+}
+
+// campoPolicy decodifica un ajuste por separado, de modo que un valor con el
+// tipo equivocado invalide solo ese ajuste y no el resto de la política.
+func campoPolicy[T any](campos map[string]json.RawMessage, nombre string, raw *Policy, errs *[]error, asignar func(T)) {
+	valor, ok := campos[nombre]
+	if !ok {
+		return
+	}
+	var v T
+	if err := json.Unmarshal(valor, &v); err != nil {
+		raw.invalidos = append(raw.invalidos, nombre)
+		*errs = append(*errs, fmt.Errorf("%s: %w", nombre, err))
+		return
+	}
+	asignar(v)
+}
+
 func loadPolicyFile(path string) (Policy, error) {
 	var raw Policy
-	data, err := securefile.ReadFileLimit(path, maxConfigFileBytes)
+	data, err := leerFicheroPolicy(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return raw, nil
 		}
+		raw.ilegible = true
 		return raw, fmt.Errorf("leer %s: %w", path, err)
 	}
-	if err := json.Unmarshal(sinBOM(data), &raw); err != nil {
+	var campos map[string]json.RawMessage
+	if err := json.Unmarshal(sinBOM(data), &campos); err != nil {
+		raw.ilegible = true
 		return raw, fmt.Errorf("parsear %s: %w", path, err)
+	}
+	var errs []error
+	campoPolicy(campos, machinepolicy.WebsocketHabilitado, &raw, &errs, func(v *bool) { raw.WebsocketHabilitado = v })
+	campoPolicy(campos, machinepolicy.WebsocketPermitido, &raw, &errs, func(v *bool) { raw.WebsocketPermitido = v })
+	campoPolicy(campos, machinepolicy.RestHabilitado, &raw, &errs, func(v *bool) { raw.RestHabilitado = v })
+	campoPolicy(campos, machinepolicy.TofuHabilitado, &raw, &errs, func(v *bool) { raw.TofuHabilitado = v })
+	campoPolicy(campos, machinepolicy.DirectorioP12, &raw, &errs, func(v *string) { raw.DirectorioP12 = v })
+	campoPolicy(campos, machinepolicy.DominiosDeConfianza, &raw, &errs, func(v []string) { raw.DominiosDeConfianza = v })
+	campoPolicy(campos, machinepolicy.NivelLog, &raw, &errs, func(v *string) { raw.NivelLog = v })
+	campoPolicy(campos, machinepolicy.TimeoutOperacionSegundos, &raw, &errs, func(v *int) { raw.TimeoutOperacionSegundos = v })
+	campoPolicy(campos, machinepolicy.MaxTamanoDocumentoBytes, &raw, &errs, func(v *int64) { raw.MaxTamanoDocumentoBytes = v })
+	campoPolicy(campos, machinepolicy.TSAPermitidas, &raw, &errs, func(v []string) {
+		if v == nil {
+			v = []string{}
+		}
+		raw.TSAPermitidas = v
+	})
+	campoPolicy(campos, machinepolicy.FirmaRemotaCSC, &raw, &errs, func(v *bool) { raw.FirmaRemotaCSC = v })
+	campoPolicy(campos, machinepolicy.FirmaRemotaCSCOAuth, &raw, &errs, func(v []string) { raw.FirmaRemotaCSCOAuth = v })
+	if len(errs) > 0 {
+		return raw, fmt.Errorf("%s: %w", path, errors.Join(errs...))
 	}
 	return raw, nil
 }
@@ -333,9 +425,14 @@ func aplicarPolicyDesde(cfg *Config, policyDir string) {
 	aplicarPolicyCargada(cfg, raw, err)
 }
 
+// aplicarPolicyCargada aplica los ajustes válidos de la política aunque haya
+// errores en otros. Falla cerrado donde importa: si la política existe pero no
+// se pudo leer, o si un ajuste restrictivo (REST, WebSocket, TOFU) tiene un
+// valor que no se entiende, ese ajuste queda desactivado. En ambos casos avisa.
 func aplicarPolicyCargada(cfg *Config, raw Policy, err error) {
 	if err != nil {
-		return // fichero ausente, ilegible o invalido: no aplicar
+		slog.Warn("la política de máquina tiene errores; se aplican los ajustes válidos y se desactivan los afectados",
+			"error", err)
 	}
 	if raw.WebsocketHabilitado != nil {
 		cfg.WebsocketHabilitado = *raw.WebsocketHabilitado
@@ -369,6 +466,46 @@ func aplicarPolicyCargada(cfg *Config, raw Policy, err error) {
 	}
 	if raw.FirmaRemotaCSCOAuth != nil {
 		cfg.FirmaRemotaCSCOAuth = raw.FirmaRemotaCSCOAuth
+	}
+	if raw.TSAPermitidas != nil {
+		cfg.TSAPermitidas = append([]string{}, raw.TSAPermitidas...)
+	}
+	cerrarPolicyInvalida(cfg, raw)
+}
+
+func cerrarPolicyInvalida(cfg *Config, raw Policy) {
+	cerrado := false
+	if raw.ilegible {
+		cfg.RestHabilitado = false
+		cfg.WebsocketHabilitado = false
+		cfg.WebsocketPermitido = &cerrado
+		cfg.TofuHabilitado = false
+		// La firma remota amplía a quién se envían los datos: sin política
+		// legible no se activa desde el fichero del usuario.
+		cfg.FirmaRemotaCSC = false
+		return
+	}
+	for _, nombre := range raw.invalidos {
+		switch nombre {
+		case machinepolicy.RestHabilitado:
+			cfg.RestHabilitado = false
+		case machinepolicy.WebsocketHabilitado:
+			cfg.WebsocketHabilitado = false
+		case machinepolicy.WebsocketPermitido:
+			cfg.WebsocketPermitido = &cerrado
+		case machinepolicy.TofuHabilitado, machinepolicy.DominiosDeConfianza:
+			// Sin lista de dominios fiable no se amplía la confianza a mano.
+			cfg.TofuHabilitado = false
+		case machinepolicy.TSAPermitidas:
+			// Una lista de TSA ilegible cuenta como definida y vacía: REST no
+			// admite TSA de opciones y los caminos web no exceptúan ninguna.
+			cfg.TSAPermitidas = []string{}
+		case machinepolicy.FirmaRemotaCSC:
+			cfg.FirmaRemotaCSC = false
+		case machinepolicy.FirmaRemotaCSCOAuth:
+			// Sin lista fiable no se autoriza ningún servidor OAuth en otro host.
+			cfg.FirmaRemotaCSCOAuth = []string{}
+		}
 	}
 }
 

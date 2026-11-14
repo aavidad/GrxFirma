@@ -6,13 +6,19 @@
 package triphase
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/xml"
+	"errors"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"grxfirma/internal/domain"
@@ -71,7 +77,7 @@ func TestFirmarConServidor_ProtocoloDeFIRe(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	e := New(srv.Client())
+	e := New(srv.Client()).ConValidadorDestino(validadorQueAdmiteTodo)
 	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{chain: [][]byte{[]byte("cert-der")}})
 	firma, err := e.FirmarConServidor(ctx, SolicitudFirmaServidor{
 		ServerURL: srv.URL + "/public/afirma/triphaseSignService", FormatoLegacy: "CAdEStri",
@@ -91,7 +97,7 @@ func TestFirmarConServidor_ErroresDelServidorYHTTP(t *testing.T) {
 		_, _ = w.Write([]byte("ERR-11:Error en la prefirma"))
 	}))
 	defer srv.Close()
-	e := New(srv.Client())
+	e := New(srv.Client()).ConValidadorDestino(validadorQueAdmiteTodo)
 	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{chain: [][]byte{[]byte("c")}})
 	_, err := e.FirmarConServidor(ctx, SolicitudFirmaServidor{ServerURL: srv.URL, FormatoLegacy: "XAdEStri", Datos: []byte("d")})
 	if err == nil || !strings.Contains(err.Error(), "rechazó la prefirma") {
@@ -99,5 +105,188 @@ func TestFirmarConServidor_ErroresDelServidorYHTTP(t *testing.T) {
 	}
 	if _, err := e.FirmarConServidor(ctx, SolicitudFirmaServidor{ServerURL: "http://inseguro.example/x", FormatoLegacy: "CAdEStri", Datos: []byte("d")}); err == nil {
 		t.Fatal("un servidor trifásico sin HTTPS debe rechazarse")
+	}
+}
+
+func validadorQueAdmiteTodo(context.Context, string) error { return nil }
+
+// A-01: el servidor trifásico tiene que pasar la política en el punto de uso
+// (los manifiestos recuperados también traen serverUrl).
+func TestFirmarConServidor_ValidadorRechazaSinPeticiones(t *testing.T) {
+	var peticiones atomic.Int32
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		peticiones.Add(1)
+		_, _ = w.Write([]byte("ERR-1"))
+	}))
+	defer srv.Close()
+	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{chain: [][]byte{[]byte("c")}})
+	req := SolicitudFirmaServidor{ServerURL: srv.URL + "/ts", FormatoLegacy: "CAdEStri", Datos: []byte("d")}
+
+	rechazo := errors.New("el origen no esta autorizado")
+	var visto string
+	e := New(srv.Client()).ConValidadorDestino(func(_ context.Context, origen string) error {
+		visto = origen
+		return rechazo
+	})
+	if _, err := e.FirmarConServidor(ctx, req); !errors.Is(err, rechazo) {
+		t.Fatalf("err = %v; se esperaba el rechazo del validador", err)
+	}
+	if visto != srv.URL {
+		t.Fatalf("el validador recibió %q; se esperaba el origen %q", visto, srv.URL)
+	}
+	// Sin validador configurado se falla cerrado.
+	if _, err := New(srv.Client()).FirmarConServidor(ctx, req); err == nil {
+		t.Fatal("sin validador de destino debía fallar")
+	}
+	if n := peticiones.Load(); n != 0 {
+		t.Fatalf("el servidor recibió %d peticiones; se esperaban 0", n)
+	}
+}
+
+// Lote 13c (A-01 paso 2): un serverUrl con credenciales vuelve a usarse. El
+// validador recibe solo esquema y host, el servidor recibe la autenticación
+// básica y los errores no muestran las credenciales. Un servidor que el
+// validador rechaza sigue sin recibir nada.
+func TestFirmarConServidor_ServerURLConCredenciales(t *testing.T) {
+	var post atomic.Int32
+	var usuarioVisto, claveVista string
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		usuarioVisto, claveVista, _ = r.BasicAuth()
+		_ = r.ParseForm()
+		if r.PostForm.Get("op") == "post" {
+			post.Add(1)
+			_, _ = w.Write([]byte("OK NEWID=" + base64.URLEncoding.EncodeToString([]byte("F"))))
+			return
+		}
+		td := `<xml><firmas format="CAdES"><firma Id="1"><param n="PRE">` + base64.StdEncoding.EncodeToString([]byte("pre")) + `</param></firma></firmas></xml>`
+		_, _ = w.Write([]byte(base64.URLEncoding.EncodeToString([]byte(td))))
+	}))
+	defer srv.Close()
+	conCredenciales := strings.Replace(srv.URL, "https://", "https://usuario:secreto-largo@", 1) + "/ts"
+	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{chain: [][]byte{[]byte("c")}})
+	req := SolicitudFirmaServidor{ServerURL: conCredenciales, FormatoLegacy: "CAdEStri", Datos: []byte("d")}
+
+	var validados []string
+	e := New(srv.Client()).ConValidadorDestino(func(_ context.Context, origen string) error {
+		validados = append(validados, origen)
+		return nil
+	})
+	if _, err := e.FirmarConServidor(ctx, req); err != nil {
+		t.Fatalf("serverUrl con credenciales autorizado debía firmar: %v", err)
+	}
+	if len(validados) == 0 || validados[0] != srv.URL {
+		t.Fatalf("el validador debía recibir solo esquema y host: %v", validados)
+	}
+	if usuarioVisto != "usuario" || claveVista != "secreto-largo" || post.Load() != 1 {
+		t.Fatalf("el servidor debía recibir la autenticación básica: %q %q post=%d", usuarioVisto, claveVista, post.Load())
+	}
+
+	// Rechazado por el validador: ninguna petición.
+	var peticiones atomic.Int32
+	otro := httptest.NewTLSServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { peticiones.Add(1) }))
+	defer otro.Close()
+	rechazo := errors.New("el origen no esta autorizado")
+	eNo := New(otro.Client()).ConValidadorDestino(func(context.Context, string) error { return rechazo })
+	reqNo := SolicitudFirmaServidor{ServerURL: strings.Replace(otro.URL, "https://", "https://u:p@", 1) + "/ts", FormatoLegacy: "CAdEStri", Datos: []byte("d")}
+	if _, err := eNo.FirmarConServidor(ctx, reqNo); !errors.Is(err, rechazo) || peticiones.Load() != 0 {
+		t.Fatalf("no autorizado: err=%v peticiones=%d", err, peticiones.Load())
+	}
+
+	// Error de transporte: el texto no lleva las credenciales.
+	cerrado := httptest.NewTLSServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	direccion := cerrado.URL
+	cerrado.Close()
+	eCaido := New(srv.Client()).ConValidadorDestino(func(context.Context, string) error { return nil })
+	reqCaido := SolicitudFirmaServidor{ServerURL: strings.Replace(direccion, "https://", "https://usuario:secreto-largo@", 1) + "/ts", FormatoLegacy: "CAdEStri", Datos: []byte("d")}
+	_, err := eCaido.FirmarConServidor(ctx, reqCaido)
+	if err == nil {
+		t.Fatal("con el servidor caído debía fallar")
+	}
+	if strings.Contains(err.Error(), "usuario") || strings.Contains(err.Error(), "secreto-largo") {
+		t.Fatalf("el error muestra las credenciales: %v", err)
+	}
+}
+
+func TestErrorSinCredenciales(t *testing.T) {
+	u, _ := url.Parse("https://ana:clave-larga@fire.example/ts")
+	base := errors.New(`Post "https://ana:***@fire.example/ts": fallo; también https://ana:clave-larga@fire.example/ts y clave-larga`)
+	got := errorSinCredenciales(base, u)
+	if strings.Contains(got.Error(), "ana") || strings.Contains(got.Error(), "clave-larga") {
+		t.Fatalf("quedan credenciales: %v", got)
+	}
+	if !errors.Is(got, base) {
+		t.Fatal("debe conservar la causa")
+	}
+}
+
+// servidorTrifasicoConFirmas responde a la prefirma con n <firma> y cuenta
+// las llamadas a la postfirma.
+func servidorTrifasicoConFirmas(t *testing.T, n int, post *atomic.Int32) *httptest.Server {
+	t.Helper()
+	return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		if r.PostForm.Get("op") == "post" {
+			post.Add(1)
+			_, _ = w.Write([]byte("OK NEWID=" + base64.URLEncoding.EncodeToString([]byte("F"))))
+			return
+		}
+		pre := base64.StdEncoding.EncodeToString([]byte("pre"))
+		var firmas strings.Builder
+		for i := 0; i < n; i++ {
+			fmt.Fprintf(&firmas, `<firma Id="%d"><param n="PRE">%s</param></firma>`, i+1, pre)
+		}
+		td := `<xml><firmas format="CAdES">` + firmas.String() + `</firmas></xml>`
+		_, _ = w.Write([]byte(base64.URLEncoding.EncodeToString([]byte(td))))
+	}))
+}
+
+// Lote 13a (retrocompatibilidad, revisa A-01 paso 3): la contrafirma
+// trifásica de varios nodos pide varias <firma> en una prefirma. Se admite,
+// con aviso en el registro que dice cuántas firmas salieron de la aprobación.
+func TestFirmarConServidor_AdmiteVariasFirmasConAviso(t *testing.T) {
+	var post atomic.Int32
+	srv := servidorTrifasicoConFirmas(t, 2, &post)
+	defer srv.Close()
+	var registro bytes.Buffer
+	anterior := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&registro, nil)))
+	defer slog.SetDefault(anterior)
+
+	clave := &mockLegacyBatchPreKey{mockLegacyBatchKey: mockLegacyBatchKey{chain: [][]byte{[]byte("c")}}}
+	ctx := ContextWithSigningKey(context.Background(), clave)
+	e := New(srv.Client()).ConValidadorDestino(validadorQueAdmiteTodo)
+	firma, err := e.FirmarConServidor(ctx, SolicitudFirmaServidor{ServerURL: srv.URL, FormatoLegacy: "CAdEStri", Accion: domain.ActionCounterSign, Datos: []byte("d")})
+	if err != nil {
+		t.Fatalf("una prefirma con dos <firma> debía admitirse: %v", err)
+	}
+	if string(firma) != "F" || len(clave.opts) != 2 || post.Load() != 1 {
+		t.Fatalf("firma=%q, firmas de la clave=%d, postfirmas=%d", firma, len(clave.opts), post.Load())
+	}
+	texto := registro.String()
+	if !strings.Contains(texto, "triphase_server_varias_firmas") || !strings.Contains(texto, "firmas=2") {
+		t.Fatalf("falta el aviso con el número de firmas:\n%s", texto)
+	}
+	if strings.Contains(texto, strings.TrimPrefix(srv.URL, "https://")) {
+		t.Fatalf("el aviso no debe llevar el servidor:\n%s", texto)
+	}
+}
+
+// Cero firmas y más del tope siguen siendo error, sin firmar nada ni llamar
+// a la postfirma.
+func TestFirmarConServidor_RechazaCeroFirmasOMasDelTope(t *testing.T) {
+	for _, n := range []int{0, maxFirmasTrifasicasPorAprobacion + 1} {
+		var post atomic.Int32
+		srv := servidorTrifasicoConFirmas(t, n, &post)
+		clave := &mockLegacyBatchPreKey{mockLegacyBatchKey: mockLegacyBatchKey{chain: [][]byte{[]byte("c")}}}
+		ctx := ContextWithSigningKey(context.Background(), clave)
+		e := New(srv.Client()).ConValidadorDestino(validadorQueAdmiteTodo)
+		_, err := e.FirmarConServidor(ctx, SolicitudFirmaServidor{ServerURL: srv.URL, FormatoLegacy: "CAdEStri", Datos: []byte("d")})
+		srv.Close()
+		if err == nil {
+			t.Fatalf("una prefirma con %d <firma> debía rechazarse", n)
+		}
+		if len(clave.opts) != 0 || post.Load() != 0 {
+			t.Fatalf("%d firmas: la clave firmó %d veces y hubo %d postfirmas; no debía haber ninguna", n, len(clave.opts), post.Load())
+		}
 	}
 }

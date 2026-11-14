@@ -58,6 +58,29 @@
   "identity.local.selector.no_expiry": "有效期不可用",
   "identity.local.selector.use": "使用证书",
   "identity.local.selector.cancel": "取消",
+  "approval.question.sign": "是否使用证书“%s”签名？",
+  "approval.question.cosign": "是否使用证书“%s”添加您的签名（联署）？",
+  "approval.question.countersign": "是否使用证书“%s”进行副署？",
+  "approval.question.batch": "是否签署 %d 份文档（使用证书“%s”）？",
+  "approval.question.batch_unknown": "是否使用证书“%s”签署一批文档？",
+  "approval.certificate.unknown": "无名称",
+  "approval.requester.origin": "请求的网站：%s",
+  "approval.requester.application": "请求的应用程序：%s",
+  "approval.document": "文档：%s",
+  "approval.document.sized": "文档：%s（%s）",
+  "approval.documents": "文档：%s",
+  "approval.documents.more": "%s 及另外 %d 份",
+  "approval.format": "签名格式：%s",
+  "approval.destinations": "将接收文档或签名的服务器：%s",
+  "approval.origin.unverifiable": "GrxFirma 无法确认是哪个网站请求了此签名。列表中的服务器由该网站选择。只有在您认识这些服务器时才继续。",
+  "approval.session.unidentified": "该网站使用旧方式，无法向 GrxFirma 标识此会话。只有在您刚刚亲自在该网站上发起此签名时才继续。",
+  "approval.triphase.server_multiple": "网站的服务器负责生成此签名，并且可能凭这一次确认请求多个签名。",
+  "approval.destination.unencrypted": "列表中有服务器使用未加密的连接 (http)：发送的内容可能在传输途中被读取。仅当它是您所在机构的服务器时才继续。",
+  "approval.size.bytes": "%d 字节",
+  "approval.size.kb": "%d KB",
+  "approval.save.extension": "网站要求将 %s 文件保存到 %s。签名和文档通常是 .pdf、.xml、.csig 或 .xsig 格式。只有在您清楚它是什么时才保存。要保存吗？",
+  "approval.save.extension.risky": "网站要将一个 %s 文件保存到 %s。此类文件可能包含打开时会运行的宏或代码。仅当您预期从该网站收到它时才保存。是否保存？",
+  "approval.save.title": "确认保存",
   "cli.error.no_operation": "未指定 CLI 操作",
   "cli.error.p12_secret_input": "无法读取 PKCS#12 密码",
   "cli.error.prefix": "错误：",
@@ -85,9 +108,10 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "最早的记录已按保留策略删除；将从保留的第一条记录开始校验链条。",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d 条记录早于哈希链，无法校验。",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "校验审计日志的哈希链：检测被修改、插入或删除的记录。若还要证明末尾未被截断，请在提交时用您的证书对该文件签名。",
+  "cli.help.audit": "校验审计日志的哈希链：检测意外的修改；无法防范能够写入该文件的人。若还要证明末尾未被截断，请在提交时用您的证书对该文件签名。",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "验证时保存可打印的 HTML 验证报告，包含结论、各项检查、签名者以及所验证文件的 SHA-256 哈希值。",
+  "cli.help.verify_exit": "验证的退出码：签名有效时为 0；签名无效时为 2；无法检查时为 1（文件不可读、格式未知或其他错误）。",
   "Informe de validación": "验证报告",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "无回显读取加密 PDF 的密码（用户或所有者密码），以在保留加密的情况下签名。也接受 GRXFIRMA_PDF_PASSWORD 变量，读取后即清除；绝不接受作为参数传入。",
@@ -128,6 +152,9 @@
   "security.secret.hint.p12": "使用 -password-stdin，或仅为自动化兼容使用 GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12 密码：",
   "security.secret.prompt.protection": "Base64 保护密钥： ",
+  "desktop.ipc.server.client_pid_required": "--server 模式需要用 --ipc-client-pid 指定将要连接的程序的 PID；否则不会打开 IPC 通道",
+  "desktop.ipc.peer_binding_unsupported": "此系统无法检查哪个程序连接到签名引擎，因此 GrxFirma 不会启动",
+  "desktop.ipc.flag.parent_stdin": "当启动它的图形程序保持打开的标准输入被关闭时，停止服务器",
   "rest.error.private_credential": "无法准备 REST 凭据的私密交付",
   "rest.help.private_delivery": "机密管理器可以注入 GRXFIRMA_REST_TOKEN。自动生成令牌时，只会显示供 curl --config 使用的私密临时文件路径。",
   "rest.output.bearer_file": "临时 Bearer 凭据：私密文件 %s",
@@ -860,6 +887,15 @@
   "Firma electrónica avanzada": "高级电子签名",
   "Firma guardada exitosamente en: ": "签名已成功保存到： ",
   "Firma inválida o integridad no garantizada.": "签名无效或完整性无法保证。",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "签名正确，但文档的部分内容未签名。",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "无法检查签名所涵盖的全部内容，因此不视为有效。",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "签名有效，但由于其格式的规定，签名不涵盖文档的部分元数据。详细信息中列出了具体内容。",
+  "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "文档自签名以来未被更改，但签名使用的是 SHA-1，这是一种如今已不被视为安全的旧算法。因此该签名不被视为有效：它只能证明这是在 SHA-1 仍被接受时所做的签名。",
+  "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida.": "该签名与 GrxFirma 早期版本处理 XML 的方式一致，而不是标准方式。它很可能由这些早期版本之一生成。该签名不被视为有效。",
+  "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "旧方式不会对根元素之外的处理指令（例如样式表）进行签名，而本文档包含此类指令。它们可能是在签名之后添加的。",
+  "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "该文档声明了 GrxFirma 不读取的外部 DTD。如果该 DTD 向文档添加了值，其他程序显示的内容可能与签名内容不同，因此该签名不被视为有效。",
+  "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "此受保护文件的名称或类型可能在保护之后被更改过；GrxFirma 早期版本生成的文件常有这种情况。内容已经过校验。为安全起见，GrxFirma 已调整文件名：打开文件前请先核对。",
+  "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "此文件使用的是如今已不再被视为安全的旧算法加密。为避免您无法访问，已将其解密，但发送者应使用当前算法重新保护该文件。",
   "Firma múltiple completada (": "多文件签名已完成（",
   "Firma múltiple completada con incidencias (": "多文件签名已完成，但有异常（",
   "Firma múltiple finalizada.": "多重签名已完成。",
@@ -1163,6 +1199,7 @@
   "No se pudo conectar al backend tras 10 segundos": "10 秒后仍无法连接到后端",
   "No se pudo conectar con el backend local.": "无法连接到本地后端。",
   "No se pudo conectar con el servicio local de firma (¿está bloqueado?).": "无法连接到本地签名服务（是否被阻止？）。",
+  "No se pudo abrir la carpeta del fichero": "无法打开该文件所在的文件夹",
   "No se pudo confirmar el guardado de preferencias.": "无法确认首选项已保存。",
   "No se pudo confirmar el guardado de preferencias. Cerrando igualmente.": "无法确认首选项已保存。仍将关闭。",
   "No se pudo copiar el JSON de verificación.": "无法复制验证 JSON。",
@@ -2402,6 +2439,13 @@
   "✅ Conexión establecida con el motor de firma.": "✅ 已与签名引擎建立连接。",
   "✅ Firma guardada exitosamente en: ": "✅ 签名已成功保存到： ",
   "✅ Proceso de instalación finalizado.": "✅ 安装过程已完成。",
+  "Conectando con el motor de firma del lanzador...": "正在连接启动器的签名引擎...",
+  "Arrancando el motor de firma de esta ventana...": "正在启动此窗口的签名引擎...",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ 没有用于连接签名引擎的私有文件夹。",
+  "Error: no se pudo preparar la conexión con el motor de firma": "错误：无法准备与签名引擎的连接",
+  "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "该连接并未指向 GrxFirma 启动的签名引擎，已在未发送任何数据的情况下断开。请关闭 GrxFirma 并重新打开。",
+  "Error: no se reconoce el motor de firma": "错误：无法识别签名引擎",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ 签名引擎的响应过大，连接已断开。",
   "✅ Validar Documento": "✅ 验证文档",
   "✅ VÁLIDA": "✅ 有效",
   "✍ FIRMA DIGITAL": "✍ 数字签名",
@@ -2427,6 +2471,7 @@
   "❌ No se pudo abrir la URL: ": "❌ 无法打开 URL： ",
   "❌ No se pudo arrancar GrxFirma: ": "❌ 无法启动 GrxFirma： ",
   "❌ No se puede instalar: Backend no configurado.": "❌ 无法安装：后端未配置。",
+  "❌ No se pudo abrir la carpeta: ": "❌ 无法打开文件夹：",
   "🌐  Configuración de Proxy": "🌐 代理设置",
   "🌐  Servidor API REST Local": "🌐 本地 REST API 服务器",
   "📤 Enviando petición (JSON): ": "📤 正在发送请求 (JSON)： ",
@@ -2738,6 +2783,13 @@
   ,"Entendido": "知道了"
   ,"Actualizado a %1: ver novedades": "已更新至 %1：查看更新内容"
   ,"revocación no concluyente": "无法核实证书吊销状态。此签名不视为有效。"
+  ,"no se pudo consultar un almacén raíz del sistema utilizable": "无法读取系统根证书存储，因此无法确定该证书是否可信。该签名不被视为有效。"
+  ,"clave RSA del firmante de menos de 2048 bits": "签名者的密钥是少于 2048 位的 RSA，这一长度如今已不被视为安全。该签名不被视为有效。"
+  ,"el certificado firmante no está destinado a firmar documentos": "用于签名的证书并非用于签署文档（例如可能是网页服务器的证书）。该签名不被视为有效。"
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "该证书依赖系统信任的根证书。这并不保证它是合格证书。"
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "签名数据未说明使用了哪个证书，因此无法确认所显示的证书就是签名所用的证书。"
+  ,"el PDF contiene firmas que no se han podido verificar": "该 PDF 含有 GrxFirma 无法验证的签名，因此不能视为有效。"
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "该 PDF 含有一个未经检查的文档时间戳。"
   ,"rest.verify_v2.error.limit": "v2 验证限制超出允许范围"
   ,"portal.seal.title": "在 PDF 上放置印章"
   ,"portal.seal.instructions": "您正在使用的签名网站请您选择签名的位置。拖动印章即可移动，使用右下角调整大小，使用带箭头的圆圈（↻）旋转。您也可以在“精确调整”中输入位置。"
@@ -3923,6 +3975,9 @@
   ,"El sello visible permite elegir su posición en el PDF desde la aplicación y en los portales que solicitan esa elección.": "可在应用内以及要求选择签名位置的门户中指定 PDF 可见印章的位置。"
   ,"Se reforzó la lectura de PDF cifrados o dañados para evitar cierres inesperados.": "强化了对加密或损坏 PDF 的读取，避免应用意外关闭。"
   ,"Próxima versión (sin publicar)": "下一版本（未发布）"
+  ,"Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.": "从网页签名（afirma://）时，证书选择器不再显示“记住此选择”。该复选框原本没有任何作用：从网页签名时，GrxFirma 每次都会询问证书，与以前相同。"
+  ,"GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva prohibir_cifrado_cms_heredado. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.": "GrxFirma 重新支持打开使用 DES 或 3DES 等旧算法加密的文件（CMS 信封）。打开时会提示该加密已不再被视为安全；管理员可通过 prohibir_cifrado_cms_heredado 策略禁止此行为。该提示也会显示在应用程序、命令行和 REST 控制台中。"
+  ,"Los archivos .afp que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.": "此版本保护的 .afp 文件也可以用旧版 GrxFirma 打开。如明确要求，仍可使用较新的格式。"
   ,"Histórico: nombre anterior AutoFirmaV2, versiones 2.0.x": "历史：原名 AutoFirmaV2，2.0.x 版本"
   ,"Contenido de firma": "签名内容"
   ,"Disponibilidad de firma": "签名功能可用性"
@@ -5104,7 +5159,6 @@
   ,"sin certificado firmante para evaluar confianza": "没有可用于评估信任的签名者证书"
   ,"sin anclas de confianza disponibles": "没有可用的受信任根证书"
   ,"ancla de confianza X.509 inválida": "X.509 受信任根证书无效"
-  ,"no se pudo consultar un almacén raíz del sistema utilizable": "无法查询可用的系统根证书存储"
   ,"ninguna ancla de confianza configurada contiene material X.509 verificable": "所配置的受信任根证书均不包含可验证的 X.509 数据"
   ,"cadena X.509 verificada contra las anclas de confianza configuradas": "已根据配置的受信任根证书验证 X.509 证书链"
   ,"cadena de certificados vacía": "证书链为空"

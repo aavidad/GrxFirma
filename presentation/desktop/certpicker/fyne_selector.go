@@ -174,6 +174,10 @@ func (f *FyneSelector) Select(ctx context.Context, certs []domain.CertificateRef
 
 	filtered := make([]domain.CertificateRef, len(certs))
 	copy(filtered, certs)
+	// A-11: con acciones de credenciales (afirma://) nadie lee la preferencia
+	// ni el sticky: la selección es siempre explícita. No se ofrece "Recordar"
+	// para no prometer algo que no ocurre ni dejar estado en disco sin uso.
+	ofreceRecordar := !f.credentialActions
 	recordarSeleccion := widget.NewCheck("", nil)
 	recordarLabel := canvas.NewText(tp("Recordar esta selección"), colorTitulo)
 	recordarLabel.TextSize = 24
@@ -238,7 +242,7 @@ func (f *FyneSelector) Select(ctx context.Context, certs []domain.CertificateRef
 		}
 		slog.Info("certpicker_confirm_selection", "certificate_id", filtered[selectedIdx].ID)
 		resultado.Certificado = filtered[selectedIdx]
-		if recordarSeleccion.Checked {
+		if ofreceRecordar && recordarSeleccion.Checked {
 			if modoRecordar == RecordarSiempre {
 				resultado.Recuerdo = RecordarSiempre
 			} else {
@@ -480,7 +484,11 @@ func (f *FyneSelector) Select(ctx context.Context, certs []domain.CertificateRef
 		if origen == "" {
 			origen = tp("origen no identificado")
 		}
-		aviso := widget.NewLabel(tp("Solicitado por") + ": " + origen + "\n" + tp("Operación") + ": " + solicitud.Operacion)
+		lineaOrigen := tp("Solicitado por") + ": " + origen
+		if solicitud.OrigenEsDestino {
+			lineaOrigen = tp("approval.destinations", origen)
+		}
+		aviso := widget.NewLabel(lineaOrigen + "\n" + tp("Operación") + ": " + solicitud.Operacion)
 		aviso.Wrapping = fyne.TextWrapWord
 		aviso.TextStyle = fyne.TextStyle{Bold: true}
 		cabecera.Add(aviso)
@@ -500,6 +508,13 @@ func (f *FyneSelector) Select(ctx context.Context, certs []domain.CertificateRef
 	cardDetalleBorder.StrokeColor = colorBordeTarjeta
 	cardDetalleBorder.StrokeWidth = 1
 	cardDetalleBorder.CornerRadius = 12
+	opcionesRecordar := container.NewVBox()
+	if ofreceRecordar {
+		opcionesRecordar.Add(container.NewHBox(recordarSeleccion, recordarLabel))
+		opcionesRecordar.Add(container.NewHBox(opcionSesion, opcionSesionLabel))
+		opcionesRecordar.Add(container.NewHBox(opcionSiempre, opcionSiempreLabel))
+		opcionesRecordar.Add(widget.NewSeparator())
+	}
 	panelDetalle := container.NewStack(
 		cardDetalleBg,
 		cardDetalleBorder,
@@ -516,10 +531,7 @@ func (f *FyneSelector) Select(ctx context.Context, certs []domain.CertificateRef
 			detalleHuellaTitulo,
 			detalleHuellaValor,
 			widget.NewSeparator(),
-			container.NewHBox(recordarSeleccion, recordarLabel),
-			container.NewHBox(opcionSesion, opcionSesionLabel),
-			container.NewHBox(opcionSiempre, opcionSiempreLabel),
-			widget.NewSeparator(),
+			opcionesRecordar,
 			helpLabel,
 			credentialButtons,
 			container.NewHBox(usarBtn, cancelBtn),

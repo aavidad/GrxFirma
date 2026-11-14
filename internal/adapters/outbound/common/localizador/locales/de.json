@@ -58,6 +58,29 @@
   "identity.local.selector.no_expiry": "Ablaufdatum nicht verfügbar",
   "identity.local.selector.use": "Zertifikat verwenden",
   "identity.local.selector.cancel": "Abbrechen",
+  "approval.question.sign": "Möchten Sie mit dem Zertifikat „%s“ signieren?",
+  "approval.question.cosign": "Möchten Sie Ihre Signatur (Mitsignatur) mit dem Zertifikat „%s“ hinzufügen?",
+  "approval.question.countersign": "Möchten Sie mit dem Zertifikat „%s“ gegensignieren?",
+  "approval.question.batch": "Möchten Sie %d Dokumente mit dem Zertifikat „%s“ signieren?",
+  "approval.question.batch_unknown": "Möchten Sie einen Stapel von Dokumenten mit dem Zertifikat „%s“ signieren?",
+  "approval.certificate.unknown": "ohne Namen",
+  "approval.requester.origin": "Anfragende Website: %s",
+  "approval.requester.application": "Anfragende Anwendung: %s",
+  "approval.document": "Dokument: %s",
+  "approval.document.sized": "Dokument: %s (%s)",
+  "approval.documents": "Dokumente: %s",
+  "approval.documents.more": "%s und %d weitere",
+  "approval.format": "Signaturformat: %s",
+  "approval.destinations": "Server, die das Dokument oder die Signatur erhalten: %s",
+  "approval.origin.unverifiable": "GrxFirma kann nicht prüfen, welche Website diese Signatur angefordert hat. Diese Website hat die Server in der Liste gewählt. Fahren Sie nur fort, wenn Sie sie kennen.",
+  "approval.session.unidentified": "Diese Website nutzt ein älteres Verfahren, das die Sitzung mit GrxFirma nicht kennzeichnet. Fahren Sie nur fort, wenn Sie diese Signatur gerade selbst auf der Website gestartet haben.",
+  "approval.triphase.server_multiple": "Der Server der Website erstellt diese Signatur und kann mit dieser einen Bestätigung mehr als eine Signatur anfordern.",
+  "approval.destination.unencrypted": "Ein Server in der Liste nutzt eine unverschlüsselte Verbindung (http): Was gesendet wird, kann unterwegs mitgelesen werden. Fahren Sie nur fort, wenn es ein Server Ihrer Organisation ist.",
+  "approval.size.bytes": "%d Byte",
+  "approval.size.kb": "%d KB",
+  "approval.save.extension": "Die Website möchte eine %s-Datei unter %s speichern. Signaturen und Dokumente sind normalerweise .pdf, .xml, .csig oder .xsig. Speichern Sie sie nur, wenn Sie wissen, worum es sich handelt. Möchten Sie sie speichern?",
+  "approval.save.extension.risky": "Die Website möchte eine %s-Datei in %s speichern. Dieser Dateityp kann Makros oder Code enthalten, der beim Öffnen ausgeführt wird. Speichern Sie sie nur, wenn Sie sie von dieser Website erwartet haben. Möchten Sie sie speichern?",
+  "approval.save.title": "Speichern bestätigen",
   "cli.error.no_operation": "es wurde keine CLI-Operation angegeben",
   "cli.error.p12_secret_input": "das PKCS#12-Passwort konnte nicht gelesen werden",
   "cli.error.prefix": "Fehler:",
@@ -85,9 +108,10 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Die ältesten Einträge wurden gemäß Aufbewahrungsrichtlinie entfernt; die Kette wird ab dem ersten erhaltenen Eintrag geprüft.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d Einträge stammen aus der Zeit vor der Hash-Kette und können nicht geprüft werden.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Prüft die Hash-Kette des Prüfprotokolls: erkennt veränderte, eingefügte oder gelöschte Einträge. Um auch nachzuweisen, dass das Ende nicht abgeschnitten wurde, signieren Sie die Datei bei der Übergabe mit Ihrem Zertifikat.",
+  "cli.help.audit": "Prüft die Hash-Kette des Prüfprotokolls: erkennt versehentliche Änderungen; schützt nicht vor jemandem, der die Datei beschreiben kann. Um auch nachzuweisen, dass das Ende nicht abgeschnitten wurde, signieren Sie die Datei bei der Übergabe mit Ihrem Zertifikat.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Speichert bei der Prüfung einen druckbaren HTML-Prüfbericht mit Ergebnis, Prüfungen, Unterzeichnern und dem SHA-256-Hash der geprüften Datei.",
+  "cli.help.verify_exit": "Exit-Codes der Prüfung: 0, wenn die Signatur gültig ist; 2, wenn sie ungültig ist; 1, wenn sie nicht geprüft werden konnte (unlesbare Datei, unbekanntes Format oder anderer Fehler).",
   "Informe de validación": "Prüfbericht",
   "cli.help.pdf_password_usage": "-contrasena-pdf-stdin | -pdf-password-stdin",
   "cli.help.pdf_password": "Liest ohne Echo das Passwort eines verschlüsselten PDF (Benutzer oder Eigentümer), um es unter Beibehaltung der Verschlüsselung zu signieren. Auch die Variable GRXFIRMA_PDF_PASSWORD wird akzeptiert und beim Lesen gelöscht; als Argument wird es nie akzeptiert.",
@@ -128,6 +152,9 @@
   "security.secret.hint.p12": "verwenden Sie -password-stdin oder nur zur Automatisierungskompatibilität GRXFIRMA_PKCS12_PASSWORD",
   "security.secret.prompt.p12": "PKCS#12-Passwort: ",
   "security.secret.prompt.protection": "Base64-Schutzschlüssel: ",
+  "desktop.ipc.server.client_pid_required": "Der Modus --server benötigt --ipc-client-pid mit der PID des Programms, das sich verbinden wird; ohne diese Angabe wird der IPC-Kanal nicht geöffnet",
+  "desktop.ipc.peer_binding_unsupported": "Dieses System kann nicht prüfen, welches Programm sich mit der Signatur-Engine verbindet; GrxFirma startet deshalb nicht",
+  "desktop.ipc.flag.parent_stdin": "beendet den Server, wenn die Standardeingabe geschlossen wird, die das startende grafische Programm offen hält",
   "rest.error.private_credential": "die private REST-Anmeldeinformation konnte nicht vorbereitet werden",
   "rest.help.private_delivery": "Ein Geheimnismanager kann GRXFIRMA_REST_TOKEN bereitstellen. Wird das Token automatisch erzeugt, erscheint nur der Pfad zu einer privaten temporären Datei für curl --config.",
   "rest.output.bearer_file": "Temporäre Bearer-Anmeldeinformation: private Datei %s",
@@ -860,6 +887,15 @@
   "Firma electrónica avanzada": "Fortgeschrittene elektronische Signatur",
   "Firma guardada exitosamente en: ": "Signatur erfolgreich gespeichert unter: ",
   "Firma inválida o integridad no garantizada.": "Signatur ungültig oder Integrität nicht gewährleistet.",
+  "La firma es correcta, pero parte del contenido del documento no está firmado.": "Die Signatur ist korrekt, aber ein Teil des Dokumentinhalts ist nicht signiert.",
+  "No se ha podido comprobar todo lo que cubre la firma, así que no se da por válida.": "Nicht alles, was die Signatur abdeckt, konnte geprüft werden; sie gilt daher nicht als gültig.",
+  "La firma es válida, aunque no cubre algunos metadatos del documento porque su formato los deja fuera. En el detalle se indica cuáles.": "Die Signatur ist gültig, deckt aber einige Metadaten des Dokuments nicht ab, weil das Format sie ausnimmt. Die Details nennen, welche.",
+  "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba.": "Das Dokument wurde seit der Signatur nicht verändert, aber die Signatur verwendet SHA-1, einen alten Algorithmus, der heute nicht mehr als sicher gilt. Deshalb gilt sie nicht als gültig: Sie dient als Nachweis einer Signatur aus der Zeit, als SHA-1 noch akzeptiert wurde.",
+  "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida.": "Die Signatur entspricht der Art, wie frühere Versionen von GrxFirma das XML aufbereitet haben, nicht dem Standard. Sie wurde sehr wahrscheinlich mit einer dieser Versionen erstellt. Sie gilt nicht als gültig.",
+  "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar.": "Mit dieser alten Methode wurden Verarbeitungsanweisungen außerhalb des Wurzelelements, etwa ein Stylesheet, nicht signiert, und dieses Dokument enthält solche. Sie können nach der Signatur hinzugefügt worden sein.",
+  "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida.": "Das Dokument verweist auf eine externe DTD, die GrxFirma nicht liest. Fügt diese DTD dem Dokument Werte hinzu, zeigt ein anderes Programm womöglich nicht das Signierte an; deshalb gilt die Signatur nicht als gültig.",
+  "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo.": "Name oder Typ dieser geschützten Datei können nach dem Schützen geändert worden sein; das kommt bei Dateien aus früheren Versionen von GrxFirma häufig vor. Der Inhalt wurde geprüft. GrxFirma hat den Namen aus Sicherheitsgründen angepasst: Prüfen Sie ihn, bevor Sie die Datei öffnen.",
+  "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual.": "Diese Datei wurde mit einem alten Algorithmus verschlüsselt, der heute nicht mehr als sicher gilt. Sie wurde entschlüsselt, damit Sie den Zugriff nicht verlieren, aber der Absender sollte sie mit einem aktuellen Algorithmus neu schützen.",
   "Firma múltiple completada (": "Mehrfachsignatur abgeschlossen (",
   "Firma múltiple completada con incidencias (": "Mehrfachsignatur mit Hinweisen abgeschlossen (",
   "Firma múltiple finalizada.": "Mehrfachsignatur abgeschlossen.",
@@ -1163,6 +1199,7 @@
   "No se pudo conectar al backend tras 10 segundos": "Nach 10 Sekunden konnte keine Verbindung zum Backend hergestellt werden",
   "No se pudo conectar con el backend local.": "Es konnte keine Verbindung zum lokalen Backend hergestellt werden.",
   "No se pudo conectar con el servicio local de firma (¿está bloqueado?).": "Es konnte keine Verbindung zum lokalen Signaturdienst hergestellt werden (ist er blockiert?).",
+  "No se pudo abrir la carpeta del fichero": "Der Ordner der Datei konnte nicht geöffnet werden",
   "No se pudo confirmar el guardado de preferencias.": "Das Speichern der Einstellungen konnte nicht bestätigt werden.",
   "No se pudo confirmar el guardado de preferencias. Cerrando igualmente.": "Das Speichern der Einstellungen konnte nicht bestätigt werden. Es wird trotzdem geschlossen.",
   "No se pudo copiar el JSON de verificación.": "Das Verifizierungs-JSON konnte nicht kopiert werden.",
@@ -2402,6 +2439,13 @@
   "✅ Conexión establecida con el motor de firma.": "✅ Verbindung zur Signatur-Engine hergestellt.",
   "✅ Firma guardada exitosamente en: ": "✅ Signatur erfolgreich gespeichert unter: ",
   "✅ Proceso de instalación finalizado.": "✅ Installationsvorgang abgeschlossen.",
+  "Conectando con el motor de firma del lanzador...": "Verbindung mit der Signatur-Engine des Starters wird hergestellt...",
+  "Arrancando el motor de firma de esta ventana...": "Signatur-Engine für dieses Fenster wird gestartet...",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ Für die Verbindung mit der Signatur-Engine gibt es keinen privaten Ordner.",
+  "Error: no se pudo preparar la conexión con el motor de firma": "Fehler: Die Verbindung mit der Signatur-Engine konnte nicht vorbereitet werden",
+  "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "Die Verbindung führt nicht zur Signatur-Engine, die GrxFirma gestartet hat, und wurde ohne Datenübertragung getrennt. Schließen Sie GrxFirma und öffnen Sie es erneut.",
+  "Error: no se reconoce el motor de firma": "Fehler: Die Signatur-Engine wird nicht erkannt",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ Antwort der Signatur-Engine zu groß; die Verbindung wird getrennt.",
   "✅ Validar Documento": "✅ Dokument prüfen",
   "✅ VÁLIDA": "✅ GÜLTIG",
   "✍ FIRMA DIGITAL": "✍ DIGITALE SIGNATUR",
@@ -2427,6 +2471,7 @@
   "❌ No se pudo abrir la URL: ": "❌ Die URL konnte nicht geöffnet werden: ",
   "❌ No se pudo arrancar GrxFirma: ": "❌ GrxFirma konnte nicht gestartet werden: ",
   "❌ No se puede instalar: Backend no configurado.": "❌ Installation nicht möglich: Backend nicht konfiguriert.",
+  "❌ No se pudo abrir la carpeta: ": "❌ Ordner konnte nicht geöffnet werden: ",
   "🌐  Configuración de Proxy": "🌐 Proxy-Einstellungen",
   "🌐  Servidor API REST Local": "🌐 Lokaler REST-API-Server",
   "📤 Enviando petición (JSON): ": "📤 Anfrage wird gesendet (JSON): ",
@@ -2738,6 +2783,13 @@
   ,"Entendido": "Verstanden"
   ,"Actualizado a %1: ver novedades": "Auf %1 aktualisiert: Neuerungen anzeigen"
   ,"revocación no concluyente": "Der Widerruf des Zertifikats konnte nicht geprüft werden. Die Signatur gilt nicht als gültig."
+  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Der Speicher für Stammzertifikate des Systems konnte nicht gelesen werden, daher ist unklar, ob das Zertifikat vertrauenswürdig ist. Die Signatur gilt nicht als gültig."
+  ,"clave RSA del firmante de menos de 2048 bits": "Der Schlüssel des Unterzeichners ist RSA mit weniger als 2048 Bit, eine Größe, die heute nicht mehr als sicher gilt. Die Signatur gilt nicht als gültig."
+  ,"el certificado firmante no está destinado a firmar documentos": "Das zum Signieren verwendete Zertifikat ist nicht zum Signieren von Dokumenten bestimmt (es kann zum Beispiel das eines Webservers sein). Die Signatur gilt nicht als gültig."
+  ,"cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "Das Zertifikat hängt von einer vertrauenswürdigen Stammzertifizierungsstelle des Systems ab. Das garantiert nicht, dass es ein qualifiziertes Zertifikat ist."
+  ,"la firma no indica entre sus datos firmados con qué certificado se hizo": "Die signierten Daten geben nicht an, welches Zertifikat verwendet wurde. Daher lässt sich nicht prüfen, ob das angezeigte Zertifikat das signierende ist."
+  ,"el PDF contiene firmas que no se han podido verificar": "Das PDF enthält Signaturen, die GrxFirma nicht prüfen kann. Es kann daher nicht als gültig gelten."
+  ,"el PDF contiene un sello de tiempo de documento que no se ha evaluado": "Das PDF enthält einen Dokumentzeitstempel, der nicht geprüft wurde."
   ,"rest.verify_v2.error.limit": "Der Grenzwert für die Verifikation v2 liegt außerhalb des zulässigen Bereichs"
   ,"portal.seal.title": "Stempel auf dem PDF platzieren"
   ,"portal.seal.instructions": "Die Website, von der aus Sie signieren, bittet Sie, die Position der Signatur zu wählen. Ziehen Sie den Stempel, um ihn zu verschieben, nutzen Sie die untere rechte Ecke für die Größe und den Kreis mit dem Pfeil (↻) zum Drehen. Sie können die Position auch unter „Feinjustierung“ eingeben."
@@ -3923,6 +3975,9 @@
   ,"El sello visible permite elegir su posición en el PDF desde la aplicación y en los portales que solicitan esa elección.": "Die Position des sichtbaren Stempels im PDF kann in der Anwendung und auf Portalen gewählt werden, die diese Auswahl verlangen."
   ,"Se reforzó la lectura de PDF cifrados o dañados para evitar cierres inesperados.": "Das Lesen verschlüsselter oder beschädigter PDFs wurde verbessert, um unerwartete Programmabbrüche zu vermeiden."
   ,"Próxima versión (sin publicar)": "Nächste Version (unveröffentlicht)"
+  ,"Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.": "Beim Signieren über eine Website (afirma://) zeigt die Zertifikatsauswahl nicht mehr „Diese Auswahl merken“ an. Das Kontrollkästchen hatte keine Wirkung: Beim Signieren über eine Website fragt GrxFirma wie bisher jedes Mal nach dem Zertifikat."
+  ,"GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva prohibir_cifrado_cms_heredado. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.": "GrxFirma öffnet wieder verschlüsselte Dateien (CMS-Umschläge) mit alten Algorithmen wie DES oder 3DES. Es öffnet sie und warnt, dass die Verschlüsselung nicht mehr als sicher gilt; ein Administrator kann das mit der Richtlinie prohibir_cifrado_cms_heredado unterbinden. Die Warnung erscheint auch in der Anwendung, auf der Befehlszeile und in der REST-Konsole."
+  ,"Los archivos .afp que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.": "Mit dieser Version geschützte .afp-Dateien lassen sich auch mit früheren Versionen von GrxFirma öffnen. Das neuere Format bleibt verfügbar, wenn es ausdrücklich angefordert wird."
   ,"Histórico: nombre anterior AutoFirmaV2, versiones 2.0.x": "Verlauf: früherer Name AutoFirmaV2, Versionen 2.0.x"
   ,"Contenido de firma": "Signaturinhalt"
   ,"Disponibilidad de firma": "Verfügbarkeit der Signatur"
@@ -5104,7 +5159,6 @@
   ,"sin certificado firmante para evaluar confianza": "Kein Zertifikat des Unterzeichners zur Bewertung des Vertrauens vorhanden"
   ,"sin anclas de confianza disponibles": "Keine vertrauenswürdigen Stammzertifikate verfügbar"
   ,"ancla de confianza X.509 inválida": "Ungültiges vertrauenswürdiges X.509-Stammzertifikat"
-  ,"no se pudo consultar un almacén raíz del sistema utilizable": "Es konnte kein nutzbarer Stammzertifikatspeicher des Systems abgefragt werden"
   ,"ninguna ancla de confianza configurada contiene material X.509 verificable": "Keines der konfigurierten vertrauenswürdigen Stammzertifikate enthält prüfbare X.509-Daten"
   ,"cadena X.509 verificada contra las anclas de confianza configuradas": "X.509-Kette gegen die konfigurierten vertrauenswürdigen Stammzertifikate geprüft"
   ,"cadena de certificados vacía": "Die Zertifikatskette ist leer"

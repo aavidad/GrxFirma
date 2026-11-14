@@ -14,6 +14,7 @@ import (
 
 	"github.com/digitorus/pkcs7"
 	"github.com/digitorus/timestamp"
+	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
 	"grxfirma/internal/domain"
 )
 
@@ -51,6 +52,11 @@ func (e *Evaluador) evaluarSellos(ctx context.Context, material domain.MaterialF
 func (e *Evaluador) evaluarSello(ctx context.Context, token, valorFirma []byte, anclas *x509.CertPool, referencia time.Time) domain.AspectoDictamen {
 	if len(valorFirma) == 0 {
 		return domain.AspectoDictamen{Estado: domain.SelloNoComprobado, Motivo: "sin_valor_de_firma"}
+	}
+	// timestamp.Parse y pkcs7.Parse recorren el BER de forma recursiva y sin
+	// límite: un anidamiento enorme agota la pila, y eso es fatal (E2-05).
+	if anidamientoasn1.Comprobar(token, anidamientoasn1.MaxProfundidad) != nil {
+		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "sello_mal_formado_o_firma_no_valida"}
 	}
 	sello, err := timestamp.Parse(token)
 	if err != nil {

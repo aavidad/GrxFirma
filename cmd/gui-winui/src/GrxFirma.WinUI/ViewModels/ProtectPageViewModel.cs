@@ -84,6 +84,7 @@ public sealed class ProtectPageViewModel
         Localizer.Text("winui.proteger.seleccione_un_contenedor_protegido");
     private string _protectResultMessage =
         Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_proteccion");
+    private string _unprotectWarningMessage = string.Empty;
     private string _unprotectResultMessage =
         Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_desproteccion");
     private int _selectedRecipientCount;
@@ -309,6 +310,22 @@ public sealed class ProtectPageViewModel
         get => _unprotectResultMessage;
         private set => SetProperty(ref _unprotectResultMessage, value);
     }
+
+    // Avisos de compatibilidad al desproteger (vacío si no hay ninguno).
+    public string UnprotectWarningMessage
+    {
+        get => _unprotectWarningMessage;
+        private set
+        {
+            if (SetProperty(ref _unprotectWarningMessage, value))
+            {
+                RaisePropertyChanged(nameof(HasUnprotectWarning));
+            }
+        }
+    }
+
+    public bool HasUnprotectWarning =>
+        !string.IsNullOrWhiteSpace(_unprotectWarningMessage);
 
     public int SelectedRecipientCount
     {
@@ -953,6 +970,9 @@ public sealed class ProtectPageViewModel
             // explica dónde quedó.
             UnprotectResultMessage = destinationProblem ??
                 Localizer.Format("winui.proteger.documento_recuperado_en", _unprotectOutputPath);
+            UnprotectWarningMessage = string.Join(
+                " ",
+                result.Data.VisibleWarnings);
             UnprotectValidationMessage =
                 Localizer.Text("winui.proteger.la_desproteccion_termino_correctamente");
             UpdateCommandStates();
@@ -1370,6 +1390,7 @@ public sealed class ProtectPageViewModel
     private void ClearUnprotectedOutput()
     {
         _unprotectOutputPath = null;
+        UnprotectWarningMessage = string.Empty;
         UnprotectResultMessage =
             Localizer.Text("winui.proteger.no_se_ha_ejecutado_ninguna_desproteccion_2");
         UpdateCommandStates();

@@ -291,7 +291,7 @@ func TestUpdateCheckStatuses(t *testing.T) {
 }
 
 func TestContractDeclaresThirdWaveServices(t *testing.T) {
-	raw, err := buildMobileContract("android", true)
+	raw, err := buildMobileContract("android")
 	if err != nil {
 		t.Fatal(err)
 	}

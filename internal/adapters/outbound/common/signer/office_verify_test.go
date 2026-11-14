@@ -75,6 +75,8 @@ func TestOOXMLVerifier_VerificaContenedorFirmado(t *testing.T) {
 		references: []containerReference{
 			{URI: "/word/document.xml?ContentType=application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml", Data: document},
 			{URI: "/_rels/.rels?ContentType=application/vnd.openxmlformats-package.relationships+xml", Data: rels},
+			{URI: "/docProps/app.xml", Data: app},
+			{URI: "/docProps/core.xml", Data: core},
 		},
 	})
 

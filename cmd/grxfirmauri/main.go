@@ -233,6 +233,7 @@ func runConDependencias(
 	manejarSolicitud manejadorSolicitudProtocolo,
 ) int {
 	_ = os.Setenv("SYSLOG_IDENTIFIER", "grxfirma-afirmauri")
+	configurarRegistroPorDefecto(os.Stderr)
 	setProtocolLocalizer(defaultProtocolConfigDir())
 	setStartupTLSTrustNotice("")
 
@@ -483,10 +484,6 @@ func handleProtocolRequestWithGraceConDependencias(
 		writeErrorToLog(logger, ctx, "native_ui_operation_policy", err)
 		return 1
 	}
-	if err := solicitarAprobacionFirmaWeb(ctx, solicitud, approval); err != nil {
-		writeErrorToLog(logger, ctx, "aprobacion_firma_web", err)
-		return 1
-	}
 	timer.Mark("direct_uri_parsed", "operation", string(solicitud.Operacion))
 	probe.Stop("direct_uri_parsed")
 	protocolDiagnosticSetOperation(string(solicitud.Operacion))
@@ -515,7 +512,9 @@ func handleProtocolRequestWithGraceConDependencias(
 	)
 	logRuntimeProxyDiagnostic(ctx, logger, diagnosticarClienteHTTPRuntimeSeguro(configDir))
 
-	if err := runtime.orquestadorPara(solicitud).HandleRequest(ctx, solicitud); err != nil {
+	// La aprobación se pide dentro del orquestador, después de elegir
+	// certificado y con el detalle de qué se firma y adónde va (A-02).
+	if err := runtime.orquestadorPara(solicitud).HandleRequestConAprobacion(ctx, solicitud, approval); err != nil {
 		writeErrorToLog(logger, ctx, "handle_request", err)
 		return 1
 	}
@@ -541,30 +540,6 @@ func handleProtocolRequestWithGraceConDependencias(
 		time.Sleep(grace)
 	}
 	return 0
-}
-
-func solicitarAprobacionFirmaWeb(
-	ctx context.Context,
-	solicitud afirmauri.Solicitud,
-	approval ports.UserApproval,
-) error {
-	switch solicitud.Operacion {
-	case afirmauri.OperacionFirma, afirmauri.OperacionLote, afirmauri.OperacionSignSave:
-	default:
-		return nil
-	}
-	if approval == nil {
-		return errors.New("aprobador de firma web no configurado")
-	}
-	approved, err := approval.Request(ctx,
-		fmt.Sprintf("¿Desea continuar con la operación web de firma '%s'?", solicitud.Operacion))
-	if err != nil {
-		return fmt.Errorf("error al solicitar aprobación de la firma web: %w", err)
-	}
-	if !approved {
-		return errors.New("el usuario ha cancelado la operación web de firma")
-	}
-	return nil
 }
 
 func logRuntimeProxyDiagnostic(ctx context.Context, logger *slog.Logger, diag runtimeProxyDiagnostic) {
@@ -948,9 +923,14 @@ func parseWebSocketLaunchURI(uriString string) (*websocketLaunchRequest, error) 
 		}
 	}
 
+	// A-07 y lote 13a: sin idsession no hay ligadura entre el lanzamiento y
+	// la conexión, pero las sedes antiguas no lo mandan. Se admite por
+	// compatibilidad; el servidor lo avisa en el registro y en cada
+	// aprobación. Si viene, el servidor lo exige en todos los mensajes.
+	sessionID := firstQueryParam(params, "idsession", "idSession", "sessionid", "sessionId")
 	return &websocketLaunchRequest{
 		Ports:     ports,
-		SessionID: firstQueryParam(params, "idsession", "idSession", "sessionid", "sessionId"),
+		SessionID: sessionID,
 		Version:   version,
 	}, nil
 }

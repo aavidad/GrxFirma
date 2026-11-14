@@ -46,7 +46,12 @@ func TestRunVerificarAuditoria(t *testing.T) {
 
 // Sin -entrada se verifica el registro del usuario.
 func TestRunVerificarAuditoria_SinEntradaUsaElRegistroDelUsuario(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	// En Windows el registro cuelga de USERPROFILE/LOCALAPPDATA, no de HOME:
+	// sin aislarlos la prueba leería el registro real del usuario del equipo.
+	dir := t.TempDir()
+	for _, v := range []string{"HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_STATE_HOME"} {
+		t.Setenv(v, dir)
+	}
 	var stdout, stderr strings.Builder
 	a := New(nil, nil)
 	a.Stdout, a.Stderr = &stdout, &stderr

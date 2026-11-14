@@ -13,6 +13,9 @@
     'github.io', 'gitlab.io', 'pages.dev', 'workers.dev', 'netlify.app', 'vercel.app', 'web.app', 'firebaseapp.com',
     'herokuapp.com', 'azurewebsites.net', 'cloudfront.net', 'blogspot.com', 'appspot.com', 'amazonaws.com', 'onrender.com'
   ]);
+  // Decisión expresa de Alberto del 13/11/2026 (hallazgo C-08): se mantienen
+  // todos los subdominios de dipgra.es y savia.net. No restringir sin otra
+  // decisión; ver docs/ADR-desktop-security.md.
   const FACTORY_SITES = Object.freeze(['*.dipgra.es', '*.savia.net']);
 
   function normalizeSite(input) {

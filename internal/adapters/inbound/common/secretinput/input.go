@@ -295,6 +295,23 @@ type Environment struct {
 	values map[string]string
 }
 
+// Nombres de las variables de entorno con secretos que admite GrxFirma por
+// compatibilidad con automatizaciones.
+const (
+	EnvPKCS12Password    = "GRXFIRMA_PKCS12_PASSWORD"
+	EnvRESTToken         = "GRXFIRMA_REST_TOKEN"
+	EnvRESTTokenHeredado = "AUTOFIRMAV2_REST_TOKEN"
+	EnvProtectionSecret  = "GRXFIRMA_PROTECTION_SECRET_B64"
+	EnvPDFPassword       = "GRXFIRMA_PDF_PASSWORD"
+)
+
+// NombresEntornoSecretos devuelve, en una copia, la lista única de variables
+// con secretos. La usan el arranque de grxfirma, el adaptador CLI y el filtro
+// del entorno de los procesos hijo, para que no se desincronicen (H-04).
+func NombresEntornoSecretos() []string {
+	return []string{EnvPKCS12Password, EnvRESTToken, EnvRESTTokenHeredado, EnvProtectionSecret, EnvPDFPassword}
+}
+
 // ConsumeEnvironment captura y elimina todas las variables indicadas. Aunque
 // falle una eliminación, intenta limpiar el resto antes de devolver el error.
 func ConsumeEnvironment(

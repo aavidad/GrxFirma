@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"time"
 
 	"grxfirma/internal/adapters/outbound/common/secmem"
@@ -83,24 +84,90 @@ func ManagedLocalhostCAFile(certDir string) string {
 }
 
 func startTLSServer(ctx context.Context, addr string, handler http.Handler, certDir string, minVersion uint16) (*TLSServer, error) {
-	certFile, keyFile, _, source, err :=
-		EnsureBrowserCompatibleLocalhostCertificate(certDir, defaultCertPrefix)
+	reloader, err := newLocalLeafReloader(certDir)
 	if err != nil {
 		return nil, err
 	}
-	if source != "grxfirma-local-ca" {
-		return nil, errors.New("rest: la fuente del certificado TLS local no es gestionable")
+	cert, err := reloader.getCertificate(nil)
+	if err != nil {
+		return nil, err
 	}
+	tlsCfg := serverTLSConfig(*cert, minVersion)
+	// B-06: la hoja dura 30 días; un servidor sin -duracion-rest la renueva
+	// en caliente cuando entra en el margen de renovación.
+	tlsCfg.Certificates = nil
+	tlsCfg.GetCertificate = reloader.getCertificate
+	return serveTLSConfig(ctx, addr, handler, tlsCfg, reloader.certFile, reloader.keyFile)
+}
 
+// localLeafReloader sirve la hoja TLS local y la renueva antes de que caduque.
+type localLeafReloader struct {
+	mu       sync.Mutex
+	cert     *tls.Certificate
+	certFile string
+	keyFile  string
+	now      func() time.Time
+	ensure   func() (string, string, error)
+}
+
+func newLocalLeafReloader(certDir string) (*localLeafReloader, error) {
+	r := &localLeafReloader{
+		now: time.Now,
+		ensure: func() (string, string, error) {
+			certFile, keyFile, _, source, err := EnsureBrowserCompatibleLocalhostCertificate(certDir, defaultCertPrefix)
+			if err != nil {
+				return "", "", err
+			}
+			if source != "grxfirma-local-ca" {
+				return "", "", errors.New("rest: la fuente del certificado TLS local no es gestionable")
+			}
+			return certFile, keyFile, nil
+		},
+	}
+	if err := r.reloadLocked(); err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+func (r *localLeafReloader) reloadLocked() error {
+	certFile, keyFile, err := r.ensure()
+	if err != nil {
+		return err
+	}
 	cert, _, err := loadX509KeyPairSecure(certFile, keyFile)
 	if err != nil {
-		return nil, fmt.Errorf("rest: no se pudo cargar el par TLS: %w", err)
+		return fmt.Errorf("rest: no se pudo cargar el par TLS: %w", err)
 	}
-	return serveTLS(ctx, addr, handler, cert, certFile, keyFile, minVersion)
+	if cert.Leaf == nil {
+		leaf, err := x509.ParseCertificate(cert.Certificate[0])
+		if err != nil {
+			return fmt.Errorf("rest: hoja TLS ilegible: %w", err)
+		}
+		cert.Leaf = leaf
+	}
+	r.cert, r.certFile, r.keyFile = &cert, certFile, keyFile
+	return nil
+}
+
+func (r *localLeafReloader) getCertificate(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.cert != nil && r.now().Add(localServerRenewBefore).Before(r.cert.Leaf.NotAfter) {
+		return r.cert, nil
+	}
+	if err := r.reloadLocked(); err != nil && r.cert == nil {
+		return nil, err
+	}
+	// Si la renovación falla se conserva la hoja actual mientras siga vigente.
+	return r.cert, nil
 }
 
 func serveTLS(ctx context.Context, addr string, handler http.Handler, cert tls.Certificate, certFile, keyFile string, minVersion uint16) (*TLSServer, error) {
-	tlsCfg := serverTLSConfig(cert, minVersion)
+	return serveTLSConfig(ctx, addr, handler, serverTLSConfig(cert, minVersion), certFile, keyFile)
+}
+
+func serveTLSConfig(ctx context.Context, addr string, handler http.Handler, tlsCfg *tls.Config, certFile, keyFile string) (*TLSServer, error) {
 
 	ln, err := tls.Listen("tcp", addr, tlsCfg)
 	if err != nil {
@@ -245,9 +312,9 @@ func EnsureLocalhostCertificateWithLocalCA(dir, prefix string) (string, string, 
 			BasicConstraintsValid: true,
 			IsCA:                  true,
 			MaxPathLenZero:        true,
-			// La extensión no crítica preserva la compatibilidad con verificadores
-			// de navegador aún no validados; Go aplica igualmente la restricción.
-			PermittedDNSDomainsCritical: false,
+			// Extensión crítica (B-01): un verificador que no entienda las
+			// restricciones de nombre debe rechazar la CA en lugar de ignorarlas.
+			PermittedDNSDomainsCritical: true,
 			PermittedDNSDomains:         []string{"localhost"},
 			PermittedIPRanges: []*net.IPNet{
 				{IP: net.IPv4(127, 0, 0, 0).To4(), Mask: net.CIDRMask(8, 32)},

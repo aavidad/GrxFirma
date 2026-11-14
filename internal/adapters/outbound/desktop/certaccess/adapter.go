@@ -11,9 +11,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"grxfirma/internal/adapters/outbound/common/secmem"
+	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/ports"
 )
 
@@ -125,15 +127,17 @@ func (a *Adapter) Import(ctx context.Context, targetID string, data []byte, pass
 
 	working := append([]byte(nil), data...)
 	defer secmem.Zeroize(working)
-	file, err := os.CreateTemp("", "grxfirma-import-*.p12")
+	// El P12 va a un directorio privado de la caché del usuario, no al
+	// TMPDIR compartido, y se sobrescribe al terminar (F-03).
+	dir, err := directorioTemporalPrivado()
 	if err != nil {
 		return fmt.Errorf("no se pudo preparar la importación: %w", err)
 	}
-	path := file.Name()
-	defer removeSensitiveFile(path)
-	if err := os.Chmod(path, 0o600); err != nil {
-		_ = file.Close()
-		return fmt.Errorf("no se pudo proteger el temporal de importación: %w", err)
+	defer func() { _ = securefile.RemoveSensitiveTree(dir) }()
+	path := filepath.Join(dir, "importacion.p12")
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600) // #nosec G304 -- nombre fijo dentro del directorio privado recién creado.
+	if err != nil {
+		return fmt.Errorf("no se pudo preparar la importación: %w", err)
 	}
 	if _, err := file.Write(working); err != nil {
 		_ = file.Close()

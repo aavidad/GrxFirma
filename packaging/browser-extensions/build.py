@@ -262,6 +262,27 @@ def write_firefox_metadata(
     )
 
 
+LOCKED_WEB_EXT = ROOT / "tools" / "node_modules" / ".bin" / "web-ext"
+
+
+def resolve_web_ext() -> Path | None:
+    """Return the web-ext binary: explicit, then the lockfile install, then PATH.
+
+    The official release installs web-ext with ``npm ci --ignore-scripts`` from
+    tools/package-lock.json and sets GRXFIRMA_WEB_EXT to that binary.
+    """
+    explicit = os.environ.get("GRXFIRMA_WEB_EXT", "").strip()
+    if explicit:
+        path = Path(explicit)
+        if not path.is_absolute() or not path.is_file():
+            raise FileNotFoundError(f"GRXFIRMA_WEB_EXT no es un fichero absoluto: {explicit}")
+        return path
+    if LOCKED_WEB_EXT.is_file():
+        return LOCKED_WEB_EXT
+    found = shutil.which("web-ext")
+    return Path(found) if found else None
+
+
 def sign_or_stage_firefox_xpi(source_dir: Path, output_dir: Path = ROOT) -> None:
     unsigned_xpi = output_dir / FIREFOX_UNSIGNED_XPI.name
     firefox_xpi = output_dir / FIREFOX_XPI.name
@@ -284,16 +305,19 @@ def sign_or_stage_firefox_xpi(source_dir: Path, output_dir: Path = ROOT) -> None
 
     api_key = os.environ.get("WEB_EXT_API_KEY", "").strip()
     api_secret = os.environ.get("WEB_EXT_API_SECRET", "").strip()
-    if api_key and api_secret and shutil.which("web-ext"):
+    web_ext = resolve_web_ext()
+    if api_key and api_secret and web_ext is not None:
         with tempfile.TemporaryDirectory() as tmp:
             artifacts = Path(tmp)
             filtered_source = artifacts / "source"
             materialize_filtered_source(source_dir, filtered_source)
             signed_artifacts = artifacts / "signed"
             signed_artifacts.mkdir(parents=True, exist_ok=True)
+            # web-ext lee WEB_EXT_API_KEY y WEB_EXT_API_SECRET del entorno; no
+            # se pasan por argv para que no aparezcan en la lista de procesos.
             subprocess.run(
                 [
-                    "web-ext",
+                    str(web_ext),
                     "sign",
                     "--source-dir",
                     str(filtered_source),
@@ -301,10 +325,6 @@ def sign_or_stage_firefox_xpi(source_dir: Path, output_dir: Path = ROOT) -> None
                     str(signed_artifacts),
                     "--channel",
                     "unlisted",
-                    "--api-key",
-                    api_key,
-                    "--api-secret",
-                    api_secret,
                 ],
                 check=True,
             )

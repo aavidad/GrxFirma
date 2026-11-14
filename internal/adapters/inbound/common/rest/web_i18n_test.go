@@ -216,8 +216,8 @@ func TestWebLocalI18nCubreControlesHistoricamenteHardcodeados(t *testing.T) {
 func TestWebLocalI18nRenderizaControlesYPlaceholdersEnIngles(t *testing.T) {
 	t.Parallel()
 
-	adapter := New(nil, nil, nil)
-	request := httptest.NewRequest(http.MethodGet, "/?lang=en", nil)
+	adapter := nuevoAdaptadorPruebas(nil, nil, nil)
+	request := nuevaPeticionPruebas(http.MethodGet, "/?lang=en", nil)
 	response := httptest.NewRecorder()
 	adapter.Routes().ServeHTTP(response, request)
 	if response.Code != http.StatusOK {
@@ -228,20 +228,13 @@ func TestWebLocalI18nRenderizaControlesYPlaceholdersEnIngles(t *testing.T) {
 		"Remember selected certificate",
 		"CN=..., TIN=..., etc.",
 		"or folder",
-		"/path/to/document.pdf",
-		"/optional/output/path",
 		"Seal QR",
 		"Select a certificate to export its visible summary as JSON.",
 		"Copy certificate JSON",
 		"Copy fingerprint",
 		"Create hash",
 		"Check hash",
-		"Recursive",
 		"Current status",
-		"/output/path.hashreport",
-		"/path/to/document.bin",
-		"/path/to/document.afp, .enveloped or .authenveloped.p7m",
-		"/optional/output/path.afp, .enveloped or .authenveloped.p7m",
 		"CMS AuthEnvelopedData (.authenveloped.p7m)",
 		"AuthEnvelopedData uses AES-256-GCM and RSA-OAEP-SHA256/MGF1-SHA256; it requires a compatible recipient with a valid RSA X.509 certificate.",
 		"The current selection will not be remembered between sessions.",
@@ -308,8 +301,8 @@ func TestWebConsoleFlujoHashNoDejaLiteralesVisiblesSinLocalizar(t *testing.T) {
 func TestWebConsoleRenderizaFlujoHashEnIngles(t *testing.T) {
 	t.Parallel()
 
-	adapter := New(nil, nil, nil)
-	request := httptest.NewRequest(http.MethodGet, "/?lang=en", nil)
+	adapter := nuevoAdaptadorPruebas(nil, nil, nil)
+	request := nuevaPeticionPruebas(http.MethodGet, "/?lang=en", nil)
 	response := httptest.NewRecorder()
 	adapter.Routes().ServeHTTP(response, request)
 	if response.Code != http.StatusOK {
@@ -318,18 +311,9 @@ func TestWebConsoleRenderizaFlujoHashEnIngles(t *testing.T) {
 	body := response.Body.String()
 	for _, expected := range []string{
 		"Calculating hash...",
-		"Download manifest",
-		"Hash manifest created.",
-		"Directory hash manifest generated.",
 		"Download hash",
 		"Hash generated successfully.",
 		"Checking integrity...",
-		"Directory is intact.",
-		"Directory differs from the manifest.",
-		"Matching",
-		"Not matching",
-		"Manifest entry without file",
-		"File without manifest entry",
 		"Expected",
 		"Error checking hash: ",
 	} {
@@ -358,8 +342,8 @@ func TestWebConsoleBooleanosLocalizadosNoCorrompenJavaScript(t *testing.T) {
 		t.Run(testCase.lang, func(t *testing.T) {
 			t.Parallel()
 
-			adapter := New(nil, nil, nil)
-			request := httptest.NewRequest(http.MethodGet, "/?lang="+testCase.lang, nil)
+			adapter := nuevoAdaptadorPruebas(nil, nil, nil)
+			request := nuevaPeticionPruebas(http.MethodGet, "/?lang="+testCase.lang, nil)
 			response := httptest.NewRecorder()
 			adapter.Routes().ServeHTTP(response, request)
 			if response.Code != http.StatusOK {
@@ -368,8 +352,9 @@ func TestWebConsoleBooleanosLocalizadosNoCorrompenJavaScript(t *testing.T) {
 			body := response.Body.String()
 			booleanExpression := `? ` + `t` + `("` + testCase.yes + `") : ` +
 				`t` + `("` + testCase.no + `")`
-			if count := strings.Count(body, booleanExpression); count != 4 {
-				t.Errorf("la consola %s contiene %d de 4 booleanos localizados %q", testCase.lang, count, booleanExpression)
+			// B-05: tras retirar el hash de directorio queda un booleano localizado.
+			if count := strings.Count(body, booleanExpression); count != 1 {
+				t.Errorf("la consola %s contiene %d de 1 booleanos localizados %q", testCase.lang, count, booleanExpression)
 			}
 			if !strings.Contains(body, "cert.NotAfter") {
 				t.Errorf("la consola %s ha corrompido el identificador cert.NotAfter", testCase.lang)

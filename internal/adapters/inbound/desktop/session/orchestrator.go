@@ -50,6 +50,8 @@ type Orchestrator struct {
 	preferencias                        preferenceStore
 	requireExplicitCertificateSelection bool
 	timeout                             time.Duration
+	aprobador                           ports.UserApproval
+	componerAprobacion                  application.ComponedorAprobacion
 }
 
 type preferenceStore interface {
@@ -92,6 +94,11 @@ type Config struct {
 	Preferencias                        preferenceStore
 	RequireExplicitCertificateSelection bool
 	Timeout                             time.Duration
+	// Aprobador pide al usuario que confirme la firma después de elegir
+	// certificado. Sin él, las operaciones que firman fallan cerradas.
+	Aprobador ports.UserApproval
+	// ComponerAprobacion compone el texto de la aprobación (componente común).
+	ComponerAprobacion application.ComponedorAprobacion
 }
 
 // New construye un Orchestrator con la configuración proporcionada.
@@ -111,6 +118,8 @@ func New(cfg Config) *Orchestrator {
 		preferencias:                        cfg.Preferencias,
 		requireExplicitCertificateSelection: cfg.RequireExplicitCertificateSelection,
 		timeout:                             resolverTimeout(cfg.Timeout),
+		aprobador:                           cfg.Aprobador,
+		componerAprobacion:                  cfg.ComponerAprobacion,
 	}
 }
 
@@ -123,6 +132,14 @@ func New(cfg Config) *Orchestrator {
 //  6. Actualiza el progreso y cierra el diálogo.
 //  7. Notifica el resultado al usuario.
 func (o *Orchestrator) HandleRequest(ctx context.Context, solicitud afirmauri.Solicitud) error {
+	return o.HandleRequestConAprobacion(ctx, solicitud, o.aprobador)
+}
+
+// HandleRequestConAprobacion es HandleRequest con el aprobador de esta
+// operación. La aprobación se pide después de elegir certificado y antes de
+// abrir la clave, con el texto del componente común: operación, documento,
+// formato, número de firmas y servidores que recibirán el resultado.
+func (o *Orchestrator) HandleRequestConAprobacion(ctx context.Context, solicitud afirmauri.Solicitud, aprobador ports.UserApproval) error {
 	ctx, cancel := context.WithTimeout(ctx, o.timeout)
 	defer cancel()
 	release, err := certpicker.BeginCredentialOperation(ctx, o.certSelector)
@@ -182,7 +199,7 @@ func (o *Orchestrator) HandleRequest(ctx context.Context, solicitud afirmauri.So
 
 	// Paso 4: Seleccionar el certificado.
 	origenPreferencia := primerOrigen(solicitud.Origenes)
-	certSeleccionado, automatico, err := o.seleccionarCertificado(ctx, solicitud.Operacion, origenPreferencia, certsFiltrados)
+	certSeleccionado, automatico, err := o.seleccionarCertificado(ctx, solicitud.Operacion, origenPreferencia, solicitud.OrigenSolicitante == "", certsFiltrados)
 	if err != nil {
 		if errors.Is(err, certpicker.ErrSeleccionCancelada) {
 			o.publicarError(ctx, "session.error.selection_cancelled", err)
@@ -200,6 +217,10 @@ func (o *Orchestrator) HandleRequest(ctx context.Context, solicitud afirmauri.So
 		avisos.Registrar("Certificado próximo a caducar", aviso)
 	}
 	o.publicar(ctx, "session.selection.ok", certSeleccionado.ID)
+	if err := o.solicitarAprobacion(ctx, solicitud, certSeleccionado, aprobador); err != nil {
+		o.publicarError(ctx, "session.error.approval", err)
+		return err
+	}
 	log.Printf(
 		"[Session] certificado seleccionado automatico=%t operacion=%s",
 		automatico,
@@ -241,7 +262,7 @@ func (o *Orchestrator) HandleRequest(ctx context.Context, solicitud afirmauri.So
 	return nil
 }
 
-func (o *Orchestrator) seleccionarCertificado(ctx context.Context, operacion afirmauri.TipoOperacion, origen string, certs []domain.CertificateRef) (domain.CertificateRef, bool, error) {
+func (o *Orchestrator) seleccionarCertificado(ctx context.Context, operacion afirmauri.TipoOperacion, origen string, origenEsDestino bool, certs []domain.CertificateRef) (domain.CertificateRef, bool, error) {
 	if !o.requireExplicitCertificateSelection && !certpicker.SupportsCredentialLoading(o.certSelector) {
 		if cert, ok, err := o.certificadoPreferido(ctx, operacion, origen, certs); err != nil {
 			return domain.CertificateRef{}, false, err
@@ -258,7 +279,13 @@ func (o *Orchestrator) seleccionarCertificado(ctx context.Context, operacion afi
 	if o.certSelector == nil {
 		return domain.CertificateRef{}, false, errors.New("selector de certificado no configurado")
 	}
-	resultado, err := o.certSelector.Select(certpicker.ConContextoSolicitud(ctx, origen, string(operacion)), certs)
+	ctxSelector := certpicker.ConContextoSolicitud(ctx, origen, string(operacion))
+	if origenEsDestino {
+		// En afirma:// directo no se sabe qué web lanzó la URI: el dominio
+		// que se enseña es el del servidor que recibirá el resultado.
+		ctxSelector = certpicker.ConContextoDestino(ctx, origen, string(operacion))
+	}
+	resultado, err := o.certSelector.Select(ctxSelector, certs)
 	if err != nil {
 		return domain.CertificateRef{}, false, err
 	}
@@ -305,6 +332,87 @@ func (o *Orchestrator) recordarSeleccion(ctx context.Context, origen string, res
 	default:
 		return nil
 	}
+}
+
+// ErrAprobacionCancelada indica que el usuario no aprobó la firma.
+var ErrAprobacionCancelada = errors.New("el usuario ha cancelado la operación web de firma")
+
+func operacionRequiereAprobacion(op afirmauri.TipoOperacion) bool {
+	switch op {
+	case afirmauri.OperacionFirma, afirmauri.OperacionLote, afirmauri.OperacionSignSave:
+		return true
+	default:
+		return false
+	}
+}
+
+func (o *Orchestrator) solicitarAprobacion(ctx context.Context, solicitud afirmauri.Solicitud, cert domain.CertificateRef, aprobador ports.UserApproval) error {
+	if !operacionRequiereAprobacion(solicitud.Operacion) {
+		return nil
+	}
+	if aprobador == nil {
+		return errors.New("aprobador de firma web no configurado")
+	}
+	componer := o.componerAprobacion
+	if componer == nil {
+		return errors.New("texto de aprobación de firma web no configurado")
+	}
+	aprobado, err := aprobador.Request(ctx, componer(DetalleAprobacionSolicitud(solicitud, cert.Subject)))
+	if err != nil {
+		return fmt.Errorf("error al solicitar aprobación de la firma web: %w", err)
+	}
+	if !aprobado {
+		return ErrAprobacionCancelada
+	}
+	return nil
+}
+
+// DetalleAprobacionSolicitud describe una solicitud afirma:// para el diálogo
+// de aprobación común.
+func DetalleAprobacionSolicitud(solicitud afirmauri.Solicitud, certificado string) application.DetalleAprobacion {
+	detalle := application.DetalleAprobacion{
+		Operacion:           application.OperacionAprobacionDeAccion(string(solicitud.AccionFirma)),
+		Certificado:         certificado,
+		Formato:             string(solicitud.Formato),
+		Firmas:              1,
+		Origen:              solicitud.OrigenSolicitante,
+		OrigenNoVerificable: strings.TrimSpace(solicitud.OrigenSolicitante) == "",
+		Destinos:            []string{solicitud.Sesion.UploadEndpoint, solicitud.Sesion.RetrieveEndpoint},
+	}
+	if formato := strings.TrimSpace(solicitud.LegacyParams.Get("format")); formato != "" {
+		detalle.Formato = formato
+	}
+	detalle.Destinos = append(detalle.Destinos, afirmauri.ServidoresTrifasicos(solicitud.Options)...)
+	if solicitud.SignCommand != nil {
+		detalle.Documento = solicitud.SignCommand.Document.Name
+		detalle.Tamano = len(solicitud.SignCommand.Document.Content)
+		servidores := afirmauri.ServidoresTrifasicos(solicitud.SignCommand.Options)
+		detalle.Destinos = append(detalle.Destinos, servidores...)
+		// Lote 13c: en la trifásica con servidor, el servidor puede pedir
+		// varias firmas con esta aprobación (lote 13a); el diálogo lo dice.
+		detalle.FirmaTrifasicaServidor = len(servidores) > 0 &&
+			triphase.EsFormatoTrifasico(solicitud.LegacyParams.Get("format"))
+	}
+	if solicitud.Operacion == afirmauri.OperacionLote {
+		detalle.Operacion = application.AprobacionLote
+		detalle.Firmas = 0
+		if solicitud.BatchCommand != nil {
+			lote := application.DetalleAprobacionLote(*solicitud.BatchCommand, certificado)
+			detalle.Firmas = lote.Firmas
+			detalle.Documentos = lote.Documentos
+			if lote.Formato != "" {
+				detalle.Formato = lote.Formato
+			}
+		}
+		if solicitud.RemoteBatch != nil {
+			detalle.Destinos = append(detalle.Destinos, solicitud.RemoteBatch.PreSignEndpoint, solicitud.RemoteBatch.PostSignEndpoint)
+			if meta, err := afirmauri.ParseBatchMetadata(solicitud.RemoteBatch.Payload); err == nil {
+				detalle.Firmas = len(meta.IDs)
+				detalle.Documentos = meta.IDs
+			}
+		}
+	}
+	return detalle
 }
 
 func buscarCertificadoPorID(certs []domain.CertificateRef, id string) (domain.CertificateRef, bool) {
@@ -447,6 +555,15 @@ func (o *Orchestrator) ejecutarSimple(ctx context.Context, solicitud afirmauri.S
 		if cmd, resuelta, ok, err := afirmauri.ResolveRetrievedSign(raw, solicitud); err != nil {
 			return fmt.Errorf("payload remoto de firma inválido: %w", err)
 		} else if ok {
+			// A-03: el manifiesto recuperado puede cambiar el servlet de
+			// subida o traer serverUrl; se revalidan antes de firmar y subir.
+			origenes, err := afirmauri.OrigenesDestinoSolicitud(resuelta)
+			if err != nil {
+				return fmt.Errorf("payload remoto de firma inválido: %w", err)
+			}
+			if err := o.validarOrigenes(ctx, afirmauri.Solicitud{Origenes: origenes}); err != nil {
+				return fmt.Errorf("validación de origen del manifiesto recuperado fallida: %w", err)
+			}
 			if o.signer == nil {
 				return errors.New("el motor de firma no está configurado")
 			}
