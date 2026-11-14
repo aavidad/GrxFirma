@@ -48,3 +48,20 @@ func TestSHA1NoSeHabilitaPorVariableDeEntorno(t *testing.T) {
 		}
 	}
 }
+
+// Lote 16c: solo la directiva fijada expresamente a «deshabilitada» prohíbe
+// SHA-1 legado; sin directiva se admite con aviso por compatibilidad.
+func TestSHA1ProhibidoSoloConLaDirectivaDeshabilitada(t *testing.T) {
+	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	if LegacySHA1Prohibited() {
+		t.Fatal("sin la directiva, SHA-1 legado no está prohibido")
+	}
+	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, true)
+	if LegacySHA1Prohibited() {
+		t.Fatal("con la directiva habilitada, SHA-1 legado no está prohibido")
+	}
+	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, false)
+	if !LegacySHA1Prohibited() {
+		t.Fatal("con la directiva deshabilitada, SHA-1 legado está prohibido")
+	}
+}

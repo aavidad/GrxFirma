@@ -84,6 +84,7 @@
   "cli.error.no_operation": "ez da CLI eragiketarik adierazi",
   "cli.error.p12_secret_input": "ezin izan da PKCS#12 pasahitza irakurri",
   "cli.error.prefix": "errorea:",
+  "cli.aviso.prefix": "abisua:",
   "cli.error.protection_secret_input": "ezin izan da babes-gakoa irakurri",
   "cli.error.secret_env_cleanup": "ezin izan da %s hereda daitekeen ingurunetik kendu",
   "cli.error.unsupported_operation": "CLI eragiketa ez da onartzen: %s",
@@ -5126,6 +5127,8 @@
   ,"movil.verificacion.cadena_no_evaluada": "Osotasun kriptografikoa egiaztatuta; sistemak ez du katearen konfiantza ebaluatu."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu eta cotejar-qr-verifactu aukerek QRaren URLa edo PNG, JPEG edo PDF fitxategi bat onartzen dute -entrada aukeran."
   ,"eni.error.signature_mismatch": "Sinadura ez dator bat jatorrizko dokumentuarekin, edo dokumentua sinatu ondoren aldatu da. Egiaztatu jatorrizko dokumentu zuzena aukeratu duzula."
+  ,"firma.sha1_corresponde.aviso": "Sinadura dokumentuari dagokio, baina SHA-1 erabiltzen du, gaur egun segurutzat jotzen ez den algoritmo zahar bat. Onartu egiten da duela urte asko sinatutako dokumentuak kanpoan ez uzteko; sinadura egiaztatzean abisu hau bera agertuko da."
+  ,"firma.sha1_corresponde.prohibido": "Sinadurak SHA-1 erabiltzen du eta ekipo honen politikak ez du algoritmo hori onartzen; beraz, ez da jarraitu. Sinadura zahar hau erabili behar baduzu, galdetu ekipoa administratzen duenari."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: urratsez urratseko pantaila, emaitza amaitzean ikusgai, sinadura bat baztertu aurretik berrespena, ziurtagiria automatikoki ixtea bigarren planoan minutu batzuk igaro ondoren eta testu argiagoak."
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android: ziurtagiriaren datuak eta iraungitzea baliogabetze-egiaztapenarekin, hobespenak, diagnostikoa, bertsio berrien bilaketa, gai argia edo iluna eta egiaztapen-txosten inprimagarria."
   ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: ENI espedientea, zigilu ikusgaia edo sinadura bateratua duen lotea, eta NANe elektronikoa lotean eta «babestu eta sinatu» aukeran, PINa behin bakarrik eskatuz. NFC bidezko NANak txartelaren sinadura-ziurtagiria onartzen du orain."

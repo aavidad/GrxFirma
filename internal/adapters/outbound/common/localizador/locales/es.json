@@ -84,6 +84,7 @@
   "cli.error.no_operation": "no se ha indicado ninguna operación CLI",
   "cli.error.p12_secret_input": "no se pudo leer la contraseña PKCS#12",
   "cli.error.prefix": "error:",
+  "cli.aviso.prefix": "aviso:",
   "cli.error.protection_secret_input": "no se pudo leer la clave de protección",
   "cli.error.secret_env_cleanup": "no se pudo retirar %s del entorno heredable",
   "cli.error.unsupported_operation": "operación no soportada en CLI: %s",
@@ -5127,6 +5128,8 @@
   ,"movil.verificacion.cadena_no_evaluada": "La integridad criptografica se ha verificado, pero la confianza de la cadena no esta evaluada por el sistema."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu y cotejar-qr-verifactu aceptan en -entrada la URL del QR o un fichero PNG, JPEG o PDF."
   ,"eni.error.signature_mismatch": "La firma no corresponde al documento original o el documento se ha modificado después de firmarlo. Compruebe que ha elegido el original correcto."
+  ,"firma.sha1_corresponde.aviso": "La firma corresponde al documento, pero usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Se admite para no dejar fuera documentos firmados hace años; al verificar la firma aparecerá este mismo aviso."
+  ,"firma.sha1_corresponde.prohibido": "La firma usa SHA-1 y la política de este equipo no admite ese algoritmo, así que no se ha seguido. Si necesita usar esta firma antigua, consulte con quien administra el equipo."
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros."
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible."
   ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta."

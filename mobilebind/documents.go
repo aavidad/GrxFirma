@@ -185,6 +185,9 @@ type eniDocumentRequest struct {
 type eniDocumentResponse struct {
 	ContentBase64 string `json:"content_base64"`
 	SignatureType string `json:"signature_type"`
+	// Warnings lleva claves de catálogo, por ejemplo el aviso de una firma
+	// SHA-1 que corresponde al documento (lote 16c).
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 // CreateENIDocumentJSON envuelve una firma PAdES, CAdES o XAdES en un
@@ -235,7 +238,7 @@ func (f *Facade) CreateENIDocumentJSON(payload string) (out string, err error) {
 	if len(signature)+len(original) > maxENIInputBytes {
 		return "", newFacadeError("original_base64 supera el limite permitido")
 	}
-	doc, err := eniDocumentFromSignature(signature, original, req)
+	doc, avisos, err := eniDocumentFromSignature(signature, original, req)
 	if err != nil {
 		return "", err
 	}
@@ -251,52 +254,52 @@ func (f *Facade) CreateENIDocumentJSON(payload string) (out string, err error) {
 	return marshal(eniDocumentResponse{
 		ContentBase64: base64.StdEncoding.EncodeToString(output),
 		SignatureType: signatureType,
+		Warnings:      avisos,
 	})
 }
 
 // eniDocumentFromSignature reproduce DocumentoENIDesdeFirma de la CLI sin
 // arrastrar sus dependencias de escritorio y con errores cerrados.
-func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest) (eni.Documento, error) {
-	var doc eni.Documento
+func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest) (doc eni.Documento, avisos []string, err error) {
 	trimmed := bytes.TrimLeft(signature, " \t\r\n\ufeff")
 	switch {
 	case bytes.HasPrefix(trimmed, []byte("%PDF-")):
 		if !bytes.Contains(signature, []byte("/ByteRange")) {
-			return doc, newFacadeError(eniErrorUnsignedPDF)
+			return doc, nil, newFacadeError(eniErrorUnsignedPDF)
 		}
-		if commonsigner.ComprobarIntegridadPAdES(context.Background(), signature) != nil {
-			return doc, newFacadeError(eniErrorMismatch)
+		if avisos, err = resolverCotejoMovil(commonsigner.ComprobarIntegridadPAdES(context.Background(), signature), "eni", eniErrorMismatch); err != nil {
+			return doc, nil, err
 		}
 		doc.Contenido, doc.NombreFormato = signature, "PDF"
 		doc.Firmas = []eni.Firma{{Tipo: eni.FirmaPAdES}}
 	case len(trimmed) > 0 && trimmed[0] == 0x30:
-		content, implicit, err := commonsigner.ContenidoCAdESImplicito(signature)
-		if err != nil {
-			return doc, newFacadeError(eniErrorUnrecognized)
+		content, implicit, errCMS := commonsigner.ContenidoCAdESImplicito(signature)
+		if errCMS != nil {
+			return doc, nil, newFacadeError(eniErrorUnrecognized)
 		}
 		if implicit {
 			// El contenido sale del propio CMS: se coteja con el messageDigest
 			// y la firma de cada firmante para no envolver un eContent cambiado
 			// después de firmar (KD-05).
-			if commonsigner.CotejarCAdESExplicita(signature, content) != nil {
-				return doc, newFacadeError(eniErrorMismatch)
+			if avisos, err = resolverCotejoMovil(commonsigner.CotejarCAdESExplicita(signature, content), "eni", eniErrorMismatch); err != nil {
+				return doc, nil, err
 			}
 			doc.Contenido = content
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESImplicit, Datos: signature}}
 		} else {
 			if len(original) == 0 {
-				return doc, newFacadeError(eniErrorExplicitCAdES)
+				return doc, nil, newFacadeError(eniErrorExplicitCAdES)
 			}
-			if commonsigner.CotejarCAdESExplicita(signature, original) != nil {
-				return doc, newFacadeError(eniErrorMismatch)
+			if avisos, err = resolverCotejoMovil(commonsigner.CotejarCAdESExplicita(signature, original), "eni", eniErrorMismatch); err != nil {
+				return doc, nil, err
 			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESExplicit, Datos: signature}}
 		}
 	case bytes.HasPrefix(trimmed, []byte("<")) && bytes.Contains(signature, []byte("http://www.w3.org/2000/09/xmldsig#")):
 		if len(original) > 0 {
-			if commonsigner.CotejarXAdESSeparada(signature, original) != nil {
-				return doc, newFacadeError(eniErrorMismatch)
+			if avisos, err = resolverCotejoMovil(commonsigner.CotejarXAdESSeparada(signature, original), "eni", eniErrorMismatch); err != nil {
+				return doc, nil, err
 			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaXAdESDetached, Datos: signature}}
@@ -305,7 +308,7 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaXAdESEnvelope, Datos: signature}}
 		}
 	default:
-		return doc, newFacadeError(eniErrorUnrecognized)
+		return doc, nil, newFacadeError(eniErrorUnrecognized)
 	}
 	if format := strings.TrimSpace(req.ContentFormat); format != "" {
 		doc.NombreFormato = strings.ToUpper(format)
@@ -313,7 +316,7 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 		doc.NombreFormato = eniContentFormat(doc.Contenido)
 	}
 	if doc.NombreFormato == "" {
-		return doc, newFacadeError(eniErrorContentFormat)
+		return doc, nil, newFacadeError(eniErrorContentFormat)
 	}
 	m := &doc.Metadatos
 	for _, organ := range req.Organs {
@@ -326,7 +329,7 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 		m.OrigenAdministracion = true
 	case "ciudadano":
 	default:
-		return doc, newFacadeError(eniErrorOrigin)
+		return doc, nil, newFacadeError(eniErrorOrigin)
 	}
 	m.Identificador = strings.TrimSpace(req.Identifier)
 	m.EstadoElaboracion = strings.ToUpper(strings.TrimSpace(req.State))
@@ -341,11 +344,11 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 	if date := strings.TrimSpace(req.CaptureDate); date != "" {
 		parsed, err := time.Parse(time.RFC3339, date)
 		if err != nil {
-			return doc, newFacadeError("eni.validacion.date")
+			return doc, nil, newFacadeError("eni.validacion.date")
 		}
 		m.FechaCaptura = parsed
 	}
-	return doc, nil
+	return doc, avisos, nil
 }
 
 // eniContentFormat es formatoContenidoENI de la CLI.

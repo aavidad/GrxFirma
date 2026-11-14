@@ -6,6 +6,7 @@
 package mobilebind
 
 import (
+	"errors"
 	"log/slog"
 	"strings"
 
@@ -17,6 +18,7 @@ const (
 	mobileErrorCofirmaSinOriginal    = "firma.cofirma_sin_original.pedir_original"
 	mobileErrorOriginalNoCorresponde = "firma.cofirma_sin_original.original_no_corresponde"
 	mobileAvisoCofirmaSinOriginal    = "firma.cofirma_sin_original.aviso"
+	mobileErrorSHA1Prohibido         = "firma.sha1_corresponde.prohibido"
 )
 
 // esCofirmaCAdESExplicita indica si la operación añade una firma a una CAdES
@@ -42,14 +44,27 @@ func esCofirmaCAdESExplicita(format, action string, content []byte) bool {
 // resultado.
 func comprobarOriginalCofirma(content, original []byte, confirmado bool) (avisos []string, err error) {
 	if len(original) > 0 {
-		if commonsigner.CotejarCAdESExplicita(content, original) != nil {
-			return nil, newFacadeError(mobileErrorOriginalNoCorresponde)
-		}
-		return nil, nil
+		return resolverCotejoMovil(commonsigner.CotejarCAdESExplicita(content, original), "cofirma", mobileErrorOriginalNoCorresponde)
 	}
 	if !confirmado {
 		return nil, newFacadeError(mobileErrorCofirmaSinOriginal)
 	}
 	slog.Warn("cofirma_sin_original_confirmada", "plataforma", "movil")
 	return []string{mobileAvisoCofirmaSinOriginal}, nil
+}
+
+// resolverCotejoMovil traduce un cotejo a las claves cerradas del móvil. Una
+// firma SHA-1 que corresponde sigue adelante con su aviso (lote 16c), salvo
+// que la política de máquina prohíba SHA-1 legado.
+func resolverCotejoMovil(cotejo error, operacion, errorNoCorresponde string) ([]string, error) {
+	aviso, err := commonsigner.AdmitirCotejoSHA1(cotejo, operacion)
+	switch {
+	case errors.Is(err, commonsigner.ErrCotejoSHA1Prohibido):
+		return nil, newFacadeError(mobileErrorSHA1Prohibido)
+	case err != nil:
+		return nil, newFacadeError(errorNoCorresponde)
+	case aviso:
+		return []string{commonsigner.AvisoFirmaSHA1Corresponde}, nil
+	}
+	return nil, nil
 }

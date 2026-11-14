@@ -4456,11 +4456,12 @@ func (a *Adaptador) ejecutarGenerarENI(cfg configCLI) int {
 			return 1
 		}
 	}
-	doc, err := a.documentoENIDesdeFirma(firma, original, cfg.opciones)
+	doc, avisosENI, err := a.documentoENIDesdeFirmaConAvisos(firma, original, cfg.opciones)
 	if err != nil {
 		a.escribirErrorCLI(titulo, err)
 		return 1
 	}
+	a.escribirAvisosCLI(avisosENI)
 	xmlENI, err := eni.Generar(doc, time.Now())
 	if err != nil {
 		a.escribirErrorCLI(titulo, err)
@@ -4479,50 +4480,51 @@ func (a *Adaptador) ejecutarGenerarENI(cfg configCLI) int {
 	return 0
 }
 
-// documentoENIDesdeFirma reconoce el tipo de firma (PAdES, CAdES implícita o
-// explícita, XAdES) y toma los metadatos de las opciones eni.*.
-func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[string]string) (eni.Documento, error) {
+// documentoENIDesdeFirmaConAvisos reconoce el tipo de firma (PAdES, CAdES
+// implícita o explícita, XAdES) y toma los metadatos de las opciones eni.*.
+// Devuelve las claves de catálogo de los avisos, por ejemplo el de una firma
+// SHA-1 que corresponde al documento (lote 16c).
+func (a *Adaptador) documentoENIDesdeFirmaConAvisos(firma, original []byte, opciones map[string]string) (doc eni.Documento, avisos []string, err error) {
 	op := func(k string) string { return strings.TrimSpace(opciones["eni."+k]) }
-	var doc eni.Documento
 	recortado := bytes.TrimLeft(firma, " \t\r\n\ufeff")
 	switch {
 	case bytes.HasPrefix(recortado, []byte("%PDF-")):
 		if !bytes.Contains(firma, []byte("/ByteRange")) {
-			return doc, errors.New(a.t("El PDF no está firmado.", "El PDF no está firmado."))
+			return doc, nil, errors.New(a.t("El PDF no está firmado.", "El PDF no está firmado."))
 		}
-		if commonsigner.ComprobarIntegridadPAdES(context.Background(), firma) != nil {
-			return doc, a.errorFirmaNoCorresponde()
+		if avisos, err = a.resolverCotejoENI(commonsigner.ComprobarIntegridadPAdES(context.Background(), firma)); err != nil {
+			return doc, nil, err
 		}
 		doc.Contenido, doc.NombreFormato = firma, "PDF"
 		doc.Firmas = []eni.Firma{{Tipo: eni.FirmaPAdES}}
 	case len(recortado) > 0 && recortado[0] == 0x30:
-		contenido, implicita, err := commonsigner.ContenidoCAdESImplicito(firma)
-		if err != nil {
-			return doc, err
+		contenido, implicita, errCMS := commonsigner.ContenidoCAdESImplicito(firma)
+		if errCMS != nil {
+			return doc, nil, errCMS
 		}
 		if implicita {
 			// El contenido sale del propio CMS: se coteja con el messageDigest
 			// y la firma de cada firmante para no envolver un eContent cambiado
 			// después de firmar (KD-05).
-			if commonsigner.CotejarCAdESExplicita(firma, contenido) != nil {
-				return doc, a.errorFirmaNoCorresponde()
+			if avisos, err = a.resolverCotejoENI(commonsigner.CotejarCAdESExplicita(firma, contenido)); err != nil {
+				return doc, nil, err
 			}
 			doc.Contenido = contenido
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESImplicit, Datos: firma}}
 		} else {
 			if len(original) == 0 {
-				return doc, errors.New(a.t("La firma CAdES es explícita: indica el documento firmado con -original.", "La firma CAdES es explícita: indica el documento firmado con -original."))
+				return doc, nil, errors.New(a.t("La firma CAdES es explícita: indica el documento firmado con -original.", "La firma CAdES es explícita: indica el documento firmado con -original."))
 			}
-			if commonsigner.CotejarCAdESExplicita(firma, original) != nil {
-				return doc, a.errorFirmaNoCorresponde()
+			if avisos, err = a.resolverCotejoENI(commonsigner.CotejarCAdESExplicita(firma, original)); err != nil {
+				return doc, nil, err
 			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaCAdESExplicit, Datos: firma}}
 		}
 	case bytes.HasPrefix(recortado, []byte("<")) && bytes.Contains(firma, []byte("http://www.w3.org/2000/09/xmldsig#")):
 		if len(original) > 0 {
-			if commonsigner.CotejarXAdESSeparada(firma, original) != nil {
-				return doc, a.errorFirmaNoCorresponde()
+			if avisos, err = a.resolverCotejoENI(commonsigner.CotejarXAdESSeparada(firma, original)); err != nil {
+				return doc, nil, err
 			}
 			doc.Contenido = original
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaXAdESDetached, Datos: firma}}
@@ -4531,7 +4533,7 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 			doc.Firmas = []eni.Firma{{Tipo: eni.FirmaXAdESEnvelope, Datos: firma}}
 		}
 	default:
-		return doc, errors.New(a.t("El fichero no es una firma PAdES, CAdES o XAdES reconocida.", "El fichero no es una firma PAdES, CAdES o XAdES reconocida."))
+		return doc, nil, errors.New(a.t("El fichero no es una firma PAdES, CAdES o XAdES reconocida.", "El fichero no es una firma PAdES, CAdES o XAdES reconocida."))
 	}
 	if f := op("formato"); f != "" {
 		doc.NombreFormato = strings.ToUpper(f)
@@ -4539,7 +4541,7 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 		doc.NombreFormato = formatoContenidoENI(doc.Contenido)
 	}
 	if doc.NombreFormato == "" {
-		return doc, errors.New(a.t("No se reconoce el formato del contenido: indícalo con -opcion eni.formato=PDF.", "No se reconoce el formato del contenido: indícalo con -opcion eni.formato=PDF."))
+		return doc, nil, errors.New(a.t("No se reconoce el formato del contenido: indícalo con -opcion eni.formato=PDF.", "No se reconoce el formato del contenido: indícalo con -opcion eni.formato=PDF."))
 	}
 	m := &doc.Metadatos
 	for _, o := range strings.Split(op("organo"), ",") {
@@ -4552,7 +4554,7 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 		m.OrigenAdministracion = true
 	case "ciudadano":
 	default:
-		return doc, errors.New(a.t("Indica el origen con -opcion eni.origen=ciudadano o administracion.", "Indica el origen con -opcion eni.origen=ciudadano o administracion."))
+		return doc, nil, errors.New(a.t("Indica el origen con -opcion eni.origen=ciudadano o administracion.", "Indica el origen con -opcion eni.origen=ciudadano o administracion."))
 	}
 	m.Identificador = op("identificador")
 	m.EstadoElaboracion = strings.ToUpper(op("estado"))
@@ -4567,11 +4569,11 @@ func (a *Adaptador) documentoENIDesdeFirma(firma, original []byte, opciones map[
 	if f := op("fechaCaptura"); f != "" {
 		fecha, err := time.Parse(time.RFC3339, f)
 		if err != nil {
-			return doc, errors.New(a.t("La fecha de captura (eni.fechaCaptura) debe tener el formato 2026-09-26T10:00:00+02:00.", "La fecha de captura (eni.fechaCaptura) debe tener el formato 2026-09-26T10:00:00+02:00."))
+			return doc, nil, errors.New(a.t("La fecha de captura (eni.fechaCaptura) debe tener el formato 2026-09-26T10:00:00+02:00.", "La fecha de captura (eni.fechaCaptura) debe tener el formato 2026-09-26T10:00:00+02:00."))
 		}
 		m.FechaCaptura = fecha
 	}
-	return doc, nil
+	return doc, avisos, nil
 }
 
 // errorFirmaNoCorresponde se devuelve cuando el cotejo local de la firma con
@@ -4580,10 +4582,48 @@ func (a *Adaptador) errorFirmaNoCorresponde() error {
 	return errors.New(a.t("eni.error.signature_mismatch", "La firma no corresponde al documento original o el documento se ha modificado después de firmarlo. Compruebe que ha elegido el original correcto."))
 }
 
+// resolverCotejoENI aplica el criterio de SHA-1 al cotejo previo al ENI: una
+// firma SHA-1 que corresponde se envuelve con aviso, salvo que la política de
+// máquina prohíba SHA-1 legado; cualquier otro fallo es «no corresponde».
+func (a *Adaptador) resolverCotejoENI(cotejo error) ([]string, error) {
+	aviso, err := commonsigner.AdmitirCotejoSHA1(cotejo, "eni")
+	switch {
+	case errors.Is(err, commonsigner.ErrCotejoSHA1Prohibido):
+		return nil, errors.New(a.t("firma.sha1_corresponde.prohibido", "La firma usa SHA-1 y la política de este equipo no admite ese algoritmo, así que no se ha seguido."))
+	case err != nil:
+		return nil, a.errorFirmaNoCorresponde()
+	case aviso:
+		return []string{commonsigner.AvisoFirmaSHA1Corresponde}, nil
+	}
+	return nil, nil
+}
+
+// escribirAvisosCLI saca por la salida de error, con su texto de catálogo,
+// los avisos de una operación que ha seguido adelante.
+func (a *Adaptador) escribirAvisosCLI(claves []string) {
+	for _, clave := range claves {
+		texto := clave
+		if a.Localizador != nil {
+			if traducido := a.Localizador.T(clave); traducido != "" {
+				texto = traducido
+			}
+		}
+		fmt.Fprintln(a.Stderr, a.t("cli.aviso.prefix", "aviso:"), texto)
+	}
+}
+
 // DocumentoENIDesdeFirma comparte con el IPC el reconocimiento de firmas y
-// los metadatos usados por la orden generar-eni.
+// los metadatos usados por la orden generar-eni. Los avisos solo quedan en el
+// registro; DocumentoENIDesdeFirmaConAvisos los devuelve para mostrarlos.
 func DocumentoENIDesdeFirma(firma, original []byte, opciones map[string]string) (eni.Documento, error) {
-	return (&Adaptador{}).documentoENIDesdeFirma(firma, original, opciones)
+	doc, _, err := DocumentoENIDesdeFirmaConAvisos(firma, original, opciones)
+	return doc, err
+}
+
+// DocumentoENIDesdeFirmaConAvisos es DocumentoENIDesdeFirma con las claves de
+// catálogo de los avisos (por ejemplo, firma.sha1_corresponde.aviso).
+func DocumentoENIDesdeFirmaConAvisos(firma, original []byte, opciones map[string]string) (eni.Documento, []string, error) {
+	return (&Adaptador{}).documentoENIDesdeFirmaConAvisos(firma, original, opciones)
 }
 
 func formatoContenidoENI(data []byte) string {

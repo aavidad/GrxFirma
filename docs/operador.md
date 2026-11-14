@@ -342,7 +342,9 @@ véase [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md)):
   descifran siempre con aviso.
 - `prohibir_cifrado_cms_heredado`: impide descifrar esos sobres CMS con
   cifrados antiguos.
-- `permitir_sha1_legacy`: habilita generación de firmas SHA-1.
+- `permitir_sha1_legacy`: habilita generación de firmas SHA-1. Fijada a `0`
+  (deshabilitada) impide además envolver en un ENI, o cofirmar con su
+  original, una firma SHA-1 antigua; sin la directiva eso se admite con aviso.
 - `permitir_rutas_directas_protocolo`: permite rutas absolutas entregadas
   por el portal en `load`, `save` y `signandsave`.
 

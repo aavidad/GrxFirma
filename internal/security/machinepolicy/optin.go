@@ -7,9 +7,15 @@ package machinepolicy
 
 import "sync"
 
+// valorPrueba es una excepción fijada en una prueba; fijado=false simula que
+// el administrador no ha puesto la directiva.
+type valorPrueba struct {
+	valor, fijado bool
+}
+
 var (
 	overridesMu sync.RWMutex
-	overrides   = map[string]bool{}
+	overrides   = map[string]valorPrueba{}
 )
 
 // OptIn indica si la política de máquina habilita expresamente una excepción
@@ -18,14 +24,28 @@ var (
 // resto. Las variables de entorno ya no bastan: cualquier web o guía podía
 // pedir al usuario que las definiera para rebajar la seguridad.
 func OptIn(name string) bool {
+	habilitado, fijado := OptInFijado(name)
+	return fijado && habilitado
+}
+
+// OptInFijado distingue una excepción que el administrador ha fijado
+// expresamente (habilitada o no) de una que no ha tocado. Sirve para las
+// directivas en las que «deshabilitada» cierra algo que sin la directiva se
+// admite por compatibilidad (por ejemplo, permitir_sha1_legacy a 0 o false
+// cierra el ENI de una firma SHA-1 antigua). Si la política no se puede leer,
+// cuenta como no fijada, igual que en OptIn.
+func OptInFijado(name string) (habilitado, fijado bool) {
 	overridesMu.RLock()
 	v, ok := overrides[name]
 	overridesMu.RUnlock()
 	if ok {
-		return v
+		return v.valor, v.fijado
 	}
 	enabled, present, err := readOptIn(name)
-	return err == nil && present && enabled
+	if err != nil || !present {
+		return false, false
+	}
+	return enabled, true
 }
 
 // testHandle es el subconjunto de testing.TB necesario; evita enlazar el
@@ -37,6 +57,17 @@ type testHandle interface {
 
 // SetForTest fija temporalmente una excepción de política durante un test.
 func SetForTest(tb testHandle, name string, value bool) {
+	tb.Helper()
+	fijarParaPrueba(tb, name, valorPrueba{valor: value, fijado: true})
+}
+
+// UnsetForTest simula durante un test que la directiva no está fijada.
+func UnsetForTest(tb testHandle, name string) {
+	tb.Helper()
+	fijarParaPrueba(tb, name, valorPrueba{})
+}
+
+func fijarParaPrueba(tb testHandle, name string, value valorPrueba) {
 	tb.Helper()
 	overridesMu.Lock()
 	previous, existed := overrides[name]

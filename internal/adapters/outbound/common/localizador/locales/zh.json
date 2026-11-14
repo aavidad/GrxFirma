@@ -84,6 +84,7 @@
   "cli.error.no_operation": "未指定 CLI 操作",
   "cli.error.p12_secret_input": "无法读取 PKCS#12 密码",
   "cli.error.prefix": "错误：",
+  "cli.aviso.prefix": "警告：",
   "cli.error.protection_secret_input": "无法读取保护密钥",
   "cli.error.secret_env_cleanup": "无法从可继承环境中移除 %s",
   "cli.error.unsupported_operation": "不支持的 CLI 操作：%s",
@@ -5127,6 +5128,8 @@
   ,"movil.verificacion.cadena_no_evaluada": "已验证加密完整性；系统尚未评估证书链信任。"
   ,"verifactu.cli_qr_input": "leer-qr-verifactu 和 cotejar-qr-verifactu 的 -entrada 参数接受二维码 URL 或 PNG、JPEG、PDF 文件。"
   ,"eni.error.signature_mismatch": "签名与原始文档不符，或文档在签名后已被修改。请确认您选择了正确的原始文档。"
+  ,"firma.sha1_corresponde.aviso": "签名与文档相符，但使用的是 SHA-1，这是一种如今已不再被视为安全的旧算法。为了不排除多年前签署的文档，仍予接受；验证该签名时也会出现同样的提示。"
+  ,"firma.sha1_corresponde.prohibido": "该签名使用 SHA-1，而本机策略不允许使用该算法，因此未继续操作。如需使用这份旧签名，请联系本机的管理员。"
   ,"Android: pantalla por pasos, resultado visible al terminar, confirmación antes de descartar una firma, cierre automático del certificado tras unos minutos en segundo plano y textos más claros.": "Android：分步界面、完成后显示结果、放弃签名前先确认、证书在后台数分钟后自动关闭，文字也更清晰。"
   ,"Android: datos y caducidad del certificado con comprobación de revocación, preferencias, diagnóstico, búsqueda de versiones nuevas, tema claro u oscuro e informe de verificación imprimible.": "Android：证书信息与有效期及吊销检查、偏好设置、诊断、检查新版本、浅色或深色主题，以及可打印的验证报告。"
   ,"Android: expediente ENI, lote con sello visible o cofirma, y DNIe en lote y en «proteger y firmar» pidiendo el PIN una sola vez. El DNIe por NFC ya admite el certificado de firma de la tarjeta.": "Android：ENI 卷宗、带可见印章或联合签名的批量签名，以及批量签名和“保护并签名”中的 DNIe，PIN 只需输入一次。通过 NFC 使用的 DNIe 现在支持卡上的签名证书。"

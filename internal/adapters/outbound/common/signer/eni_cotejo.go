@@ -12,9 +12,11 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
+	"log/slog"
 	"strings"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/cryptopolicy"
 )
 
 // ErrFirmaNoCorrespondeOriginal indica que la firma no cubre el documento
@@ -23,9 +25,43 @@ import (
 // documento con una firma de otro aparentaría estar firmado sin estarlo.
 var ErrFirmaNoCorrespondeOriginal = errors.New("la firma no corresponde al documento original")
 
+// ErrFirmaCorrespondeConSHA1 indica que el cotejo ha ido bien (el contenido
+// corresponde y la firma es correcta) pero alguna firma usa SHA-1. Sigue el
+// criterio general de SHA-1 del proyecto (algoritmo_antiguo.go): se admite
+// para no dejar fuera firmas antiguas, con aviso visible y registrado. Nunca
+// se devuelve si el contenido no corresponde. Los llamantes lo resuelven con
+// AdmitirCotejoSHA1.
+var ErrFirmaCorrespondeConSHA1 = errors.New("la firma corresponde al documento, pero usa SHA-1")
+
+// ErrCotejoSHA1Prohibido indica que la firma corresponde, usa SHA-1 y la
+// política de máquina lo prohíbe (permitir_sha1_legacy deshabilitada).
+var ErrCotejoSHA1Prohibido = errors.New("la firma usa SHA-1 y la política de este equipo no lo admite")
+
+// AvisoFirmaSHA1Corresponde es la clave de catálogo del aviso que acompaña a
+// un cotejo admitido con SHA-1.
+const AvisoFirmaSHA1Corresponde = "firma.sha1_corresponde.aviso"
+
+// AdmitirCotejoSHA1 resuelve el resultado de un cotejo. Con
+// ErrFirmaCorrespondeConSHA1 devuelve aviso=true y err=nil, salvo que la
+// política lo prohíba (ErrCotejoSHA1Prohibido); deja constancia en el
+// registro. Cualquier otro error se devuelve tal cual.
+func AdmitirCotejoSHA1(err error, operacion string) (aviso bool, errFinal error) {
+	if !errors.Is(err, ErrFirmaCorrespondeConSHA1) {
+		return false, err
+	}
+	if cryptopolicy.LegacySHA1Prohibited() {
+		slog.Warn("cotejo_firma_sha1_prohibido", "operacion", operacion)
+		return false, ErrCotejoSHA1Prohibido
+	}
+	slog.Warn("cotejo_firma_sha1_admitido", "operacion", operacion)
+	return true, nil
+}
+
 // CotejarCAdESExplicita comprueba que el atributo messageDigest de cada
 // firmante coincide con el resumen del original y que la firma de los
-// atributos es válida. No consulta revocación ni confianza.
+// atributos es válida. No consulta revocación ni confianza. Si todo
+// corresponde pero algún firmante usa SHA-1, devuelve
+// ErrFirmaCorrespondeConSHA1.
 func CotejarCAdESExplicita(cmsDER, original []byte) error {
 	if len(original) == 0 {
 		return ErrFirmaNoCorrespondeOriginal
@@ -46,21 +82,26 @@ func CotejarCAdESExplicita(cmsDER, original []byte) error {
 	if err != nil || len(signerInfos) == 0 {
 		return ErrFirmaNoCorrespondeOriginal
 	}
+	conSHA1 := false
 	for _, si := range signerInfos {
 		cert, err := findSignerCertificate(certs, si.SID)
 		if err != nil {
 			return ErrFirmaNoCorrespondeOriginal
 		}
-		// Como antes de admitir SHA-1 para leer firmas antiguas: el cotejo
-		// no da por correspondiente una firma CMS con SHA-1.
+		// SHA-1 se comprueba igual que los demás resúmenes; solo cambia el
+		// resultado final, que lleva el aviso (lote 16c).
 		spec, antiguo, err := validarAlgoritmosSignerInfo(cert, si)
-		if err != nil || antiguo {
+		if err != nil {
 			return ErrFirmaNoCorrespondeOriginal
 		}
 		if verifyMessageDigest(si.SignedAttributes, original, spec.hash) != nil ||
 			verifyCMSignature(cert, si, spec.hash) != nil {
 			return ErrFirmaNoCorrespondeOriginal
 		}
+		conSHA1 = conSHA1 || antiguo
+	}
+	if conSHA1 {
+		return ErrFirmaCorrespondeConSHA1
 	}
 	return nil
 }
@@ -78,16 +119,17 @@ func CotejarXAdESSeparada(firma, original []byte) error {
 		externa = true
 		return original, nil
 	}
-	if _, err := verifyXMLSignatureDocument(context.Background(), firma, false, resolver, domain.CertificateChain{}, string(domain.FormatXAdES), "", nil, coberturaDelContenedor); err != nil {
+	verificacion, err := verifyXMLSignatureDocument(context.Background(), firma, false, resolver, domain.CertificateChain{}, string(domain.FormatXAdES), "", nil, coberturaDelContenedor)
+	if err != nil {
 		return ErrFirmaNoCorrespondeOriginal
 	}
-	if externa {
-		return nil
+	if !externa && !contenidoInternoCoincide(firma, original) {
+		return ErrFirmaNoCorrespondeOriginal
 	}
-	if contenidoInternoCoincide(firma, original) {
-		return nil
+	if len(algoritmosAntiguos(verificacion.result)) > 0 {
+		return ErrFirmaCorrespondeConSHA1
 	}
-	return ErrFirmaNoCorrespondeOriginal
+	return nil
 }
 
 // contenidoInternoCoincide busca un CONTENT cuyo contenido es el original y
@@ -225,6 +267,9 @@ func ComprobarIntegridadPAdES(ctx context.Context, pdf []byte) error {
 	result, _, err := verifier.Verify(ctx, doc, domain.CertificateChain{})
 	if err != nil || result.Integrity.Status == domain.VerificationStatusInvalid {
 		return ErrFirmaNoCorrespondeOriginal
+	}
+	if len(algoritmosAntiguos(result)) > 0 {
+		return ErrFirmaCorrespondeConSHA1
 	}
 	return nil
 }
