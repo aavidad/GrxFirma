@@ -972,17 +972,65 @@ function Get-AfirmaAutoFirmaExecutable {
     } finally {
         $key.Dispose()
     }
-    $executable = Get-AfirmaCommandExecutable -Command $command
+    return (Get-AfirmaAutoFirmaExecutableFromCommand -Command $command)
+}
+
+# Verdadero si la ruta existe y es un fichero (se sustituye en las pruebas).
+function Test-AfirmaAutoFirmaExecutablePath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    return (Test-Path -LiteralPath $Path -PathType Leaf)
+}
+
+# Devuelve el Autofirma.exe de una orden de afirma:// o "".
+function Get-AfirmaAutoFirmaExecutableFromCommand {
+    param(
+        [AllowEmptyString()]
+        [string]$Command
+    )
+
+    $executable = Get-AfirmaCommandExecutable -Command $Command
     if ($executable -notmatch '^[A-Za-z]:[\\/]' -or
         -not [string]::Equals(
-            [System.IO.Path]::GetFileName($executable),
+            @($executable -split '[\\/]')[-1],
             "Autofirma.exe",
             [System.StringComparison]::OrdinalIgnoreCase
         ) -or
-        -not (Test-Path -LiteralPath $executable -PathType Leaf)) {
+        -not (Test-AfirmaAutoFirmaExecutablePath -Path $executable)) {
         return ""
     }
     return $executable
+}
+
+# Devuelve el Autofirma.exe que atendía afirma:// en HKCU antes de GrxFirma
+# (la orden guardada en la instantánea) o "". AutoFirma no siempre queda en
+# HKLM: si se instaló solo para el usuario, o con la misma cuenta después de
+# GrxFirma, Windows guarda sus valores en HKCU\Software\Classes.
+function Get-AfirmaSavedAutoFirmaExecutable {
+    param(
+        [object[]]$Snapshots = @()
+    )
+
+    foreach ($snapshot in @($Snapshots)) {
+        if ($null -eq $snapshot -or
+            -not [bool]$snapshot.ValueExisted -or
+            [string]$snapshot.Name -ne "" -or
+            -not ([string]$snapshot.Path).EndsWith(
+                "\shell\open\command",
+                [System.StringComparison]::OrdinalIgnoreCase
+            ) -or
+            ([string]$snapshot.Kind -ne "String" -and [string]$snapshot.Kind -ne "ExpandString")) {
+            continue
+        }
+        $executable = Get-AfirmaAutoFirmaExecutableFromCommand -Command ([string]$snapshot.Value)
+        if (-not [string]::IsNullOrEmpty($executable)) {
+            return $executable
+        }
+    }
+    return ""
 }
 
 # Verdadero si la persona eligió AutoFirma, AutoFirma sigue instalado y el
@@ -1004,9 +1052,6 @@ function Test-AfirmaProtocolKeptForAutoFirma {
     if ((Get-AfirmaProtocolHandlerPreference) -ne "autofirma") {
         return $false
     }
-    if ([string]::IsNullOrEmpty((Get-AfirmaAutoFirmaExecutable -ProtocolKey $ProtocolKey))) {
-        return $false
-    }
     if (-not (Test-Path -LiteralPath $SnapshotPath -PathType Leaf)) {
         return $false
     }
@@ -1024,6 +1069,10 @@ function Test-AfirmaProtocolKeptForAutoFirma {
                 -ExecutablePath $ExecutablePath `
                 -IconPath $IconPath)
     } catch {
+        return $false
+    }
+    if ([string]::IsNullOrEmpty((Get-AfirmaAutoFirmaExecutable -ProtocolKey $ProtocolKey)) -and
+        [string]::IsNullOrEmpty((Get-AfirmaSavedAutoFirmaExecutable -Snapshots @($state.Snapshots)))) {
         return $false
     }
     return (Test-AfirmaProtocolValuesMatch -Expected @($state.Snapshots))

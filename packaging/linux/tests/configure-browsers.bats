@@ -251,3 +251,30 @@ mime_value() {
   [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = afirma.desktop ]
   [ -z "$(mime_value "${mimeapps}" x-scheme-handler/afirmav2)" ]
 }
+
+@test "respeta AutoFirma al actualizar aunque su lanzador tenga otro nombre (queja 14/11/2026)" {
+  write_metadata false
+  local mimeapps="${TEST_HOME}/.config/mimeapps.list"
+  local apps="${BATS_TEST_TMPDIR}/usr/share/applications"
+  mkdir -p "$(dirname "${mimeapps}")" "${apps}" "${TEST_HOME}/.config/grxfirma"
+  printf '[Desktop Entry]\nExec=/usr/bin/AutoFirma %%u\nMimeType=x-scheme-handler/afirma;\n' > "${apps}/AutoFirma.desktop"
+  printf '[Default Applications]\nx-scheme-handler/afirma=AutoFirma.desktop\n' > "${mimeapps}"
+
+  # Primera instalación: GrxFirma toma afirma:// y guarda AutoFirma.desktop.
+  run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = grxfirma.desktop ]
+
+  # La persona elige AutoFirma en Configuración y luego se actualiza GrxFirma.
+  sed -i 's|^x-scheme-handler/afirma=.*|x-scheme-handler/afirma=AutoFirma.desktop|' "${mimeapps}"
+  printf 'autofirma\n' > "${TEST_HOME}/.config/grxfirma/afirma-protocol-handler"
+  run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = AutoFirma.desktop ]
+
+  # Un lanzador guardado que no es AutoFirma no cuenta.
+  printf '[Desktop Entry]\nExec=/usr/bin/otro %%u\nMimeType=x-scheme-handler/afirma;\n' > "${apps}/AutoFirma.desktop"
+  run configure_browsers
+  [ "$status" -eq 0 ]
+  [ "$(mime_value "${mimeapps}" x-scheme-handler/afirma)" = grxfirma.desktop ]
+}

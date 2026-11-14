@@ -119,6 +119,44 @@ try {
     Assert-True (-not (Test-Kept)) "Sin instantanea no debe dejarse a AutoFirma"
     [System.IO.File]::WriteAllText($snapshotPath, "{no json")
     Assert-True (-not (Test-Kept)) "Una instantanea invalida no debe aceptarse"
+
+    # Queja del 14/11/2026: AutoFirma registrado en HKCU antes de GrxFirma
+    # (instalación por usuario, o con la misma cuenta después de GrxFirma).
+    # HKLM está vacío; su orden está en la instantánea. Con el registro ya
+    # devuelto a AutoFirma, la actualización debe respetarlo.
+    $script:mockAutoFirma = ""
+    $script:autoFirmaFiles = @{ "C:\Program Files\Autofirma\Autofirma\Autofirma.exe" = $true }
+    function Test-AfirmaAutoFirmaExecutablePath {
+        param([string]$Path)
+        return $script:autoFirmaFiles.ContainsKey($Path)
+    }
+    $autoFirmaUserValues = @(
+        [pscustomobject]@{ Path = $plan[0].Path; Name = ""; KeyExisted = $true; ValueExisted = $true; Kind = "String"; Value = "URL:Afirma Protocol" },
+        [pscustomobject]@{ Path = $plan[1].Path; Name = "URL Protocol"; KeyExisted = $true; ValueExisted = $true; Kind = "String"; Value = "" },
+        [pscustomobject]@{ Path = $plan[2].Path; Name = ""; KeyExisted = $true; ValueExisted = $true; Kind = "String"; Value = 'C:\Program Files\Autofirma\Autofirma\ic_firmar.ico' },
+        [pscustomobject]@{ Path = $plan[3].Path; Name = ""; KeyExisted = $true; ValueExisted = $true; Kind = "String"; Value = 'C:\Program Files\Autofirma\Autofirma\Autofirma.exe %1' }
+    )
+    Write-AfirmaProtocolSnapshot `
+        -Path $snapshotPath `
+        -ProtocolKey $protocolKey `
+        -OwnerValues @($plan | ForEach-Object { New-AfirmaOwnedValueSnapshot -Plan $_ }) `
+        -Snapshots $autoFirmaUserValues
+    $script:mockRegistry = @{}
+    foreach ($value in $autoFirmaUserValues) {
+        $script:mockRegistry["$(([string]$value.Path).ToLowerInvariant())|$($value.Name)"] = $value
+    }
+    Assert-True ((Get-AfirmaSavedAutoFirmaExecutable -Snapshots $autoFirmaUserValues) -eq 'C:\Program Files\Autofirma\Autofirma\Autofirma.exe') `
+        "No se reconoce el AutoFirma guardado en la instantanea"
+    Assert-True (Test-Kept) "La actualizacion no respeta AutoFirma registrado para el usuario"
+
+    # Si ese Autofirma.exe ya no existe, GrxFirma vuelve a registrarse.
+    $script:autoFirmaFiles = @{}
+    Assert-True (-not (Test-Kept)) "Sin el ejecutable guardado no debe dejarse a AutoFirma"
+    # Una orden guardada que no es Autofirma.exe no cuenta.
+    $script:autoFirmaFiles = @{ "C:\Otro\x.exe" = $true }
+    Assert-True ([string]::IsNullOrEmpty((Get-AfirmaSavedAutoFirmaExecutable -Snapshots @(
+        [pscustomobject]@{ Path = $plan[3].Path; Name = ""; KeyExisted = $true; ValueExisted = $true; Kind = "String"; Value = '"C:\Otro\x.exe" "%1"' }
+    )))) "Otro programa guardado no es AutoFirma"
 } finally {
     if (Test-Path -LiteralPath $tmp) {
         Remove-Item -LiteralPath $tmp -Recurse -Force

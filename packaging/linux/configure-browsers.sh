@@ -24,22 +24,81 @@ have_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
-# Si la persona eligió AutoFirma en «Firmas desde los portales» y AutoFirma
-# sigue instalado, afirma:// no se reasigna a GrxFirma al actualizar.
-afirma_prefers_autofirma() {
-  local pref="${TARGET_HOME}/.config/grxfirma/afirma-protocol-handler"
-  local dir value
-  local -a dirs
-  [[ -f "${pref}" && ! -L "${pref}" ]] || return 1
-  value="$(head -c 32 "${pref}" | tr -d '[:space:]')"
-  [[ "${value}" == "autofirma" ]] || return 1
+# Lanzadores que abrían afirma:// antes de GrxFirma según la copia guardada
+# al instalar (HANDLER_BACKUP), uno por línea. Solo se devuelven nombres de
+# .desktop válidos; el contenido de cada uno se comprueba aparte.
+afirma_saved_handler_ids() {
+  [[ -f "${HANDLER_BACKUP}" && ! -L "${HANDLER_BACKUP}" ]] || return 0
+  have_cmd python3 || return 0
+  python3 - "${HANDLER_BACKUP}" "${DESKTOP_ID}" <<'PY' 2>/dev/null || true
+import json
+import re
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as fh:
+        backup = json.load(fh)
+except (OSError, ValueError):
+    sys.exit(0)
+if not isinstance(backup, dict):
+    sys.exit(0)
+for path in sorted(backup):
+    entry = backup[path]
+    value = entry.get("x-scheme-handler/afirma") if isinstance(entry, dict) else None
+    if not isinstance(value, str):
+        continue
+    for desktop_id in value.split(";"):
+        desktop_id = desktop_id.strip()
+        if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*\.desktop", desktop_id) and desktop_id != sys.argv[2]:
+            print(desktop_id)
+PY
+}
+
+# Verdadero si el .desktop abre afirma:// con un programa que se llama
+# autofirma (como los paquetes oficiales de AutoFirma).
+afirma_desktop_is_autofirma() {
+  local file="$1" exec_line program
+  [[ -f "${file}" && ! -L "${file}" ]] || return 1
+  grep -Eq '^MimeType=(.*;)?x-scheme-handler/afirma(;|$)' "${file}" || return 1
+  exec_line="$(sed -n 's/^Exec=//p' "${file}" | head -n 1)"
+  program="${exec_line%% *}"
+  program="${program//\"/}"
+  program="${program##*/}"
+  [[ "${program,,}" == autofirma* ]]
+}
+
+# Verdadero si AutoFirma está instalado: los nombres de los paquetes
+# oficiales o el lanzador que abría afirma:// antes de GrxFirma, si es
+# AutoFirma (su nombre depende del paquete).
+afirma_autofirma_installed() {
+  local dir id
+  local -a dirs saved
   IFS=: read -r -a dirs <<< "${SYSTEM_APP_DIRS}"
   for dir in "${TARGET_HOME}/.local/share/applications" "${dirs[@]}"; do
     if [[ -f "${dir}/afirma.desktop" || -f "${dir}/autofirma.desktop" ]]; then
       return 0
     fi
   done
+  mapfile -t saved < <(afirma_saved_handler_ids)
+  for id in "${saved[@]}"; do
+    for dir in "${TARGET_HOME}/.local/share/applications" "${dirs[@]}"; do
+      if afirma_desktop_is_autofirma "${dir}/${id}"; then
+        return 0
+      fi
+    done
+  done
   return 1
+}
+
+# Si la persona eligió AutoFirma en «Programa para firmar en las webs» y
+# AutoFirma sigue instalado, afirma:// no se reasigna a GrxFirma al actualizar.
+afirma_prefers_autofirma() {
+  local pref="${TARGET_HOME}/.config/grxfirma/afirma-protocol-handler"
+  local value
+  [[ -f "${pref}" && ! -L "${pref}" ]] || return 1
+  value="$(head -c 32 "${pref}" | tr -d '[:space:]')"
+  [[ "${value}" == "autofirma" ]] || return 1
+  afirma_autofirma_installed
 }
 
 afirma_schemes() {

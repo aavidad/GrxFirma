@@ -79,13 +79,22 @@ a la vez. AutoFirma registra `afirma://` para todo el equipo en
 `HKLM\Software\Classes\afirma`; GrxFirma lo registra para el usuario en
 `HKCU\Software\Classes\afirma`, que tiene prioridad.
 
+AutoFirma no siempre queda en `HKLM`. Si se instaló solo para el usuario, o
+se instaló o actualizó con la misma cuenta después de GrxFirma, Windows guarda
+sus valores en `HKCU\Software\Classes\afirma`, porque esa clave ya existe. Por
+eso GrxFirma busca AutoFirma en tres sitios: la orden que había en `HKCU`
+antes de GrxFirma (guardada en la instantánea), la de `HKLM` y la que hay ahora
+en `HKCU` si no es la suya. Hasta la 0.0.125 solo miraba `HKLM` y, en esos
+equipos, decía que AutoFirma no estaba instalado y no dejaba elegirlo.
+
 En **Configuración > Firmas desde los portales** (WinUI y Qt) se elige cuál
 abre las firmas de los portales:
 
 - **AutoFirma**: el motor retira el registro HKCU de GrxFirma y restaura lo que
-  hubiera antes de GrxFirma (normalmente nada, y Windows usa el de AutoFirma).
-  Solo se ofrece si AutoFirma tiene registrado `afirma://` y existe su
-  `Autofirma.exe`.
+  hubiera antes de GrxFirma (normalmente nada, y Windows usa el de AutoFirma;
+  si AutoFirma estaba en `HKCU`, vuelve su registro). Solo se ofrece si en
+  alguno de los tres sitios hay una orden de `afirma://` con un
+  `Autofirma.exe` que existe.
 - **GrxFirma**: vuelve a registrar HKCU con la misma instantánea
   (`afirma-protocol-snapshot.json`).
 

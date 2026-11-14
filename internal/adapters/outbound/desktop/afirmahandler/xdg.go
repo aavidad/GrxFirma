@@ -8,11 +8,13 @@ package afirmahandler
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
@@ -308,9 +310,62 @@ func (s *XDGSelector) grxFirma() (*desktopEntry, error) {
 	return entry, nil
 }
 
+// HandlerBackupRelPath es la copia del manejador de afirma:// que había antes
+// de GrxFirma, relativa a HOME. La escribe configure-browsers.sh al instalar
+// para devolverlo al desinstalar.
+var HandlerBackupRelPath = filepath.Join(".local", "lib", "grxfirma", "config", "afirma-handler-anterior.json")
+
+// savedHandlerIDs devuelve los lanzadores que abrían afirma:// antes de
+// GrxFirma según la copia del instalador. El fichero solo propone nombres:
+// cada uno se busca en las carpetas de aplicaciones y se valida igual que los
+// nombres fijos.
+func (s *XDGSelector) savedHandlerIDs() []string {
+	data, err := readSmallRegularFile(filepath.Join(s.env.Home, HandlerBackupRelPath))
+	if err != nil || data == nil {
+		return nil
+	}
+	var backup map[string]map[string]*string
+	if json.Unmarshal(data, &backup) != nil {
+		return nil
+	}
+	files := make([]string, 0, len(backup))
+	for file := range backup {
+		files = append(files, file)
+	}
+	sort.Strings(files)
+	var ids []string
+	for _, file := range files {
+		value := backup[file][AfirmaMimeType]
+		if value == nil {
+			continue
+		}
+		for _, id := range strings.Split(*value, ";") {
+			id = strings.TrimSpace(id)
+			if validDesktopID(id) && id != GrxFirmaDesktopID {
+				ids = append(ids, id)
+			}
+		}
+	}
+	return ids
+}
+
+// autoFirmaCandidates son los lanzadores que pueden ser AutoFirma: el que
+// abría afirma:// antes de GrxFirma y los nombres de los paquetes oficiales.
+func (s *XDGSelector) autoFirmaCandidates() []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, id := range append(s.savedHandlerIDs(), autoFirmaDesktopIDs...) {
+		if !seen[id] {
+			seen[id] = true
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
 // autoFirma devuelve el lanzador de AutoFirma y su identificador.
 func (s *XDGSelector) autoFirma() (string, *desktopEntry, error) {
-	for _, id := range autoFirmaDesktopIDs {
+	for _, id := range s.autoFirmaCandidates() {
 		entry, err := s.findDesktop(id)
 		if err != nil {
 			return "", nil, err

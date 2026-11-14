@@ -88,6 +88,12 @@ quien instaló con el `.tar.gz`, pueden hacerlo a mano:
 ~/.local/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler
 ```
 
+GrxFirma reconoce AutoFirma por su lanzador: `afirma.desktop` o
+`autofirma.desktop`, o el lanzador guardado en esa copia si abre `afirma://`
+con un programa llamado `autofirma` (el nombre del lanzador cambia según el
+paquete). Hasta la 0.0.125 solo se miraban los dos nombres fijos, y con otro
+nombre el ajuste decía que AutoFirma no estaba instalado.
+
 Además:
 
 - si la suite trae Qt, instala `~/.local/bin/grxfirma-gui-qml` y sus recursos
