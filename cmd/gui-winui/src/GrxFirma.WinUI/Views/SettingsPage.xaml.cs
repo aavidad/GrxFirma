@@ -123,6 +123,7 @@ public sealed partial class SettingsPage : Page
         SetRestButtonLabel(RestOpenButton, Label("winui.parity.rest.open"));
         RestStatusText.Text = Label("winui.parity.rest.unknown");
         ApplyAfirmaHandlerLabels();
+        ForcedTrustTitle.Text = Label("verify.forced_trust.ui.settings_title");
     }
 
     private static void SetRestButtonLabel(Button button, string label)
@@ -207,6 +208,12 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    private async void OnRemoveForcedTrustClick(
+        object sender,
+        RoutedEventArgs args) =>
+        await ViewModel.RemoveForcedTrustAsync(
+            (sender as FrameworkElement)?.DataContext as ForcedTrustEntryRow);
+
     private async void OnLoaded(
         object sender,
         RoutedEventArgs args)
@@ -222,6 +229,7 @@ public sealed partial class SettingsPage : Page
         ViewModel.ThemePreferenceApplied += OnThemePreferenceApplied;
         ViewModel.Activate();
         await ViewModel.LoadAsync();
+        await ViewModel.LoadForcedTrustAsync();
         try
         {
             StartWithWindowsCheckBox.IsChecked =

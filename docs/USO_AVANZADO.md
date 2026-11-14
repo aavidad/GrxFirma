@@ -317,6 +317,17 @@ Los nombres generados por `make` son:
   cadena X.509. Las superficies desktop usan las raíces del sistema; una raíz
   ajena invalida y la ausencia real de anclas se presenta como confianza no
   evaluada, nunca como verde.
+- Firmas aceptadas en este equipo: si una firma solo falla por una autoridad
+  desconocida, una clave RSA de menos de 2048 bits, un certificado de
+  servidor, una revocación que no se pudo comprobar o SHA-1, el usuario puede
+  aceptarla en su equipo tras leer un aviso, desde la CLI
+  (`-aceptar-confianza`, `-listar-confianza-aceptada`,
+  `-quitar-confianza-aceptada`) o desde el escritorio («Aceptar en este
+  equipo» y la lista de Configuración). Se guarda en `config.json`
+  (`confianza_forzada`); la firma sale válida con un aviso visible y la
+  evidencia `trust.user_forced`. REST y los canales web no lo aplican ni lo
+  gestionan, y la política `prohibir_confianza_forzada` lo desactiva. Detalle
+  en [operador.md](operador.md#firmas-aceptadas-en-este-equipo).
 - La utilidad dedicada limita los ficheros antes de `FileReader`, conserva el
   token solo en memoria y evita que respuestas obsoletas pisen una selección
   más reciente.

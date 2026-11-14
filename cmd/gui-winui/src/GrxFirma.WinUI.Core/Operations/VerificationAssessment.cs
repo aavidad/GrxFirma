@@ -17,7 +17,7 @@ public static class VerificationAssessment
         IsKnownStatus(result.Trust.Status) &&
         (!HasXmlCanonicalizationCompatibility(result) ||
             (!result.IsValid && IsStatus(result.Integrity.Status, "warning"))) &&
-        (!result.IsValid || HasValidSignatureEvidence(result));
+        (!result.IsValid || HasValidSignatureEvidence(result) || HasForcedTrust(result));
 
     public static bool HasValidSignatureEvidence(VerifyResult? result) =>
         result?.Integrity is not null &&
@@ -39,7 +39,21 @@ public static class VerificationAssessment
         HasValidSignatureEvidence(result) &&
         result?.Trust is not null &&
         result.IsValid &&
-        IsStatus(result.Trust.Status, "valid");
+        IsStatus(result.Trust.Status, "valid") &&
+        !HasForcedTrust(result);
+
+    // Lote 14: la firma es válida porque el usuario aceptó en este equipo un
+    // obstáculo (evidencia trust.user_forced). Exige integridad válida y un
+    // certificado que no sea inválido; nunca cuenta como «de confianza».
+    public static bool HasForcedTrust(VerifyResult? result) =>
+        result is not null &&
+        result.IsValid &&
+        result.Integrity is not null &&
+        result.Certificate is not null &&
+        IsStatus(result.Integrity.Status, "valid") &&
+        !IsStatus(result.Certificate.Status, "invalid") &&
+        !HasXmlCanonicalizationCompatibility(result) &&
+        result.Evidence?.Any(item => item?.Type is "trust.user_forced") == true;
 
     private static bool IsKnownStatus(string? value) =>
         value?.Trim().ToLowerInvariant() is

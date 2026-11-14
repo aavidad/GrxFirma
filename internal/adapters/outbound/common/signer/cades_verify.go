@@ -148,7 +148,22 @@ func (r *RevocationChecker) Check(ctx context.Context, cert, issuer *x509.Certif
 	if r == nil || r.client == nil {
 		return RevocationResult{Status: RevocationUnknown, Reason: "cliente de revocación no configurado"}, nil
 	}
+	// En la verificación local del usuario, la comprobación de si lo
+	// aceptado bastaría repite la verificación: se reutiliza la consulta.
+	clave := "revocacion|" + certificateFingerprint(cert) + "|" + certificateFingerprint(issuer)
+	memo := domain.RegistroConfianzaForzadaDe(ctx).Recordar(clave, func() any {
+		res, err := r.consultarEnLinea(ctx, cert, issuer)
+		return resultadoRevocacionMemo{res: res, err: err}
+	}).(resultadoRevocacionMemo)
+	return memo.res, memo.err
+}
 
+type resultadoRevocacionMemo struct {
+	res RevocationResult
+	err error
+}
+
+func (r *RevocationChecker) consultarEnLinea(ctx context.Context, cert, issuer *x509.Certificate) (RevocationResult, error) {
 	checkedAt := time.Now()
 	result, err := r.client.Check(ctx, cert, issuer)
 	switch result.Status {
@@ -393,7 +408,8 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 		result.Details = append(result.Details, chunk...)
 		result.Integrity.Details = append(result.Integrity.Details, chunk...)
 	}
-	result = applySignerVerificationMetadata(result, signerCerts, certs, anchors)
+	registro := domain.RegistroConfianzaForzadaDe(ctx)
+	result = applySignerVerificationMetadata(registro, result, signerCerts, certs, anchors)
 	enriquecerMaterialCMS(result.Material.Firmas, signerCertsPorSignerInfo, signerInfos)
 	result.Material.HuellasContenidoFirmado = []string{huellaContenido(content)}
 
@@ -418,16 +434,25 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 			result = mergeRevocationResult(result, revocation)
 		}
 	}
-	result = exigirRevocacionConcluyente(result)
-	result = marcarAlgoritmoAntiguo(result, antiguos)
+	result = exigirRevocacionConcluyente(registro, result)
+	result = marcarAlgoritmoAntiguo(registro, result, antiguos)
 
 	return result.Normalize(), signers, nil
 }
 
 // La validez pública no puede afirmarse cuando la revocación del firmante
 // queda pendiente. La integridad criptográfica conserva su estado propio.
-func exigirRevocacionConcluyente(result domain.VerificationResult) domain.VerificationResult {
-	if result.Valid && result.Certificate.Status == domain.VerificationStatusWarning {
+// El usuario puede aceptar en su equipo la revocación no comprobable (lote 14):
+// entonces la firma sigue válida, con el aviso de que lo aceptó.
+func exigirRevocacionConcluyente(registro *domain.RegistroConfianzaForzada, result domain.VerificationResult) domain.VerificationResult {
+	if result.Certificate.Status != domain.VerificationStatusWarning {
+		return result
+	}
+	obstaculo := domain.ObstaculoConfianza{Tipo: domain.ConfianzaRevocacionNoComprobable}
+	if registro.Decidir(obstaculo) {
+		return marcarConfianzaForzada(result, obstaculo)
+	}
+	if result.Valid {
 		result.Valid = false
 		result.Reason = "revocación no concluyente"
 		result.Warnings = appendUniqueString(result.Warnings, result.Reason)
@@ -497,7 +522,7 @@ func (v *CAdESVerifier) VerifyRevocation(ctx context.Context, chain []*x509.Cert
 	result.Integrity.Reason = "revocación evaluada sobre la cadena"
 	result.Certificate.Status = domain.VerificationStatusValid
 	result.Certificate.Reason = "certificados no revocados"
-	result.Trust = evaluateTrustFromCertificates(chain[:1], chain, domain.CertificateChain{})
+	result.Trust, _ = evaluarConfianzaCertificados(nil, chain[:1], chain, domain.CertificateChain{})
 
 	for i := 0; i < len(chain)-1; i++ {
 		cert := chain[i]
@@ -585,7 +610,7 @@ func applyXMLRevocation(ctx context.Context, result domain.VerificationResult, s
 			result = mergeRevocationResult(result, revocation)
 		}
 	}
-	return exigirRevocacionConcluyente(result).Normalize()
+	return exigirRevocacionConcluyente(domain.RegistroConfianzaForzadaDe(ctx), result).Normalize()
 }
 
 // chainForRevocation obtiene la cadena del firmante para comprobar su
@@ -618,15 +643,26 @@ func chainForRevocation(ctx context.Context, checker *RevocationChecker, leaf *x
 		return chain
 	}
 	current := chain[len(chain)-1]
+	registro := domain.RegistroConfianzaForzadaDe(ctx)
 	for i := 0; i < 4 && !bytes.Equal(current.RawIssuer, current.RawSubject); i++ {
-		issuer, err := checker.client.FetchIssuer(ctx, current)
-		if err != nil {
+		actual := current
+		descarga := registro.Recordar("aia|"+certificateFingerprint(actual), func() any {
+			issuer, err := checker.client.FetchIssuer(ctx, actual)
+			return emisorAIAMemo{issuer: issuer, err: err}
+		}).(emisorAIAMemo)
+		issuer, err := descarga.issuer, descarga.err
+		if err != nil || issuer == nil {
 			break
 		}
 		chain = append(chain, issuer)
 		current = issuer
 	}
 	return chain
+}
+
+type emisorAIAMemo struct {
+	issuer *x509.Certificate
+	err    error
 }
 
 func esAutofirmado(cert *x509.Certificate) bool {
@@ -1168,7 +1204,7 @@ func equalBytes(a, b []byte) bool {
 	return true
 }
 
-func applySignerVerificationMetadata(result domain.VerificationResult, signerCerts, embeddedCerts []*x509.Certificate, anchors domain.CertificateChain) domain.VerificationResult {
+func applySignerVerificationMetadata(registro *domain.RegistroConfianzaForzada, result domain.VerificationResult, signerCerts, embeddedCerts []*x509.Certificate, anchors domain.CertificateChain) domain.VerificationResult {
 	if result.Format == "" {
 		result.Format = string(domain.FormatCAdES)
 	}
@@ -1177,7 +1213,11 @@ func applySignerVerificationMetadata(result domain.VerificationResult, signerCer
 		result.Certificate.Status = domain.VerificationStatusUnknown
 		result.Certificate.Reason = motivoCertificadoSinRevocacion
 	}
-	result.Trust = evaluateTrustFromCertificates(signerCerts, embeddedCerts, anchors)
+	var forzadas []domain.ObstaculoConfianza
+	result.Trust, forzadas = evaluarConfianzaCertificados(registro, signerCerts, embeddedCerts, anchors)
+	for _, obstaculo := range forzadas {
+		result = marcarConfianzaForzada(result, obstaculo)
+	}
 	result.Material.Firmas = append(result.Material.Firmas, materialFirmantes(signerCerts, embeddedCerts)...)
 	for _, cert := range signerCerts {
 		if cert == nil {
@@ -1212,15 +1252,33 @@ func applySignerVerificationMetadata(result domain.VerificationResult, signerCer
 	}
 	for _, cert := range signerCerts {
 		if clave, ok := cert.PublicKey.(*rsa.PublicKey); ok && clave.N != nil && clave.N.BitLen() < 2048 {
+			result.Certificate.Details = append(result.Certificate.Details, fmt.Sprintf("rsa_bits=%d", clave.N.BitLen()))
+			obstaculo := obstaculoCertificado(domain.ConfianzaClaveRSACorta, cert)
+			if registro.Decidir(obstaculo) {
+				result = marcarConfianzaForzada(result, obstaculo)
+				continue
+			}
 			if result.Valid {
 				result.Valid = false
 				result.Reason = motivoClaveRSADebil
 			}
 			result.Warnings = appendUniqueString(result.Warnings, motivoClaveRSADebil)
-			result.Certificate.Details = append(result.Certificate.Details, fmt.Sprintf("rsa_bits=%d", clave.N.BitLen()))
 		}
 	}
 	return result.Normalize()
+}
+
+// obstaculoCertificado describe un obstáculo forzable ligado a un
+// certificado concreto (por su huella SHA-256).
+func obstaculoCertificado(tipo domain.TipoConfianzaForzada, cert *x509.Certificate) domain.ObstaculoConfianza {
+	return domain.ObstaculoConfianza{Tipo: tipo, Huella: certificateFingerprint(cert), Sujeto: cert.Subject.String()}
+}
+
+// marcarConfianzaForzada deja a la vista que la firma se da por válida
+// porque el usuario aceptó el obstáculo: aviso, detalle y evidencia
+// trust.user_forced=<tipo>.
+func marcarConfianzaForzada(result domain.VerificationResult, obstaculo domain.ObstaculoConfianza) domain.VerificationResult {
+	return result.MarcarConfianzaForzada(obstaculo)
 }
 
 func evaluateCertificateAspect(certs []*x509.Certificate) domain.VerificationAspect {
@@ -1261,12 +1319,23 @@ func evaluateCertificateAspect(certs []*x509.Certificate) domain.VerificationAsp
 }
 
 func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificate, anchors domain.CertificateChain) domain.VerificationAspect {
+	aspecto, _ := evaluarConfianzaCertificados(nil, signerCerts, embeddedCerts, anchors)
+	return aspecto
+}
+
+// evaluarConfianzaCertificados evalúa la confianza del firmante. Con un
+// registro de confianza forzada (solo en la verificación local del usuario),
+// una CA desconocida o un certificado de componente que el usuario aceptó
+// en su equipo se dan por buenos; devuelve cuáles se forzaron. El resto de
+// comprobaciones de la cadena (fechas, firmas, restricciones) se hacen igual.
+func evaluarConfianzaCertificados(registro *domain.RegistroConfianzaForzada, signerCerts, embeddedCerts []*x509.Certificate, anchors domain.CertificateChain) (domain.VerificationAspect, []domain.ObstaculoConfianza) {
 	if len(signerCerts) == 0 {
-		return domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: "sin certificado firmante para evaluar confianza"}
+		return domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: "sin certificado firmante para evaluar confianza"}, nil
 	}
 	if anchors.IsEmpty() {
-		return domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: "sin anclas de confianza disponibles"}
+		return domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: "sin anclas de confianza disponibles"}, nil
 	}
+	var forzadas []domain.ObstaculoConfianza
 
 	roots := x509.NewCertPool()
 	rootFingerprints := make(map[string]struct{})
@@ -1299,7 +1368,7 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 				Status:  domain.VerificationStatusInvalid,
 				Reason:  "ancla de confianza X.509 inválida",
 				Details: []string{fmt.Sprintf("anchor_der[%d]: %v", i, err)},
-			}
+			}, nil
 		}
 		roots.AddCert(anchor)
 		hasRoots = true
@@ -1331,19 +1400,38 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 		}
 	}
 
+	if !hasRoots && systemRootsUnavailable {
+		// Sin almacén raíz no se sabe quién es la CA. Si el usuario aceptó la
+		// raíz (o el último certificado) de la cadena de cada firmante, esa
+		// es la única raíz con la que se comprueba la cadena.
+		aceptadas := 0
+		for _, signerCert := range signerCerts {
+			if ultimo := ultimoDeCadena(signerCert, embeddedCerts); ultimo != nil &&
+				registro.Decidir(obstaculoCertificado(domain.ConfianzaCADesconocida, ultimo)) {
+				roots.AddCert(ultimo)
+				forzadas = appendObstaculoUnico(forzadas, obstaculoCertificado(domain.ConfianzaCADesconocida, ultimo))
+				aceptadas++
+			}
+		}
+		if aceptadas == len(signerCerts) {
+			hasRoots = true
+		} else {
+			forzadas = nil
+		}
+	}
 	if !hasRoots {
 		if systemRootsUnavailable {
 			return domain.VerificationAspect{
 				Status:  domain.VerificationStatusUnknown,
 				Reason:  "no se pudo consultar un almacén raíz del sistema utilizable",
 				Details: details,
-			}
+			}, nil
 		}
 		return domain.VerificationAspect{
 			Status:  domain.VerificationStatusInvalid,
 			Reason:  "ninguna ancla de confianza configurada contiene material X.509 verificable",
 			Details: details,
-		}
+		}, nil
 	}
 
 	intermediates := x509.NewCertPool()
@@ -1364,14 +1452,33 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 				Status:  domain.VerificationStatusInvalid,
 				Reason:  "certificado firmante nulo",
 				Details: details,
-			}
+			}, nil
 		}
-		chains, err := signerCert.Verify(x509.VerifyOptions{
+		opciones := x509.VerifyOptions{
 			Roots:         roots,
 			Intermediates: intermediates,
 			CurrentTime:   time.Now(),
 			KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
-		})
+		}
+		chains, err := signerCert.Verify(opciones)
+		var desconocida x509.UnknownAuthorityError
+		if err != nil && errors.As(err, &desconocida) {
+			// CA desconocida: si el usuario aceptó en su equipo el último
+			// certificado de la cadena, se repite la comprobación con él como
+			// raíz. Fechas, firmas y restricciones se siguen comprobando.
+			if ultimo := ultimoDeCadena(signerCert, embeddedCerts); ultimo != nil {
+				obstaculo := obstaculoCertificado(domain.ConfianzaCADesconocida, ultimo)
+				if registro.Decidir(obstaculo) {
+					opciones.Roots = roots.Clone()
+					opciones.Roots.AddCert(ultimo)
+					chains, err = signerCert.Verify(opciones)
+					if err == nil {
+						forzadas = appendObstaculoUnico(forzadas, obstaculo)
+						details = append(details, fmt.Sprintf("signer[%d].root=user_forced", i))
+					}
+				}
+			}
+		}
 		if err != nil {
 			return domain.VerificationAspect{
 				Status: domain.VerificationStatusInvalid,
@@ -1381,15 +1488,23 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 				Details: append(details,
 					fmt.Sprintf("firmante=%s", signerCert.Subject.CommonName),
 					DetalleErrorCadena+"="+CodigoErrorX509(err)),
-			}
+			}, nil
 		}
 		details = append(details, fmt.Sprintf("signer[%d].chain_length=%d", i, len(chains[0])))
 		if !certificadoAptoParaFirmar(signerCert) {
-			return domain.VerificationAspect{
-				Status:  domain.VerificationStatusInvalid,
-				Reason:  motivoFirmanteNoApto,
-				Details: append(details, fmt.Sprintf("signer[%d].eku_no_apto_para_firma", i)),
+			// Un certificado de componente (servidor TLS) se puede aceptar en
+			// el equipo del usuario; firma de código, sellado de tiempo u OCSP
+			// no se pueden forzar nunca.
+			obstaculo := obstaculoCertificado(domain.ConfianzaCertificadoComponente, signerCert)
+			if !esCertificadoComponente(signerCert) || !registro.Decidir(obstaculo) {
+				return domain.VerificationAspect{
+					Status:  domain.VerificationStatusInvalid,
+					Reason:  motivoFirmanteNoApto,
+					Details: append(details, fmt.Sprintf("signer[%d].eku_no_apto_para_firma", i)),
+				}, nil
 			}
+			forzadas = appendObstaculoUnico(forzadas, obstaculo)
+			details = append(details, fmt.Sprintf("signer[%d].eku=user_forced", i))
 		}
 		if _, explicita := rootFingerprints[certificateFingerprint(chains[0][len(chains[0])-1])]; !explicita {
 			raizSistema = true
@@ -1401,11 +1516,54 @@ func evaluateTrustFromCertificates(signerCerts, embeddedCerts []*x509.Certificat
 	if raizSistema {
 		reason = motivoConfianzaRaizSistema
 	}
+	if len(forzadas) > 0 {
+		reason = forzadas[0].Tipo.ClaveAplicada()
+	}
 	return domain.VerificationAspect{
 		Status:  domain.VerificationStatusValid,
 		Reason:  reason,
 		Details: details,
+	}, forzadas
+}
+
+// ultimoDeCadena devuelve el último certificado de la cadena que se puede
+// construir desde el firmante con los certificados de la firma: la raíz si
+// viene, o el certificado más alto disponible.
+func ultimoDeCadena(signer *x509.Certificate, embedded []*x509.Certificate) *x509.Certificate {
+	cadena := buildIssuerChain(signer, embedded)
+	if len(cadena) == 0 {
+		return nil
 	}
+	return cadena[len(cadena)-1]
+}
+
+func appendObstaculoUnico(lista []domain.ObstaculoConfianza, o domain.ObstaculoConfianza) []domain.ObstaculoConfianza {
+	for _, existente := range lista {
+		if existente.Tipo == o.Tipo && existente.Huella == o.Huella {
+			return lista
+		}
+	}
+	return append(lista, o)
+}
+
+// esCertificadoComponente reconoce un certificado de servidor (EKU solo
+// serverAuth, o serverAuth y clientAuth), como los de componente de la FNMT.
+// Es el único caso de firmante no apto que el usuario puede aceptar.
+func esCertificadoComponente(cert *x509.Certificate) bool {
+	if cert == nil || len(cert.UnknownExtKeyUsage) > 0 {
+		return false
+	}
+	servidor := false
+	for _, uso := range cert.ExtKeyUsage {
+		switch uso {
+		case x509.ExtKeyUsageServerAuth:
+			servidor = true
+		case x509.ExtKeyUsageClientAuth:
+		default:
+			return false
+		}
+	}
+	return servidor
 }
 
 // certificadoAptoParaFirmar decide si el uso extendido de clave (EKU) del

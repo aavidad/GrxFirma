@@ -27,7 +27,7 @@ func TestApplySignerVerificationMetadata_ConfianzaDesconocidaNoValida(t *testing
 	t.Cleanup(func() { cargarRaicesSistema = original })
 
 	p := nuevaPKILote3(t, nil)
-	res := applySignerVerificationMetadata(
+	res := applySignerVerificationMetadata(nil,
 		domain.NewVerificationSuccess(string(domain.FormatCAdES), "firma correcta", nil),
 		[]*x509.Certificate{p.hoja}, []*x509.Certificate{p.hoja, p.intermedia, p.raiz},
 		domain.CertificateChain{UseSystemRoots: true},
@@ -55,7 +55,7 @@ func TestApplySignerVerificationMetadata_RSA1024NoValida(t *testing.T) {
 		KeyUsage: x509.KeyUsageDigitalSignature,
 	}
 	cert := emitirLote3(t, plantilla, nil, &clave.PublicKey, clave)
-	res := applySignerVerificationMetadata(
+	res := applySignerVerificationMetadata(nil,
 		domain.NewVerificationSuccess(string(domain.FormatXAdES), "firma correcta", nil),
 		[]*x509.Certificate{cert}, []*x509.Certificate{cert},
 		domain.CertificateChain{DERCertificates: [][]byte{cert.Raw}},

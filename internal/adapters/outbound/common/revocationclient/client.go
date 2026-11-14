@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -59,6 +60,10 @@ type CheckResult struct {
 	Evidence  ports.RevocationEvidence
 	RevokedAt time.Time
 	Reason    string
+	// crlNoAplicable guarda una CRL auténtica y vigente que no lista el
+	// certificado pero no es aplicable (otra partición, delta...). No vale
+	// para verificar; Fetch la incrusta al firmar (retrocompatibilidad).
+	crlNoAplicable []byte
 }
 
 var (
@@ -120,6 +125,10 @@ func (c *Client) Check(ctx context.Context, cert *x509.Certificate, issuer *x509
 	} else {
 		errs = append(errs, fmt.Errorf("CRL: %w", crlErr))
 	}
+	var crlNoAplicable []byte
+	if errors.Is(crlErr, ErrCRLNoAplicable) && crlResult.Status == CertificateStatusUnknown && len(crlDER) > 0 {
+		crlNoAplicable = crlDER
+	}
 
 	if result.Method == "" {
 		joined := errors.Join(errs...)
@@ -128,8 +137,9 @@ func (c *Client) Check(ctx context.Context, cert *x509.Certificate, issuer *x509
 			reason = joined.Error()
 		}
 		return CheckResult{
-				Status: CertificateStatusUnknown,
-				Reason: reason,
+				Status:         CertificateStatusUnknown,
+				Reason:         reason,
+				crlNoAplicable: crlNoAplicable,
 			}, errors.Join(
 				errors.New("sin evidencias OCSP o CRL autenticadas disponibles"),
 				joined,
@@ -138,9 +148,23 @@ func (c *Client) Check(ctx context.Context, cert *x509.Certificate, issuer *x509
 	return result, nil
 }
 
+// Fetch obtiene la evidencia de revocación que se incrusta al firmar
+// (CAdES-LT, PAdES-LT). Para verificar se usa Check.
+//
+// Retrocompatibilidad (lote 14): desde E1-04 una CRL auténtica y vigente que
+// no es aplicable al certificado (otra partición, delta...) no acredita «no
+// revocado». Al verificar sigue siendo así, pero al firmar con una CA que
+// solo publica CRL de ese tipo la firma fallaba, y antes no. Si es la única
+// evidencia y no lista el certificado, se incrusta como antes y se avisa en
+// el registro; la verificación posterior la tratará como no concluyente.
 func (c *Client) Fetch(ctx context.Context, cert *x509.Certificate, issuer *x509.Certificate) (ports.RevocationEvidence, error) {
 	result, err := c.Check(ctx, cert, issuer)
 	if err != nil {
+		if len(result.crlNoAplicable) > 0 {
+			slog.Warn("se incrusta una CRL que no es aplicable al certificado; la verificación no la dará por concluyente",
+				"certificado", cert.Subject.String(), "error", err)
+			return ports.RevocationEvidence{CRLs: [][]byte{result.crlNoAplicable}}, nil
+		}
 		return ports.RevocationEvidence{}, err
 	}
 	switch result.Status {

@@ -6,6 +6,7 @@
 package config
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -51,5 +52,46 @@ func TestPoliticaMaquinaLeeFirmaRemotaCSC(t *testing.T) {
 	p, _ = loadMachinePolicyDesde(lector)
 	if p.FirmaRemotaCSC != nil {
 		t.Fatal("sin valor en el registro no hay decisión de la organización")
+	}
+}
+
+// Lote 14: prohibir_confianza_forzada en el registro de Windows. Un valor
+// que no se puede leer cuenta como prohibición, igual que con TOFU.
+func TestPoliticaMaquinaLeeProhibirConfianzaForzada(t *testing.T) {
+	registro := map[string]any{machinepolicy.ProhibirConfianzaForzada: int64(1)}
+	lector := lectorPoliticaMaquina{
+		boolean: func(n string) (bool, bool, error) {
+			switch v := registro[n].(type) {
+			case int64:
+				return v != 0, true, nil
+			case error:
+				return false, false, v
+			}
+			return false, false, nil
+		},
+		texto:  func(string) (string, bool, error) { return "", false, nil },
+		textos: func(string) ([]string, bool, error) { return nil, false, nil },
+		entero: func(string) (int64, bool, error) { return 0, false, nil },
+	}
+	prohibida := func() bool {
+		p, err := loadMachinePolicyDesde(lector)
+		cfg := Default()
+		aplicarPolicyCargada(&cfg, p, err)
+		return cfg.ProhibirConfianzaForzada
+	}
+	if !prohibida() {
+		t.Fatal("prohibir_confianza_forzada=1 debe prohibir")
+	}
+	registro[machinepolicy.ProhibirConfianzaForzada] = int64(0)
+	if prohibida() {
+		t.Fatal("prohibir_confianza_forzada=0 debe permitir")
+	}
+	delete(registro, machinepolicy.ProhibirConfianzaForzada)
+	if prohibida() {
+		t.Fatal("sin valor en el registro no hay prohibición")
+	}
+	registro[machinepolicy.ProhibirConfianzaForzada] = errors.New("REG_SZ donde se espera REG_DWORD")
+	if !prohibida() {
+		t.Fatal("un valor ilegible debe contar como prohibición")
 	}
 }

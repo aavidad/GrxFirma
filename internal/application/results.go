@@ -56,6 +56,10 @@ type VerifyResult struct {
 	// Dictamen es el resultado explícito de la evaluación autónoma. Es nil
 	// cuando no hay evaluador configurado.
 	Dictamen *domain.DictamenVerificacion
+
+	// ConfianzaForzada dice lo que se aceptó por decisión del usuario y lo
+	// que podría aceptar (solo CLI y escritorio; vacío en el resto).
+	ConfianzaForzada ResultadoConfianzaForzada
 }
 
 // ProtectResult resume la protección/cifrado de un documento.

@@ -20,6 +20,21 @@ public sealed record SettingsOption(
     public override string ToString() => Label;
 }
 
+// Lote 14: una firma aceptada por el usuario en este equipo. Los textos ya
+// vienen de los catálogos de idioma.
+public sealed record ForcedTrustEntryRow
+{
+    public required string Type { get; init; }
+    public required string Fingerprint { get; init; }
+    public required string Label { get; init; }
+    public required string Detail { get; init; }
+    public required string RemoveText { get; init; }
+    public required string RemoveAccessibleName { get; init; }
+
+    // El lector de pantalla nombra la fila por su caso y su certificado.
+    public override string ToString() => Label + ". " + Detail;
+}
+
 public sealed class SettingsPageViewModel
     : WorkspacePageViewModel
 {
@@ -97,6 +112,147 @@ public sealed class SettingsPageViewModel
 
     public event Action<OperationDiagnostic>? DiagnosticRequested;
     public event Action<int?>? ThemePreferenceApplied;
+
+    // El motor limita la lista a 64 entradas por tipo; aquí basta un tope visible.
+    private const int MaximumForcedTrustEntries = 256;
+    private IReadOnlyList<ForcedTrustEntryRow> _forcedTrustEntries = [];
+    private string _forcedTrustStatus = string.Empty;
+    private bool _forcedTrustForbidden;
+
+    public IReadOnlyList<ForcedTrustEntryRow> ForcedTrustEntries
+    {
+        get => _forcedTrustEntries;
+        private set => SetProperty(ref _forcedTrustEntries, value);
+    }
+
+    // Ayuda, aviso de política o «no has aceptado nada»: siempre una frase.
+    public string ForcedTrustStatus
+    {
+        get => _forcedTrustStatus;
+        private set => SetProperty(ref _forcedTrustStatus, value);
+    }
+
+    public bool ForcedTrustForbidden
+    {
+        get => _forcedTrustForbidden;
+        private set => SetProperty(ref _forcedTrustForbidden, value);
+    }
+
+    public async Task LoadForcedTrustAsync()
+    {
+        if (_pageLifetime is null ||
+            !_session.TryGetOperations(
+                DesktopOperationActions.ForcedTrustList,
+                out var operations))
+        {
+            ApplyForcedTrust(null);
+            return;
+        }
+
+        try
+        {
+            var result = await operations.GetForcedTrustAsync(
+                _pageLifetime.Token);
+            if (!result.IsSuccess || result.Outcome != "success")
+            {
+                RequestDiagnostic(OperationDiagnosticMapper.FromResult(result));
+                return;
+            }
+            ApplyForcedTrust(result.Data);
+        }
+        catch (OperationCanceledException)
+            when (_pageLifetime?.IsCancellationRequested == true)
+        {
+        }
+        catch (Exception exception)
+        {
+            RequestDiagnostic(OperationDiagnosticMapper.FromException(exception));
+        }
+    }
+
+    public async Task RemoveForcedTrustAsync(ForcedTrustEntryRow? row)
+    {
+        if (row is null ||
+            _pageLifetime is null ||
+            !_session.TryGetOperations(
+                DesktopOperationActions.ForcedTrustRemove,
+                out var operations))
+        {
+            return;
+        }
+
+        try
+        {
+            var result = await operations.RemoveForcedTrustAsync(
+                new ForcedTrustRemoveParameters
+                {
+                    Type = row.Type,
+                    Fingerprint = row.Fingerprint,
+                },
+                _pageLifetime.Token);
+            if (!result.IsSuccess || result.Outcome != "success")
+            {
+                RequestDiagnostic(OperationDiagnosticMapper.FromResult(result));
+                return;
+            }
+            ApplyForcedTrust(result.Data);
+            ShowStatus(
+                VerifyPageViewModel.CatalogText("verify.forced_trust.ui.settings_title"),
+                VerifyPageViewModel.CatalogText("verify.forced_trust.ui.removed"),
+                InfoBarSeverity.Success);
+        }
+        catch (OperationCanceledException)
+            when (_pageLifetime?.IsCancellationRequested == true)
+        {
+        }
+        catch (Exception exception)
+        {
+            RequestDiagnostic(OperationDiagnosticMapper.FromException(exception));
+        }
+    }
+
+    private void ApplyForcedTrust(ForcedTrustListResult? data)
+    {
+        var remove = VerifyPageViewModel.CatalogText("verify.forced_trust.ui.remove");
+        var removeAccessible =
+            VerifyPageViewModel.CatalogText("verify.forced_trust.ui.remove_accessible");
+        var allSignatures =
+            VerifyPageViewModel.CatalogText("verify.forced_trust.ui.all_signatures");
+        ForcedTrustForbidden = data?.Forbidden == true;
+        ForcedTrustEntries = (data?.Entries ?? [])
+            .Where(static item => !string.IsNullOrWhiteSpace(item.Type))
+            .Take(MaximumForcedTrustEntries)
+            .Select(item =>
+            {
+                var label = VerifyPageViewModel.CatalogText(item.Label);
+                if (string.IsNullOrWhiteSpace(label))
+                {
+                    label = item.Type;
+                }
+                var who = string.IsNullOrWhiteSpace(item.Fingerprint)
+                    ? allSignatures
+                    : $"{item.Subject} · {item.Fingerprint}";
+                var detail = string.IsNullOrWhiteSpace(item.AcceptedAt)
+                    ? who
+                    : $"{who} · {item.AcceptedAt}";
+                return new ForcedTrustEntryRow
+                {
+                    Type = item.Type,
+                    Fingerprint = item.Fingerprint,
+                    Label = label,
+                    Detail = detail,
+                    RemoveText = remove,
+                    RemoveAccessibleName = removeAccessible.Replace(
+                        "%1", label, StringComparison.Ordinal),
+                };
+            })
+            .ToArray();
+        ForcedTrustStatus = ForcedTrustForbidden
+            ? VerifyPageViewModel.CatalogText("verify.forced_trust.forbidden")
+            : ForcedTrustEntries.Count == 0
+                ? VerifyPageViewModel.CatalogText("verify.forced_trust.ui.settings_empty")
+                : VerifyPageViewModel.CatalogText("verify.forced_trust.ui.settings_help");
+    }
 
     public IReadOnlyList<SettingsOption> Languages { get; } =
     [

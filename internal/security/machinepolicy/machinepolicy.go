@@ -21,11 +21,15 @@ const RegistryKey = `SOFTWARE\Policies\GrxFirma`
 
 // Nombres de valor de la política de máquina.
 const (
-	AllowedDomains           = "allowed_domains"
-	WebsocketHabilitado      = "websocket_habilitado"
-	WebsocketPermitido       = "websocket_permitido"
-	RestHabilitado           = "rest_habilitado"
-	TofuHabilitado           = "tofu_habilitado"
+	AllowedDomains      = "allowed_domains"
+	WebsocketHabilitado = "websocket_habilitado"
+	WebsocketPermitido  = "websocket_permitido"
+	RestHabilitado      = "rest_habilitado"
+	TofuHabilitado      = "tofu_habilitado"
+	// ProhibirConfianzaForzada impide que el usuario acepte en su equipo
+	// firmas con una CA desconocida, una clave RSA corta, un certificado de
+	// componente, la revocación sin comprobar o SHA-1 (lote 14).
+	ProhibirConfianzaForzada = "prohibir_confianza_forzada"
 	DirectorioP12            = "directorio_p12"
 	DominiosDeConfianza      = "dominios_de_confianza"
 	NivelLog                 = "nivel_log"

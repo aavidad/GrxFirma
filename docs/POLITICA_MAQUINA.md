@@ -27,7 +27,9 @@ ese ajuste: el resto de la política se aplica. Un ajuste restrictivo
 (`rest_habilitado`, `websocket_habilitado`, `websocket_permitido`,
 `tofu_habilitado`) cuyo valor no se entiende queda **desactivado**, y si
 `policy.json` existe pero no se puede leer (JSON inválido, enlace, propietario
-distinto de root en Linux), REST y WebSocket quedan desactivados. En todos los
+distinto de root en Linux), REST y WebSocket quedan desactivados. Lo mismo
+pasa con `prohibir_confianza_forzada`: un valor que no se entiende o una
+política ilegible cuentan como prohibición. En todos los
 casos GrxFirma deja un aviso en el registro de diagnóstico.
 
 En Windows **no** se leen `C:\etc\...` ni `%ProgramData%`: cualquier usuario
@@ -48,6 +50,7 @@ todos los usuarios del equipo (por ejemplo, en servidores de escritorio remoto).
 | `firma_remota_csc_oauth_permitidos` | `REG_MULTI_SZ` | Pares `servicio=autorizacion` (`host[:puerto]`) que permiten un servidor OAuth en otro host que el servicio de firma remota. Sustituye a la lista del usuario. |
 | `nivel_log`, `directorio_p12` | `REG_SZ` | Igual que en `policy.json`. |
 | `timeout_operacion_segundos`, `max_tamano_documento_bytes` | `REG_DWORD` / `REG_QWORD` | Límites operativos. |
+| `prohibir_confianza_forzada` | `REG_DWORD` | `1` ignora las firmas que el usuario aceptó en su equipo al verificar (lista `confianza_forzada` de su `config.json`) y no deja aceptar más; el resultado de la verificación lo dice y la aplicación de escritorio oculta el botón. Si la política no se puede leer o el valor no es válido, cuenta como `1`. Ver «Firmas aceptadas en este equipo» en [operador.md](operador.md#firmas-aceptadas-en-este-equipo). En la plantilla ADMX es «Impedir que el usuario dé por válidas firmas con aviso», en la categoría de orígenes; en Linux y macOS, `"prohibir_confianza_forzada": true` en `policy.json`. |
 | `tsa_permitidas` | `REG_MULTI_SZ` | Lista opcional de TSA que una petición puede indicar en su opción `tsaURL`. Ver «TSA indicada en la petición». |
 
 ## TSA indicada en la petición (`tsa_permitidas`)

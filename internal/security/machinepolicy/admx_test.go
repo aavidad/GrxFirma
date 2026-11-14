@@ -56,7 +56,7 @@ func TestPlantillaADMXCoherente(t *testing.T) {
 		}
 	}
 	esperados := []string{
-		AllowedDomains, WebsocketHabilitado, WebsocketPermitido, RestHabilitado, TofuHabilitado, DirectorioP12,
+		AllowedDomains, WebsocketHabilitado, WebsocketPermitido, RestHabilitado, TofuHabilitado, ProhibirConfianzaForzada, DirectorioP12,
 		DominiosDeConfianza, NivelLog, TimeoutOperacionSegundos, MaxTamanoDocumentoBytes,
 		PermitirOrigenVacio, PermitirDESLegacy, PermitirRutasDirectas, AprobacionAutomaticaHost,
 		PermitirSHA1Legacy, PermitirCMSAESECBLegacy, FirmaRemotaCSC, FirmaRemotaCSCOAuth,

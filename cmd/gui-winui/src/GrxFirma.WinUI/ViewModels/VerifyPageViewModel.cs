@@ -45,6 +45,9 @@ public sealed class VerifyPageViewModel
     private bool _canCancel;
     private bool _hasResult;
     private InfoBarSeverity _resultSeverity = InfoBarSeverity.Informational;
+    private IReadOnlyList<ForcedTrustObstacle> _forcedTrustAcceptable = [];
+    private bool _canAcceptForcedTrust;
+    private string _forcedTrustHint = string.Empty;
 
     public VerifyPageViewModel(
         DesktopOperationSession session,
@@ -255,6 +258,79 @@ public sealed class VerifyPageViewModel
     {
         get => _resultSeverity;
         private set => SetProperty(ref _resultSeverity, value);
+    }
+
+    // Lote 14: lo que el motor ofrece aceptar en este equipo para la última
+    // verificación. Vacío si la política lo prohíbe o la firma tiene otro
+    // problema que no se puede aceptar.
+    public IReadOnlyList<ForcedTrustObstacle> ForcedTrustAcceptable
+    {
+        get => _forcedTrustAcceptable;
+        private set => SetProperty(ref _forcedTrustAcceptable, value);
+    }
+
+    public bool CanAcceptForcedTrust
+    {
+        get => _canAcceptForcedTrust;
+        private set => SetProperty(ref _canAcceptForcedTrust, value);
+    }
+
+    public string ForcedTrustHint
+    {
+        get => _forcedTrustHint;
+        private set => SetProperty(ref _forcedTrustHint, value);
+    }
+
+    // Guarda lo aceptado tras la confirmación del diálogo y vuelve a
+    // verificar. El motor rechaza lo que no ofreció en esta sesión.
+    public async Task AcceptForcedTrustAsync()
+    {
+        var items = ForcedTrustAcceptable
+            .Where(static item => !string.IsNullOrWhiteSpace(item.Type))
+            .Select(static item => new ForcedTrustItem
+            {
+                Type = item.Type,
+                Fingerprint = item.Fingerprint,
+            })
+            .ToArray();
+        if (!CanAcceptForcedTrust ||
+            items.Length == 0 ||
+            _pageLifetime is null ||
+            !_session.TryGetOperations(
+                DesktopOperationActions.ForcedTrustAccept,
+                out var operations))
+        {
+            return;
+        }
+
+        SetBusy(true);
+        try
+        {
+            var result = await operations.AcceptForcedTrustAsync(
+                new ForcedTrustAcceptParameters { Items = items },
+                _pageLifetime.Token);
+            if (!result.IsSuccess || result.Outcome != "success")
+            {
+                RequestDiagnostic(OperationDiagnosticMapper.FromResult(result));
+                return;
+            }
+        }
+        catch (OperationCanceledException)
+            when (_pageLifetime?.IsCancellationRequested == true)
+        {
+            return;
+        }
+        catch (Exception exception)
+        {
+            RequestDiagnostic(OperationDiagnosticMapper.FromException(exception));
+            return;
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+
+        await VerifyAsync();
     }
 
     public void Activate()
@@ -484,6 +560,10 @@ public sealed class VerifyPageViewModel
             CanSelectFiles &&
             !string.IsNullOrWhiteSpace(_signedFilePath);
         CanCancel = _isActive && IsBusy;
+        CanAcceptForcedTrust =
+            CanSelectFiles &&
+            ForcedTrustAcceptable.Count > 0 &&
+            _session.Supports(DesktopOperationActions.ForcedTrustAccept);
     }
 
     private void PresentResult(VerifyResult data)
@@ -505,6 +585,13 @@ public sealed class VerifyPageViewModel
                 : VerificationAssessment.HasEstablishedTrust(data)
                     ? InfoBarSeverity.Success
                     : InfoBarSeverity.Warning;
+        if (VerificationAssessment.HasForcedTrust(data))
+        {
+            // Nunca «de confianza»: válida porque el usuario lo aceptó.
+            ResultTitle = CatalogText("verify.forced_trust.ui.outcome");
+            ResultSeverity = InfoBarSeverity.Warning;
+        }
+        PresentForcedTrust(data);
         ResultMessage = SafeIpcText.Clean(
             data.Reason,
             512,
@@ -609,7 +696,33 @@ public sealed class VerifyPageViewModel
         Signers = [];
         Warnings = [];
         Details = [];
+        ForcedTrustAcceptable = [];
+        ForcedTrustHint = string.Empty;
+        RefreshCommandState();
     }
+
+    private void PresentForcedTrust(VerifyResult data)
+    {
+        var forcedTrust = data.ForcedTrust;
+        var offered =
+            !data.IsValid &&
+            forcedTrust is { Available: true, Forbidden: false }
+                ? forcedTrust.Acceptable
+                    .Where(static item => !string.IsNullOrWhiteSpace(item.Type))
+                    .Take(MaximumVisibleItems)
+                    .ToArray()
+                : [];
+        ForcedTrustAcceptable = offered;
+        ForcedTrustHint = offered.Length > 0
+            ? CatalogText("verify.forced_trust.hint")
+            : forcedTrust is { Forbidden: true } && !data.IsValid
+                ? CatalogText("verify.forced_trust.forbidden")
+                : string.Empty;
+        RefreshCommandState();
+    }
+
+    // Claves del catálogo en el idioma elegido en la aplicación.
+    internal static string CatalogText(string key) => Localizer.Text(key);
 
     private void RequestDiagnostic(OperationDiagnostic diagnostic) =>
         DiagnosticRequested?.Invoke(diagnostic);

@@ -88,6 +88,11 @@ public:
   // idioma de la aplicación; llega en el campo reportHtml del resultado.
   Q_INVOKABLE void verifyFileWithReport(const QString &inputPath,
                                         const QString &originalPath);
+  // Lote 14: firmas que el usuario acepta en este equipo al verificar.
+  Q_INVOKABLE void loadForcedTrust();
+  Q_INVOKABLE void acceptForcedTrust(const QVariantList &items);
+  Q_INVOKABLE void removeForcedTrust(const QString &type,
+                                     const QString &fingerprint);
   Q_INVOKABLE void loadProtectionRecipients();
   Q_INVOKABLE void importProtectionRecipient(const QString &path);
   Q_INVOKABLE void removeProtectionRecipient(const QString &id);
@@ -219,6 +224,10 @@ signals:
   void signingFinished(bool success, QString message, QString outputPath);
   void batchSigningFinished(bool success, QString message, QVariantList results);
   void verificationFinished(bool success, QString message, QVariantMap details);
+  // action es forced_trust_list, forced_trust_accept o forced_trust_remove;
+  // data lleva {forbidden, entries}.
+  void forcedTrustFinished(QString action, bool ok, QVariantMap data,
+                           QString message);
   void protectionRecipientsLoaded(QVariantList recipients);
   void protectionRecipientChanged(bool ok, QString message);
   void smartcardStatusReceived(bool ok, QVariantList readers, QString message);

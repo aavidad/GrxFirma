@@ -784,6 +784,12 @@ Window {
     // («Proteger y firmar»).
     property string cscSecretPurpose: "sign"
     property int verificationPendingCount: 0
+    // Lote 14: firmas aceptadas por el usuario en este equipo.
+    property var forcedTrustEntries: []
+    property bool forcedTrustForbidden: false
+    property bool forcedTrustAvailable: false
+    property var forcedTrustPendingItems: []
+    property bool forcedTrustSaving: false
     property int hashPendingCount: 0
     // Se conserva el estado local hasta que terminen operaciones y diálogos.
     property bool restartBlocked: signingInProgress || verificationPendingCount > 0 ||
@@ -4995,6 +5001,49 @@ Window {
         return String(details[name].status || "").trim().toLowerCase()
     }
 
+    // Lote 14: la firma es válida porque el usuario aceptó en este equipo un
+    // obstáculo (CA desconocida, RSA corta, certificado de servidor,
+    // revocación sin comprobar o SHA-1). Se muestra aparte, nunca como
+    // «Válida y confiable».
+    function verificationForcedTrustApplied(details) {
+        if (!details || details.valid !== true)
+            return false
+        if (details.forcedTrust && details.forcedTrust.applied && details.forcedTrust.applied.length > 0)
+            return true
+        const evidence = details.evidence || []
+        for (let i = 0; i < evidence.length; i++) {
+            if (evidence[i] && String(evidence[i].type || "") === "trust.user_forced")
+                return true
+        }
+        return false
+    }
+
+    // Obstáculos que la verificación ofrece aceptar; vacío si la política lo
+    // prohíbe o si aceptar no bastaría.
+    function forcedTrustAcceptable(details) {
+        if (!details || !details.forcedTrust)
+            return []
+        const ft = details.forcedTrust
+        if (ft.available !== true || ft.forbidden === true || !ft.acceptable)
+            return []
+        return ft.acceptable
+    }
+
+    function openForcedTrustDialog(details) {
+        const items = forcedTrustAcceptable(details)
+        if (items.length === 0)
+            return
+        forcedTrustPendingItems = items
+        forcedTrustDialog.open()
+    }
+
+    function forcedTrustDateText(iso) {
+        const date = new Date(String(iso || ""))
+        if (isNaN(date.getTime()))
+            return String(iso || "")
+        return Qt.formatDateTime(date, "yyyy-MM-dd HH:mm")
+    }
+
     function verificationOutcomeKind(details) {
         if (!details)
             return "incomplete"
@@ -5009,6 +5058,8 @@ Window {
                 || trust === "invalid") {
             return "invalid"
         }
+        if (verificationForcedTrustApplied(details) && integrity === "valid")
+            return "forced"
         if (details.valid === true
                 && integrity === "valid"
                 && certificate === "valid"
@@ -5028,6 +5079,7 @@ Window {
         if (outcome === "trusted") return tr("Válida y confiable")
         if (outcome === "invalid") return tr("No válida")
         if (outcome === "untrusted") return tr("Integridad válida; confianza no evaluada")
+        if (outcome === "forced") return tr("verify.forced_trust.ui.outcome")
         return tr("Verificación incompleta")
     }
 
@@ -6029,6 +6081,135 @@ Window {
                         signedDocumentWarningDialog.close()
                         if (ctx)
                             Qt.callLater(function() { window.executeSignRequest(ctx.selectedCertIndex) })
+                    }
+                }
+            }
+        }
+    }
+
+    Connections {
+        target: backend
+        enabled: isIpcMode
+        ignoreUnknownSignals: true
+        function onForcedTrustFinished(action, ok, data, message) {
+            if (ok) {
+                window.forcedTrustAvailable = true
+                window.forcedTrustForbidden = data && data.forbidden === true
+                window.forcedTrustEntries = (data && data.entries) ? data.entries : []
+            }
+            if (action === "forced_trust_list") {
+                if (!ok) window.forcedTrustAvailable = false
+                return
+            }
+            if (action === "forced_trust_accept") {
+                window.forcedTrustSaving = false
+                window.forcedTrustPendingItems = []
+                if (!ok) {
+                    window.statusMessage = message
+                    return
+                }
+                window.statusMessage = tr("verify.forced_trust.ui.saved")
+                // Se repite la verificación para que el resultado muestre
+                // la firma como aceptada, con su aviso.
+                if (verifyTab.verifyFilePath !== "")
+                    window.requestVerification(verifyTab.verifyFilePath, verifyTab.verifyOriginalPath)
+                return
+            }
+            if (action === "forced_trust_remove")
+                window.statusMessage = ok ? tr("verify.forced_trust.ui.removed") : message
+        }
+    }
+
+    // Lote 14: confirmación antes de aceptar en este equipo una firma que
+    // GrxFirma no da por válida. Se lee el aviso de cada caso; «Cancelar» es
+    // el botón por defecto y Escape cierra sin guardar nada.
+    ThemedDialog {
+        id: forcedTrustDialog
+        theme: currentTheme
+        translate: function(key) { return window.tr(key) }
+        title: tr("verify.forced_trust.ui.dialog_title")
+        accessibleDescription: tr("verify.forced_trust.ui.dialog_intro")
+        modal: true
+        anchors.centerIn: parent
+        closePolicy: Popup.CloseOnEscape
+        onOpened: forcedTrustCancelButton.forceActiveFocus()
+
+        ColumnLayout {
+            spacing: 12
+            width: 520
+
+            Text {
+                text: tr("verify.forced_trust.ui.dialog_intro")
+                color: currentTheme.textColor
+                wrapMode: Text.Wrap
+                Layout.preferredWidth: 520
+                Layout.maximumWidth: 520
+            }
+
+            Repeater {
+                model: window.forcedTrustPendingItems
+                delegate: ColumnLayout {
+                    spacing: 4
+                    Layout.preferredWidth: 520
+                    Layout.maximumWidth: 520
+
+                    Text {
+                        text: tr(String(modelData.label || ""))
+                        color: Contrast.accentOn(currentTheme.cardColor, "#f39c12")
+                        font.bold: true
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
+                    Text {
+                        text: tr(String(modelData.notice || ""))
+                        color: currentTheme.textColor
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
+                    Text {
+                        text: modelData.subject ? tr("verify.forced_trust.cli.subject") + ": " + modelData.subject
+                                                : tr("verify.forced_trust.ui.all_signatures")
+                        // El sujeto viene del certificado de la firma: nunca como marcado.
+                        textFormat: Text.PlainText
+                        color: currentTheme.secondaryTextColor
+                        font.pixelSize: 12
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
+                    TextEdit {
+                        visible: !!modelData.fingerprint
+                        text: tr("verify.forced_trust.cli.fingerprint") + ": " + String(modelData.fingerprint || "")
+                        textFormat: TextEdit.PlainText
+                        readOnly: true
+                        selectByMouse: true
+                        color: currentTheme.secondaryTextColor
+                        font.family: "Monospace"
+                        font.pixelSize: 11
+                        wrapMode: TextEdit.WrapAnywhere
+                        Layout.fillWidth: true
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                spacing: 8
+
+                ThemedButton {
+                    id: forcedTrustCancelButton
+                    text: tr("Cancelar")
+                    onClicked: {
+                        window.forcedTrustPendingItems = []
+                        forcedTrustDialog.close()
+                    }
+                }
+                ThemedButton {
+                    text: tr("verify.forced_trust.ui.confirm")
+                    enabled: !window.forcedTrustSaving && window.forcedTrustPendingItems.length > 0
+                    onClicked: {
+                        window.forcedTrustSaving = true
+                        backend.acceptForcedTrust(window.forcedTrustPendingItems)
+                        forcedTrustDialog.close()
                     }
                 }
             }
@@ -12609,6 +12790,31 @@ Window {
                                             visible: verifyTab.verifyDetails && verifyTab.verifyDetails.reason !== undefined
                                         }
 
+                                        // Lote 14: la firma solo falla por algo que el usuario
+                                        // puede aceptar en este equipo. Acción secundaria: el
+                                        // resultado sigue diciendo «No válida».
+                                        RowLayout {
+                                            width: parent.width
+                                            spacing: 12
+                                            visible: isIpcMode && window.forcedTrustAcceptable(verifyTab.verifyDetails).length > 0
+
+                                            Text {
+                                                text: tr("verify.forced_trust.hint")
+                                                color: currentTheme.textColor
+                                                font.pixelSize: 12
+                                                wrapMode: Text.Wrap
+                                                Layout.fillWidth: true
+                                            }
+                                            ThemedButton {
+                                                id: forcedTrustAcceptButton
+                                                text: tr("verify.forced_trust.ui.accept_button")
+                                                enabled: !window.forcedTrustSaving && window.verificationPendingCount === 0
+                                                Accessible.name: text
+                                                Accessible.description: tr("verify.forced_trust.hint")
+                                                onClicked: window.openForcedTrustDialog(verifyTab.verifyDetails)
+                                            }
+                                        }
+
                                         AdaptiveRow {
                                             width: parent.width
 
@@ -14592,7 +14798,10 @@ Window {
                 Connections {
                     target: window
                     function onActiveTabChanged() {
-                        if (window.activeTab === "config") configTab.refreshServiceStatus()
+                        if (window.activeTab === "config") {
+                            configTab.refreshServiceStatus()
+                            if (isIpcMode) backend.loadForcedTrust()
+                        }
                     }
                 }
 
@@ -16254,6 +16463,97 @@ Window {
                                     Binding { target: settingsSignStrictCompatSwitch; property: "checked"; value: window.signStrictCompat }
                                 }
 
+                            }
+                        }
+
+                        // ── Firmas aceptadas en este equipo (lote 14) ──────────────
+                        Rectangle {
+                            id: forcedTrustCard
+                            Layout.fillWidth: true
+                            implicitHeight: forcedTrustCol.implicitHeight + 40
+                            radius: 12
+                            color: currentTheme.cardColor
+                            border.color: currentTheme.primaryColor; border.width: 1
+                            visible: isIpcMode && window.forcedTrustAvailable
+
+                            ColumnLayout {
+                                id: forcedTrustCol
+                                anchors { top: parent.top; left: parent.left; right: parent.right; margins: 20 }
+                                spacing: 10
+
+                                Text {
+                                    text: tr("verify.forced_trust.ui.settings_title")
+                                    color: currentTheme.textColor
+                                    font.bold: true
+                                    font.pixelSize: 15
+                                    Layout.fillWidth: true
+                                    Accessible.role: Accessible.Heading
+                                    Accessible.name: text
+                                }
+                                Text {
+                                    text: window.forcedTrustForbidden ? tr("verify.forced_trust.forbidden")
+                                                                      : tr("verify.forced_trust.ui.settings_help")
+                                    color: window.forcedTrustForbidden ? Contrast.accentOn(currentTheme.cardColor, "#f39c12") : currentTheme.secondaryTextColor
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                }
+                                Text {
+                                    visible: window.forcedTrustEntries.length === 0
+                                    text: tr("verify.forced_trust.ui.settings_empty")
+                                    color: currentTheme.secondaryTextColor
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                }
+                                Repeater {
+                                    model: window.forcedTrustEntries
+                                    delegate: RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 12
+
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 2
+                                            Text {
+                                                text: tr(String(modelData.label || ""))
+                                                color: currentTheme.textColor
+                                                font.bold: true
+                                                wrapMode: Text.WordWrap
+                                                Layout.fillWidth: true
+                                            }
+                                            Text {
+                                                text: modelData.subject ? String(modelData.subject)
+                                                                        : tr("verify.forced_trust.ui.all_signatures")
+                                                // El sujeto viene del certificado de la firma: nunca como marcado.
+                                                textFormat: Text.PlainText
+                                                color: currentTheme.secondaryTextColor
+                                                font.pixelSize: 12
+                                                wrapMode: Text.WordWrap
+                                                Layout.fillWidth: true
+                                            }
+                                            Text {
+                                                visible: !!modelData.fingerprint
+                                                text: tr("verify.forced_trust.cli.fingerprint") + ": " + String(modelData.fingerprint || "")
+                                                textFormat: Text.PlainText
+                                                color: currentTheme.secondaryTextColor
+                                                font.family: "Monospace"
+                                                font.pixelSize: 11
+                                                wrapMode: Text.WrapAnywhere
+                                                Layout.fillWidth: true
+                                            }
+                                            Text {
+                                                text: tr("verify.forced_trust.cli.accepted_at") + ": " + window.forcedTrustDateText(modelData.acceptedAt)
+                                                color: currentTheme.secondaryTextColor
+                                                font.pixelSize: 11
+                                                Layout.fillWidth: true
+                                            }
+                                        }
+                                        ThemedButton {
+                                            text: tr("verify.forced_trust.ui.remove")
+                                            Accessible.name: tr("verify.forced_trust.ui.remove_accessible").arg(tr(String(modelData.label || "")))
+                                            onClicked: backend.removeForcedTrust(String(modelData.type || ""), String(modelData.fingerprint || ""))
+                                        }
+                                    }
+                                }
                             }
                         }
 

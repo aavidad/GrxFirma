@@ -27,6 +27,10 @@ type VerifySignatureUseCase struct {
 	auditor   *AuditUseCase
 	evaluador ports.EvaluadorDictamenFirma
 	ahora     func() time.Time
+	// confianzaForzada solo se compone en la CLI y en el escritorio: lo que
+	// el usuario aceptó en su equipo (lote 14). Nil en REST, afirma://,
+	// host nativo y móvil.
+	confianzaForzada ports.AlmacenConfianzaForzada
 }
 
 // NuevoVerifySignatureUseCase construye el caso de uso de verificacion.
@@ -63,6 +67,26 @@ func (uc *VerifySignatureUseCase) ConEvaluador(evaluador ports.EvaluadorDictamen
 	return uc
 }
 
+// ConConfianzaForzada aplica lo que el usuario aceptó en su equipo para
+// los cinco obstáculos forzables. Solo la CLI y el escritorio lo componen.
+func (uc *VerifySignatureUseCase) ConConfianzaForzada(almacen ports.AlmacenConfianzaForzada) *VerifySignatureUseCase {
+	if uc == nil {
+		return nil
+	}
+	uc.confianzaForzada = almacen
+	return uc
+}
+
+func (uc *VerifySignatureUseCase) verificar(ctx context.Context, cmd VerifyCommand, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
+	if cmd.OriginalDocument != nil {
+		if detached, ok := uc.verifier.(detachedVerifierEngine); ok {
+			return detached.VerifyDetached(ctx, cmd.SignedDocument, *cmd.OriginalDocument, anchors)
+		}
+		return domain.VerificationResult{}, nil, fmt.Errorf("el verificador no soporta contenido original para firmas detached")
+	}
+	return uc.verifier.Verify(ctx, cmd.SignedDocument, anchors)
+}
+
 // Ejecutar verifica el documento firmado y devuelve el resultado tecnico y los firmantes hallados.
 func (uc *VerifySignatureUseCase) Ejecutar(ctx context.Context, cmd VerifyCommand) (VerifyResult, error) {
 	anchors, err := uc.anclas.Anchors(ctx)
@@ -71,22 +95,17 @@ func (uc *VerifySignatureUseCase) Ejecutar(ctx context.Context, cmd VerifyComman
 		return VerifyResult{}, fmt.Errorf("no se pudieron obtener los anclajes de confianza: %w", err)
 	}
 
-	var verification domain.VerificationResult
-	var signers []domain.CertificateRef
-	if cmd.OriginalDocument != nil {
-		if detached, ok := uc.verifier.(detachedVerifierEngine); ok {
-			verification, signers, err = detached.VerifyDetached(ctx, cmd.SignedDocument, *cmd.OriginalDocument, anchors)
-		} else {
-			err = fmt.Errorf("el verificador no soporta contenido original para firmas detached")
-		}
-	} else {
-		verification, signers, err = uc.verifier.Verify(ctx, cmd.SignedDocument, anchors)
+	var registro *domain.RegistroConfianzaForzada
+	if uc.confianzaForzada != nil {
+		registro = domain.NuevoRegistroConfianzaForzada(uc.cargarConfianzaForzada(ctx))
 	}
+	verification, signers, err := uc.verificar(domain.ConRegistroConfianzaForzada(ctx, registro), cmd, anchors)
 	if err != nil {
 		uc.auditar(ctx, cmd, false, err)
 		return VerifyResult{}, fmt.Errorf("no se pudo verificar la firma del documento: %w", err)
 	}
 	verification = verification.WithSignerSummaries(signers).Normalize()
+	forzada := uc.completarConfianzaForzada(ctx, cmd, anchors, registro, &verification)
 
 	var dictamen *domain.DictamenVerificacion
 	if uc.evaluador != nil {
@@ -98,11 +117,12 @@ func (uc *VerifySignatureUseCase) Ejecutar(ctx context.Context, cmd VerifyComman
 		dictamen = &evaluado
 	}
 
-	uc.auditar(ctx, cmd, verification.Valid, nil)
+	uc.auditarConCompatibilidad(ctx, cmd, verification.Valid, nil, codigosConfianzaForzada(verification.Valid, forzada.Aplicada))
 	return VerifyResult{
-		Verification: verification,
-		Firmantes:    signers,
-		Dictamen:     dictamen,
+		Verification:     verification,
+		Firmantes:        signers,
+		Dictamen:         dictamen,
+		ConfianzaForzada: forzada,
 	}, nil
 }
 
@@ -162,6 +182,10 @@ func (uc *VerifySignatureUseCase) EvaluarSelloDocumento(ctx context.Context, tok
 }
 
 func (uc *VerifySignatureUseCase) auditar(ctx context.Context, cmd VerifyCommand, success bool, err error) {
+	uc.auditarConCompatibilidad(ctx, cmd, success, err, nil)
+}
+
+func (uc *VerifySignatureUseCase) auditarConCompatibilidad(ctx context.Context, cmd VerifyCommand, success bool, err error, compatibilidad []string) {
 	if uc == nil || uc.auditor == nil {
 		return
 	}
@@ -170,10 +194,11 @@ func (uc *VerifySignatureUseCase) auditar(ctx context.Context, cmd VerifyCommand
 		resumen = sanitizarError(err)
 	}
 	_ = uc.auditor.Registrar(ctx, AuditCommand{
-		OperationType: "verificacion",
-		DocumentName:  cmd.SignedDocument.Name,
-		DocumentData:  cmd.SignedDocument.Content,
-		Success:       success,
-		ErrorSummary:  resumen,
+		OperationType:  "verificacion",
+		DocumentName:   cmd.SignedDocument.Name,
+		DocumentData:   cmd.SignedDocument.Content,
+		Success:        success,
+		ErrorSummary:   resumen,
+		Compatibilidad: compatibilidad,
 	})
 }

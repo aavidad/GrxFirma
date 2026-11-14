@@ -36,6 +36,12 @@ Sin configurar: las páginas web pueden indicar TSA públicas y el servicio REST
       <string id="TofuHabilitado_Help">Habilitada o sin configurar: cuando una sede que no está en la lista pide una firma, GrxFirma pregunta al usuario si confía en ella.
 
 Deshabilitada: se rechaza, sin preguntar, cualquier origen que no esté en la lista de orígenes permitidos. Recomendado en equipos corporativos con la lista completa de sedes.</string>
+      <string id="ProhibirConfianzaForzada">Impedir que el usuario dé por válidas firmas con aviso</string>
+      <string id="ProhibirConfianzaForzada_Help">Al verificar, GrxFirma no da por válida una firma si la autoridad que emitió el certificado no es de confianza en el equipo, si la clave RSA tiene menos de 2048 bits, si el certificado es de servidor (de componente), si no se pudo comprobar la revocación o si la firma usa SHA-1. El usuario puede aceptar cada caso en su equipo después de leer un aviso, y desde entonces esas firmas salen válidas con un aviso que lo recuerda.
+
+Habilitada: el usuario no puede aceptar ninguno de esos casos. GrxFirma no ofrece la opción y no tiene en cuenta lo que ya hubiera aceptado.
+
+Deshabilitada o sin configurar: el usuario puede aceptarlos. Si el valor no se puede leer, se trata como habilitada.</string>
       <string id="WebsocketHabilitado">Servicio WebSocket residente</string>
       <string id="WebsocketHabilitado_Help">Habilitada: GrxFirma mantiene en segundo plano un servicio WebSocket local para las sedes que usan AutoScript 1.9, aunque la sede no lo lance.
 

@@ -194,7 +194,13 @@ type Manejador struct {
 	CurrentVersion        string
 	// CSC es la sesión de firma remota; nil si el motor no la ofrece.
 	CSC               SesionCSC
+	ConfianzaForzada  ConfianzaForzadaUseCase
 	smartcardDetector smartcardDetector
+
+	// confianzaForzable recuerda los obstáculos que las verificaciones de
+	// esta sesión ofrecieron aceptar (lote 14).
+	confianzaMu       sync.Mutex
+	confianzaForzable map[string]domain.ObstaculoConfianza
 
 	settingsMu             sync.Mutex
 	certsMu                sync.RWMutex
@@ -292,6 +298,12 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handleFirmaLote(ctx, p.Params)
 	case "verify":
 		resp = m.handleVerificacion(ctx, p.Params)
+	case "forced_trust_list":
+		resp = m.handleConfianzaForzadaListar(ctx)
+	case "forced_trust_accept":
+		resp = m.handleConfianzaForzadaAceptar(ctx, p.Params)
+	case "forced_trust_remove":
+		resp = m.handleConfianzaForzadaQuitar(ctx, p.Params)
 	case "validate_certificate_online":
 		resp = m.handleCertificateOnlineCheck(ctx, p.Params)
 	case "protection_recipients":
@@ -1290,13 +1302,14 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 		},
 		Trust: resultadoVerificacionAspecto{
 			Status:  string(result.Verification.Trust.Status),
-			Reason:  result.Verification.Trust.Reason,
+			Reason:  m.textoConfianzaForzada(result.Verification.Trust.Reason),
 			Details: append([]string(nil), result.Verification.Trust.Details...),
 		},
 		SignerSummaries: verificacionFirmantesIPC(result.Verification.SignerSummaries),
-		Warnings:        append([]string(nil), result.Verification.Warnings...),
+		Warnings:        m.textosConfianzaForzada(result.Verification.Warnings),
 		Errors:          append([]string(nil), result.Verification.Errors...),
 		Evidence:        verificacionEvidenciasIPC(result.Verification.Evidence),
+		ForcedTrust:     m.confianzaForzadaVerificacion(result.ConfianzaForzada),
 	}}
 }
 

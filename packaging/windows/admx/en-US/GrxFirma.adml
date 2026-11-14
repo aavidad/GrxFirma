@@ -36,6 +36,12 @@ Not configured: web pages may specify public TSAs and the REST service any TSA, 
       <string id="TofuHabilitado_Help">Enabled or not configured: when a site that is not on the list requests a signature, GrxFirma asks the user whether to trust it.
 
 Disabled: any origin that is not on the allowed list is rejected without asking. Recommended on managed computers with the full list of sites.</string>
+      <string id="ProhibirConfianzaForzada">Prevent users from accepting signatures that show a warning</string>
+      <string id="ProhibirConfianzaForzada_Help">When verifying, GrxFirma does not treat a signature as valid if the authority that issued the certificate is not trusted on the computer, if the RSA key is shorter than 2048 bits, if the certificate is a server (component) certificate, if revocation could not be checked, or if the signature uses SHA-1. Users can accept each case on their computer after reading a warning; from then on those signatures show as valid, with a warning that reminds them.
+
+Enabled: users cannot accept any of these cases. GrxFirma does not offer the option and ignores anything already accepted.
+
+Disabled or not configured: users can accept them. If the value cannot be read, it is treated as enabled.</string>
       <string id="WebsocketHabilitado">Resident WebSocket service</string>
       <string id="WebsocketHabilitado_Help">Enabled: GrxFirma keeps a local WebSocket service running in the background for sites that use AutoScript 1.9, even if the site does not launch it.
 
