@@ -300,6 +300,33 @@ internal static class RemoteSigningDialogs
         CancellationToken cancellationToken)
     {
         var explanation = Paragraph(Localizer.Text("csc.gui.dialogo_texto"));
+        // ID-03: el cuadro dice a qué servicio van el PIN y el código, con el
+        // host que da el motor en este momento. Si no lo sabe, no se menciona.
+        var serviceHost = string.Empty;
+        if (session.TryGetOperations(DesktopOperationActions.CscStatus, out var statusOperations))
+        {
+            try
+            {
+                var status = await statusOperations.GetRemoteSigningStatusAsync(cancellationToken);
+                if (status.IsSuccess && status.Data is { } current &&
+                    (current.Connected || current.Discovered))
+                {
+                    serviceHost = current.ServiceHost.Trim();
+                }
+            }
+            catch (IpcClientException)
+            {
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+        }
+        var serviceLine = Paragraph(serviceHost.Length == 0
+            ? string.Empty
+            : Localizer.FormatPrintf("csc.gui.pin_servicio", serviceHost));
+        serviceLine.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold;
+        serviceLine.Visibility = serviceHost.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         var pinBox = new PasswordBox
         {
             Header = Localizer.Text("csc.gui.pin"),
@@ -372,6 +399,7 @@ internal static class RemoteSigningDialogs
 
         var panel = new StackPanel { Spacing = 10, MinWidth = 300, MaxWidth = 460 };
         panel.Children.Add(explanation);
+        panel.Children.Add(serviceLine);
         panel.Children.Add(pinBox);
         panel.Children.Add(otpBox);
         panel.Children.Add(sendCodeButton);

@@ -58,6 +58,22 @@ class CscRemoteContractTests(unittest.TestCase):
         self.assertIn("window.cscPendingSecrets = null", block(QML, "function onBatchSigningFinished("))
         self.assertNotRegex(dialog, r"console\.log")
 
+    def test_secret_dialog_says_which_service_gets_the_pin(self) -> None:
+        # ID-03: el cuadro del PIN dice a qué servicio se envía, con el host
+        # que da el motor en csc_status y como texto plano (dato de fuera).
+        dialog = block(QML, "id: cscRemoteSecretDialog")
+        self.assertIn('catalogFormat("csc.gui.pin_servicio", [window.cscPinServiceHost()])', dialog)
+        text = dialog[dialog.rindex("Text {", 0, dialog.index('"csc.gui.pin_servicio"')):]
+        text = text[:text.index("}") + 1]
+        self.assertIn("textFormat: Text.PlainText", text)
+        self.assertIn('visible: window.cscPinServiceHost() !== ""', text)
+        host = block(QML, "function cscPinServiceHost(")
+        self.assertIn("window.cscState.serviceHost", host)
+        # Al abrirlo se vuelve a preguntar al motor por el servicio vigente.
+        opener = block(QML, "function openRemoteSecretDialog(")
+        self.assertLess(opener.index("backend.cscStatus()"), opener.index("cscRemoteSecretDialog.open()"))
+        self.assertIn("%s", json.loads((LOCALES / "es.json").read_text(encoding="utf-8"))["csc.gui.pin_servicio"])
+
     def test_protect_and_sign_asks_for_remote_secrets_like_sign(self) -> None:
         protect = block(QML, "function executeProtectSignRequest(")
         self.assertIn("window.certificateNeedsRemoteSecrets(cert) && window.cscPendingSecrets === null", protect)

@@ -2833,7 +2833,18 @@ Window {
         cscPinField.text = ""
         cscOtpField.text = ""
         cscSecretStatus.text = ""
+        // El cuadro dice a qué servicio van el PIN y el código (ID-03): se
+        // pide al motor el estado vigente antes de abrirlo.
+        backend.cscStatus()
         cscRemoteSecretDialog.open()
+    }
+
+    // Host del servicio de firma remota que da el motor en csc_status; vacío
+    // si no lo sabe (el cuadro entonces no lo menciona).
+    function cscPinServiceHost() {
+        const state = window.cscState || {}
+        return state.connected === true || state.discovered === true
+                ? String(window.cscState.serviceHost || "").trim() : ""
     }
 
     // «Proteger y firmar» con un certificado remoto que pide PIN u OTP los
@@ -7790,6 +7801,15 @@ Window {
                 text: tr("csc.gui.dialogo_texto")
                 color: currentTheme.secondaryTextColor
                 wrapMode: Text.WordWrap
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: window.cscPinServiceHost() !== ""
+                text: catalogFormat("csc.gui.pin_servicio", [window.cscPinServiceHost()])
+                textFormat: Text.PlainText
+                color: currentTheme.textColor
+                font.bold: true
+                wrapMode: Text.Wrap
             }
             Label {
                 visible: !!window.cscSecretCertificate && window.cscSecretCertificate.remotePin === true

@@ -61,6 +61,20 @@ internal static class Localizer
                 : match.Value);
     }
 
+    private static readonly Regex PrintfPattern = new(
+        "%[sd]", RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Rellena en orden los «%s» y «%d» de una clave que comparte el motor Go
+    /// (por ejemplo, csc.gui.pin_servicio). Los valores se insertan tal cual.
+    /// </summary>
+    public static string FormatPrintf(string key, params string[] values)
+    {
+        var index = 0;
+        return PrintfPattern.Replace(Text(key), match =>
+            index < values.Length ? values[index++] : match.Value);
+    }
+
     public static bool SetLanguage(string? language) => Catalog.SetLanguage(language);
 
     private static readonly TimeSpan RescanInterval = TimeSpan.FromMilliseconds(300);

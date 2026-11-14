@@ -31,6 +31,17 @@ class RemoteSigningContractTests(unittest.TestCase):
         self.assertIn("otpBox.Password = string.Empty;", DIALOGS)
         self.assertNotIn("new TextBox\n        {\n            Header = Localizer.Text(\"csc.gui.pin\")", DIALOGS)
 
+    def test_secret_prompt_says_which_service_gets_the_pin(self) -> None:
+        # ID-03: el cuadro del PIN dice a qué servicio se envía, con el host
+        # que el motor da en csc_status en ese momento.
+        prompt = DIALOGS[DIALOGS.index("public static async Task<RemoteSigningSecrets?> PromptSecretsAsync("):]
+        prompt = prompt[:prompt.index("private static async Task ShowProhibitedAsync(")]
+        self.assertIn("GetRemoteSigningStatusAsync(", prompt)
+        self.assertIn('Localizer.FormatPrintf("csc.gui.pin_servicio", serviceHost)', prompt)
+        self.assertIn("panel.Children.Add(serviceLine);", prompt)
+        self.assertLess(prompt.index("panel.Children.Add(serviceLine);"), prompt.index("panel.Children.Add(pinBox);"))
+        self.assertIn("%s", CATALOG["csc.gui.pin_servicio"])
+
     def test_hosts_are_shown_before_connect_is_offered(self) -> None:
         self.assertIn('HostLine("csc.gui.host_servicio"', DIALOGS)
         self.assertIn('HostLine("csc.gui.host_oauth"', DIALOGS)
