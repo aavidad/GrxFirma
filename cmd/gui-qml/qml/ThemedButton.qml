@@ -23,6 +23,7 @@ Button {
     readonly property color labelColor: Contrast.readableOn(control.flat ? control.palette.window : control.fillColor,
                                                              control.palette.buttonText)
     contentItem: Text {
+        textFormat: Text.PlainText
         text: control.text
         font: control.font
         color: control.labelColor

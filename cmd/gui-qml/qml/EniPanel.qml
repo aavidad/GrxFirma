@@ -147,6 +147,7 @@ Item {
     component PathLabel: Label {
         property string path: ""
         property string emptyKey: "paridad.lote3.eni.no_file"
+        textFormat: Text.PlainText
         text: path !== "" ? path : panel.tr(emptyKey)
         color: path !== "" ? panel.theme.textColor : panel.theme.secondaryTextColor
         wrapMode: Text.WrapAnywhere

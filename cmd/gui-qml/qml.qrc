@@ -9,6 +9,7 @@
     <file>qml/SealDrawArea.qml</file>
     <file>qml/SealDrawGeometry.js</file>
     <file>qml/ThemedDialog.qml</file>
+    <file>qml/PlainToolTip.qml</file>
     <file>qml/ThemeContrast.js</file>
     <file>qml/ThemedButton.qml</file>
     <file>qml/ThemedCheckBox.qml</file>

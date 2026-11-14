@@ -2761,6 +2761,18 @@ Window {
         return compact.toUpperCase().match(/.{1,4}/g).join(" ")
     }
 
+    // Escapa un dato que va dentro de un texto con marcado, para que Qt lo
+    // pinte tal cual y no interprete etiquetas que vengan del certificado.
+    function escapeMarkup(value) {
+        return String(value === undefined || value === null ? "" : value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+    }
+
+    // Lleva negrita y saltos de línea, así que es texto enriquecido: cada dato
+    // del certificado (local o de un servicio remoto) se escapa.
     function compactCertificateTooltip(cert) {
         if (!cert) {
             return tr("Certificado")
@@ -2771,12 +2783,12 @@ Window {
         const validTo = cert.validTo || cert.notAfter || tr("Desconocida")
         const fingerprint = cert.fingerprint ? formatFingerprintForDisplay(cert.fingerprint) : "---"
         const status = certificateStatusText(cert)
-        return tr("<b>Titular:</b> ") + subject
-            + "<br/>" + tr("<b>Emisor:</b> ") + issuer
-            + "<br/>" + tr("<b>Nº Serie:</b> ") + serial
-            + "<br/>" + tr("<b>Válido hasta:</b> ") + validTo
-            + "<br/>" + tr("<b>Estado:</b> ") + status
-            + "<br/>" + tr("<b>Huella:</b> ") + fingerprint
+        return tr("<b>Titular:</b> ") + escapeMarkup(subject)
+            + "<br/>" + tr("<b>Emisor:</b> ") + escapeMarkup(issuer)
+            + "<br/>" + tr("<b>Nº Serie:</b> ") + escapeMarkup(serial)
+            + "<br/>" + tr("<b>Válido hasta:</b> ") + escapeMarkup(validTo)
+            + "<br/>" + tr("<b>Estado:</b> ") + escapeMarkup(status)
+            + "<br/>" + tr("<b>Huella:</b> ") + escapeMarkup(fingerprint)
     }
 
     function certificateStatusText(cert) {
@@ -5643,6 +5655,7 @@ Window {
 
             Text {
                 visible: window.aboutApplicationVersion !== ""
+                textFormat: Text.PlainText
                 text: tr("Versión %1").arg(window.aboutApplicationVersion)
                 color: currentTheme.secondaryTextColor
                 font.pixelSize: 15
@@ -5706,6 +5719,7 @@ Window {
             }
 
             Text {
+                textFormat: Text.PlainText
                 text: window.updateStatusMessage
                 color: window.updateAvailable
                        ? Contrast.accentOn(currentTheme.cardColor, currentTheme.primaryColor)
@@ -5792,11 +5806,13 @@ Window {
         ColumnLayout {
             spacing: 10
             Text {
+                textFormat: Text.PlainText
                 text: signValidationErrorDialog.heading !== "" ? signValidationErrorDialog.heading : tr("⚠️ Requisitos faltantes")
                 color: currentTheme.textColor
                 font.bold: true
             }
             Text {
+                textFormat: Text.PlainText
                 text: signValidationErrorDialog.errorMessage
                 color: currentTheme.secondaryTextColor
                 wrapMode: Text.WordWrap
@@ -5827,6 +5843,7 @@ Window {
                 Layout.preferredWidth: 360
             }
             Text {
+                textFormat: Text.PlainText
                 text: signConfirmDialog.selectedCertIndex >= 0 && signConfirmDialog.selectedCertIndex < certificates.length
                       ? tr("Certificado: %1").arg(window.certificateDisplayName(certificates[signConfirmDialog.selectedCertIndex]))
                       : tr("Certificado: no disponible")
@@ -5983,6 +6000,7 @@ Window {
             spacing: 10
 
             Text {
+                textFormat: Text.PlainText
                 text: signedDocumentWarningSummary
                 color: currentTheme.textColor
                 wrapMode: Text.Wrap
@@ -6050,6 +6068,7 @@ Window {
                     font.bold: true
                 }
                 Text {
+                    textFormat: Text.PlainText
                     text: (certificateValidationDialog.validationDetails && certificateValidationDialog.validationDetails.statusText)
                           ? certificateValidationDialog.validationDetails.statusText
                           : (certificateValidationDialog.validationOk ? tr("Válido") : tr("Con incidencias"))
@@ -6073,6 +6092,7 @@ Window {
                     font.bold: true
                 }
                 Text {
+                    textFormat: Text.PlainText
                     text: (certificateValidationDialog.validationDetails && certificateValidationDialog.validationDetails.expiredDays > 0)
                           ? String(certificateValidationDialog.validationDetails.expiredDays)
                           : String((certificateValidationDialog.validationDetails && certificateValidationDialog.validationDetails.daysRemaining !== undefined)
@@ -6083,6 +6103,7 @@ Window {
                 }
             }
             Text {
+                textFormat: Text.PlainText
                 text: certificateValidationMessageBody(certificateValidationDialog.validationMessage)
                 color: currentTheme.secondaryTextColor
                 wrapMode: Text.WrapAnywhere
@@ -6100,6 +6121,7 @@ Window {
                     font.bold: true
                 }
                 Text {
+                    textFormat: Text.PlainText
                     text: certificateValidationDialog.onlineCheckInProgress
                           ? tr("Comprobando...")
                           : window.certificateOnlineStatusText(certificateValidationDialog.onlineCheckResult)
@@ -6112,6 +6134,7 @@ Window {
             }
             Text {
                 visible: !!(certificateValidationDialog.onlineCheckResult && Object.keys(certificateValidationDialog.onlineCheckResult).length > 0)
+                textFormat: Text.PlainText
                 text: certificateValidationDialog.onlineCheckResult.userMessage
                       || certificateValidationDialog.onlineCheckResult.reason
                       || ""
@@ -6121,6 +6144,7 @@ Window {
                 Layout.maximumWidth: 420
             }
             Text {
+                textFormat: Text.PlainText
                 text: window.certificateOnlineStatusUserHint(certificateValidationDialog.onlineCheckResult)
                 color: currentTheme.secondaryTextColor
                 wrapMode: Text.WrapAnywhere
@@ -6580,6 +6604,7 @@ Window {
 
                             Text {
                                 visible: window.supportAssistantKnownIssue().known
+                                textFormat: Text.PlainText
                                 text: window.supportAssistantKnownIssue().fixedIn && window.supportAssistantKnownIssue().fixedIn !== ""
                                       ? tr("Problema conocido: %1 (corregido en %2)")
                                             .arg(window.supportAssistantKnownIssue().summary)
@@ -6674,6 +6699,7 @@ Window {
                             }
 
                             Text {
+                                textFormat: Text.PlainText
                                 text: window.supportAssistantPrimaryActionHint()
                                 color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
@@ -6729,6 +6755,7 @@ Window {
 
                             Text {
                                 visible: window.lastIncidentReportPath !== ""
+                                textFormat: Text.PlainText
                                 text: tr("Última incidencia guardada: %1").arg(window.lastIncidentReportPath)
                                 color: currentTheme.secondaryTextColor
                                 font.pixelSize: 11
@@ -6877,6 +6904,7 @@ Window {
                                 model: window.supportIncidentBundleFiles()
                                 delegate: Text {
                                     Layout.fillWidth: true
+                                    textFormat: Text.PlainText
                                     text: "\u2022 " + modelData
                                     color: currentTheme.secondaryTextColor
                                     wrapMode: Text.WrapAnywhere
@@ -6894,6 +6922,7 @@ Window {
                                 model: window.supportIncidentIncludedData()
                                 delegate: Text {
                                     Layout.fillWidth: true
+                                    textFormat: Text.PlainText
                                     text: "\u2022 " + modelData
                                     color: currentTheme.secondaryTextColor
                                     wrapMode: Text.WordWrap
@@ -6911,6 +6940,7 @@ Window {
                                 model: window.supportIncidentOmittedData()
                                 delegate: Text {
                                     Layout.fillWidth: true
+                                    textFormat: Text.PlainText
                                     text: "\u2022 " + modelData
                                     color: currentTheme.secondaryTextColor
                                     wrapMode: Text.WordWrap
@@ -6941,6 +6971,7 @@ Window {
                             }
 
                             Text {
+                                textFormat: Text.PlainText
                                 text: tr("Paso actual: %1").arg(window.supportAssistantCurrentStep())
                                 color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
@@ -6948,6 +6979,7 @@ Window {
                             }
 
                             Text {
+                                textFormat: Text.PlainText
                                 text: tr("Operación o fichero: %1").arg(window.supportAssistantOperationLabel())
                                 color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
@@ -6955,6 +6987,7 @@ Window {
                             }
 
                             Text {
+                                textFormat: Text.PlainText
                                 text: tr("Último estado visible: %1").arg(window.statusMessage !== "" ? localizeVisibleDiagnosticText(window.statusMessage) : tr("Sin mensaje todavía"))
                                 color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
@@ -7009,6 +7042,7 @@ Window {
 
                                             Text {
                                                 anchors.centerIn: parent
+                                                textFormat: Text.PlainText
                                                 text: String(index + 1)
                                                 color: currentTheme.cardColor
                                                 font.bold: true
@@ -7016,6 +7050,7 @@ Window {
                                         }
 
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: modelData
                                             color: currentTheme.secondaryTextColor
                                             wrapMode: Text.WordWrap
@@ -7049,6 +7084,7 @@ Window {
                             }
 
                             Text {
+                                textFormat: Text.PlainText
                                 text: tr("Certificados cargados: %1").arg(window.certificates.length)
                                 color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
@@ -7065,6 +7101,7 @@ Window {
                             }
 
                             Text {
+                                textFormat: Text.PlainText
                                 text: tr("Razón técnica visible: %1").arg(verifyTab.verifyDetails && verifyTab.verifyDetails.reason ? localizeVisibleDiagnosticText(verifyTab.verifyDetails.reason) : tr("No disponible"))
                                 color: currentTheme.secondaryTextColor
                                 wrapMode: Text.WordWrap
@@ -7767,6 +7804,7 @@ Window {
             }
             Text {
                 Layout.fillWidth: true
+                textFormat: Text.PlainText
                 text: certificateAccessOptions.detectedBrowser
                       ? tr("Navegador detectado: %1").arg(certificateAccessOptions.detectedBrowser)
                       : tr("No se pudo detectar un navegador preferido.")
@@ -8504,7 +8542,7 @@ Window {
             RowLayout {
                 Layout.fillWidth: true
                 ThemedButton { text: tr("portal.seal.previous_page"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(previewCurrentPage - 1) }
-                Text { text: tr("portal.seal.page").replace("%1", previewCurrentPage).replace("%2", previewTotalPages); color: currentTheme.textColor }
+                Text { textFormat: Text.PlainText; text: tr("portal.seal.page").replace("%1", previewCurrentPage).replace("%2", previewTotalPages); color: currentTheme.textColor }
                 ThemedButton { text: tr("portal.seal.next_page"); enabled: previewCurrentPage < previewTotalPages; onClicked: goToPreviewPage(previewCurrentPage + 1) }
                 Item { Layout.fillWidth: true }
                 ComboBox {
@@ -8581,6 +8619,7 @@ Window {
             anchors.margins: 12
             spacing: 8
             Text {
+                textFormat: Text.PlainText
                 text: updateNoticeMessage
                 color: currentTheme.textColor
                 font.bold: true
@@ -8921,6 +8960,7 @@ Window {
                                     Text {
                                         visible: window.signResultKind === "success"
                                         Layout.fillWidth: true
+                                        textFormat: Text.PlainText
                                         text: window.basename(window.signResultPath)
                                         color: "#ffffff"
                                         font.pixelSize: 15
@@ -8939,6 +8979,7 @@ Window {
                                                  && window.currentOutputVerificationDetails !== null
                                                  && window.signResultPath === window.currentOutputPath
                                         Layout.fillWidth: true
+                                        textFormat: Text.PlainText
                                         text: window.signVerificationResultText()
                                         color: window.verificationOutcomeKind(window.currentOutputVerificationDetails) === "trusted"
                                                ? "#a7f0c5" : "#ffdb9b"
@@ -8948,6 +8989,7 @@ Window {
                                     Text {
                                         visible: window.signResultKind === "error"
                                         Layout.fillWidth: true
+                                        textFormat: Text.PlainText
                                         text: window.signResultCause
                                         color: "#ffffff"
                                         font.pixelSize: 15
@@ -9028,6 +9070,7 @@ Window {
                                             contentItem: Text {
                                                 leftPadding: 12
                                                 rightPadding: signingCertificateCombo.indicator.width + 12
+                                                textFormat: Text.PlainText
                                                 text: signingCertificateCombo.displayText
                                                 color: currentTheme.textColor
                                                 verticalAlignment: Text.AlignVCenter
@@ -9078,12 +9121,14 @@ Window {
                                                     Text {
                                                         wrapMode: Text.WordWrap
                                                         Layout.fillWidth: true
+                                                        textFormat: Text.PlainText
                                                         text: window.certificateDisplayName(modelData)
                                                         color: certificateOption.highlighted
                                                             ? window.certificateSelectionTextColor() : currentTheme.textColor
                                                         elide: Text.ElideRight
                                                     }
                                                     Text {
+                                                        textFormat: Text.PlainText
                                                         text: window.certificateStatusText(modelData)
                                                         color: window.certificateStatusColorForBackground(modelData,
                                                             certificateOption.highlighted
@@ -9093,6 +9138,7 @@ Window {
                                                     Text {
                                                         Layout.fillWidth: true
                                                         visible: window.certificateStatusReason(modelData) !== ""
+                                                        textFormat: Text.PlainText
                                                         text: window.certificateStatusReason(modelData)
                                                         color: certificateOption.highlighted
                                                             ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -9116,6 +9162,7 @@ Window {
                                     Text {
                                         Layout.fillWidth: true
                                         visible: window.selectedCertData !== null
+                                        textFormat: Text.PlainText
                                         text: window.certificateStatusText(window.selectedCertData)
                                         color: window.certificateSummaryStatusColor(window.selectedCertData)
                                         font.pixelSize: 12
@@ -9127,6 +9174,7 @@ Window {
                                         Layout.fillWidth: true
                                         visible: window.selectedCertData !== null
                                             && window.certificateStatusReason(window.selectedCertData) !== ""
+                                        textFormat: Text.PlainText
                                         text: window.certificateStatusReason(window.selectedCertData)
                                         color: currentTheme.textColor
                                         font.pixelSize: 11
@@ -9171,6 +9219,7 @@ Window {
                                 width: Math.max(0, parent.width - 40)
                                 spacing: 15
                                 Text {
+                                    textFormat: Text.PlainText
                                     text: selectedInputsSummary()
                                     color: currentTheme.textColor
                                     font.pixelSize: 18
@@ -9493,6 +9542,7 @@ Window {
                                         Text {
                                             Layout.fillWidth: true
                                             visible: window.multiCosignEnabled
+                                            textFormat: Text.PlainText
                                             text: tr("Firmante principal: %1").arg(window.effectiveMultiCosignPrimaryName())
                                             color: currentTheme.textColor
                                             wrapMode: Text.WordWrap
@@ -9500,6 +9550,7 @@ Window {
                                         Text {
                                             Layout.fillWidth: true
                                             visible: window.multiCosignEnabled
+                                            textFormat: Text.PlainText
                                             text: window.multiCosignSummaryText()
                                             color: currentTheme.secondaryTextColor
                                             wrapMode: Text.WordWrap
@@ -9526,6 +9577,7 @@ Window {
                                     Binding { target: signVisibleSealCheckBox; property: "checked"; value: window.signVisibleSeal }
                                     Text {
                                         visible: window.firstSignFieldError !== "" && window.signVisibleSeal
+                                        textFormat: Text.PlainText
                                         text: "⚠ " + tr("validacion.problemas").arg(Object.keys(window.signFieldErrors).length)
                                         color: currentTheme.errorColor
                                         Accessible.role: Accessible.StaticText
@@ -9610,7 +9662,7 @@ Window {
                                                         window.signSealLogoOpacityPercent = Math.round(value)
                                                 }
                                             }
-                                            Text { text: window.signSealLogoOpacityPercent + " %"; color: currentTheme.textColor; font.pixelSize: 12 }
+                                            Text { textFormat: Text.PlainText; text: window.signSealLogoOpacityPercent + " %"; color: currentTheme.textColor; font.pixelSize: 12 }
                                         }
                                         RowLayout {
                                             Layout.fillWidth: true
@@ -9644,7 +9696,7 @@ Window {
                                             onEditingFinished: window.validateSignField("qr")
                                         }
                                         Binding { target: signQRContentField; property: "text"; value: window.signQRContent; when: !signQRContentField.activeFocus }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("qr") !== ""; text: "⚠ " + tr(window.signFieldError("qr")); color: currentTheme.errorColor; wrapMode: Text.WordWrap; Accessible.role: Accessible.StaticText }
+                                        Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.signFieldError("qr") !== ""; text: "⚠ " + tr(window.signFieldError("qr")); color: currentTheme.errorColor; wrapMode: Text.WordWrap; Accessible.role: Accessible.StaticText }
                                         RowLayout {
                                             Layout.fillWidth: true
                                             spacing: 4
@@ -9657,17 +9709,17 @@ Window {
                                         ThemedTextField { id: csvCodeField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; Accessible.name: tr("paridad.lote3.csv.code"); Accessible.description: window.signFieldError("csvCode") ? tr(window.signFieldError("csvCode")) : ""; maximumLength: 128; text: window.signCSVCode; hasError: window.signFieldError("csvCode") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVCode = text; if (window.signFieldError("csvCode")) window.validateSignField("csvCode") }
                                             onEditingFinished: window.validateSignField("csvCode") }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvCode") !== ""; text: "⚠ " + tr(window.signFieldError("csvCode")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.signFieldError("csvCode") !== ""; text: "⚠ " + tr(window.signFieldError("csvCode")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                         Text { text: tr("paridad.lote3.csv.url"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                                         ThemedTextField { id: csvUrlField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; Accessible.name: tr("paridad.lote3.csv.url"); Accessible.description: window.signFieldError("csvUrl") ? tr(window.signFieldError("csvUrl")) : ""; maximumLength: 2048; text: window.signCSVUrl; hasError: window.signFieldError("csvUrl") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVUrl = text; if (window.signFieldError("csvUrl")) window.validateSignField("csvUrl") }
                                             onEditingFinished: window.validateSignField("csvUrl") }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvUrl") !== ""; text: "⚠ " + tr(window.signFieldError("csvUrl")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.signFieldError("csvUrl") !== ""; text: "⚠ " + tr(window.signFieldError("csvUrl")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                         Text { text: tr("paridad.lote3.csv.text_optional"); visible: window.signCSVEnabled; color: currentTheme.secondaryTextColor; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                                         ThemedTextField { id: csvTextField; visible: window.signCSVEnabled; enabled: window.signCSVEnabled; Layout.fillWidth: true; Accessible.name: tr("paridad.lote3.csv.text_optional"); Accessible.description: window.signFieldError("csvText") ? tr(window.signFieldError("csvText")) : ""; maximumLength: 512; text: window.signCSVText; hasError: window.signFieldError("csvText") !== ""; errorColor: currentTheme.errorColor
                                             onTextChanged: { window.signCSVText = text; if (window.signFieldError("csvText")) window.validateSignField("csvText") }
                                             onEditingFinished: window.validateSignField("csvText") }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("csvText") !== ""; text: "⚠ " + tr(window.signFieldError("csvText")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.signFieldError("csvText") !== ""; text: "⚠ " + tr(window.signFieldError("csvText")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                         ThemedCheckBox { Layout.fillWidth: true; id: csvQrCheck; visible: window.signCSVEnabled; text: tr("paridad.lote3.csv.qr"); checked: window.signCSVQR; Accessible.name: text; onToggled: window.signCSVQR = checked }
                                         Text {
                                             Layout.fillWidth: true
@@ -9720,7 +9772,7 @@ Window {
                                                 requestPdfPreview()
                                             }
                                         }
-                                        Text { Layout.fillWidth: true; visible: window.signFieldError("pages") !== ""; text: "⚠ " + tr(window.signFieldError("pages")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.signFieldError("pages") !== ""; text: "⚠ " + tr(window.signFieldError("pages")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                         AdaptiveRow {
                                             ThemedButton { text: tr("Primera"); onClicked: { signSealAllPages = false; signSealPages = "1"; applyPageSelectionValidity(); requestPdfPreview() } }
                                             ThemedButton { text: tr("Última"); enabled: previewTotalPages > 0; onClicked: { signSealAllPages = false; signSealPages = String(previewTotalPages); applyPageSelectionValidity(); requestPdfPreview() } }
@@ -9729,6 +9781,7 @@ Window {
                                         Binding { target: signSealPagesField; property: "text"; value: signSealPages; when: !signSealPagesField.activeFocus }
                                         Text {
                                             visible: signSealPagesError !== "" && !signSealAllPages && window.signFieldError("pages") === ""
+                                            textFormat: Text.PlainText
                                             text: signSealPagesError
                                             color: "#d62828"
                                             font.pixelSize: 11
@@ -9946,10 +9999,11 @@ Window {
                                                 }
                                                 Binding { target: signSealKeepTextCheckBox; property: "checked"; value: window.signSealKeepText }
                                             }
-                                            Text { Layout.fillWidth: true; visible: window.signFieldError("image") !== ""; text: "⚠ " + tr(window.signFieldError("image")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                            Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.signFieldError("image") !== ""; text: "⚠ " + tr(window.signFieldError("image")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                             Text {
                                                 Layout.fillWidth: true
                                                 visible: signSealImagePath !== ""
+                                                textFormat: Text.PlainText
                                                 text: tr("Imagen seleccionada: %1").arg(basename(localPathFromUrl(signSealImagePath)))
                                                 color: currentTheme.textColor
                                                 font.pixelSize: 11
@@ -10056,6 +10110,7 @@ Window {
                                         ThemedButton { text: "|<"; Accessible.name: tr("Primer documento"); enabled: previewDocumentIndex > 0; onClicked: goToPreviewDocument(0) }
                                         ThemedButton { text: "<"; Accessible.name: tr("Documento anterior"); enabled: previewDocumentIndex > 0; onClicked: goToPreviewDocument(previewDocumentIndex - 1) }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: tr("PDF %1/%2: %3").arg(previewDocumentIndex + 1).arg(currentBatchPaths.length).arg(previewDocumentLabel())
                                             color: currentTheme.textColor
                                             font.pixelSize: 12
@@ -10073,6 +10128,7 @@ Window {
                                         ThemedButton { text: "|<"; Accessible.name: tr("Primera página"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(1) }
                                         ThemedButton { text: "<"; Accessible.name: tr("Página anterior"); enabled: previewCurrentPage > 1; onClicked: goToPreviewPage(previewCurrentPage - 1) }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: tr("Página %1/%2").arg(previewCurrentPage).arg(Math.max(1, previewTotalPages))
                                             color: currentTheme.textColor
                                             font.pixelSize: 12
@@ -10148,6 +10204,7 @@ Window {
                                         Text {
                                             id: sealDrawNotice
                                             property string messageKey: ""
+                                            textFormat: Text.PlainText
                                             text: messageKey ? tr(messageKey) : ""
                                             visible: text !== ""
                                             color: currentTheme.textColor
@@ -10312,6 +10369,7 @@ Window {
                                                             anchors.horizontalCenter: parent.horizontalCenter
                                                         }
                                                         Text {
+                                                            textFormat: Text.PlainText
                                                             text: (selectedCertIndex !== -1 && window.selectedCertData)
                                                                   ? (window.selectedCertData.subjectName || (window.selectedCertData.subject && window.selectedCertData.subject.CN) || tr("Firmante"))
                                                                   : tr("Muestra de Firma")
@@ -10376,6 +10434,7 @@ Window {
                                                 anchors.centerIn: parent
                                                 width: parent.width - 8
                                                 visible: window.sealPreviewImage === ""
+                                                textFormat: Text.PlainText
                                                 text: window.sealPreviewMessage || tr("Preparando vista real…")
                                                 wrapMode: Text.WordWrap
                                                 horizontalAlignment: Text.AlignHCenter
@@ -10524,8 +10583,11 @@ Window {
                                     enabled: !window.signingInProgress && !window.autoVerificationInProgress
                                              && !window.signWaitingForPreview
                                              && window.selectedCertificateUsable
-                                    ToolTip.visible: hovered && !window.selectedCertificateUsable
-                                    ToolTip.text: window.certificateStatusReason(window.selectedCertData)
+                                    // El motivo puede traer el estado que da el motor: texto plano.
+                                    PlainToolTip {
+                                        visible: parent.hovered && !window.selectedCertificateUsable
+                                        text: window.certificateStatusReason(window.selectedCertData)
+                                    }
                                     onClicked: {
                                         if (!window.hasSigningSelection() && selectedCertIndex === -1) {
                                             signValidationErrorDialog.errorMessage = tr("Debe cargar uno o varios documentos y seleccionar un certificado para poder firmar.")
@@ -10586,6 +10648,7 @@ Window {
                         Text {
                             Layout.fillWidth: true
                             visible: !window.signingInProgress && !window.autoVerificationInProgress && !window.selectedCertificateUsable
+                            textFormat: Text.PlainText
                             text: window.selectedCertData ? window.certificateStatusReason(window.selectedCertData) : tr("sign.need_certificate")
                             color: currentTheme.textColor
                             wrapMode: Text.WordWrap
@@ -10595,6 +10658,7 @@ Window {
 
                         Text {
                             visible: !window.isBatchMode() && window.currentOutputVerificationMessage !== ""
+                            textFormat: Text.PlainText
                             text: window.currentOutputVerificationMessage
                             color: verificationOutcomeColorOn(window.currentOutputVerificationDetails, currentTheme.cardColor)
                             // Resultado de la comprobación automática: se anuncia al aparecer.
@@ -10644,6 +10708,7 @@ Window {
                                             spacing: 4
 
                                             Text {
+                                                textFormat: Text.PlainText
                                                 text: tr("Formato: ") + (window.currentOutputVerificationDetails && window.currentOutputVerificationDetails.format ? window.currentOutputVerificationDetails.format : tr("No disponible"))
                                                 color: "white"
                                                 font.pixelSize: 12
@@ -10651,6 +10716,7 @@ Window {
                                                 wrapMode: Text.Wrap
                                             }
                                             Text {
+                                                textFormat: Text.PlainText
                                                 text: tr("Cobertura: ") + (window.currentOutputVerificationDetails && window.currentOutputVerificationDetails.coverage ? verificationCoverageText(window.currentOutputVerificationDetails.coverage) : tr("No disponible"))
                                                 color: "white"
                                                 font.pixelSize: 12
@@ -10658,6 +10724,7 @@ Window {
                                                 wrapMode: Text.Wrap
                                             }
                                             Text {
+                                                textFormat: Text.PlainText
                                                 text: tr("Firmantes: ") + verificationSignerShortText(window.currentOutputVerificationDetails)
                                                 color: "white"
                                                 opacity: 0.9
@@ -10698,6 +10765,7 @@ Window {
                                                 wrapMode: Text.Wrap
                                             }
                                             Text {
+                                                textFormat: Text.PlainText
                                                 text: tr("Errores: ") + verificationArrayText(window.currentOutputVerificationDetails ? window.currentOutputVerificationDetails.errors : [])
                                                 color: Contrast.accentOn("#223244", "#ffb3b3")
                                                 opacity: 0.95
@@ -10741,6 +10809,7 @@ Window {
 
                                                     Text {
                                                         Layout.preferredWidth: 1
+                                                        textFormat: Text.PlainText
                                                         text: modelData.label + ": " + verificationStatusText(modelData.value && modelData.value.status ? modelData.value.status : "")
                                                         color: Contrast.accentOn("#223244", verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : ""))
                                                         font.bold: true
@@ -10767,6 +10836,7 @@ Window {
                                                     }
                                                 }
                                                 Text {
+                                                    textFormat: Text.PlainText
                                                     text: tr("Razón: ") + ((modelData.value && modelData.value.reason) ? modelData.value.reason : tr("No disponible"))
                                                     color: "white"
                                                     opacity: 0.9
@@ -10873,6 +10943,7 @@ Window {
                                                 Text {
                                                     Layout.preferredWidth: 1
                                                     Layout.fillWidth: true
+                                                    textFormat: Text.PlainText
                                                     text: window.basename(modelData.inputPath || "")
                                                     color: currentTheme.textColor
                                                     font.bold: true
@@ -10893,6 +10964,7 @@ Window {
                                                     Text {
                                                         id: stateLabel
                                                         anchors.centerIn: parent
+                                                        textFormat: Text.PlainText
                                                         text: !modelData.ok
                                                               ? tr("Error")
                                                               : (modelData.verifyDone
@@ -10907,6 +10979,7 @@ Window {
 
                                             Text {
                                                 visible: !!modelData.error || (!!modelData.outputPath && !expanded)
+                                                textFormat: Text.PlainText
                                                 text: !modelData.ok && !!modelData.error
                                                       ? localizeVisibleDiagnosticText(modelData.error || "")
                                                       : (!!modelData.outputPath
@@ -10950,6 +11023,7 @@ Window {
                                             }
                                             Text {
                                                 visible: expanded && modelData.ok && !!modelData.outputPath && modelData.verifyDone
+                                                textFormat: Text.PlainText
                                                 text: verificationOutcomeKind(modelData.verifyDetails) === "trusted"
                                                       ? tr("Firma verificada correctamente.")
                                                       : (verificationOutcomeKind(modelData.verifyDetails) === "untrusted"
@@ -10986,6 +11060,7 @@ Window {
                                                         wrapMode: Text.Wrap
                                                     }
                                                     Text {
+                                                        textFormat: Text.PlainText
                                                         text: modelData.outputPath || tr("No disponible")
                                                         color: "white"
                                                         opacity: 0.9
@@ -11020,6 +11095,7 @@ Window {
                                                         wrapMode: Text.Wrap
                                                     }
                                                     Text {
+                                                        textFormat: Text.PlainText
                                                         text: localizeVisibleDiagnosticText(modelData.error || "")
                                                         color: "white"
                                                         opacity: 0.9
@@ -11054,6 +11130,7 @@ Window {
                                                         wrapMode: Text.Wrap
                                                     }
                                                     Text {
+                                                        textFormat: Text.PlainText
                                                         text: tr("Formato: ") + (modelData.verifyDetails && modelData.verifyDetails.format ? modelData.verifyDetails.format : tr("No disponible"))
                                                         color: "white"
                                                         opacity: 0.95
@@ -11062,6 +11139,7 @@ Window {
                                                         wrapMode: Text.Wrap
                                                     }
                                                     Text {
+                                                        textFormat: Text.PlainText
                                                         text: tr("Cobertura: ") + (modelData.verifyDetails && modelData.verifyDetails.coverage ? verificationCoverageText(modelData.verifyDetails.coverage) : tr("No disponible"))
                                                         color: "white"
                                                         opacity: 0.95
@@ -11100,6 +11178,7 @@ Window {
                                                             spacing: 4
 
                                                             Text {
+                                                                textFormat: Text.PlainText
                                                                 text: modelData.label + ": " + verificationStatusText(modelData.value && modelData.value.status ? modelData.value.status : "")
                                                                 color: Contrast.accentOn("#223244", verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : ""))
                                                                 font.bold: true
@@ -11108,6 +11187,7 @@ Window {
                                                                 wrapMode: Text.Wrap
                                                             }
                                                             Text {
+                                                                textFormat: Text.PlainText
                                                                 text: tr("Razón: ") + ((modelData.value && modelData.value.reason) ? localizeVisibleDiagnosticText(modelData.value.reason) : tr("No disponible"))
                                                                 color: "white"
                                                                 opacity: 0.9
@@ -11356,6 +11436,7 @@ Window {
 
                                 Text {
                                     Layout.fillWidth: true
+                                    textFormat: Text.PlainText
                                     text: window.certificates.length > 0
                                           ? tr("%1 cert.").arg(window.certificates.length)
                                           : tr("Sin cert.")
@@ -11454,6 +11535,7 @@ Window {
                                 }
                                 Text {
                                     Layout.fillWidth: true
+                                    textFormat: Text.PlainText
                                     text: tr("Mostrando %1 de %2").arg(window.filteredCertificates().length).arg(window.certificates.length)
                                     color: currentTheme.secondaryTextColor
                                     font.pixelSize: 11
@@ -11474,6 +11556,7 @@ Window {
                                 Text {
                                     Layout.fillWidth: true
                                     visible: window.smartcardMessage !== ""
+                                    textFormat: Text.PlainText
                                     text: window.smartcardMessage
                                     color: currentTheme.secondaryTextColor
                                     wrapMode: Text.WordWrap
@@ -11563,6 +11646,7 @@ Window {
                                             Text {
                                                 wrapMode: Text.WordWrap
                                                 Layout.preferredWidth: 1
+                                                textFormat: Text.PlainText
                                                 text: modelData.subjectName || modelData.subject || tr("Certificado")
                                                 color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -11587,6 +11671,7 @@ Window {
                                                 font.bold: true
                                             }
                                             Text {
+                                                textFormat: Text.PlainText
                                                 text: window.certificateStatusText(modelData)
                                                 color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : window.certificateStatusColor(modelData)
@@ -11597,6 +11682,7 @@ Window {
                                         Text {
                                             Layout.fillWidth: true
                                             visible: window.certificateStatusReason(modelData) !== ""
+                                            textFormat: Text.PlainText
                                             text: window.certificateStatusReason(modelData)
                                             color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -11607,6 +11693,7 @@ Window {
                                         Text {
                                             wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
+                                            textFormat: Text.PlainText
                                             text: tr("Vence: %1").arg(window.certificateExpiry(modelData))
                                             color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -11615,6 +11702,7 @@ Window {
                                         Text {
                                             wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
+                                            textFormat: Text.PlainText
                                             text: tr("Emisor: %1").arg(modelData.issuerName || modelData.issuer || tr("Desconocido"))
                                             color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -11661,6 +11749,7 @@ Window {
                                                  && !!window.selectedCertData.validTo
                                                  && Number(window.selectedCertData.diasCaducidad) >= 0
                                                  && Number(window.selectedCertData.diasCaducidad) <= 60
+                                        textFormat: Text.PlainText
                                         text: tr("Este certificado caduca en %1 días. Comprueba si debes renovarlo antes de firmar.").arg(window.selectedCertData ? window.selectedCertData.diasCaducidad : 0)
                                         color: "#f2c66d"
                                         wrapMode: Text.WordWrap
@@ -12006,6 +12095,7 @@ Window {
                                 width: Math.min(parent.width - 40, 640)
                                 spacing: 15
                                 Text {
+                                    textFormat: Text.PlainText
                                     text: verifyTab.verifyFilePath === "" ? tr("Arrastra un archivo firmado para verificar") : verifyTab.verifyFilePath.split('/').pop()
                                     color: currentTheme.textColor
                                     font.pixelSize: 18
@@ -12015,6 +12105,7 @@ Window {
                                     wrapMode: Text.Wrap
                                 }
                                 Text {
+                                    textFormat: Text.PlainText
                                     text: verifyTab.verifyOriginalPath === "" ? tr("Original opcional no seleccionado") : (tr("Original: ") + verifyTab.verifyOriginalPath.split('/').pop())
                                     color: currentTheme.secondaryTextColor
                                     font.pixelSize: 13
@@ -12174,6 +12265,7 @@ Window {
 
                                 Text {
                                     visible: !verifyHashPanel.expanded
+                                    textFormat: Text.PlainText
                                     text: verifyTab.hashInputPath !== ""
                                           ? tr("Entrada preparada: %1").arg(verifyTab.hashInputIsDirectory ? tr("Directorio") : tr("Fichero"))
                                           : tr("Sin entrada seleccionada")
@@ -12218,6 +12310,7 @@ Window {
                                         spacing: 5
 
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: tr("Entrada: ") + (verifyTab.hashInputPath !== "" ? verifyTab.hashInputPath : tr("No seleccionada"))
                                             color: verifyTab.subPanelText
                                             width: parent.width
@@ -12232,6 +12325,7 @@ Window {
                                             wrapMode: Text.Wrap
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: tr("Huella o manifiesto: ") + (verifyTab.hashReferencePath !== "" ? verifyTab.hashReferencePath : tr("No seleccionado"))
                                             color: verifyTab.subPanelText
                                             opacity: 0.85
@@ -12378,6 +12472,7 @@ Window {
                                             wrapMode: Text.Wrap
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: verifyTab.hashCreateResult && verifyTab.hashCreateResult.hash ? (tr("Huella: ") + verifyTab.hashCreateResult.hash) : ""
                                             visible: text !== ""
                                             color: verifyTab.subPanelText
@@ -12385,6 +12480,7 @@ Window {
                                             wrapMode: Text.WrapAnywhere
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: verifyTab.hashCreateResult && verifyTab.hashCreateResult.outputPath ? (tr("Salida: ") + verifyTab.hashCreateResult.outputPath) : ""
                                             visible: text !== ""
                                             color: verifyTab.subPanelText
@@ -12393,6 +12489,7 @@ Window {
                                             wrapMode: Text.WrapAnywhere
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: verifyTab.hashCheckResult && verifyTab.hashCheckResult.valid !== undefined
                                                   ? (tr("Estado: ") + (verifyTab.hashCheckResult.valid ? tr("✅ VÁLIDA") : tr("❌ NO VÁLIDA")))
                                                   : ""
@@ -12403,6 +12500,7 @@ Window {
                                             wrapMode: Text.Wrap
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: verifyTab.hashCheckResult && verifyTab.hashCheckResult.expectedHash ? (tr("Esperada: ") + verifyTab.hashCheckResult.expectedHash) : ""
                                             visible: text !== ""
                                             color: verifyTab.subPanelText
@@ -12411,6 +12509,7 @@ Window {
                                             wrapMode: Text.WrapAnywhere
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: verifyTab.hashCheckResult && verifyTab.hashCheckResult.actualHash ? (tr("Actual: ") + verifyTab.hashCheckResult.actualHash) : ""
                                             visible: text !== ""
                                             color: verifyTab.subPanelText
@@ -12419,6 +12518,7 @@ Window {
                                             wrapMode: Text.WrapAnywhere
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: verifyTab.hashCheckResult && verifyTab.hashCheckResult.reportOutputPath ? (tr("Informe: ") + verifyTab.hashCheckResult.reportOutputPath) : ""
                                             visible: text !== ""
                                             color: verifyTab.subPanelText
@@ -12427,6 +12527,7 @@ Window {
                                             wrapMode: Text.WrapAnywhere
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: verifyTab.hashCheckResult && verifyTab.hashCheckResult.matching_hash
                                                   ? (tr("Coinciden: ") + verifyTab.hashCheckResult.matching_hash.length
                                                      + tr(" | No coinciden: ") + verifyTab.hashCheckResult.not_matching_hash.length
@@ -12440,6 +12541,7 @@ Window {
                                             wrapMode: Text.Wrap
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: verifyTab.hashCreateResult && verifyTab.hashCreateResult.error ? verifyTab.hashCreateResult.error
                                                   : (verifyTab.hashCheckResult && verifyTab.hashCheckResult.error ? verifyTab.hashCheckResult.error : "")
                                             visible: text !== ""
@@ -12480,6 +12582,7 @@ Window {
                                     spacing: 10
 
                                         Text { 
+                                            textFormat: Text.PlainText
                                             text: tr("Estado: ") + verificationOutcomeDisplay(verifyTab.verifyDetails)
                                             color: verificationOutcomeColorOn(verifyTab.verifyDetails, currentTheme.sidebarColor)
                                             font.pixelSize: 14
@@ -12488,6 +12591,7 @@ Window {
                                             wrapMode: Text.Wrap
                                         }
                                         Text { 
+                                            textFormat: Text.PlainText
                                             text: tr("Documento: ") + (verifyTab.verifyFilePath !== "" ? verifyTab.verifyFilePath.split('/').pop() : "")
                                             color: currentTheme.textColor
                                             opacity: 0.85
@@ -12496,6 +12600,7 @@ Window {
                                             wrapMode: Text.Wrap
                                         }
                                         Text { 
+                                            textFormat: Text.PlainText
                                             text: tr("Razón: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.reason ? localizeVisibleDiagnosticText(verifyTab.verifyDetails.reason) : "")
                                             color: verificationOutcomeColorOn(verifyTab.verifyDetails, currentTheme.sidebarColor)
                                             font.pixelSize: 12
@@ -12590,6 +12695,7 @@ Window {
                                                         }
                                                     }
                                                     Text {
+                                                        textFormat: Text.PlainText
                                                         text: tr("Formato: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.format ? verifyTab.verifyDetails.format : tr("No disponible"))
                                                         color: verifyTab.subPanelText
                                                         opacity: 0.95
@@ -12599,6 +12705,7 @@ Window {
                                                         visible: !verificationSummaryColumn.parent.expanded
                                                     }
                                                     Text {
+                                                        textFormat: Text.PlainText
                                                         text: tr("Formato: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.format ? verifyTab.verifyDetails.format : tr("No disponible"))
                                                         color: verifyTab.subPanelText
                                                         opacity: 0.95
@@ -12613,6 +12720,7 @@ Window {
                                                         visible: verificationSummaryColumn.parent.expanded
                                                         Text {
                                                             id: verifyCoverageText
+                                                            textFormat: Text.PlainText
                                                             text: tr("Cobertura: ") + (verifyTab.verifyDetails && verifyTab.verifyDetails.coverage ? verificationCoverageText(verifyTab.verifyDetails.coverage) : tr("No disponible"))
                                                             color: verifyTab.subPanelText
                                                             opacity: 0.95
@@ -12656,6 +12764,7 @@ Window {
 
                                                             Text {
                                                                 Layout.preferredWidth: 1
+                                                                textFormat: Text.PlainText
                                                                 text: modelData.label + ": " + verificationStatusText(modelData.value && modelData.value.status ? modelData.value.status : "")
                                                                 color: Contrast.accentOn(verifyTab.subPanelColor, verificationAspectColor(modelData.value && modelData.value.status ? modelData.value.status : ""))
                                                                 font.bold: true
@@ -12690,6 +12799,7 @@ Window {
                                                             }
                                                         }
                                                         Text {
+                                                            textFormat: Text.PlainText
                                                             text: tr("Razón: ") + ((modelData.value && modelData.value.reason) ? localizeVisibleDiagnosticText(modelData.value.reason) : tr("No disponible"))
                                                             color: verifyTab.subPanelText
                                                             opacity: 0.92
@@ -12738,6 +12848,7 @@ Window {
                                                     Text {
                                                         Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
+                                                        textFormat: Text.PlainText
                                                         text: tr("Firmantes") + " (" + window.verificationSignerEntries(verifyTab.verifyDetails).length + ")"
                                                         color: verifyTab.subPanelTitle
                                                         font.bold: true
@@ -12845,6 +12956,7 @@ Window {
                                                     Text {
                                                         Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
+                                                        textFormat: Text.PlainText
                                                         text: tr("verificacion.ver_detalles_tecnicos") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details.length : 0) + ")"
                                                         color: verifyTab.subPanelTitle
                                                         font.bold: true
@@ -12866,6 +12978,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.details) ? verifyTab.verifyDetails.details : []
                                                     delegate: Text {
+                                                        textFormat: Text.PlainText
                                                         text: "• " + window.verificationDetailText(modelData)
                                                         color: verifyTab.subPanelText
                                                         opacity: 0.9
@@ -12901,6 +13014,7 @@ Window {
                                                     Text {
                                                         Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
+                                                        textFormat: Text.PlainText
                                                         text: tr("Advertencias") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.warnings) ? verifyTab.verifyDetails.warnings.length : 0) + ")"
                                                         color: verifyTab.subPanelWarning
                                                         font.bold: true
@@ -12922,6 +13036,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.warnings) ? verifyTab.verifyDetails.warnings : []
                                                     delegate: Text {
+                                                        textFormat: Text.PlainText
                                                         text: "• " + window.localizeVisibleDiagnosticText(modelData)
                                                         color: verifyTab.subPanelText
                                                         opacity: 0.9
@@ -12957,6 +13072,7 @@ Window {
                                                     Text {
                                                         Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
+                                                        textFormat: Text.PlainText
                                                         text: tr("Errores") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.errors) ? verifyTab.verifyDetails.errors.length : 0) + ")"
                                                         color: verifyTab.subPanelError
                                                         font.bold: true
@@ -12978,6 +13094,7 @@ Window {
                                                 Repeater {
                                                     model: (verifyTab.verifyDetails && verifyTab.verifyDetails.errors) ? verifyTab.verifyDetails.errors : []
                                                     delegate: Text {
+                                                        textFormat: Text.PlainText
                                                         text: "• " + window.localizeVisibleDiagnosticText(modelData)
                                                         color: verifyTab.subPanelText
                                                         opacity: 0.9
@@ -13013,6 +13130,7 @@ Window {
                                                     Text {
                                                         Layout.preferredWidth: 1
                                                         Layout.fillWidth: true
+                                                        textFormat: Text.PlainText
                                                         text: tr("Evidencias") + " (" + ((verifyTab.verifyDetails && verifyTab.verifyDetails.evidence) ? verifyTab.verifyDetails.evidence.length : 0) + ")"
                                                         color: verifyTab.subPanelTitle
                                                         font.bold: true
@@ -13177,6 +13295,7 @@ Window {
                                         }
                                     }
                                     Text {
+                                        textFormat: Text.PlainText
                                         text: tr("Certificado para proteger firmando: %1").arg(window.selectedCertData ? window.certificateDisplayName(window.selectedCertData) : tr("No seleccionado"))
                                         color: currentTheme.secondaryTextColor
                                         wrapMode: Text.WordWrap
@@ -13184,6 +13303,7 @@ Window {
                                     }
 
                                     Text {
+                                        textFormat: Text.PlainText
                                         text: tr("Fichero: %1").arg(window.protectInputPath !== "" ? window.protectInputPath : tr("No seleccionado"))
                                         color: currentTheme.textColor
                                         wrapMode: Text.WordWrap
@@ -13263,6 +13383,7 @@ Window {
                                         Layout.fillWidth: true
                                         wrapMode: Text.WordWrap
                                         color: currentTheme.secondaryTextColor
+                                        textFormat: Text.PlainText
                                         text: window.protectContainer === "authenvelopeddata" && window.protectProfile === "compat"
                                               ? tr("AuthEnvelopedData usa AES-256-GCM y RSA-OAEP-SHA256/MGF1-SHA256. Requiere un destinatario compatible con certificado X.509 RSA válido y aporta integridad autenticada, no firma electrónica.")
                                               : (window.isEncryptedDataProtection()
@@ -13373,6 +13494,7 @@ Window {
                                             }
 
                                             Text {
+                                                textFormat: Text.PlainText
                                                 text: visibleProtectionRecipients().length === 0
                                                       ? (window.protectContainer === "authenvelopeddata" && window.protectProfile === "compat"
                                                          ? tr("No hay destinatarios compatibles con AuthEnvelopedData. Importe o configure un certificado X.509 RSA válido para cifrado de clave.")
@@ -13412,6 +13534,7 @@ Window {
                                                             wrapMode: Text.WordWrap
                                                             Layout.preferredWidth: 1
                                                             Layout.fillWidth: true
+                                                            textFormat: Text.PlainText
                                                             text: tr("Origen: %1").arg(String(modelData.origin || "propio") === "importado" ? tr("importado") : (String(modelData.origin || "propio") === "otras_personas" ? tr("otras personas") : tr("certificado propio")))
                                                             color: currentTheme.secondaryTextColor
                                                             font.pixelSize: 11
@@ -13504,6 +13627,7 @@ Window {
                                                 font.bold: true
                                             }
                                             Text {
+                                                textFormat: Text.PlainText
                                                 text: window.protectResult && window.protectResult.error
                                                       ? window.protectResult.error
                                                       : tr("Salida: %1").arg(window.protectResult && window.protectResult.outputPath ? window.protectResult.outputPath : tr("No disponible"))
@@ -13513,6 +13637,7 @@ Window {
                                             }
                                             Text {
                                                 visible: window.protectResult && !window.protectResult.error
+                                                textFormat: Text.PlainText
                                                 text: tr("Perfil: %1 | Destinatarios: %2").arg(window.protectResult && window.protectResult.profile ? window.protectResult.profile : "-").arg(window.protectResult && window.protectResult.recipientCount !== undefined ? window.protectResult.recipientCount : 0)
                                                 color: "white"
                                                 wrapMode: Text.WordWrap
@@ -13565,6 +13690,7 @@ Window {
                                 }
 
                                 Text {
+                                    textFormat: Text.PlainText
                                     text: tr("Fichero protegido: %1").arg(window.unprotectInputPath !== "" ? window.unprotectInputPath : tr("No seleccionado"))
                                     color: currentTheme.textColor
                                     wrapMode: Text.WordWrap
@@ -13573,6 +13699,7 @@ Window {
 
                                 Text {
                                     visible: window.unprotectInputPath !== ""
+                                    textFormat: Text.PlainText
                                     text: tr("Contenedor detectado: %1").arg(window.protectedContainerLabel(window.unprotectInputPath))
                                     color: currentTheme.secondaryTextColor
                                     wrapMode: Text.WordWrap
@@ -13703,6 +13830,7 @@ Window {
                                             font.bold: true
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: window.unprotectResult && window.unprotectResult.error
                                                   ? window.unprotectResult.error
                                                   : tr("Salida: %1").arg(window.unprotectResult && window.unprotectResult.outputPath ? window.unprotectResult.outputPath : tr("No disponible"))
@@ -13712,6 +13840,7 @@ Window {
                                         }
                                         Text {
                                             visible: window.unprotectResult && !window.unprotectResult.error
+                                            textFormat: Text.PlainText
                                             text: tr("Perfil: %1 | Destinatario: %2").arg(window.unprotectResult && window.unprotectResult.profile ? window.unprotectResult.profile : "-").arg(window.unprotectResult && window.unprotectResult.recipientId ? window.unprotectResult.recipientId : tr("No disponible"))
                                             color: "white"
                                             wrapMode: Text.WordWrap
@@ -13799,6 +13928,7 @@ Window {
 
                                 Text {
                                     Layout.fillWidth: true
+                                    textFormat: Text.PlainText
                                     text: window.certificates.length > 0 ? tr("%1 cert.").arg(window.certificates.length) : tr("Sin cert.")
                                     color: currentTheme.textColor
                                     font.pixelSize: 11
@@ -13894,6 +14024,7 @@ Window {
                                 }
                                 Text {
                                     Layout.fillWidth: true
+                                    textFormat: Text.PlainText
                                     text: tr("Mostrando %1 de %2").arg(window.filteredCertificates().length).arg(window.certificates.length)
                                     color: currentTheme.secondaryTextColor
                                     font.pixelSize: 11
@@ -13914,6 +14045,7 @@ Window {
                                 Text {
                                     Layout.fillWidth: true
                                     visible: window.smartcardMessage !== ""
+                                    textFormat: Text.PlainText
                                     text: window.smartcardMessage
                                     color: currentTheme.secondaryTextColor
                                     wrapMode: Text.WordWrap
@@ -14003,6 +14135,7 @@ Window {
                                             Text {
                                                 wrapMode: Text.WordWrap
                                                 Layout.preferredWidth: 1
+                                                textFormat: Text.PlainText
                                                 text: modelData.subjectName || modelData.subject || tr("Certificado")
                                                 color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -14027,6 +14160,7 @@ Window {
                                                 font.bold: true
                                             }
                                             Text {
+                                                textFormat: Text.PlainText
                                                 text: window.certificateStatusText(modelData)
                                                 color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : window.certificateStatusColor(modelData)
@@ -14037,6 +14171,7 @@ Window {
                                         Text {
                                             Layout.fillWidth: true
                                             visible: window.certificateStatusReason(modelData) !== ""
+                                            textFormat: Text.PlainText
                                             text: window.certificateStatusReason(modelData)
                                             color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -14047,6 +14182,7 @@ Window {
                                         Text {
                                             wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
+                                            textFormat: Text.PlainText
                                             text: tr("Vence: %1").arg(window.certificateExpiry(modelData))
                                             color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -14055,6 +14191,7 @@ Window {
                                         Text {
                                             wrapMode: Text.WordWrap
                                             Layout.fillWidth: true
+                                            textFormat: Text.PlainText
                                             text: tr("Emisor: %1").arg(modelData.issuerName || modelData.issuer || tr("Desconocido"))
                                             color: cardContents.parent.emphasized
                                                     ? window.certificateSelectionTextColor() : currentTheme.textColor
@@ -14100,6 +14237,7 @@ Window {
                                                  && !!window.selectedCertData.validTo
                                                  && Number(window.selectedCertData.diasCaducidad) >= 0
                                                  && Number(window.selectedCertData.diasCaducidad) <= 60
+                                        textFormat: Text.PlainText
                                         text: tr("Este certificado caduca en %1 días. Comprueba si debes renovarlo antes de firmar.").arg(window.selectedCertData ? window.selectedCertData.diasCaducidad : 0)
                                         color: "#f2c66d"
                                         wrapMode: Text.WordWrap
@@ -15551,7 +15689,7 @@ Window {
                                                 window.signSealLogoOpacityPercent = Math.round(value)
                                         }
                                     }
-                                    Text { text: window.signSealLogoOpacityPercent + " %"; color: currentTheme.textColor }
+                                    Text { textFormat: Text.PlainText; text: window.signSealLogoOpacityPercent + " %"; color: currentTheme.textColor }
                                 }
 
                                 RowLayout {
@@ -16161,7 +16299,7 @@ Window {
                                                 }
                                             }
                                         }
-                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("tsa") !== ""; text: "⚠ " + tr(window.settingsFieldError("tsa")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.settingsFieldError("tsa") !== ""; text: "⚠ " + tr(window.settingsFieldError("tsa")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                     }
 
                                     ThemedButton {
@@ -16254,7 +16392,7 @@ Window {
                                                 markBackendSettingsDirty()
                                             }
                                         }
-                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyHost") !== ""; text: "⚠ " + tr(window.settingsFieldError("proxyHost")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.settingsFieldError("proxyHost") !== ""; text: "⚠ " + tr(window.settingsFieldError("proxyHost")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
@@ -16280,7 +16418,7 @@ Window {
                                                 markBackendSettingsDirty()
                                             }
                                         }
-                                        Text { Layout.fillWidth: true; visible: window.settingsFieldError("proxyPort") !== ""; text: "⚠ " + tr(window.settingsFieldError("proxyPort")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
+                                        Text { textFormat: Text.PlainText; Layout.fillWidth: true; visible: window.settingsFieldError("proxyPort") !== ""; text: "⚠ " + tr(window.settingsFieldError("proxyPort")); color: currentTheme.errorColor; wrapMode: Text.WordWrap }
                                     }
                                 }
 
@@ -16460,6 +16598,7 @@ Window {
                                             Layout.fillWidth: true
                                             wrapMode: Text.Wrap
                                             color: currentTheme.secondaryTextColor
+                                            textFormat: Text.PlainText
                                             text: tr("Backend:") + " " + window.proxySecretStoreBackendLabel(window.proxySecretStoreBackend)
                                                   + (window.proxySecretStorePlatform !== "" ? " · " + tr("Plataforma:") + " " + window.proxySecretStorePlatformLabel(window.proxySecretStorePlatform) : "")
                                         }
@@ -16468,6 +16607,7 @@ Window {
                                             visible: window.proxyRuntimeMode !== ""
                                             wrapMode: Text.Wrap
                                             color: currentTheme.secondaryTextColor
+                                            textFormat: Text.PlainText
                                             text: tr("Modo en uso:") + " " + window.proxyRuntimeModeLabel(window.proxyRuntimeMode)
                                         }
                                         Text {
@@ -16475,6 +16615,7 @@ Window {
                                             visible: window.proxySecretStoreReason !== ""
                                             wrapMode: Text.Wrap
                                             color: currentTheme.secondaryTextColor
+                                            textFormat: Text.PlainText
                                             text: window.proxySecretStoreReason
                                         }
                                         RowLayout {
@@ -16523,6 +16664,7 @@ Window {
                                         Text {
                                             wrapMode: Text.WordWrap
                                             Layout.preferredWidth: 1
+                                            textFormat: Text.PlainText
                                             text: configTab.restServerChecking ? tr("● Comprobando estado del servidor...") : (configTab.restServerRunning ? tr("● Servidor API REST en ejecución") : tr("● Servidor detenido"))
                                             color: Contrast.accentOn(restServerStateCard.color, configTab.restServerChecking ? "#d1d5db" : (configTab.restServerRunning ? "#2ecc71" : "#e74c3c"))
                                             font.bold: true; font.pixelSize: 13; Layout.fillWidth: true
@@ -16717,6 +16859,7 @@ Window {
                                         Text {
                                             wrapMode: Text.WordWrap
                                             Layout.preferredWidth: 1
+                                            textFormat: Text.PlainText
                                             text: !configTab.svcConnected ? tr("● Estado desconocido (Sin conexión)") :
                                                   configTab.svcRunning ? tr("● Servicio activo y corriendo") :
                                                   configTab.svcInstalled ? tr("● Servicio instalado pero parado") : tr("● Servicio no instalado")
@@ -16724,6 +16867,7 @@ Window {
                                             font.bold: true; font.pixelSize: 13; Layout.fillWidth: true
                                         }
                                         Text {
+                                            textFormat: Text.PlainText
                                             text: configTab.svcConnected && configTab.svcMethod ? "(" + configTab.svcMethod + ")" : ""
                                             color: currentTheme.secondaryTextColor; font.pixelSize: 11
                                         }
@@ -16771,6 +16915,7 @@ Window {
 
                                 // Mensaje de resultado
                                 Text {
+                                    textFormat: Text.PlainText
                                     text: configTab.svcMessage
                                     color: Contrast.accentOn(currentTheme.cardColor, configTab.svcMessage.startsWith(tr("Error")) ? "#e74c3c" : "#2ecc71")
                                     font.pixelSize: 12; wrapMode: Text.Wrap
@@ -17047,6 +17192,7 @@ Window {
             anchors.fill: parent
             anchors.margins: 10
             Text {
+                textFormat: Text.PlainText
                 text: iconTxt
                 // Icono decorativo: el nombre del botón ya dice la sección.
                 Accessible.ignored: true
@@ -17061,6 +17207,7 @@ Window {
             }
             Text {
                 visible: !window.sidebarCollapsed
+                textFormat: Text.PlainText
                 text: navButtonRoot.text
                 color: navButtonRoot.labelColor
                 font.bold: active
@@ -17096,6 +17243,7 @@ Window {
             }
             Text {
                 id: statusMessageText
+                textFormat: Text.PlainText
                 text: localizedStatusMessage()
                 color: statusBar.labelColor
                 font.pixelSize: 12
@@ -17108,9 +17256,11 @@ Window {
                 Accessible.name: text
                 // Si el mensaje no cabe, el texto completo aparece al pasar el ratón.
                 HoverHandler { id: statusMessageHover }
-                ToolTip.visible: statusMessageText.truncated && statusMessageHover.hovered
-                ToolTip.delay: 400
-                ToolTip.text: statusMessageText.text
+                PlainToolTip {
+                    visible: statusMessageText.truncated && statusMessageHover.hovered
+                    delay: 400
+                    text: statusMessageText.text
+                }
             }
             ThemedButton {
                 text: window.activeDiagnosticInProgress
@@ -17150,6 +17300,7 @@ Window {
                     }
                     Text {
                         Layout.alignment: Qt.AlignVCenter
+                        textFormat: Text.PlainText
                         text: statusAssistantButton.text
                         color: statusBar.labelColor
                         font.pixelSize: 12

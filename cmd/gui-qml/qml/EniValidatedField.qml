@@ -47,6 +47,7 @@ ColumnLayout {
         Layout.fillWidth: true
         // Con el error a la vista la pista sobra: el error ya dice qué escribir.
         visible: root.hintKey !== "" && !root.invalid
+        textFormat: Text.PlainText
         text: root.hintKey !== "" ? root.translate(root.hintKey) : ""
         color: root.theme.secondaryTextColor
         wrapMode: Text.WordWrap
@@ -55,6 +56,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.invalid
         // El icono evita depender solo del color para reconocer el error.
+        textFormat: Text.PlainText
         text: root.invalid ? "\u26A0 " + root.translate(root.errorKey) : ""
         color: root.errorColor
         wrapMode: Text.WordWrap

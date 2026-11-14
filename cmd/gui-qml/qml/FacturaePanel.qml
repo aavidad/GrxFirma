@@ -104,7 +104,7 @@ Item {
         property bool required: false
         Layout.fillWidth: true
         spacing: 4
-        Label { text: invoiceField.required ? invoiceField.label + " *" : invoiceField.label; color: panel.theme.textColor; wrapMode: Text.WordWrap }
+        Label { textFormat: Text.PlainText; text: invoiceField.required ? invoiceField.label + " *" : invoiceField.label; color: panel.theme.textColor; wrapMode: Text.WordWrap }
         ThemedTextField {
             id: input
             Layout.fillWidth: true
@@ -352,6 +352,7 @@ Item {
                 InvoiceField { id: iban; required: true; label: tr("facturae.iban") }
             }
             Label {
+                textFormat: Text.PlainText
                 text: panel.statusText
                 visible: text !== ""
                 color: panel.theme.textColor
@@ -372,6 +373,7 @@ Item {
                 ThemedButton { text: tr("paridad.lote3.invoice.export"); enabled: !!panel.invoiceResult; Accessible.name: text; onClicked: invoiceReportDialog.open() }
             }
             Label {
+                textFormat: Text.PlainText
                 text: panel.invoiceResult ? tr("paridad.lote3.invoice.summary").replace("%1", panel.invoiceResult.format).replace("%2", panel.invoiceResult.errors).replace("%3", panel.invoiceResult.warnings) : tr("paridad.lote3.invoice.empty")
                 color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true
                 Accessible.name: text
@@ -380,6 +382,7 @@ Item {
                 model: panel.invoiceResult && panel.invoiceResult.issues ? panel.invoiceResult.issues : []
                 delegate: Label {
                     required property var modelData
+                    textFormat: Text.PlainText
                     text: (modelData.level === "error" ? tr("paridad.lote3.invoice.error") : tr("paridad.lote3.invoice.warning")) + " · " + modelData.field + ": " + modelData.message
                     color: panel.theme.textColor; wrapMode: Text.WordWrap; Layout.fillWidth: true
                     Accessible.name: text
@@ -407,6 +410,7 @@ Item {
             // Resultado junto a sus botones, como región viva.
             Label {
                 objectName: "verifactuSummary"
+                textFormat: Text.PlainText
                 text: panel.verifactuStatus !== "" ? panel.verifactuStatus : tr("verifactu.empty_state")
                 color: panel.verifactuStatus !== "" ? panel.theme.textColor : panel.theme.secondaryTextColor
                 wrapMode: Text.WordWrap; Layout.fillWidth: true
