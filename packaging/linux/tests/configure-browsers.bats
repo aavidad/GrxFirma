@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 setup() {
+  export GRXFIRMA_INSTALLER_LANG=es
   export TEST_HOME="${BATS_TEST_TMPDIR}/home"
   export TEST_BIN="${BATS_TEST_TMPDIR}/bin"
   export TEST_XPI="${BATS_TEST_TMPDIR}/firefox.xpi"

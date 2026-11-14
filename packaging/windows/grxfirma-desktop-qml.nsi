@@ -13,8 +13,9 @@ Unicode True
 !ifndef VERSION
   !define VERSION "dev"
 !endif
+!include "i18n/version.nsh"
 !include "product-version.nsh"
-!insertmacro GrxFirmaProductVersion "Instalador GrxFirma Qt"
+!insertmacro GrxFirmaProductVersion "${GRX_VERSION_PRODUCT_QT}"
 
 !ifndef ARCH
   !define ARCH "amd64"
@@ -56,10 +57,10 @@ SetDateSave off
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
-!insertmacro MUI_LANGUAGE "Spanish"
+!include "installer-languages.nsh"
 !insertmacro GrxFirmaBlockLegacyMachineInstall "GrxFirmaDesktopQt" "GrxFirma Desktop Qt"
 
-Section "Desktop Qt/QML" SEC01
+Section "$(GRX_SECTION_QT_DESKTOP)" SEC01
   SetShellVarContext current
   SetOutPath "$INSTDIR"
   File /r "${STAGE_DIR}\*.*"
@@ -83,7 +84,7 @@ Section "Desktop Qt/QML" SEC01
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML"'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "La instalación PowerShell del desktop Qt ha fallado con código $0."
+    "$(GRX_QT_DESKTOP_FAILED)"
 SectionEnd
 
 Section -post
@@ -105,11 +106,11 @@ Section "Uninstall"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "La ruta de mantenimiento contiene enlaces o puntos de reanálisis y no puede eliminarse de forma segura (código $0)."
+    "$(GRX_UNSAFE_MAINTENANCE_PATH)"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML"'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "No se pudo limpiar la instalación por usuario (código $0). El desinstalador se conserva para reintentar."
+    "$(GRX_UNINSTALL_FAILED)"
   Delete "$INSTDIR\*.*"
   RMDir /r "$INSTDIR\qml"
   RMDir /r "$INSTDIR\assets"

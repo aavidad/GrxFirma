@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 import pathlib
+import json
 import re
 import unittest
 
@@ -26,11 +27,11 @@ class SilentTlsTrustContracts(unittest.TestCase):
                     r'IfSilent 0 \+2\s+'
                     r'StrCpy \$SilentInstallArg "-SilentInstall"',
                 )
-                self.assertRegex(
-                    section,
-                    r'GrxFirmaShowWarning[\s\\]+"Windows pedirá confirmar'
-                    r'[^\n]*retirar el anterior[^\n]*Pulse \'Sí\'',
-                )
+                self.assertRegex(section, r'GrxFirmaShowWarning[\s\\]+"\$\(GRX_TLS_WARNING\)"')
+                catalog = json.loads((WINDOWS / 'i18n/es.json').read_text())
+                self.assertIn('Windows pedirá confirmar', catalog['TLS_WARNING'])
+                self.assertIn('retirar el anterior', catalog['TLS_WARNING'])
+                self.assertIn("Pulse 'Sí'", catalog['TLS_WARNING'])
                 self.assertLess(
                     section.index("GrxFirmaShowWarning"),
                     section.index(f'-File "$INSTDIR\\{script}"'),

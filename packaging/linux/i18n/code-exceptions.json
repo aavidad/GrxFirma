@@ -1,0 +1,10 @@
+{
+  "manejador_afirma": "Clave de política compartida con el motor; no se traduce.",
+  "preguntar": "Valor interno de la preferencia de firma; no es una etiqueta visible.",
+  "afirma-handler-anterior.json": "Ruta estable de la copia del manejador; conserva las restauraciones anteriores.",
+  "grxfirma browsers": "Prefijo técnico estable de los registros del configurador.",
+  "Alberto Avidad Fernández": "Nombre propio del mantenedor del paquete Debian; identidad legal invariable.",
+  "[Default Applications]": "Sección normativa del fichero mimeapps.list; es un identificador del formato INI, no texto de interfaz.",
+  "export GRXFIRMA_PKCS12_PASSWORD=": "Orden literal que se escribe en env.sh; forma parte del código generado, no de un mensaje.",
+  "#!/usr/bin/env bash": "Cabecera ejecutable del script generado; ruta e intérprete, sin texto de interfaz."
+}

@@ -11,8 +11,9 @@ Unicode True
 !ifndef VERSION
   !define VERSION "dev"
 !endif
+!include "i18n/version.nsh"
 !include "product-version.nsh"
-!insertmacro GrxFirmaProductVersion "Instalador GrxFirma CLI"
+!insertmacro GrxFirmaProductVersion "${GRX_VERSION_PRODUCT_CLI}"
 
 !ifndef ARCH
   !define ARCH "amd64"
@@ -50,10 +51,10 @@ SetDateSave off
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
-!insertmacro MUI_LANGUAGE "Spanish"
+!include "installer-languages.nsh"
 !insertmacro GrxFirmaBlockLegacyMachineInstall "GrxFirmaCLI" "GrxFirma CLI"
 
-Section "CLI principal" SEC01
+Section "$(GRX_SECTION_CLI)" SEC01
   SetShellVarContext current
   SetOutPath "$INSTDIR"
   File "${STAGE_DIR}\grxfirma.exe"

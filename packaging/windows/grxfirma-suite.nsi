@@ -16,8 +16,9 @@ Unicode True
 !ifndef VERSION
   !define VERSION "dev"
 !endif
+!include "i18n/version.nsh"
 !include "product-version.nsh"
-!insertmacro GrxFirmaProductVersion "Instalador GrxFirma Suite"
+!insertmacro GrxFirmaProductVersion "${GRX_VERSION_PRODUCT_SUITE}"
 
 !ifndef ARCH
   !define ARCH "amd64"
@@ -59,10 +60,10 @@ Page custom GrxFirmaAfirmaHandlerPage GrxFirmaAfirmaHandlerPageLeave
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
-!insertmacro MUI_LANGUAGE "Spanish"
+!include "installer-languages.nsh"
 !insertmacro GrxFirmaBlockLegacyMachineInstall "GrxFirma" "GrxFirma Suite"
 
-Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
+Section "$(GRX_SECTION_CORE)" SEC_CORE
   SectionIn RO
   SetShellVarContext current
   SetOutPath "$INSTDIR"
@@ -117,23 +118,23 @@ Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
   ${If} $GrxAfirmaHandler != "autofirma"
   ${AndIf} $GrxAfirmaHandler != "preguntar"
     !insertmacro GrxFirmaShowWarning \
-      "Desde ahora GrxFirma abrirá los enlaces afirma:// de los portales, en lugar de AutoFirma si lo tiene instalado, salvo que haya elegido AutoFirma o «Preguntar cada vez». Puede cambiarlo en GrxFirma, en Configuración, «Programa para firmar en las webs». Si desinstala GrxFirma, esos enlaces volverán a abrirse con AutoFirma."
+      "$(GRX_AFIRMA_WARNING)"
   ${EndIf}
   !insertmacro GrxFirmaShowWarning \
-    "Windows pedirá confirmar el certificado local de GrxFirma. Si se está renovando, también pedirá retirar el anterior. Pulse 'Sí' en los avisos de Windows para permitir la conexión segura con los portales."
+    "$(GRX_TLS_WARNING)"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -CoreOnly $SilentInstallArg $GrxAfirmaHandlerArg'
   Pop $0
-  StrCpy $2 "La instalación PowerShell de la suite ha fallado con código $0."
+  StrCpy $2 "$(GRX_SUITE_FAILED)"
   ${If} $0 == 20
     ; La comprobación previa falló y no se tocó nada: la bandeja sigue.
-    StrCpy $2 "No se ha actualizado GrxFirma: no se pudo confirmar que el protocolo afirma:// (el que usan los portales para abrir GrxFirma) pertenece a esta instalación. La versión instalada no se ha modificado y sigue funcionando."
+    StrCpy $2 "$(GRX_PROTOCOL_OWNER_UNCONFIRMED)"
   ${ElseIf} $0 != 0
     ; Cualquier otro fallo detuvo los procesos: se vuelve a arrancar en la
     ; bandeja la versión restaurada antes de salir.
     nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -RestoreTray'
     Pop $1
     ${If} $0 == 21
-      StrCpy $2 "No se ha podido actualizar GrxFirma (código $0). Se ha restaurado la versión anterior, que sigue funcionando."
+      StrCpy $2 "$(GRX_UPDATE_ROLLED_BACK)"
     ${EndIf}
     !insertmacro GrxFirmaExitOnExecFailure $0 "$2"
   ${EndIf}
@@ -143,32 +144,32 @@ Section "Motor, navegador y línea de comandos (obligatorio)" SEC_CORE
 SectionEnd
 
 !ifdef HAS_WINUI
-Section "Interfaz nativa de Windows (WinUI 3) - recomendada" SEC_WINUI
+Section "$(GRX_SECTION_WINUI)" SEC_WINUI
   SetShellVarContext current
   SetOutPath "$INSTDIR\desktop-winui"
   File /r "${STAGE_DIR}\desktop-winui\*.*"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-winui.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopWinUI" -PackageDir "$INSTDIR\desktop-winui" -LauncherPath "$LOCALAPPDATA\Programs\GrxFirma\DesktopLauncher\grxfirma-gui.exe" -ManagedBySuite'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "La instalación de la interfaz nativa WinUI ha fallado con código $0."
+    "$(GRX_WINUI_FAILED)"
   RMDir /r "$INSTDIR\desktop-winui"
 SectionEnd
 !endif
 
 !ifdef HAS_QT
-Section /o "Interfaz multiplataforma Qt/QML (opcional)" SEC_QT
+Section /o "$(GRX_SECTION_QT)" SEC_QT
   SetShellVarContext current
   SetOutPath "$INSTDIR\desktop-qt"
   File /r "${STAGE_DIR}\desktop-qt\*.*"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-desktop-qml.ps1" -InstallDir "$LOCALAPPDATA\Programs\GrxFirma\DesktopQML" -PackageDir "$INSTDIR\desktop-qt" -LauncherPath "$LOCALAPPDATA\Programs\GrxFirma\DesktopLauncher\grxfirma-gui.exe" -ManagedBySuite'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "La instalación de la interfaz Qt/QML ha fallado con código $0."
+    "$(GRX_QT_FAILED)"
   RMDir /r "$INSTDIR\desktop-qt"
 SectionEnd
 !endif
 
-Section "Crear acceso directo en el escritorio" SEC_DESKTOP_SHORTCUT
+Section "$(GRX_SECTION_SHORTCUT)" SEC_DESKTOP_SHORTCUT
   SetShellVarContext current
   StrCpy $0 "0"
 !ifdef HAS_WINUI
@@ -201,7 +202,7 @@ Section "Crear acceso directo en el escritorio" SEC_DESKTOP_SHORTCUT
 !endif
   ${If} $0 == "0"
     !insertmacro GrxFirmaShowWarning \
-      "No se creó el acceso del escritorio porque no se seleccionó ninguna interfaz gráfica."
+      "$(GRX_SHORTCUT_NO_GUI)"
   ${EndIf}
 SectionEnd
 
@@ -226,11 +227,11 @@ Section -post
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\remove-unselected-desktop.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -KeepQt "$KeepQt" -KeepWinUi "$KeepWinUi"'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "No se pudieron retirar los componentes desmarcados (código $0)."
+    "$(GRX_REMOVE_COMPONENTS_FAILED)"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\install-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" -RestoreTray'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "No se pudo restaurar GrxFirma en la bandeja (código $0)."
+    "$(GRX_RESTORE_TRAY_FAILED)"
   CreateDirectory "$SMPROGRAMS\GrxFirma"
   ; Versiones anteriores usaban otra carpeta del menú Inicio: se retiran
   ; solo sus accesos y la carpeta, únicamente si queda vacía.
@@ -250,7 +251,7 @@ Section "Uninstall"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$INSTDIR\invoke-uninstall-silent.ps1" -UninstallerPath "$INSTDIR\uninstall.exe" -InstallDir "$INSTDIR" -ValidateOnly'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "La ruta de mantenimiento contiene enlaces o puntos de reanálisis y no puede eliminarse de forma segura (código $0)."
+    "$(GRX_UNSAFE_MAINTENANCE_PATH)"
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "GrxFirma"
   StrCpy $SilentInstallArg ""
   IfSilent 0 +2
@@ -258,7 +259,7 @@ Section "Uninstall"
   nsExec::ExecToLog '"$GrxPowerShell" -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\uninstall-suite.ps1" -BaseInstallDir "$LOCALAPPDATA\Programs\GrxFirma" $SilentInstallArg'
   Pop $0
   !insertmacro GrxFirmaExitOnExecFailure $0 \
-    "No se pudo limpiar la instalación por usuario (código $0). El desinstalador se conserva para reintentar."
+    "$(GRX_UNINSTALL_FAILED)"
   Delete "$INSTDIR\grxfirma.exe"
   Delete "$INSTDIR\grxfirma-gui.exe"
   Delete "$INSTDIR\grxfirma-nativehost.exe"
@@ -311,15 +312,15 @@ SectionEnd
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CORE} \
-    "Componentes compartidos: motor seguro, integración con navegadores y línea de comandos."
+    "$(GRX_DESCRIPTION_CORE)"
 !ifdef HAS_WINUI
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC_WINUI} \
-    "Interfaz nativa recomendada para Windows 10. Se instala autocontenida y usa el motor compartido."
+    "$(GRX_DESCRIPTION_WINUI)"
 !endif
 !ifdef HAS_QT
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC_QT} \
-    "Interfaz Qt/QML alternativa. Puede instalarse sola o junto a la interfaz nativa."
+    "$(GRX_DESCRIPTION_QT)"
 !endif
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DESKTOP_SHORTCUT} \
-  "Crea un acceso directo de GrxFirma en el escritorio del usuario."
+  "$(GRX_DESCRIPTION_SHORTCUT)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

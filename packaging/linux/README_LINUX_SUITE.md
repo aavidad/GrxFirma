@@ -330,3 +330,51 @@ ni la distribución de Chromium mediante tienda o política empresarial.
 Software libre bajo licencia EUPL 1.2 o posterior.
 
 Autoría: Alberto Avidad Fernández
+
+## Idioma de la instalación
+
+`install-suite.sh`, `configure-browsers.sh` y los avisos del empaquetador leen
+catálogos de datos para castellano, inglés, catalán, valenciano, gallego, euskera,
+francés, alemán, italiano, portugués y chino. La fuente está en `i18n/*.json`;
+los TSV generados se distribuyen con la suite y se leen desde Bash, sin Python
+ni evaluación de código del catálogo.
+
+El idioma se toma de `LC_ALL`, `LC_MESSAGES`, `LANGUAGE` o `LANG`, en ese orden.
+Una variante `ca_ES@valencia` selecciona valenciano; los idiomas no admitidos
+usan inglés. `GRXFIRMA_INSTALLER_LANG` permite elegir cualquiera de los once:
+
+```sh
+GRXFIRMA_INSTALLER_LANG=gl ./install-suite.sh
+GRXFIRMA_INSTALLER_LANG=en ./configure-browsers.sh
+sudo env GRXFIRMA_INSTALLER_LANG=fr dpkg -i grxfirma_VERSION_ARQUITECTURA.deb
+```
+
+`install-suite.sh` no pregunta el idioma: usa el del sistema. Para elegir otro,
+`GRXFIRMA_INSTALLER_LANG=<idioma>`; con `GRXFIRMA_INSTALLER_ASK_LANG=1` muestra
+en la terminal los once idiomas y Intro conserva el propuesto. El configurador
+y los scripts de Debian tampoco añaden preguntas. La elección no cambia la
+política ni la preferencia del programa que abre los enlaces `afirma://`.
+
+El paquete contiene el lector y los once TSV. `preinst` y `prerm` incorporan
+una copia de esos mismos datos al generarse, porque `preinst` se ejecuta antes
+de instalar los ficheros y debe funcionar sin una versión anterior. Los campos
+de descripción de Debian y el informe técnico `ARTIFACTS.md` se generan siempre
+en inglés desde el catálogo para conservar un resultado independiente del
+idioma del equipo de compilación. Los avisos de instalación y retirada sí usan
+el idioma del sistema o la sustitución indicada.
+
+Para actualizar y comprobar las traducciones:
+
+```sh
+python3 packaging/linux/i18n/generate.py
+python3 packaging/linux/i18n/generate.py --check
+bats packaging/linux/tests
+shellcheck -x packaging/linux/installer-i18n.sh packaging/linux/build-suite.sh \
+  packaging/linux/configure-browsers.sh packaging/linux/install-suite.sh
+```
+
+Las pruebas comprueban cobertura de claves y marcadores, ausencia de prosa
+castellana en el código revisado, resolución del idioma, argumentos tratados
+como datos, ausencia de preguntas sin terminal y autonomía de los scripts de
+Debian. `i18n/code-exceptions.json` justifica los nombres propios, identificadores
+de formatos y fragmentos de código generado que no son texto de interfaz.

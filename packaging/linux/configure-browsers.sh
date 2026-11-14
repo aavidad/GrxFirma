@@ -6,6 +6,10 @@
 
 set -euo pipefail
 
+# Catálogos de datos compartidos con el instalador.
+# shellcheck source=packaging/linux/installer-i18n.sh
+source "$(dirname "${BASH_SOURCE[0]}")/installer-i18n.sh"
+
 TARGET_HOME="${GRXFIRMA_TARGET_HOME:-${HOME}}"
 DESKTOP_ID="${GRXFIRMA_DESKTOP_ID:-grxfirma.desktop}"
 BROWSER_BRIDGE="${GRXFIRMA_BROWSER_BRIDGE:-/usr/lib/grxfirma/bin/browser-bridge.sh}"
@@ -156,7 +160,7 @@ afirma_resolve_handler() {
   local policy preference
   policy="$(afirma_policy_value)"
   if [[ "${policy}" == "!" ]]; then
-    log "Aviso: no se pudo leer manejador_afirma en ${POLICY_FILE}; se mantiene la elección de cada usuario."
+    log "$(grx_message MSG_001 "${POLICY_FILE}")"
     policy=""
   fi
   preference="$(afirma_preference_value)"
@@ -175,7 +179,7 @@ afirma_resolve_handler() {
   fi
   if [[ "${AFIRMA_HANDLER}" != grxfirma ]] && ! afirma_autofirma_installed; then
     if [[ "${AFIRMA_HANDLER_SOURCE}" == politica || "${AFIRMA_HANDLER_SOURCE}" == parametro ]]; then
-      log "Aviso: AutoFirma no está instalado en este equipo; las firmas de las webs se abrirán con GrxFirma."
+      log "$(grx_message MSG_002)"
     fi
     AFIRMA_HANDLER="grxfirma"
   fi
@@ -386,14 +390,14 @@ sanitize_afirma_scheme_handlers() {
       } >> "${file}"
     done
     if ! afirma_prefers_autofirma; then
-      log "Aviso: GrxFirma abrirá ahora los enlaces afirma://. Sin python3 no se ha podido guardar qué aplicación los abría antes (por ejemplo AutoFirma)."
+      log "$(grx_message MSG_003)"
     fi
     return 0
   fi
   scheme_csv="$(IFS=,; printf '%s' "${schemes[*]}")"
   previous="$(afirma_handlers_py set "${HANDLER_BACKUP}" "${DESKTOP_ID}" "${scheme_csv}" "${files[@]}")"
   if [[ -n "${previous}" ]]; then
-    log "Aviso: los enlaces afirma:// los abría ${previous//$'\n'/, }. Desde ahora los abre GrxFirma. Al desinstalar GrxFirma se devolverán a esa aplicación."
+    log "$(grx_message MSG_004 "${previous//$'\n'/, }")"
   fi
   if afirma_prefers_autofirma; then
     local autofirma_id
@@ -426,7 +430,7 @@ restore_afirma_scheme_handlers() {
   if have_cmd update-desktop-database; then
     update-desktop-database "${TARGET_HOME}/.local/share/applications" >/dev/null 2>&1 || true
   fi
-  log "Manejador afirma:// devuelto a la aplicación anterior"
+  log "$(grx_message MSG_005)"
 }
 
 is_snap_installed() {
@@ -503,7 +507,7 @@ remove_legacy_native_hosts() {
       [[ -f "${manifest}" && ! -L "${manifest}" ]] || continue
       if grep -Eq '"path"[[:space:]]*:[[:space:]]*"[^"]*/grxfirma/[^"]*"' "${manifest}"; then
         rm -f -- "${manifest}"
-        log "Host anterior retirado: ${manifest}"
+        log "$(grx_message MSG_006 "${manifest}")"
       fi
     done
   done
@@ -514,7 +518,7 @@ remove_legacy_firefox_extension() {
   local legacy="${profile}/extensions/extension@dipgra.es.xpi"
   if [[ -f "${legacy}" && ! -L "${legacy}" ]]; then
     rm -f -- "${legacy}"
-    log "Extension Firefox anterior retirada: ${legacy}"
+    log "$(grx_message MSG_007 "${legacy}")"
   fi
 }
 
@@ -543,31 +547,31 @@ install_chromium_family_manifests() {
   if have_cmd google-chrome || have_cmd google-chrome-stable || [[ -d /opt/google/chrome ]]; then
     write_chrome_manifest "${TARGET_HOME}/.config/google-chrome/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
     write_chrome_manifest "${TARGET_HOME}/.config/google-chrome/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
-    log "Chrome detectado/configurado"
+    log "$(grx_message MSG_008)"
   fi
 
   if have_cmd chromium || have_cmd chromium-browser || is_snap_installed chromium || is_flatpak_installed org.chromium.Chromium; then
     write_chrome_manifest "${TARGET_HOME}/.config/chromium/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
     write_chrome_manifest "${TARGET_HOME}/.config/chromium/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
     if is_snap_installed chromium || is_flatpak_installed org.chromium.Chromium; then
-      log "Chromium confinado detectado: Native Messaging requiere un portal o despliegue permitido por el paquete"
+      log "$(grx_message MSG_009)"
     fi
-    log "Chromium detectado/configurado"
+    log "$(grx_message MSG_010)"
   fi
 
   if have_cmd microsoft-edge || have_cmd microsoft-edge-stable || [[ -d /opt/microsoft/msedge ]]; then
     write_chrome_manifest "${TARGET_HOME}/.config/microsoft-edge/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
     write_chrome_manifest "${TARGET_HOME}/.config/microsoft-edge/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
-    log "Edge detectado/configurado"
+    log "$(grx_message MSG_011)"
   fi
 
   if have_cmd brave-browser || is_flatpak_installed com.brave.Browser || [[ -d /opt/brave.com/brave ]]; then
     write_chrome_manifest "${TARGET_HOME}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
     write_chrome_manifest "${TARGET_HOME}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
     if is_flatpak_installed com.brave.Browser; then
-      log "Brave Flatpak detectado: Native Messaging requiere un portal o despliegue permitido por el paquete"
+      log "$(grx_message MSG_012)"
     fi
-    log "Brave detectado/configurado"
+    log "$(grx_message MSG_013)"
   fi
 
   if have_cmd vivaldi || have_cmd vivaldi-stable || [[ -d /opt/vivaldi ]]; then
@@ -575,10 +579,10 @@ install_chromium_family_manifests() {
     write_chrome_manifest "${TARGET_HOME}/.config/vivaldi/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
     write_chrome_manifest "${TARGET_HOME}/.config/vivaldi-snapshot/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
     write_chrome_manifest "${TARGET_HOME}/.config/vivaldi-snapshot/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
-    log "Vivaldi detectado/configurado"
+    log "$(grx_message MSG_014)"
   fi
   if is_snap_installed vivaldi; then
-    log "Vivaldi Snap detectado: esa distribucion no admite Native Messaging"
+    log "$(grx_message MSG_015)"
   fi
 
   if have_cmd opera || have_cmd opera-stable || is_flatpak_installed com.opera.Opera || [[ -d /usr/lib/x86_64-linux-gnu/opera || -d /opt/opera ]]; then
@@ -587,9 +591,9 @@ install_chromium_family_manifests() {
     write_chrome_manifest "${TARGET_HOME}/.config/opera/NativeMessagingHosts/com.grxfirma.native.json" "com.grxfirma.native" "${origins}"
     write_chrome_manifest "${TARGET_HOME}/.config/opera/NativeMessagingHosts/io.github.aavidad.grxfirma.json" "io.github.aavidad.grxfirma" "${origins}"
     if is_flatpak_installed com.opera.Opera; then
-      log "Opera Flatpak detectado: el host externo depende de los permisos de su paquete"
+      log "$(grx_message MSG_016)"
     fi
-    log "Opera detectado/configurado mediante manifiestos Chromium"
+    log "$(grx_message MSG_017)"
   fi
 }
 
@@ -647,7 +651,7 @@ with open(tmp, "w", encoding="utf-8") as fh:
 os.replace(tmp, path)
 PY
   fi
-  log "Perfil Firefox configurado: ${profile}"
+  log "$(grx_message MSG_018 "${profile}")"
 }
 
 install_firefox_integration() {
@@ -658,7 +662,7 @@ install_firefox_integration() {
   [[ "${has_firefox}" == "0" ]] || return 0
 
   if [[ -f "${FIREFOX_XPI}" ]] && ! firefox_xpi_is_signed; then
-    log "XPI Firefox sin firma AMO: se configura el protocolo, pero no se instala la extension estable"
+    log "$(grx_message FIREFOX_UNSIGNED)"
   fi
 
   local nm_dirs=(
@@ -685,7 +689,7 @@ install_firefox_integration() {
       configure_firefox_profile "${profile}"
     done < <(find "${root}" -mindepth 1 -maxdepth 1 -type d \( -exec test -f "{}/prefs.js" ';' -o -exec test -f "{}/handlers.json" ';' \) -print0)
   done
-  log "Firefox detectado/configurado"
+  log "$(grx_message MSG_019)"
 }
 
 register_afirma_scheme() {
@@ -702,7 +706,7 @@ register_afirma_scheme() {
 }
 
 if [[ -n "${REQUESTED_AFIRMA_HANDLER}" ]] && ! afirma_valid_choice "${REQUESTED_AFIRMA_HANDLER}"; then
-  echo "error: valor no válido para el programa de firma en las webs: '${REQUESTED_AFIRMA_HANDLER}'. Use grxfirma, autofirma o preguntar." >&2
+  grx_message MSG_020 "${REQUESTED_AFIRMA_HANDLER}" >&2
   exit 2
 fi
 
@@ -720,7 +724,7 @@ case "${1:-}" in
     restore_afirma_scheme_handlers
     ;;
   *)
-    echo "uso: configure-browsers.sh [--restore-afirma-handler | --detect-afirma-handler]" >&2
+    grx_message MSG_021 >&2
     exit 2
     ;;
 esac

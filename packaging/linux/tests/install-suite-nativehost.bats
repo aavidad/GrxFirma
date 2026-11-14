@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 setup() {
+  export GRXFIRMA_INSTALLER_LANG=es
   export TEST_HOME="${BATS_TEST_TMPDIR}/home"
   export TEST_SUITE="${BATS_TEST_TMPDIR}/suite"
   export TEST_BIN="${BATS_TEST_TMPDIR}/bin"
@@ -15,6 +16,9 @@ setup() {
   done
   export PATH="${TEST_BIN}:${PATH}"
   cp "${BATS_TEST_DIRNAME}/../install-suite.sh" "${TEST_SUITE}/install-suite.sh"
+  cp "${BATS_TEST_DIRNAME}/../installer-i18n.sh" "${TEST_SUITE}/installer-i18n.sh"
+  mkdir -p "${TEST_SUITE}/i18n"
+  cp "${BATS_TEST_DIRNAME}/../i18n/"*.tsv "${TEST_SUITE}/i18n/"
   printf '#!/usr/bin/env bash\nexit 0\n' > "${TEST_SUITE}/configure-browsers.sh"
   for bin in grxfirma grxfirma-gui grxfirma-desktop grxfirma-afirmauri grxfirma-pkcs11-worker; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "${TEST_SUITE}/${bin}"
@@ -77,4 +81,12 @@ STUB
   [ "$status" -eq 2 ]
   [[ "${output}" == *"No se ha modificado el sistema"* ]]
   [ ! -e "${TEST_HOME}/.local/bin/grxfirma" ]
+}
+
+@test "el idioma no cambia el marcador de versión que se guardaba sin VERSION.txt" {
+  rm "${TEST_SUITE}/VERSION.txt"
+  run env HOME="${TEST_HOME}" GRXFIRMA_INSTALLER_LANG=en "${TEST_SUITE}/install-suite.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Installing GrxFirma unknown"* ]]
+  [ "$(cat "${TEST_HOME}/.local/lib/grxfirma/VERSION.txt")" = desconocida ]
 }

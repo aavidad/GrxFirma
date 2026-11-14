@@ -7,6 +7,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=packaging/linux/installer-i18n.sh
+source "${ROOT_DIR}/packaging/linux/installer-i18n.sh"
 python3 "${ROOT_DIR}/scripts/comprobar-novedades.py"
 source "${ROOT_DIR}/packaging/linux/reproducible-build.sh"
 source "${ROOT_DIR}/packaging/linux/runtime-dependencies.sh"
@@ -31,16 +33,7 @@ SOURCE_COMMIT=""
 SOURCE_TREE_STATE="unknown"
 
 usage() {
-  cat <<'EOF'
-Uso:
-  packaging/linux/build-suite.sh [--deb]
-
-Variables relevantes:
-  GOARCH=amd64|arm64|arm|386
-  QMAKE=/ruta/a/qmake6
-  GRXFIRMA_BUILD_CHROMIUM_CRX=1 genera el CRX local no reproducible
-  GRXFIRMA_CHROMIUM_EXTENSION_KEY=/ruta/a/chromium-extension.pem
-EOF
+  grx_message MSG_053
 }
 
 ensure_supported_arch() {
@@ -49,8 +42,8 @@ ensure_supported_arch() {
       return 0
       ;;
     *)
-      echo "error: arquitectura Linux no soportada: ${ARCH}" >&2
-      echo "       Usa GOARCH=amd64, arm64, arm o 386." >&2
+      grx_message MSG_022 "${ARCH}" >&2
+      grx_message ARCH_HINT >&2
       exit 1
       ;;
   esac
@@ -149,7 +142,7 @@ build_chromium_extension_assets() {
     0) return 0 ;;
     1) ;;
     *)
-      echo "error: GRXFIRMA_BUILD_CHROMIUM_CRX debe valer 0 o 1." >&2
+      grx_message MSG_023 >&2
       return 1
       ;;
   esac
@@ -157,7 +150,7 @@ build_chromium_extension_assets() {
   local pack_browser
   pack_browser="$(resolve_pack_browser || true)"
   if [[ -z "${pack_browser}" ]]; then
-    echo "Aviso: no hay navegador Chromium disponible para empaquetar la extensión local." >&2
+    grx_message MSG_024 >&2
     return 0
   fi
 
@@ -203,7 +196,7 @@ build_chromium_extension_assets() {
     pem="${key_path}"
   fi
   if [[ -z "${crx}" || ! -f "${crx}" || -z "${pem}" || ! -f "${pem}" ]]; then
-    echo "Aviso: no se pudo generar el CRX Chromium empaquetado." >&2
+    grx_message MSG_025 >&2
     return 0
   fi
 
@@ -215,9 +208,9 @@ build_chromium_extension_assets() {
   printf '%s\n' "${version}" > "${out_dir}/grxfirma-extension-chromium.version"
 
   if [[ -n "${key_path}" ]]; then
-    echo "CRX Chromium generado con clave estable local: ${key_path}" >&2
+    grx_message MSG_026 "${key_path}" >&2
   else
-    echo "Aviso: CRX Chromium generado con clave efímera; el ID cambiará en cada build." >&2
+    grx_message MSG_027 >&2
   fi
 }
 
@@ -229,7 +222,7 @@ validate_tar_artifact() {
   if [[ -d "${ROOT_DIR}/cmd/gui-qml/help" ]]; then
     expect_help=1
   fi
-  python3 - "$tar_path" "$stage_name" "$expect_help" <<'PY'
+  python3 - "$tar_path" "$stage_name" "$expect_help" "$(grx_message TAR_INCOMPLETE)" <<'PY'
 import sys
 import tarfile
 
@@ -247,6 +240,8 @@ required = {
     f"{stage_name}/README_LINUX_SUITE.md",
     f"{stage_name}/install-suite.sh",
     f"{stage_name}/configure-browsers.sh",
+    f"{stage_name}/installer-i18n.sh",
+    *(f"{stage_name}/i18n/{locale}.tsv" for locale in ("es", "en", "ca", "va", "gl", "eu", "fr", "de", "it", "pt", "zh")),
     f"{stage_name}/check-runtime-dependencies.sh",
     f"{stage_name}/runtime-dependencies.qml",
     f"{stage_name}/VERSION.txt",
@@ -274,14 +269,14 @@ for entry in sorted(required):
     elif entry not in names:
         missing.append(entry)
 if missing:
-    raise SystemExit("tar artifact incomplete:\n  - " + "\n  - ".join(missing))
+    raise SystemExit(sys.argv[4] + "\n  - " + "\n  - ".join(missing))
 PY
 }
 
 validate_deb_artifact() {
   local deb_path="$1"
   if [[ ! -f "${deb_path}" || ! -s "${deb_path}" ]]; then
-    echo "error: el paquete .deb no se ha generado correctamente: ${deb_path}" >&2
+    grx_message MSG_028 "${deb_path}" >&2
     exit 1
   fi
   local pkg_name pkg_arch pkg_depends
@@ -289,23 +284,23 @@ validate_deb_artifact() {
   pkg_arch="$(dpkg-deb -f "${deb_path}" Architecture)"
   pkg_depends="$(dpkg-deb -f "${deb_path}" Depends)"
   if [[ "${pkg_name}" != "grxfirma" ]]; then
-    echo "error: paquete .deb inesperado, Package=${pkg_name}" >&2
+    grx_message MSG_029 "${pkg_name}" >&2
     exit 1
   fi
   if [[ "${pkg_arch}" != "$(deb_arch "${ARCH}")" ]]; then
-    echo "error: arquitectura .deb inesperada, Architecture=${pkg_arch}" >&2
+    grx_message MSG_030 "${pkg_arch}" >&2
     exit 1
   fi
   if [[ -z "${pkg_depends}" || "${pkg_depends}" != "${RUNTIME_DEPENDS}" ]]; then
-    echo "error: Depends del .deb no coincide con el análisis runtime" >&2
-    echo "       esperado: ${RUNTIME_DEPENDS}" >&2
-    echo "       obtenido: ${pkg_depends}" >&2
+    grx_message MSG_031 >&2
+    grx_message EXPECTED "${RUNTIME_DEPENDS}" >&2
+    grx_message ACTUAL "${pkg_depends}" >&2
     exit 1
   fi
   local required_dependency
   for required_dependency in "${REQUIRED_RUNTIME_DEPENDS[@]}"; do
     if [[ ", ${pkg_depends}," != *", ${required_dependency},"* ]]; then
-      echo "error: Depends del .deb no contiene ${required_dependency}" >&2
+      grx_message MSG_032 "${required_dependency}" >&2
       exit 1
     fi
   done
@@ -320,6 +315,8 @@ validate_deb_artifact() {
     "./usr/lib/grxfirma/bin/grxfirma-pkcs11-worker"
     "./usr/lib/grxfirma/extensions/grxfirma-extension-chromium.zip"
     "./usr/lib/grxfirma/extensions/grxfirma-extension-firefox.metadata.json"
+    "./usr/lib/grxfirma/bin/installer-i18n.sh"
+    "./usr/lib/grxfirma/bin/i18n/"
     "./usr/share/doc/grxfirma/BUILDINFO"
     "./usr/share/doc/grxfirma/README_LINUX_SUITE.md"
     "./usr/share/icons/hicolor/scalable/apps/grxfirma.svg"
@@ -334,13 +331,13 @@ validate_deb_artifact() {
     grep -Fq "${entry}" <<<"${listing}" || missing+=("${entry}")
   done
   if [[ "${#missing[@]}" -gt 0 ]]; then
-    printf 'error: paquete .deb incompleto. Faltan:\n' >&2
+    grx_message MSG_033 >&2
     printf '  - %s\n' "${missing[@]}" >&2
     exit 1
   fi
   if [[ -d "${ROOT_DIR}/cmd/gui-qml/help" ]]; then
     if ! grep -Fq "./usr/lib/grxfirma/gui-qml/help/" <<<"${listing}"; then
-      echo "error: paquete .deb incompleto. Falta ./usr/lib/grxfirma/gui-qml/help/" >&2
+      grx_message MSG_034 >&2
       exit 1
     fi
   fi
@@ -349,7 +346,7 @@ validate_deb_artifact() {
     tar -xOf - ./usr/share/doc/grxfirma/BUILDINFO)"
   if ! grep -Fxq "sourceCommit=${SOURCE_COMMIT}" <<<"${build_info}" ||
       ! grep -Fxq "sourceTreeState=${SOURCE_TREE_STATE}" <<<"${build_info}"; then
-    echo "error: BUILDINFO del .deb no identifica el árbol compilado" >&2
+    grx_message MSG_035 >&2
     exit 1
   fi
 }
@@ -399,7 +396,7 @@ write_sha256sums() {
     printf './%s\0' "${filenames[@]}" | sort -z | xargs -0 sha256sum > "${checksum_path}"
   )
   if [[ ! -f "${checksum_path}" || ! -s "${checksum_path}" ]]; then
-    echo "error: no se pudo generar SHA256SUMS.txt para la suite Linux." >&2
+    grx_message MSG_036 >&2
     exit 1
   fi
 }
@@ -413,7 +410,7 @@ verify_sha256sums() {
 
 write_artifacts_report() {
   local report_path="${OUT_DIR}/ARTIFACTS.md"
-  python3 - "${OUT_DIR}" "$(basename "${TAR_PATH}")" "$(basename "${DEB_PATH:-}")" <<'PY'
+  python3 - "${OUT_DIR}" "$(basename "${TAR_PATH}")" "$(basename "${DEB_PATH:-}")" "$(grx_message_in en ARTIFACTS_TITLE)" "$(grx_message_in en ARTIFACTS_TABLE)" <<'PY'
 import hashlib
 import sys
 from pathlib import Path
@@ -421,9 +418,9 @@ from pathlib import Path
 out_dir = Path(sys.argv[1])
 candidates = [sys.argv[2], sys.argv[3]]
 lines = [
-    "# Linux Suite Artifacts",
+    sys.argv[4],
     "",
-    "| File | Size (bytes) | SHA-256 |",
+    sys.argv[5],
     "| --- | ---: | --- |",
 ]
 for name in candidates:
@@ -436,7 +433,7 @@ for name in candidates:
 (out_dir / "ARTIFACTS.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 PY
   if [[ ! -f "${report_path}" || ! -s "${report_path}" ]]; then
-    echo "error: no se pudo generar ARTIFACTS.md para la suite Linux." >&2
+    grx_message MSG_037 >&2
     exit 1
   fi
 }
@@ -451,7 +448,7 @@ for arg in "$@"; do
       exit 0
       ;;
     *)
-      echo "error: argumento no soportado: ${arg}" >&2
+      grx_message MSG_038 "${arg}" >&2
       usage >&2
       exit 1
       ;;
@@ -496,7 +493,7 @@ rm -f "${STAGE_DIR}/man/"*
 rm -rf "${STAGE_DIR}/extensions"
 rm -rf "${STAGE_DIR}/qml" "${STAGE_DIR}/assets" "${STAGE_DIR}/help"
 
-echo "Compilando suite de Linux (${ARCH})..."
+grx_message MSG_039 "${ARCH}"
 grxfirma_go_build "${RAW_VERSION}" "" -tags production -o "${STAGE_DIR}/grxfirma" ./cmd/grxfirma
 grxfirma_go_build "${RAW_VERSION}" "" -tags production -o "${STAGE_DIR}/grxfirma-gui" ./cmd/grxfirma-gui
 grxfirma_go_build "${RAW_VERSION}" "" -tags production,fyne_gui -o "${STAGE_DIR}/grxfirma-desktop" ./cmd/grxfirma
@@ -504,9 +501,9 @@ grxfirma_go_build "${RAW_VERSION}" "" -tags production,fyne_gui -o "${STAGE_DIR}
 grxfirma_go_build "${RAW_VERSION}" "" -tags production -o "${STAGE_DIR}/grxfirma-nativehost" ./cmd/nativehost
 grxfirma_build_pkcs11_worker "${RAW_VERSION}" "${STAGE_DIR}/grxfirma-pkcs11-worker"
 if qmake_cmd="$(resolve_qmake)"; then
-  echo "Compilando frontend Qt/QML..."
+  grx_message MSG_040
   if [[ -L "${QT_BUILD_DIR}" ]]; then
-    echo "error: el directorio de build Qt no puede ser un enlace simbólico: ${QT_BUILD_DIR}" >&2
+    grx_message MSG_041 "${QT_BUILD_DIR}" >&2
     exit 1
   fi
   if [[ -d "${QT_BUILD_DIR}" ]]; then
@@ -529,7 +526,7 @@ if qmake_cmd="$(resolve_qmake)"; then
   QML_RUNTIME_ROOT="$(grxfirma_qml_root_for_qmake "${qmake_cmd}")"
   grxfirma_collect_qml_imports "${ROOT_DIR}/cmd/gui-qml/qml" "${QML_RUNTIME_MANIFEST}"
 else
-  echo "Aviso: se requiere Qt6/qmake6 para generar el frontend Qt/QML; la suite saldrá sin Qt." >&2
+  grx_message MSG_042 >&2
   : > "${QML_RUNTIME_MANIFEST}"
 fi
 
@@ -541,6 +538,9 @@ cp "${ROOT_DIR}/VERSION.txt" "${STAGE_DIR}/VERSION.txt"
 cp "${ROOT_DIR}/packaging/linux/README_LINUX_SUITE.md" "${STAGE_DIR}/README_LINUX_SUITE.md"
 cp "${ROOT_DIR}/packaging/linux/install-suite.sh" "${STAGE_DIR}/install-suite.sh"
 cp "${ROOT_DIR}/packaging/linux/configure-browsers.sh" "${STAGE_DIR}/configure-browsers.sh"
+cp "${ROOT_DIR}/packaging/linux/installer-i18n.sh" "${STAGE_DIR}/installer-i18n.sh"
+mkdir -p "${STAGE_DIR}/i18n"
+cp "${ROOT_DIR}/packaging/linux/i18n/"*.tsv "${STAGE_DIR}/i18n/"
 cp "${ROOT_DIR}/packaging/linux/runtime-dependencies.sh" "${STAGE_DIR}/check-runtime-dependencies.sh"
 mkdir -p "${STAGE_DIR}/extensions"
 python3 "${ROOT_DIR}/packaging/browser-extensions/build.py" --output-dir "${STAGE_DIR}/extensions"
@@ -566,7 +566,7 @@ chmod 755 "${STAGE_DIR}/check-runtime-dependencies.sh"
 rm -f "${TAR_PATH}"
 grxfirma_reproducible_tar "${STAGE_DIR}" "${TAR_PATH}"
 validate_tar_artifact "${TAR_PATH}"
-echo "Bundle generado en: ${TAR_PATH}"
+grx_message MSG_043 "${TAR_PATH}"
 
 if [[ "${DO_DEB}" != "1" ]]; then
   write_sha256sums
@@ -576,13 +576,13 @@ if [[ "${DO_DEB}" != "1" ]]; then
 fi
 
 if ! command -v dpkg-deb >/dev/null 2>&1; then
-  echo "error: dpkg-deb no está disponible; no se puede generar el .deb" >&2
+  grx_message MSG_044 >&2
   exit 1
 fi
 
 PKG_VERSION="${RAW_VERSION}"
 if [[ ! "${PKG_VERSION}" =~ ^[0-9][0-9A-Za-z.+~-]*$ ]]; then
-  echo "error: VERSION.txt no contiene una versión Debian válida: ${PKG_VERSION}" >&2
+  grx_message MSG_045 "${PKG_VERSION}" >&2
   exit 1
 fi
 PKG_ARCH="$(deb_arch "${ARCH}")"
@@ -683,6 +683,9 @@ exec /usr/bin/grxfirma-desktop "$@"
 EOF
 chmod 755 "${PKG_ROOT}/usr/lib/grxfirma/bin/desktop-launcher.sh"
 install -m 755 "${STAGE_DIR}/configure-browsers.sh" "${PKG_ROOT}/usr/lib/grxfirma/bin/configure-browsers.sh"
+install -m 644 "${STAGE_DIR}/installer-i18n.sh" "${PKG_ROOT}/usr/lib/grxfirma/bin/installer-i18n.sh"
+mkdir -p "${PKG_ROOT}/usr/lib/grxfirma/bin/i18n"
+install -m 644 "${STAGE_DIR}/i18n/"*.tsv "${PKG_ROOT}/usr/lib/grxfirma/bin/i18n/"
 
 sed 's|^Exec=.*|Exec=/usr/lib/grxfirma/bin/afirmauri-handler.sh %u|' "${STAGE_DIR}/grxfirma.desktop" > "${PKG_ROOT}/usr/share/applications/grxfirma.desktop"
 sed 's|^Exec=.*|Exec=/usr/lib/grxfirma/bin/desktop-launcher.sh|' "${STAGE_DIR}/grxfirma-manual.desktop" > "${PKG_ROOT}/usr/share/applications/grxfirma-manual.desktop"
@@ -757,7 +760,7 @@ RUNTIME_DEPENDS="$(
     "${REQUIRED_RUNTIME_DEPENDS[@]}"
 )"
 if [[ -z "${RUNTIME_DEPENDS}" ]]; then
-  echo "error: el análisis runtime produjo un campo Depends vacío" >&2
+  grx_message MSG_046 >&2
   exit 1
 fi
 
@@ -771,8 +774,8 @@ Maintainer: Alberto Avidad Fernández <avidad@dipgra.es>
 Depends: ${RUNTIME_DEPENDS}
 Recommends: zenity | kdialog | qarma, qt6-translations-l10n
 Suggests: bubblewrap (>= 0.11.1), pinentry-qt | pinentry-gnome3 | pinentry-gtk2
-Description: GrxFirma para Linux
- CLI, interfaz desktop, handler afirma:// y Native Messaging Host.
+Description: $(grx_message_in en PACKAGE_TITLE)
+ $(grx_message_in en PACKAGE_DETAIL)
 EOF
 
 cat > "${PKG_ROOT}/DEBIAN/preinst" <<'PREINST_EOF'
@@ -805,7 +808,7 @@ grxfirma_stop_processes() {
     fi
   done
   [[ "${#pids[@]}" -gt 0 ]] || return 0
-  echo "GrxFirma: cerrando la aplicación y sus servicios antes de continuar..." >&2
+  grx_message MSG_047 >&2
   kill -TERM "${pids[@]}" 2>/dev/null || true
   for _ in $(seq 1 20); do
     alive=0
@@ -824,6 +827,7 @@ case "${1:-}" in
     ;;
 esac
 PREINST_EOF
+grx_prepend_maintainer_i18n "${PKG_ROOT}/DEBIAN/preinst"
 chmod 755 "${PKG_ROOT}/DEBIAN/preinst"
 
 cat > "${PKG_ROOT}/DEBIAN/postinst" <<'EOF'
@@ -894,7 +898,7 @@ grxfirma_stop_processes() {
     fi
   done
   [[ "${#pids[@]}" -gt 0 ]] || return 0
-  echo "GrxFirma: cerrando la aplicación y sus servicios antes de continuar..." >&2
+  grx_message MSG_047 >&2
   kill -TERM "${pids[@]}" 2>/dev/null || true
   for _ in $(seq 1 20); do
     alive=0
@@ -922,7 +926,7 @@ if [[ -n "${restore_user}" && "${restore_user}" != "root" ]] &&
       /usr/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler || true
   fi
 else
-  echo 'GrxFirma: cada usuario puede devolver los enlaces afirma:// a AutoFirma con /usr/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler antes de retirar el paquete.' >&2
+  grx_message MSG_048 >&2
 fi
 
 # La CA y su inventario pertenecen al usuario. Durante la retirada del .deb
@@ -931,22 +935,23 @@ target_user="${SUDO_USER:-}"
 if [[ -z "${target_user}" || "${target_user}" == "root" ]] ||
    ! command -v getent >/dev/null 2>&1 ||
    ! command -v runuser >/dev/null 2>&1; then
-  echo 'GrxFirma: cada usuario que haya usado la aplicación debe ejecutar grxfirma-afirmauri --remove-local-tls-trust antes de retirar el paquete.' >&2
+  grx_message MSG_049 >&2
   exit 0
 fi
 target_uid="$(id -u "${target_user}" 2>/dev/null || true)"
 target_home="$(getent passwd "${target_user}" | cut -d: -f6)"
 if [[ -z "${target_uid}" || "${target_uid}" == "0" || -z "${target_home}" || ! -d "${target_home}" ]]; then
-  echo "GrxFirma: no se pudo identificar el hogar de ${target_user}; compruebe esa cuenta y repita la desinstalación para poder retirar su CA." >&2
+  grx_message MSG_050 "${target_user}" >&2
   exit 1
 fi
 if ! runuser -u "${target_user}" -- env -i \
   HOME="${target_home}" USER="${target_user}" LOGNAME="${target_user}" PATH=/usr/bin:/bin \
   /usr/bin/grxfirma-afirmauri --remove-local-tls-trust; then
-  echo "GrxFirma: no se pudo retirar la CA gestionada de ${target_user}. Cierre Firefox y repita la desinstalación; se conserva el paquete para permitir el reintento." >&2
+  grx_message MSG_051 "${target_user}" >&2
   exit 1
 fi
 EOF
+grx_prepend_maintainer_i18n "${PKG_ROOT}/DEBIAN/prerm"
 chmod 755 "${PKG_ROOT}/DEBIAN/prerm"
 
 cat > "${PKG_ROOT}/DEBIAN/postrm" <<'EOF'
@@ -1017,4 +1022,4 @@ grxfirma_normalize_output_mtime "${DEB_PATH}"
 write_sha256sums
 verify_sha256sums
 write_artifacts_report
-echo "Paquete .deb generado en: ${DEB_PATH}"
+grx_message MSG_052 "${DEB_PATH}"

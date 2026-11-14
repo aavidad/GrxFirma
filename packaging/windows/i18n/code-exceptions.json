@@ -1,0 +1,23 @@
+{
+  "Alberto Avidad Fernández": "Identidad de autor y editor; nombre propio.",
+  "Alberto Avidad Fernández. EUPL-1.2.": "Titular y licencia; identidad legal invariable.",
+  "Falta definir STAGE_DIR": "Diagnóstico del compilador para quien empaqueta; no se incluye en el instalador.",
+  "$SMPROGRAMS\\Diputación de Granada\\GrxFirma - Documentación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\Diputación de Granada\\Desinstalar GrxFirma.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\Diputación de Granada": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\GrxFirma\\GrxFirma - Documentación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\GrxFirma\\Desinstalar GrxFirma.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$DESKTOP\\GrxFirma Diputación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\GrxFirma\\GrxFirma Qt - Documentación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\Diputación de Granada\\GrxFirma Qt - Documentación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\GrxFirma\\Desinstalar GrxFirma Qt.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\Diputación de Granada\\Desinstalar GrxFirma Qt.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\GrxFirma\\GrxFirma CLI - Documentación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\Diputación de Granada\\GrxFirma CLI - Documentación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\GrxFirma\\Desinstalar GrxFirma CLI.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\Diputación de Granada\\Desinstalar GrxFirma CLI.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\GrxFirma\\GrxFirma AfirmaURI - Documentación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\Diputación de Granada\\GrxFirma AfirmaURI - Documentación.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\GrxFirma\\Desinstalar GrxFirma AfirmaURI.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados.",
+  "$SMPROGRAMS\\Diputación de Granada\\Desinstalar GrxFirma AfirmaURI.lnk": "Ruta estable de accesos existentes: necesaria para retirar o reemplazar instalaciones anteriores sin dejar accesos duplicados."
+}

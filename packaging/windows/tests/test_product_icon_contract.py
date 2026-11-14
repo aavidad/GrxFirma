@@ -155,7 +155,7 @@ class ProductIconContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn(
-            'Section "Crear acceso directo en el escritorio"',
+            'Section "$(GRX_SECTION_SHORTCUT)"',
             suite,
         )
         self.assertIn("$DESKTOP\\GrxFirma.lnk", suite)

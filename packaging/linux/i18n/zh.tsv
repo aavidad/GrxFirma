@@ -1,0 +1,95 @@
+ACTUAL	       实际：@1@
+AFIRMA_GRXFIRMA	  1) GrxFirma
+AFIRMA_PROMPT	请选择 1、2 或 3（按回车保留 @1@）：
+ARCH_HINT	       请使用 GOARCH=amd64、arm64、arm 或 386。
+ARTIFACTS_TABLE	| 文件 | 大小（字节）| SHA-256 |
+ARTIFACTS_TITLE	# Linux 套件产物
+EXPECTED	       预期：@1@
+FIREFOX_UNSIGNED	Firefox XPI 没有 AMO 签名：将配置协议，但不安装稳定版扩展
+INSTALLING	正在安装 GrxFirma @1@…
+LANGUAGE_CHOICES	1) Español  2) English  3) Català  4) Valencià  5) Galego  6) Euskara  7) Français  8) Deutsch  9) Italiano  10) Português  11) 中文
+LANGUAGE_PROMPT	安装语言（按回车保留 @1@）：
+LOCATION_AFIRMA	  AfirmaURI:    @1@/grxfirma-afirmauri
+LOCATION_CLI	  CLI:          @1@/grxfirma
+LOCATION_CONFIG	  Config:       @1@
+LOCATION_DESKTOP	  Desktop:      @1@/grxfirma-desktop
+LOCATION_HOST	  NativeHost:   @1@/grxfirma-nativehost
+LOCATION_IPC	  Desktop IPC:  @1@/grxfirma-gui
+LOCATION_QML	  Qt QML/Assets:@1@
+LOCATION_QT	  Desktop Qt:   @1@/grxfirma-gui-qml
+MSG_001	警告：无法读取 @1@ 中的 manejador_afirma；将保留每个用户的选择。
+MSG_002	警告：此计算机未安装 AutoFirma；网站签名将通过 GrxFirma 打开。
+MSG_003	警告：GrxFirma 现在将打开 afirma:// 链接。由于没有 python3，无法保存以前打开这些链接的应用程序（例如 AutoFirma）。
+MSG_004	警告：afirma:// 链接以前由 @1@ 打开，现在将由 GrxFirma 打开。卸载 GrxFirma 后将恢复以前的应用程序。
+MSG_005	已将 afirma:// 处理程序恢复为以前的应用程序
+MSG_006	已移除旧主机：@1@
+MSG_007	已移除旧 Firefox 扩展：@1@
+MSG_008	已检测/配置 Chrome
+MSG_009	检测到沙箱中的 Chromium：Native Messaging 需要门户或软件包允许的部署方式
+MSG_010	已检测/配置 Chromium
+MSG_011	已检测/配置 Edge
+MSG_012	检测到沙箱中的 Brave Flatpak：Native Messaging 需要门户或软件包允许的部署方式
+MSG_013	已检测/配置 Brave
+MSG_014	已检测/配置 Vivaldi
+MSG_015	检测到 Vivaldi Snap：此发行版不支持 Native Messaging
+MSG_016	检测到 Opera Flatpak：外部主机取决于软件包的权限
+MSG_017	已通过 Chromium 清单检测/配置 Opera
+MSG_018	已配置 Firefox 配置文件：@1@
+MSG_019	已检测/配置 Firefox
+MSG_020	错误：网站签名程序无效：@1@。请使用 grxfirma、autofirma 或 preguntar。
+MSG_021	用法： configure-browsers.sh [--restore-afirma-handler | --detect-afirma-handler]
+MSG_022	错误：不支持的 Linux 架构：@1@
+MSG_023	错误：GRXFIRMA_BUILD_CHROMIUM_CRX 必须为 0 或 1。
+MSG_024	警告：没有可用于打包本地扩展的 Chromium 浏览器。
+MSG_025	警告：无法生成打包的 Chromium CRX。
+MSG_026	已使用稳定的本地密钥生成 Chromium CRX：@1@
+MSG_027	警告：Chromium CRX 使用临时密钥生成；每次构建的 ID 都会改变。
+MSG_028	错误：.deb 软件包未正确生成：@1@
+MSG_029	错误：意外的 .deb 软件包，Package=@1@
+MSG_030	错误：意外的 .deb 架构，Architecture=@1@
+MSG_031	错误：.deb 的 Depends 与运行时分析不一致
+MSG_032	错误：.deb 的 Depends 不包含 @1@
+MSG_033	错误：.deb 软件包不完整。缺少：
+MSG_034	错误：.deb 软件包不完整。缺少 ./usr/lib/grxfirma/gui-qml/help/
+MSG_035	错误：.deb 的 BUILDINFO 未标识已编译的源代码树
+MSG_036	错误：无法为 Linux 套件生成 SHA256SUMS.txt。
+MSG_037	错误：无法为 Linux 套件生成 ARTIFACTS.md。
+MSG_038	错误：不支持的参数：@1@
+MSG_039	正在构建 Linux 套件（@1@）…
+MSG_040	正在构建 Qt/QML 界面…
+MSG_041	错误：Qt 构建目录不能是符号链接：@1@
+MSG_042	警告：构建 Qt/QML 界面需要 Qt6/qmake6；套件将不含 Qt。
+MSG_043	归档已生成于：@1@
+MSG_044	错误：dpkg-deb 不可用；无法生成 .deb
+MSG_045	错误：VERSION.txt 不包含有效的 Debian 版本：@1@
+MSG_046	错误：运行时分析生成了空的 Depends 字段
+MSG_047	GrxFirma：正在关闭应用程序及其服务，然后继续…
+MSG_048	GrxFirma：移除软件包前，每个用户均可运行 /usr/lib/grxfirma/bin/configure-browsers.sh --restore-afirma-handler，将 afirma:// 链接恢复为由 AutoFirma 打开。
+MSG_049	GrxFirma：移除软件包前，所有使用过此应用程序的用户都必须运行 grxfirma-afirmauri --remove-local-tls-trust。
+MSG_050	GrxFirma：无法确定 @1@ 的主目录；请检查该账户，然后重新卸载以移除其 CA。
+MSG_051	GrxFirma：无法移除 @1@ 的受管理 CA。请关闭 Firefox 后重新卸载；已保留软件包以便重试。
+MSG_052	.deb 软件包已生成于：@1@
+MSG_053	用法：\n  packaging/linux/build-suite.sh [--deb]\n\n相关变量：\n  GOARCH=amd64|arm64|arm|386\n  QMAKE=/path/to/qmake6\n  GRXFIRMA_BUILD_CHROMIUM_CRX=1 生成不可复现的本地 CRX\n  GRXFIRMA_CHROMIUM_EXTENSION_KEY=/path/to/chromium-extension.pem
+MSG_054	错误：--afirma-handler= 的值无效。请使用 grxfirma、autofirma 或 preguntar。系统未作更改。
+MSG_055	用法： install-suite.sh [--afirma-handler=grxfirma|autofirma|preguntar]
+MSG_056	警告：将忽略未知选项 @1@。
+MSG_057	错误：安装程序所在目录中缺少 @1@
+MSG_058	错误：安装程序所在目录中缺少运行时依赖检查程序
+MSG_059	警告：Firefox XPI 为开发版本，不会安装到稳定版配置文件中。
+MSG_060	\n此计算机上也已安装 AutoFirma。
+MSG_061	当公共管理部门的网站要求签名时，您希望使用哪个程序？
+MSG_062	  2) AutoFirma（西班牙政府提供的应用程序）
+MSG_063	  3) 每次询问
+MSG_064	您可以在 GrxFirma 的“设置”中，通过“网站签名程序”更改此选项。
+MSG_065	请输入 1、2 或 3。
+MSG_066	将保留选项 @1@。
+MSG_067	套件已安装于：
+MSG_068	  PKCS11 工作进程：@1@/grxfirma-pkcs11-worker（功能已禁用）
+MSG_069	  扩展：@1@
+MSG_070	  证书：@1@
+PACKAGE_DETAIL	命令行、桌面界面、afirma:// 处理程序和原生消息主机。
+PACKAGE_TITLE	适用于 Linux 的 GrxFirma
+REINSTALLING	正在重新安装 GrxFirma @1@…
+TAR_INCOMPLETE	tar 归档不完整：
+UNKNOWN_VERSION	未知
+UPDATING	正在更新 GrxFirma：@1@ -> @2@…

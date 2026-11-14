@@ -48,7 +48,7 @@ Var GrxAfirmaRadioAsk
       StrCpy $GrxAfirmaHandler "preguntar"
     ${Else}
       IfSilent +2
-      MessageBox MB_OK|MB_ICONSTOP "Valor no válido en /AFIRMA=. Use /AFIRMA=grxfirma, /AFIRMA=autofirma o /AFIRMA=preguntar.$\r$\n$\r$\nNo se ha modificado el sistema."
+      MessageBox MB_OK|MB_ICONSTOP "$(GRX_AFIRMA_INVALID)"
       SetErrorLevel 87
       Quit
     ${EndIf}
@@ -88,19 +88,19 @@ Function GrxFirmaAfirmaHandlerPage
     StrCpy $GrxAfirmaInitial "preguntar"
   ${EndIf}
 
-  !insertmacro MUI_HEADER_TEXT "Programa para firmar en las webs" "AutoFirma también está instalado en este equipo."
+  !insertmacro MUI_HEADER_TEXT "$(GRX_AFIRMA_TITLE)" "$(GRX_AFIRMA_SUBTITLE)"
   nsDialogs::Create 1018
   Pop $0
   ${If} $0 == error
     Abort
   ${EndIf}
-  ${NSD_CreateLabel} 0 0 100% 30u "Cuando una web de la Administración le pida firmar, ¿con qué programa quiere hacerlo? Podrá cambiarlo cuando quiera en GrxFirma, en Configuración, «Programa para firmar en las webs»."
+  ${NSD_CreateLabel} 0 0 100% 50u "$(GRX_AFIRMA_QUESTION)"
   Pop $0
-  ${NSD_CreateRadioButton} 0 38u 100% 12u "GrxFirma"
+  ${NSD_CreateRadioButton} 0 58u 100% 16u "GrxFirma"
   Pop $GrxAfirmaRadioGrx
-  ${NSD_CreateRadioButton} 0 54u 100% 12u "AutoFirma (aplicación del Gobierno de España)"
+  ${NSD_CreateRadioButton} 0 78u 100% 16u "$(GRX_AFIRMA_AUTOFIRMA)"
   Pop $GrxAfirmaRadioAuto
-  ${NSD_CreateRadioButton} 0 70u 100% 12u "Preguntar cada vez"
+  ${NSD_CreateRadioButton} 0 98u 100% 16u "$(GRX_AFIRMA_ASK)"
   Pop $GrxAfirmaRadioAsk
   ${If} $GrxAfirmaInitial == "autofirma"
     ${NSD_Check} $GrxAfirmaRadioAuto
