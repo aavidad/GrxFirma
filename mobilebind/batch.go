@@ -20,6 +20,9 @@ type mobileBatchRequest struct {
 	Items         []batchItemRequest `json:"items"`
 	CertificateID string             `json:"certificate_id"`
 	Options       map[string]string  `json:"options,omitempty"`
+	// ConfirmUnseenContent confirma que se cofirman CAdES explícitas sin ver
+	// su documento: el lote no lleva el original de cada firma.
+	ConfirmUnseenContent bool `json:"confirm_unseen_content,omitempty"`
 }
 
 type mobileBatchItemResponse struct {
@@ -35,6 +38,7 @@ type mobileBatchResponse struct {
 	OK            bool                      `json:"ok"`
 	CertificateID string                    `json:"certificate_id"`
 	Items         []mobileBatchItemResponse `json:"items"`
+	Warnings      []string                  `json:"warnings,omitempty"`
 }
 
 // ProcessBatchJSON firma varios documentos con una única aprobación y la
@@ -70,6 +74,7 @@ func (f *Facade) ProcessBatchJSON(payload string) (string, error) {
 		}
 	}()
 	total := 0
+	var avisosLote []string
 	for _, item := range req.Items {
 		input, err := mobileBatchItem(item, req.Options, maxBatchInputBytes-total)
 		if err != nil {
@@ -77,6 +82,11 @@ func (f *Facade) ProcessBatchJSON(payload string) (string, error) {
 		}
 		total += len(input.Contenido)
 		items = append(items, input)
+		if avisosLote == nil && esCofirmaCAdESExplicita(input.Formato, input.Accion, input.Contenido) {
+			if avisosLote, err = comprobarOriginalCofirma(input.Contenido, nil, req.ConfirmUnseenContent); err != nil {
+				return "", err
+			}
+		}
 	}
 	// Un formato solo RSA con una identidad ECDSA falla en su posición, como
 	// cualquier otro error del motor, y no detiene el resto del lote.
@@ -100,7 +110,9 @@ func (f *Facade) ProcessBatchJSON(payload string) (string, error) {
 			zeroBytes(result.Results[index].Result.Data)
 		}
 	}()
-	return marshal(mobileBatchResponseFrom(result, len(items)))
+	respuesta := mobileBatchResponseFrom(result, len(items))
+	respuesta.Warnings = avisosLote
+	return marshal(respuesta)
 }
 
 func mobileBatchItem(item batchItemRequest, defaults map[string]string, remaining int) (application.BatchItemInput, error) {

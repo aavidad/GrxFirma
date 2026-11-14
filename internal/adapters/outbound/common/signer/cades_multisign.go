@@ -12,7 +12,11 @@ import (
 	"encoding/asn1"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
+
+	"grxfirma/internal/adapters/outbound/common/localizador"
+	"grxfirma/internal/security/avisos"
 )
 
 // Cofirma y contrafirma CAdES como las hace AutoFirma Java (AOCAdESSigner):
@@ -61,6 +65,19 @@ func cosignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now ti
 		return nil, err
 	}
 	return sd.marshal()
+}
+
+// avisarCofirmaSinDocumento deja aviso visible y en el registro cuando se
+// cofirma o contrafirma una CAdES explícita: el motor firma el resumen que
+// declara la firma recibida y nadie ha visto el documento. Se mantiene por
+// compatibilidad con AutoFirma; el móvil exige además el original (KD-03).
+func avisarCofirmaSinDocumento(existing []byte) {
+	if _, implicita, err := ContenidoCAdESImplicito(existing); err != nil || implicita {
+		return
+	}
+	slog.Warn("cofirma_cades_sin_documento")
+	t := localizador.Detectar()
+	avisos.Registrar(t.T("firma.cofirma_sin_original.aviso_titulo"), t.T("firma.cofirma_sin_original.aviso"))
 }
 
 func countersignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now time.Time) ([]byte, error) {

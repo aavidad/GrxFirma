@@ -106,6 +106,21 @@ class ReflectiveGomobileBridge private constructor(
             document.mimeType,
         )
 
+    override fun signWithOriginal(
+        document: LoadedFile,
+        format: String,
+        certificateId: String,
+        options: Map<String, String>,
+        action: String,
+        original: LoadedFile?,
+    ): SignedOutput =
+        CoreJsonCodec.parseSigned(
+            invokeJson("signJSON", CoreJsonCodec.signRequest(document, format, certificateId, options, action, original)),
+            document.displayName,
+            outputName,
+            document.mimeType,
+        )
+
     override fun sealPreview(certificateId: String, options: Map<String, String>): ByteArray =
         CoreJsonCodec.parseSealPreview(
             invokeJson("sealPreviewJSON", CoreJsonCodec.sealPreviewRequest(certificateId, options)),

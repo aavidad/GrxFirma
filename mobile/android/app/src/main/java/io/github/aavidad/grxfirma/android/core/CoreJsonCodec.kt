@@ -47,6 +47,7 @@ object CoreJsonCodec {
         certificateId: String,
         options: Map<String, String> = emptyMap(),
         action: String = "sign",
+        original: LoadedFile? = null,
     ): String = JSONObject()
         .put("name", document.displayName)
         .put("content_base64", Base64.getEncoder().encodeToString(document.bytes))
@@ -55,6 +56,7 @@ object CoreJsonCodec {
         .put("action", action)
         .put("certificate_id", certificateId)
         .put("options", JSONObject(options))
+        .apply { if (original != null) put("original_base64", Base64.getEncoder().encodeToString(original.bytes)) }
         .toString()
 
     fun sealPreviewRequest(certificateId: String, options: Map<String, String>): String = JSONObject()

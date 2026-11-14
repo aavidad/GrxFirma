@@ -409,8 +409,16 @@ class MainViewModel(
                     setError(UiText.Resource(R.string.error_tsa_configuration))
                     return@launchOperation
                 }
-                val output = core.sign(loaded, effectiveFormat, certificate.id,
-                    snapshot.settings.withSealLanguage(options) + configured, snapshot.signatureAction)
+                // KD-03: una CAdES separada se cofirma con su original, que el
+                // motor coteja; sin él, el motor pide que se elija.
+                val signingOriginal = if (effectiveFormat == "cades" && snapshot.signatureAction != "sign")
+                    snapshot.originalDocument?.let(repository::loadDocument) else null
+                val output = try {
+                    core.signWithOriginal(loaded, effectiveFormat, certificate.id,
+                        snapshot.settings.withSealLanguage(options) + configured, snapshot.signatureAction, signingOriginal)
+                } finally {
+                    signingOriginal?.bytes?.fill(0)
+                }
                 replacePending(output, PendingKind.SIGNATURE)
                 // The output remains saveable even if verification cannot run.
                 // Detached signatures need the input for sign, and the separately
