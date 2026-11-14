@@ -88,7 +88,7 @@ func TestUnprotect_SaneaNombreYMIMEDelEmisor(t *testing.T) {
 	}{
 		{`..\x.hta`, "text/html", "x.bin", "text/html"},
 		{"../../.config/autostart/evil.desktop", "application/x-desktop", "evil.bin", "application/x-desktop"},
-		{"factura‮fdp.lnk", "application/pdf\nmime=x", "facturafdp.bin", "application/octet-stream"},
+		{"factura\u202efdp.lnk", "application/pdf\nmime=x", "facturafdp.bin", "application/octet-stream"},
 		{"informe.hta.", "", "informe.bin", "application/octet-stream"},
 		{"sin-extension", "text/plain", "sin-extension.bin", "text/plain"},
 		{"..", "application/pdf", "documento.bin", "application/pdf"},

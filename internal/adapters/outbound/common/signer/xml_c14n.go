@@ -474,7 +474,7 @@ func cloneStringMap(source map[string]string) map[string]string {
 // están resueltos. Comentarios, CDATA, instrucciones de proceso y
 // declaraciones se copian sin cambios.
 func normalizarEspaciosEnAtributos(data []byte) []byte {
-	if bytes.IndexAny(data, "\t\n\r") < 0 {
+	if !bytes.ContainsAny(data, "\t\n\r") {
 		return data
 	}
 	out := make([]byte, 0, len(data))

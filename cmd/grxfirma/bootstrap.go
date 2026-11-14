@@ -440,6 +440,8 @@ func construirAdaptador(rutaP12, password, rutaCert, rutaClave string) (*cli.Ada
 // construirServiciosEscritorio compone los servicios de la interfaz Fyne
 // local. Como la CLI, la verificación aplica lo que el usuario aceptó en este
 // equipo (lote 17b); la lista se gestiona en la CLI, Qt y WinUI.
+//
+//lint:ignore U1000 usado en builds con -tags fyne_gui (desktop_fyne.go)
 func construirServiciosEscritorio(rutaP12, password, rutaCert, rutaClave string) (*serviciosGrxFirma, error) {
 	servicios, err := construirServicios(rutaP12, password, rutaCert, rutaClave)
 	if err != nil {

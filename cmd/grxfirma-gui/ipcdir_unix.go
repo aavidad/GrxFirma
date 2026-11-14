@@ -29,7 +29,7 @@ func comprobarDirectorioPrivado(dir string, corregirPermisos bool) error {
 	if !ok {
 		return errors.New("no se pudo leer el propietario del directorio IPC")
 	}
-	if uint64(st.Uid) != uint64(os.Geteuid()) {
+	if uint64(st.Uid) != uint64(os.Geteuid()) { // #nosec G115 -- geteuid nunca es negativo; uint32 cabe en uint64
 		return fmt.Errorf("el directorio %s no pertenece al usuario actual", dir)
 	}
 	if info.Mode().Perm()&0o077 != 0 {

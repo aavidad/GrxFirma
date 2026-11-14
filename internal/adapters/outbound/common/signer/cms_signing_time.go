@@ -17,8 +17,8 @@ import (
 	"grxfirma/internal/domain"
 )
 
-// margenRelojSelloCMS tolera la deriva de reloj entre la TSA y este equipo.
-const margenRelojSelloCMS = 5 * time.Minute
+// margenRelojSelloTiempo tolera la deriva de reloj entre la TSA y este equipo.
+const margenRelojSelloTiempo = 5 * time.Minute
 
 // fechaFirmaCMS devuelve el instante de una firma CMS ya comprobada, por este
 // orden:
@@ -88,7 +88,7 @@ func selloCMSValidado(token []byte, sello *timestamp.Timestamp, fecha time.Time,
 	default:
 		return false
 	}
-	if fecha.After(ahora.Add(margenRelojSelloCMS)) {
+	if fecha.After(ahora.Add(margenRelojSelloTiempo)) {
 		return false
 	}
 	if firmante == nil || fecha.Before(firmante.NotBefore) || fecha.After(firmante.NotAfter) {

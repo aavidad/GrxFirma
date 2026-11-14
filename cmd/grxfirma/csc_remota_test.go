@@ -148,10 +148,10 @@ func TestEjecutarCSCRechazaServicioFueraDeLaPolitica(t *testing.T) {
 
 // ID-03: al pedir el PIN o el OTP, la CLI dice a qué servicio se envían.
 func TestPedirSecretoDiceAQueServicioVa(t *testing.T) {
-	e := entornoCSC{t: localizador.Para("es").T, hostServicio: "firma.example.es‮"}
+	e := entornoCSC{t: localizador.Para("es").T, hostServicio: "firma.example.es\u202e"}
 	for _, tipo := range []csc.TipoSecreto{csc.SecretoPIN, csc.SecretoOTP} {
 		texto := e.textoPedirSecreto(tipo)
-		if !strings.Contains(texto, "firma.example.es?") || strings.ContainsRune(texto, '‮') {
+		if !strings.Contains(texto, "firma.example.es?") || strings.ContainsRune(texto, '\u202e') {
 			t.Fatalf("el aviso del secreto debe nombrar el servicio sin controles: %q", texto)
 		}
 	}

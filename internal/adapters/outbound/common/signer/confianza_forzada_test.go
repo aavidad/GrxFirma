@@ -35,7 +35,7 @@ type verificacionConContexto func(ctx context.Context) (domain.VerificationResul
 // aceptando cada obstáculo que la verificación ofrezca, como un usuario que
 // pulsa «Aceptar en este equipo» todas las veces. inicial son aceptaciones
 // previas (por ejemplo, los dos casos globales).
-func verificarAceptando(t *testing.T, inicial []domain.AceptacionConfianza, verificar verificacionConContexto) (sin, con domain.VerificationResult, errSin, errCon error, obstaculos []domain.ObstaculoConfianza) {
+func verificarAceptando(t *testing.T, inicial []domain.AceptacionConfianza, verificar verificacionConContexto) (sin, con domain.VerificationResult, obstaculos []domain.ObstaculoConfianza, errSin, errCon error) {
 	t.Helper()
 	registro := domain.NuevoRegistroConfianzaForzada(domain.ConfianzaForzada{})
 	sin, errSin = verificar(domain.ConRegistroConfianzaForzada(context.Background(), registro))
@@ -90,7 +90,7 @@ func tieneObstaculo(lista []domain.ObstaculoConfianza, tipo domain.TipoConfianza
 // detalle y la evidencia trust.user_forced.
 func exigirForzadaValida(t *testing.T, tipo domain.TipoConfianzaForzada, cert *x509.Certificate, verificar verificacionConContexto) domain.VerificationResult {
 	t.Helper()
-	sin, con, errSin, errCon, obstaculos := verificarAceptando(t, nil, verificar)
+	sin, con, obstaculos, errSin, errCon := verificarAceptando(t, nil, verificar)
 	if errSin != nil || errCon != nil {
 		t.Fatalf("errores al verificar: sin=%v con=%v", errSin, errCon)
 	}
@@ -150,7 +150,7 @@ func TestConfianzaForzada_CADesconocidaAceptada(t *testing.T) {
 func TestConfianzaForzada_CADesconocidaNoSaltaCaducidad(t *testing.T) {
 	fixture := newXMLTrustFixture(t, time.Now().Add(-2*time.Hour), time.Now().Add(-time.Hour))
 	document := signXAdESTrustDocument(t, fixture)
-	_, con, _, err, _ := verificarAceptando(t, aceptandoTodo(), func(ctx context.Context) (domain.VerificationResult, error) {
+	_, con, _, _, err := verificarAceptando(t, aceptandoTodo(), func(ctx context.Context) (domain.VerificationResult, error) {
 		res, _, err := NewXAdESVerifier().Verify(ctx, document, domain.CertificateChain{})
 		return res, err
 	})
@@ -251,7 +251,7 @@ func TestConfianzaForzada_SHA1Aceptado(t *testing.T) {
 
 func exigirNoValidaAunqueSeAcepteTodo(t *testing.T, que string, verificar verificacionConContexto) {
 	t.Helper()
-	_, con, _, err, _ := verificarAceptando(t, aceptandoTodo(), verificar)
+	_, con, _, _, err := verificarAceptando(t, aceptandoTodo(), verificar)
 	if err == nil && con.Valid {
 		t.Fatalf("%s salió válida aceptándolo todo: %s avisos=%v", que, con.Reason, con.Warnings)
 	}

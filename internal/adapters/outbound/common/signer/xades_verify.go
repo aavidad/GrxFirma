@@ -564,7 +564,7 @@ func (c *contenedorZIP) resolver(cubiertas map[string]bool) func(string) ([]byte
 }
 
 func (c *contenedorZIP) leer(file *zip.File) ([]byte, error) {
-	if file.UncompressedSize64 > uint64(maxEntradaZIPVerificacion) {
+	if file.UncompressedSize64 > uint64(maxEntradaZIPVerificacion) { // #nosec G115 -- constante positiva
 		return nil, fmt.Errorf("la entrada %s supera el tamaño máximo que se verifica", file.Name)
 	}
 	rc, err := file.Open()

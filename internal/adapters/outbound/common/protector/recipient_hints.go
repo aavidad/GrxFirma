@@ -96,7 +96,7 @@ func (d destinatariosDocumento) incluyeCertificado(ref domain.CertificateRef) bo
 	}
 	if ski := cert.SubjectKeyId; len(ski) > 0 && len(ski) < 128 {
 		// [0] IMPLICIT SubjectKeyIdentifier dentro de RecipientIdentifier.
-		tagged := append([]byte{0x80, byte(len(ski))}, ski...)
+		tagged := append([]byte{0x80, byte(len(ski))}, ski...) // #nosec G115 -- len(ski) < 128, comprobado arriba
 		if bytes.Contains(d.cms, tagged) {
 			return true
 		}
