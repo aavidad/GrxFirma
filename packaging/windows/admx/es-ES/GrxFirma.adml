@@ -11,6 +11,7 @@
     <stringTable>
       <string id="SUPPORTED_GrxFirma_0_0_90">GrxFirma 0.0.90 o posterior</string>
       <string id="SUPPORTED_GrxFirma_CSC">GrxFirma con firma remota CSC (prototipo)</string>
+      <string id="SUPPORTED_GrxFirma_0_0_126">GrxFirma 0.0.126 o posterior</string>
       <string id="Cat_GrxFirma">GrxFirma</string>
       <string id="Cat_Origenes">Orígenes de confianza</string>
       <string id="Cat_Operacion">Operación</string>
@@ -54,8 +55,23 @@ Deshabilitada: se impide cualquier canal WebSocket local, incluido el temporal d
       <string id="RestHabilitado_Help">Habilitada: activa el servicio REST local para integraciones de escritorio, que abre un puerto TCP local.
 
 Deshabilitada o sin configurar: el servicio REST está desactivado (valor por defecto), aunque el usuario intente activarlo en su configuración.</string>
+      <string id="ManejadorAfirma">Programa para firmar en las webs</string>
+      <string id="ManejadorAfirma_Help">Decide qué programa abre los enlaces afirma:// con los que una web de la Administración pide firmar.
+
+GrxFirma: las firmas se abren en GrxFirma. Es lo que hace GrxFirma sin esta directiva.
+AutoFirma: las firmas se abren en AutoFirma, la aplicación del Gobierno de España. Si AutoFirma no está instalado en el equipo, se firma con GrxFirma.
+Preguntar cada vez: GrxFirma recibe el enlace y pregunta con qué programa firmar.
+
+Habilitada: el valor elegido prevalece sobre lo que haya elegido el usuario, y el ajuste de la aplicación queda solo de lectura. El instalador lo aplica también en las instalaciones silenciosas.
+
+Deshabilitada o sin configurar: cada usuario elige en Configuración. Si la directiva no se puede leer, se mantiene la elección del usuario y queda un aviso en el registro de diagnóstico.
+
+Ninguna web puede cambiar este ajuste.</string>
       <string id="NivelLog">Nivel del registro de diagnóstico</string>
       <string id="NivelLog_Help">Nivel de detalle del registro de diagnóstico. El registro nunca incluye documentos, claves ni contraseñas, y las rutas e identificadores se ocultan.</string>
+      <string id="ManejadorAfirma_GrxFirma">GrxFirma</string>
+      <string id="ManejadorAfirma_AutoFirma">AutoFirma</string>
+      <string id="ManejadorAfirma_Preguntar">Preguntar cada vez</string>
       <string id="NivelLog_Error">Solo errores</string>
       <string id="NivelLog_Warn">Advertencias</string>
       <string id="NivelLog_Info">Información (recomendado)</string>
@@ -97,6 +113,7 @@ Sin configurar: decide el ajuste "firma_remota_csc" del config.json del usuario 
       <presentation id="AllowedDomains"><multiTextBox refId="AllowedDomains_List">Orígenes (uno por línea):</multiTextBox></presentation>
       <presentation id="DominiosDeConfianza"><multiTextBox refId="DominiosDeConfianza_List">Dominios (uno por línea):</multiTextBox></presentation>
       <presentation id="TSAPermitidas"><multiTextBox refId="TSAPermitidas_List">URL de las TSA (una por línea):</multiTextBox></presentation>
+      <presentation id="ManejadorAfirma"><dropdownList refId="ManejadorAfirma_Valor" defaultItem="0">Programa:</dropdownList></presentation>
       <presentation id="NivelLog"><dropdownList refId="NivelLog_Valor" defaultItem="2">Nivel:</dropdownList></presentation>
       <presentation id="DirectorioP12"><textBox refId="DirectorioP12_Ruta"><label>Carpeta:</label></textBox></presentation>
       <presentation id="TimeoutOperacion"><decimalTextBox refId="TimeoutOperacion_Segundos" defaultValue="30">Segundos:</decimalTextBox></presentation>

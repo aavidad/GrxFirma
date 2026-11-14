@@ -86,6 +86,9 @@ Function .onInit
   !insertmacro GrxFirmaReadLegacyMachineInstall 64 "${PRODUCT_KEY}" "${PRODUCT_NAME}"
   !insertmacro GrxFirmaReadLegacyMachineInstall 32 "GrxFirma" "GrxFirma Suite"
   !insertmacro GrxFirmaReadLegacyMachineInstall 32 "${PRODUCT_KEY}" "${PRODUCT_NAME}"
+!ifdef GRXFIRMA_AFIRMA_HANDLER_CHOICE_NSH
+  !insertmacro GrxFirmaAfirmaHandlerReadParameter
+!endif
 
   Pop $3
   Pop $2

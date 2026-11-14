@@ -7,7 +7,11 @@ param(
     [string]$BaseInstallDir = "$env:LOCALAPPDATA\Programs\GrxFirma",
     [switch]$CoreOnly,
     [switch]$SilentInstall,
-    [switch]$RestoreTray
+    [switch]$RestoreTray,
+    # Programa para firmar en las webs (/AFIRMA= de NSIS); ver
+    # install-afirmauri.ps1.
+    [ValidateSet("", "grxfirma", "autofirma", "preguntar")]
+    [string]$AfirmaHandler = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -137,7 +141,7 @@ $exitRolledBack = 21
 # instalacion (o a ninguna) antes de detener procesos o copiar nada. Asi un
 # conflicto no deja la version anterior a medias ni sin bandeja.
 try {
-    & $afirmaInstaller -InstallDir $afirmaDir -ValidateOnly
+    & $afirmaInstaller -InstallDir $afirmaDir -ValidateOnly -AfirmaHandler $AfirmaHandler
 } catch {
     Remove-ItemProperty -Path $restartKey -Name $restartName -ErrorAction SilentlyContinue
     Write-Host "No se ha cambiado nada: $($_.Exception.Message)"
@@ -254,7 +258,7 @@ try {
             -ValidateOnly
     }
 
-    & $afirmaInstaller -InstallDir $afirmaDir -SilentInstall:$SilentInstall
+    & $afirmaInstaller -InstallDir $afirmaDir -SilentInstall:$SilentInstall -AfirmaHandler $AfirmaHandler
     & $nativeInstaller -InstallDir $nativeDir
 } catch {
     $installError = $_.Exception

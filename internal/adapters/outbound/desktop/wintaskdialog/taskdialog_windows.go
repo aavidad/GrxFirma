@@ -104,34 +104,47 @@ func Available() bool {
 
 // Show muestra el diálogo y devuelve el botón y la opción elegidos.
 func Show(ctx context.Context, spec Spec) (int32, int32, error) {
+	button, radio, _, err := ShowVerification(ctx, spec)
+	return button, radio, err
+}
+
+// ShowVerification es Show y además devuelve si la casilla de
+// spec.Verification quedó marcada.
+func ShowVerification(ctx context.Context, spec Spec) (int32, int32, bool, error) {
 	if err := ctx.Err(); err != nil {
-		return 0, 0, err
+		return 0, 0, false, err
 	}
 	if len(spec.Buttons) == 0 || len(spec.Buttons) > maxButtons || len(spec.Radios) > maxRadios {
-		return 0, 0, errors.New("diálogo nativo sin acciones o con demasiadas opciones")
+		return 0, 0, false, errors.New("diálogo nativo sin acciones o con demasiadas opciones")
 	}
 	if !Available() {
-		return 0, 0, errors.New("TaskDialog no disponible: falta Common Controls v6 en el manifiesto")
+		return 0, 0, false, errors.New("TaskDialog no disponible: falta Common Controls v6 en el manifiesto")
 	}
 	title, err := windows.UTF16FromString(sanitize(spec.Title, 256))
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, false, err
 	}
 	instruction, err := windows.UTF16FromString(sanitize(spec.Instruction, 512))
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, false, err
 	}
 	content, err := windows.UTF16FromString(sanitizeMultiline(spec.Content, 4096))
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, false, err
 	}
 	buttons, buttonLabels, err := encodeChoices(spec.Buttons)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, false, err
 	}
 	radios, radioLabels, err := encodeChoices(spec.Radios)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, false, err
+	}
+	var verificationText []uint16
+	if strings.TrimSpace(spec.Verification) != "" {
+		if verificationText, err = windows.UTF16FromString(sanitize(spec.Verification, 256)); err != nil {
+			return 0, 0, false, err
+		}
 	}
 
 	st := &state{created: make(chan struct{}), acceptNeedsRadio: spec.AcceptNeedsRadio}
@@ -155,6 +168,9 @@ func Show(ctx context.Context, spec Spec) (int32, int32, error) {
 	if len(radios) > 0 {
 		putU32(&cfg, 76, uint32(len(spec.Radios))) // #nosec G115 -- acotado por maxRadios.
 		putPtr(&cfg, 80, uintptr(unsafe.Pointer(&radios[0])))
+	}
+	if len(verificationText) > 0 {
+		putPtr(&cfg, 92, uintptr(unsafe.Pointer(&verificationText[0])))
 	}
 	putPtr(&cfg, 140, callback)
 	id := registerState(st)
@@ -196,20 +212,21 @@ func Show(ctx context.Context, spec Spec) (int32, int32, error) {
 	runtime.KeepAlive(buttonLabels)
 	runtime.KeepAlive(radios)
 	runtime.KeepAlive(radioLabels)
+	runtime.KeepAlive(verificationText)
 	if ctx.Err() != nil {
-		return 0, 0, ctx.Err()
+		return 0, 0, false, ctx.Err()
 	}
 	if st.foreign.Load() {
-		return 0, 0, errors.New("el diálogo se creó fuera de este proceso")
+		return 0, 0, false, errors.New("el diálogo se creó fuera de este proceso")
 	}
 	hresult := uint32(result) // #nosec G115 -- un HRESULT ocupa 32 bits.
 	if hresult&0x80000000 != 0 {
-		return 0, 0, fmt.Errorf("TaskDialogIndirect devolvió HRESULT 0x%08X: %v", hresult, callErr)
+		return 0, 0, false, fmt.Errorf("TaskDialogIndirect devolvió HRESULT 0x%08X: %v", hresult, callErr)
 	}
 	if chosen := st.selectedRadio.Load(); chosen != 0 {
 		selectedRadio = chosen
 	}
-	return selectedButton, selectedRadio, nil
+	return selectedButton, selectedRadio, verification != 0, nil
 }
 
 // CheckedRadio devuelve el identificador de la opción marcada en un

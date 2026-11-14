@@ -146,6 +146,7 @@ type Adaptador struct {
 	Destinatarios      ProtectionRecipients
 	GestionDominios    ManageTrustedDomainUseCase
 	ConfianzaForzada   ConfianzaForzadaUseCase
+	ProtocoloAfirma    ports.ProtocoloAfirma
 	Catalogo           ports.CertificateCatalog
 	Claves             ports.SigningKeyProvider
 	Localizador        ports.Localizador
@@ -212,6 +213,7 @@ type configCLI struct {
 	tipoConfianza         string
 	huellaConfianza       string
 	aceptoAvisoConfianza  bool
+	programaFirmaWeb      string
 	ficheroAutoseleccion  string
 	ficheroP12            string
 	contrasenaP12         string
@@ -573,6 +575,10 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		return a.ejecutarConfianzaForzadaAceptar(ctx, cfg)
 	case "forced-trust-remove":
 		return a.ejecutarConfianzaForzadaQuitar(ctx, cfg)
+	case "web-signing-program-status":
+		return a.ejecutarProgramaFirmaWebVer(ctx, cfg)
+	case "web-signing-program-set":
+		return a.ejecutarProgramaFirmaWebElegir(ctx, cfg)
 	case "import-p12":
 		return a.ejecutarImportarP12(ctx, cfg)
 	case "cert-selection-list":
@@ -697,6 +703,7 @@ func parsearArgs(args []string) (configCLI, error) {
 	var opExportarDestinatarioProteccion, opImportarDestinatarioProteccion bool
 	var opDiagnostico, opListarDominios, opAnadirDominio, opEliminarDominio, opImportarDominios, opExportarDominios, opLimpiarDominios bool
 	var opListarConfianza, opAceptarConfianza, opQuitarConfianza bool
+	var opVerProgramaFirmaWeb bool
 	var opListarAutoseleccion bool
 	var opEliminarAutoseleccion bool
 	var opResetearAutoseleccion bool
@@ -761,6 +768,10 @@ func parsearArgs(args []string) (configCLI, error) {
 	fs.StringVar(&cfg.huellaConfianza, "fingerprint", "", "")
 	fs.BoolVar(&cfg.aceptoAvisoConfianza, "acepto-el-aviso", false, "")
 	fs.BoolVar(&cfg.aceptoAvisoConfianza, "accept-warning", false, "")
+	fs.BoolVar(&opVerProgramaFirmaWeb, "ver-programa-firma-web", false, "")
+	fs.BoolVar(&opVerProgramaFirmaWeb, "web-signing-program", false, "")
+	fs.StringVar(&cfg.programaFirmaWeb, "elegir-programa-firma-web", "", "")
+	fs.StringVar(&cfg.programaFirmaWeb, "set-web-signing-program", "", "")
 	fs.BoolVar(&opListarAutoseleccion, "listar-autoseleccion-cert", false, "")
 	fs.BoolVar(&opListarAutoseleccion, "ver-autoseleccion-cert", false, "")
 	fs.BoolVar(&opEliminarAutoseleccion, "eliminar-autoseleccion-cert", false, "")
@@ -932,6 +943,10 @@ func parsearArgs(args []string) (configCLI, error) {
 			cfg.operacion = "aceptar-confianza"
 		case opQuitarConfianza:
 			cfg.operacion = "quitar-confianza-aceptada"
+		case opVerProgramaFirmaWeb:
+			cfg.operacion = "ver-programa-firma-web"
+		case cfg.programaFirmaWeb != "":
+			cfg.operacion = "elegir-programa-firma-web"
 		case opListarAutoseleccion:
 			cfg.operacion = "listar-autoseleccion-cert"
 		case opEliminarAutoseleccion:
@@ -965,6 +980,7 @@ func parsearArgs(args []string) (configCLI, error) {
 		switch normalizarOperacion(cfg.operacion, cfg.accion, cfg.lote, cfg.entrada) {
 		case "domains-list", "domains-add", "domains-remove", "domains-import", "domains-export", "domains-clear", "diagnostics-report",
 			"forced-trust-list", "forced-trust-accept", "forced-trust-remove",
+			"web-signing-program-status", "web-signing-program-set",
 			"protect-recipients-list",
 			"import-p12", "cert-selection-list", "cert-selection-remove", "cert-selection-reset", "cert-selection-export", "cert-selection-import", "cert-selection-clear", "tls-store-status", "tls-store-clear", "tls-trust-status", "tls-generate-certs", "tls-install-trust",
 			"audit-verify":
@@ -3450,6 +3466,8 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    Tiempo máximo de ejecución del comando.\n")
 	b.WriteString(a.t("cli.help.forced_trust", "cli.help.forced_trust"))
 	b.WriteString("\n")
+	b.WriteString(a.t("cli.help.web_signing_program", "cli.help.web_signing_program"))
+	b.WriteString("\n")
 	b.WriteString("  -operacion listar-dominios|añadir-dominio|eliminar-dominio|importar-dominios|exportar-dominios|limpiar-dominios\n")
 	b.WriteString("    Gestión del círculo de confianza de dominios. Usa -dominio/-domain y -fichero-dominios/-domain-file.\n")
 	b.WriteString("    Añadir un dominio lo autoriza para operaciones remotas y ayuda a no firmar en dominios no confiables o maliciosos.\n")
@@ -3651,6 +3669,10 @@ func normalizarOperacion(op, accion, lote, entrada string) string {
 		return "forced-trust-accept"
 	case "quitar-confianza-aceptada":
 		return "forced-trust-remove"
+	case "ver-programa-firma-web":
+		return "web-signing-program-status"
+	case "elegir-programa-firma-web":
+		return "web-signing-program-set"
 	case "importar-p12":
 		return "import-p12"
 	case "listar-autoseleccion-cert", "ver-autoseleccion-cert":

@@ -98,18 +98,66 @@ func commandText(v ValueSnapshot) string {
 	return v.Data
 }
 
-// autoFirma busca el AutoFirma registrado para el equipo.
+// autoFirmaCommands son las órdenes de afirma:// donde puede estar AutoFirma,
+// por orden: la que había en HKCU antes de GrxFirma (guardada en la
+// instantánea; es la que usaría Windows sin GrxFirma), la del equipo (HKLM)
+// y la que hay ahora en HKCU si no es la de GrxFirma.
+//
+// AutoFirma no siempre queda en HKLM: si se instala solo para el usuario, o
+// se instala o actualiza con la misma cuenta después de GrxFirma, Windows
+// guarda sus valores en HKCU\Software\Classes porque esa clave ya existe. Si
+// solo se mirara HKLM, el ajuste diría «AutoFirma no está instalado» y no
+// dejaría elegirlo (queja de usuarios del 14/11/2026).
+func (s *Selector) autoFirmaCommands() ([]string, error) {
+	var commands []string
+	if sets, err := ownerSets(s.paths); err == nil {
+		// Una instantánea ilegible no impide mirar el registro: register y
+		// retire la vuelven a comprobar antes de escribir.
+		if state, _, err := s.loadState(sets[0], sets); err == nil && state != nil {
+			commands = append(commands, commandText(state.Snapshots[3]))
+		}
+	}
+	machine, err := s.reg.Read(LocalMachine, ProtocolKey+`\shell\open\command`, "")
+	if err != nil {
+		return nil, err
+	}
+	commands = append(commands, commandText(machine))
+	user, err := s.reg.Read(CurrentUser, ProtocolKey+`\shell\open\command`, "")
+	if err != nil {
+		return nil, err
+	}
+	commands = append(commands, commandText(user))
+	return commands, nil
+}
+
+// autoFirmaExecutableIn devuelve el Autofirma.exe de una orden si existe y no
+// es el propio GrxFirma.
+func (s *Selector) autoFirmaExecutableIn(command string) string {
+	exe := commandExecutable(command)
+	if exe == "" || !isAbsoluteWindowsPath(exe) || strings.EqualFold(exe, s.paths.Executable) ||
+		!strings.EqualFold(baseName(exe), autoFirmaExecutable) || !s.fileExists(exe) {
+		return ""
+	}
+	return exe
+}
+
+// autoFirma busca AutoFirma en las órdenes de autoFirmaCommands.
 func (s *Selector) autoFirma() (installed bool, path string, err error) {
-	command, err := s.reg.Read(LocalMachine, ProtocolKey+`\shell\open\command`, "")
+	commands, err := s.autoFirmaCommands()
 	if err != nil {
 		return false, "", err
 	}
-	exe := commandExecutable(commandText(command))
-	if exe == "" || !isAbsoluteWindowsPath(exe) ||
-		!strings.EqualFold(baseName(exe), autoFirmaExecutable) || !s.fileExists(exe) {
-		return false, "", nil
+	for _, command := range commands {
+		if exe := s.autoFirmaExecutableIn(command); exe != "" {
+			return true, exe, nil
+		}
 	}
-	return true, exe, nil
+	return false, "", nil
+}
+
+// autoFirmaIsCurrent indica si la orden de HKCU ya es la de AutoFirma.
+func (s *Selector) autoFirmaIsCurrent(current []ValueSnapshot) bool {
+	return s.autoFirmaExecutableIn(commandText(current[3])) != ""
 }
 
 func (s *Selector) preference() string {
@@ -117,13 +165,8 @@ func (s *Selector) preference() string {
 	if err != nil || !v.ValueExisted || v.Kind != KindString {
 		return ""
 	}
-	switch strings.ToLower(strings.TrimSpace(v.Data)) {
-	case ports.ProgramaAfirmaGrxFirma:
-		return ports.ProgramaAfirmaGrxFirma
-	case ports.ProgramaAfirmaAutoFirma:
-		return ports.ProgramaAfirmaAutoFirma
-	}
-	return ""
+	programa, _ := ports.NormalizarProgramaAfirma(v.Data)
+	return programa
 }
 
 func (s *Selector) savePreference(programa string) error {
@@ -196,16 +239,26 @@ func (s *Selector) Elegir(ctx context.Context, programa string) (ports.EstadoPro
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	programa, ok := ports.NormalizarProgramaAfirma(programa)
+	if !ok {
+		return ports.EstadoProtocoloAfirma{}, ports.ErrProgramaAfirmaDesconocido
+	}
 	var err error
-	switch strings.ToLower(strings.TrimSpace(programa)) {
+	switch programa {
 	case ports.ProgramaAfirmaGrxFirma:
 		err = s.register()
-		programa = ports.ProgramaAfirmaGrxFirma
 	case ports.ProgramaAfirmaAutoFirma:
 		err = s.retire()
-		programa = ports.ProgramaAfirmaAutoFirma
-	default:
-		return ports.EstadoProtocoloAfirma{}, ports.ErrProgramaAfirmaDesconocido
+	case ports.ProgramaAfirmaPreguntar:
+		// Preguntar solo tiene sentido con AutoFirma instalado; los enlaces
+		// llegan a GrxFirma, que pregunta en cada uno.
+		var installed bool
+		if installed, _, err = s.autoFirma(); err == nil && !installed {
+			err = ports.ErrAutoFirmaNoInstalada
+		}
+		if err == nil {
+			err = s.register()
+		}
 	}
 	if err != nil {
 		return ports.EstadoProtocoloAfirma{}, err
@@ -343,9 +396,10 @@ func (s *Selector) retire() error {
 		previous = state.Snapshots
 	}
 	if findMatchingSet(current, sets) == nil {
-		// Ya retirado (el registro coincide con lo de antes de GrxFirma):
-		// no hay nada que hacer. Cualquier otra cosa es de otro programa.
-		if valuesMatchSet(current, previous) {
+		// Ya retirado (el registro coincide con lo de antes de GrxFirma) o
+		// AutoFirma ya atiende las firmas desde HKCU: no hay nada que hacer.
+		// Cualquier otra cosa es de otro programa.
+		if valuesMatchSet(current, previous) || s.autoFirmaIsCurrent(current) {
 			return nil
 		}
 		return ports.ErrProtocoloAfirmaAjeno

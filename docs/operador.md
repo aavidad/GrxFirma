@@ -149,6 +149,53 @@ En Windows la política se lee **exclusivamente** de
 `C:\etc`. Se aplica con mayor precedencia que el fichero de usuario. Valores y
 ejemplos: [POLITICA_MAQUINA.md](POLITICA_MAQUINA.md).
 
+### Programa para firmar en las webs (GrxFirma o AutoFirma)
+
+Con AutoFirma instalado, cada persona elige en Configuración, «Programa para
+firmar en las webs», qué se abre cuando una web le pide firmar:
+
+| Opción | Qué pasa |
+|--------|----------|
+| GrxFirma (por defecto) | Firma GrxFirma, como hasta ahora. |
+| AutoFirma | Firma AutoFirma. Si el enlace llega a GrxFirma, se lo pasa. |
+| Preguntar cada vez | GrxFirma pregunta en cada firma; se puede recordar la respuesta. |
+
+Sin AutoFirma, las dos últimas no se pueden elegir y el ajuste lo explica.
+Quien eligió AutoFirma en la 0.0.125 lo conserva al actualizar.
+
+Para fijarlo en toda la organización se usa la política `manejador_afirma`
+(`grxfirma`, `autofirma` o `preguntar`; ver
+[POLITICA_MAQUINA.md](POLITICA_MAQUINA.md)). Con ella el ajuste queda en solo
+lectura y dice que lo decide la organización. Si la política no se puede leer,
+se mantiene lo que eligió cada persona y se anota un aviso.
+
+Al instalar, con la misma prioridad (política, parámetro, elección guardada,
+GrxFirma):
+
+- Windows: `/AFIRMA=grxfirma|autofirma|preguntar` en el instalador NSIS
+  (también con `/S`), o `-AfirmaHandler` en `install-suite.ps1`.
+- Linux: `install-suite.sh --afirma-handler=grxfirma|autofirma|preguntar`.
+
+Sin parámetro, la instalación interactiva pregunta si encuentra AutoFirma y la
+silenciosa mantiene lo que había. Detalles en
+[README_AFIRMAURI_WINDOWS.md](../packaging/windows/README_AFIRMAURI_WINDOWS.md)
+y [README_LINUX_SUITE.md](../packaging/linux/README_LINUX_SUITE.md).
+
+Desde la línea de órdenes:
+
+```bash
+grxfirma -ver-programa-firma-web
+grxfirma -elegir-programa-firma-web preguntar
+```
+
+Ninguna web puede cambiar este ajuste: ni REST, ni `afirma://`, ni WebSocket,
+ni el host nativo aceptan la orden. El reenvío a AutoFirma no usa intérprete de
+órdenes, toma el ejecutable del registro o del lanzador de AutoFirma y nunca
+del enlace, y el registro de actividad anota `afirma_reenviado_a_autofirma` o
+`afirma_reenvio_no_realizado` sin el enlace. Si AutoFirma devuelve el enlace a
+GrxFirma, firma GrxFirma (`afirma_reenvio_devuelto_a_grxfirma`) para no entrar
+en un bucle.
+
 ### TSA interna indicada en la petición
 
 Si el organismo usa una TSA en su red interna y la pasa como opción `tsaURL`:

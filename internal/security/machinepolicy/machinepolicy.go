@@ -25,7 +25,10 @@ const (
 	WebsocketHabilitado = "websocket_habilitado"
 	WebsocketPermitido  = "websocket_permitido"
 	RestHabilitado      = "rest_habilitado"
-	TofuHabilitado      = "tofu_habilitado"
+	// ManejadorAfirma fija qué programa abre los enlaces afirma:// de las
+	// webs: grxfirma, autofirma o preguntar (lote 15).
+	ManejadorAfirma = "manejador_afirma"
+	TofuHabilitado  = "tofu_habilitado"
 	// ProhibirConfianzaForzada impide que el usuario acepte en su equipo
 	// firmas con una CA desconocida, una clave RSA corta, un certificado de
 	// componente, la revocación sin comprobar o SHA-1 (lote 14).

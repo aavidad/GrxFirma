@@ -8,6 +8,7 @@ package ports
 import (
 	"context"
 	"errors"
+	"strings"
 )
 
 // Programas que pueden atender las firmas que piden los portales mediante el
@@ -17,7 +18,42 @@ const (
 	ProgramaAfirmaAutoFirma = "autofirma"
 	ProgramaAfirmaOtro      = "other"
 	ProgramaAfirmaNinguno   = "none"
+	// ProgramaAfirmaPreguntar deja GrxFirma registrado y, al llegar cada
+	// enlace, pregunta si firmar con GrxFirma o con AutoFirma.
+	ProgramaAfirmaPreguntar = "preguntar"
 )
+
+// NormalizarProgramaAfirma devuelve el valor canónico de una elección
+// (grxfirma, autofirma o preguntar) y si es válida.
+func NormalizarProgramaAfirma(valor string) (string, bool) {
+	switch v := strings.ToLower(strings.TrimSpace(valor)); v {
+	case ProgramaAfirmaGrxFirma, ProgramaAfirmaAutoFirma, ProgramaAfirmaPreguntar:
+		return v, true
+	}
+	return "", false
+}
+
+// PoliticaProgramaAfirma es lo que fija la política de máquina
+// (manejador_afirma) por encima de la elección del usuario.
+type PoliticaProgramaAfirma struct {
+	// Valor es grxfirma, autofirma o preguntar; "" si la política no lo fija.
+	Valor string
+	// Ilegible: la política existe pero no se pudo leer o el valor no se
+	// entiende. Se mantiene lo de antes (la elección del usuario) con aviso.
+	Ilegible bool
+}
+
+// ProgramaAfirmaEfectivo es lo que se aplica: la política, si fija un valor;
+// si no, la elección del usuario; y si no eligió nada, GrxFirma.
+func ProgramaAfirmaEfectivo(politica PoliticaProgramaAfirma, preferencia string) string {
+	if v, ok := NormalizarProgramaAfirma(politica.Valor); ok && !politica.Ilegible {
+		return v
+	}
+	if v, ok := NormalizarProgramaAfirma(preferencia); ok {
+		return v
+	}
+	return ProgramaAfirmaGrxFirma
+}
 
 // EstadoProtocoloAfirma describe, leído del sistema, qué programa abre los
 // enlaces afirma:// y qué opciones puede elegir la persona.
@@ -37,6 +73,13 @@ type EstadoProtocoloAfirma struct {
 	RutaAutoFirma      string
 	// Preferencia es la última elección guardada ("" si nunca se eligió).
 	Preferencia string
+	// Politica es el valor que fija la política de máquina ("" si no fija
+	// ninguno). Con política, el ajuste es de solo lectura.
+	Politica string
+	// PoliticaIlegible: hay política pero no se pudo leer este ajuste.
+	PoliticaIlegible bool
+	// Efectiva es lo que se aplica (ProgramaAfirmaEfectivo).
+	Efectiva string
 }
 
 // ProtocoloAfirma consulta y cambia el programa que atiende afirma://.
@@ -57,4 +100,7 @@ var (
 	ErrGrxFirmaAfirmaNoInstalada = errors.New("el componente afirma:// de GrxFirma no está instalado")
 	// ErrProgramaAfirmaDesconocido: el programa pedido no es una opción válida.
 	ErrProgramaAfirmaDesconocido = errors.New("programa de afirma:// no válido")
+	// ErrProtocoloAfirmaPolitica: la política de máquina fija el programa y
+	// el usuario no lo puede cambiar.
+	ErrProtocoloAfirmaPolitica = errors.New("la política del equipo fija el programa de afirma://")
 )

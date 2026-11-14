@@ -14890,8 +14890,23 @@ Window {
                     backend.getAfirmaHandlerStatus()
                 }
 
+                // La política de la organización (manejador_afirma) fija el
+                // ajuste: se muestra, pero no se puede cambiar.
+                readonly property string afirmaPolicy: String(afirmaStatus.policy || "")
+                readonly property bool afirmaLocked: afirmaPolicy !== ""
+                readonly property string afirmaEffectiveHandler: afirmaEffective(afirmaStatus)
+
+                // Lo que pasa cuando una web pide firmar: grxfirma, autofirma,
+                // preguntar, other o none. Un motor anterior, sin «effective»,
+                // solo da lo que dice el registro.
+                function afirmaEffective(status) {
+                    var effective = String(status.effective || "")
+                    return effective !== "" ? effective : String(status.current || "")
+                }
+
                 function selectAfirmaHandler(handler) {
-                    if (!afirmaSupported || afirmaBusy || afirmaStatus.current === handler) return
+                    if (!afirmaSupported || afirmaBusy || afirmaLocked
+                            || afirmaEffective(afirmaStatus) === handler) return
                     afirmaBusy = true
                     afirmaError = ""
                     afirmaMessage = tr("protocolo.estado.cambiando")
@@ -14899,12 +14914,37 @@ Window {
                 }
 
                 function afirmaStatusText(status) {
-                    switch (String(status.current || "")) {
+                    switch (afirmaEffective(status)) {
                     case "grxfirma": return tr("protocolo.estado.grxfirma")
                     case "autofirma": return tr("protocolo.estado.autofirma")
+                    case "preguntar": return tr("protocolo.estado.preguntar")
                     case "other": return tr("protocolo.estado.otro").replace("{0}", String(status.currentPath || ""))
                     default: return tr("protocolo.estado.ninguno")
                     }
+                }
+
+                // Por qué el ajuste no se puede cambiar (vacío si se puede).
+                function afirmaPolicyText(status) {
+                    var text = ""
+                    switch (String(status.policy || "")) {
+                    case "grxfirma": return tr("protocolo.politica.grxfirma")
+                    case "autofirma": text = tr("protocolo.politica.autofirma"); break
+                    case "preguntar": text = tr("protocolo.politica.preguntar"); break
+                    default: return ""
+                    }
+                    if (status.autofirmaInstalled !== true)
+                        text += " " + tr("protocolo.politica.sin_autofirma")
+                    return text
+                }
+
+                // Descripción para el lector de pantalla de una opción que no
+                // se puede elegir: dice el motivo.
+                function afirmaOptionDescription(available) {
+                    if (afirmaLocked)
+                        return tr("protocolo.selector") + ". " + afirmaPolicyText(afirmaStatus)
+                    if (!available)
+                        return tr("protocolo.selector") + ". " + tr("protocolo.opciones_sin_autofirma")
+                    return tr("protocolo.selector")
                 }
 
                 // Lee en voz alta el resultado: el texto cambia sin que el
@@ -14920,6 +14960,7 @@ Window {
                     case "autofirma_not_installed": return tr("protocolo.autofirma_no_instalada")
                     case "grxfirma_afirma_missing": return tr("protocolo.error.grxfirma_no_instalada")
                     case "afirma_handler_unsupported": return tr("protocolo.error.no_disponible")
+                    case "afirma_handler_policy": return tr("protocolo.error.politica")
                     default: return tr("protocolo.error.generico")
                     }
                 }
@@ -15745,11 +15786,12 @@ Window {
                                             Layout.fillWidth: true
                                             text: tr("protocolo.opcion.grxfirma")
                                             ButtonGroup.group: afirmaHandlerGroup
-                                            // No se desactiva mientras se trabaja para no quitarle el foco.
-                                            enabled: configTab.afirmaStatus.grxfirmaInstalled === true
-                                            Accessible.description: tr("protocolo.selector")
+                                            // No se desactiva mientras se trabaja para no quitarle el foco;
+                                            // sí cuando lo fija la organización.
+                                            enabled: configTab.afirmaStatus.grxfirmaInstalled === true && !configTab.afirmaLocked
+                                            Accessible.description: configTab.afirmaOptionDescription(true)
                                             property int revision: configTab.afirmaRevision
-                                            onRevisionChanged: checked = configTab.afirmaStatus.current === "grxfirma"
+                                            onRevisionChanged: checked = configTab.afirmaEffectiveHandler === "grxfirma"
                                             onToggled: if (checked) configTab.selectAfirmaHandler("grxfirma")
                                         }
 
@@ -15759,12 +15801,29 @@ Window {
                                             Layout.fillWidth: true
                                             text: tr("protocolo.opcion.autofirma")
                                             ButtonGroup.group: afirmaHandlerGroup
-                                            enabled: configTab.afirmaStatus.autofirmaInstalled === true
-                                            Accessible.description: enabled ? tr("protocolo.selector")
-                                                : tr("protocolo.selector") + ". " + tr("protocolo.autofirma_no_instalada")
+                                            readonly property bool available: configTab.afirmaStatus.autofirmaInstalled === true
+                                            enabled: available && !configTab.afirmaLocked
+                                            Accessible.description: configTab.afirmaOptionDescription(available)
                                             property int revision: configTab.afirmaRevision
-                                            onRevisionChanged: checked = configTab.afirmaStatus.current === "autofirma"
+                                            onRevisionChanged: checked = configTab.afirmaEffectiveHandler === "autofirma"
                                             onToggled: if (checked) configTab.selectAfirmaHandler("autofirma")
+                                        }
+
+                                        // GrxFirma pregunta en cada firma: solo tiene sentido con
+                                        // los dos programas instalados.
+                                        ThemedRadioButton {
+                                            id: afirmaAskRadio
+                                            objectName: "afirmaAskRadio"
+                                            Layout.fillWidth: true
+                                            text: tr("protocolo.opcion.preguntar")
+                                            ButtonGroup.group: afirmaHandlerGroup
+                                            readonly property bool available: configTab.afirmaStatus.autofirmaInstalled === true
+                                                && configTab.afirmaStatus.grxfirmaInstalled === true
+                                            enabled: available && !configTab.afirmaLocked
+                                            Accessible.description: configTab.afirmaOptionDescription(available)
+                                            property int revision: configTab.afirmaRevision
+                                            onRevisionChanged: checked = configTab.afirmaEffectiveHandler === "preguntar"
+                                            onToggled: if (checked) configTab.selectAfirmaHandler("preguntar")
                                         }
                                     }
 
@@ -15776,16 +15835,44 @@ Window {
                                         moreText: tr("ayuda.protocolo.mas")
                                         options: [
                                             { name: tr("protocolo.opcion.grxfirma"), text: tr("ayuda.protocolo.grxfirma") },
-                                            { name: tr("protocolo.opcion.autofirma"), text: tr("ayuda.protocolo.autofirma") }
+                                            { name: tr("protocolo.opcion.autofirma"), text: tr("ayuda.protocolo.autofirma") },
+                                            { name: tr("protocolo.opcion.preguntar"), text: tr("ayuda.protocolo.preguntar") }
                                         ]
                                         optionTemplate: tr("ayuda.opcion")
                                         moreNameTemplate: tr("ayuda.mas_nombre")
                                     }
                                 }
 
+                                // Lo decide la organización: se dice qué y a quién acudir.
                                 Text {
-                                    visible: configTab.afirmaStatus.autofirmaInstalled !== true
-                                    text: tr("protocolo.autofirma_no_instalada")
+                                    objectName: "afirmaHandlerPolicyText"
+                                    visible: configTab.afirmaLocked
+                                    textFormat: Text.PlainText
+                                    text: configTab.afirmaPolicyText(configTab.afirmaStatus)
+                                    color: currentTheme.textColor
+                                    font.bold: true
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                    Accessible.role: Accessible.StaticText
+                                    Accessible.name: text
+                                }
+
+                                Text {
+                                    objectName: "afirmaHandlerPolicyUnreadableText"
+                                    visible: configTab.afirmaStatus.policyUnreadable === true
+                                    textFormat: Text.PlainText
+                                    text: tr("protocolo.politica_ilegible")
+                                    color: currentTheme.secondaryTextColor
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                    Accessible.role: Accessible.StaticText
+                                    Accessible.name: text
+                                }
+
+                                Text {
+                                    objectName: "afirmaAutoFirmaMissingText"
+                                    visible: configTab.afirmaStatus.autofirmaInstalled !== true && !configTab.afirmaLocked
+                                    text: tr("protocolo.opciones_sin_autofirma") + " " + tr("protocolo.autofirma_no_instalada")
                                     color: currentTheme.secondaryTextColor
                                     wrapMode: Text.WordWrap
                                     Layout.fillWidth: true
@@ -15793,7 +15880,7 @@ Window {
 
                                 ThemedButton {
                                     objectName: "afirmaAutoFirmaDownloadButton"
-                                    visible: configTab.afirmaStatus.autofirmaInstalled !== true
+                                    visible: configTab.afirmaStatus.autofirmaInstalled !== true && !configTab.afirmaLocked
                                     text: tr("protocolo.descargar_autofirma")
                                     Accessible.name: text
                                     Accessible.description: tr("protocolo.descargar_autofirma.descripcion")

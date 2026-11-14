@@ -755,6 +755,235 @@ try {
         "La actualizacion escribio registro con un grxfirma.ico ajeno"
     Remove-Item -LiteralPath $snapshot121Path -Force
 
+    # Programa para firmar en las webs al instalar (lote 15): política,
+    # /AFIRMA= y preferencia. Cambiar a AutoFirma restaura la instantánea,
+    # volver a GrxFirma la re-registra y un manejador ajeno aborta sin escribir.
+    $autoFirmaExe = "C:\Program Files\AutoFirma\AutoFirma\Autofirma.exe"
+    $autoFirmaNewExe = "C:\Program Files\AutoFirma\Autofirma.exe"
+    $choiceSnapshotPath = Join-Path $tmp "choice-snapshot.json"
+    function New-TestAutoFirmaValues {
+        param([string]$Executable)
+        return @(
+            [pscustomobject]@{
+                Path = $brandedPlan[0].Path; Name = ""; KeyExisted = $true; ValueExisted = $true
+                Kind = "String"; Value = "URL:Afirma Protocol"
+            },
+            [pscustomobject]@{
+                Path = $brandedPlan[1].Path; Name = "URL Protocol"; KeyExisted = $true; ValueExisted = $true
+                Kind = "String"; Value = ""
+            },
+            [pscustomobject]@{
+                Path = $brandedPlan[2].Path; Name = ""; KeyExisted = $true; ValueExisted = $true
+                Kind = "String"; Value = "$Executable,0"
+            },
+            [pscustomobject]@{
+                Path = $brandedPlan[3].Path; Name = ""; KeyExisted = $true; ValueExisted = $true
+                Kind = "String"; Value = "`"$Executable`" `"%1`""
+            }
+        )
+    }
+    function Set-TestRegistryValues {
+        param([object[]]$Values)
+        foreach ($value in @($Values)) {
+            $script:mockRegistry[
+                (Get-TestSnapshotKey -Path ([string]$value.Path) -Name ([string]$value.Name))
+            ] = Copy-TestSnapshot -Snapshot $value
+        }
+    }
+    function Get-TestCurrentCommand {
+        $key = Get-TestSnapshotKey -Path ([string]$brandedPlan[3].Path) -Name ""
+        if (-not $script:mockRegistry.ContainsKey($key)) {
+            return ""
+        }
+        return [string]$script:mockRegistry[$key].Value
+    }
+    function Reset-TestChoiceState {
+        param([object[]]$Values = @())
+        $script:mockRegistry = @{}
+        Set-TestRegistryValues -Values $Values
+        $script:mockSetAttempts = 0
+        $script:mockFailSetAt = 0
+        $script:mockRestoreAttempts = 0
+        $script:testPolicy = [pscustomobject]@{ Value = ""; Unreadable = $false }
+        $script:testPreference = ""
+        $script:testPreferenceWrites = @()
+        $script:testHklmAutoFirma = ""
+        $script:testAutoFirmaFiles = @($autoFirmaExe, $autoFirmaNewExe)
+        if (Test-Path -LiteralPath $choiceSnapshotPath) {
+            Remove-Item -LiteralPath $choiceSnapshotPath -Force
+        }
+    }
+    function Get-AfirmaMachinePolicyHandler {
+        return $script:testPolicy
+    }
+    function Get-AfirmaProtocolHandlerPreference {
+        return $script:testPreference
+    }
+    function Set-AfirmaProtocolHandlerPreference {
+        param([string]$Handler)
+        $script:testPreferenceWrites += $Handler
+        $script:testPreference = $Handler
+    }
+    function Get-AfirmaAutoFirmaExecutable {
+        param([string]$ProtocolKey)
+        return $script:testHklmAutoFirma
+    }
+    function Test-AfirmaAutoFirmaExecutablePath {
+        param([string]$Path)
+        return (@($script:testAutoFirmaFiles) -contains $Path)
+    }
+    function Invoke-TestChoice {
+        param(
+            [string]$Requested = "",
+            [switch]$ValidateOnly
+        )
+        $warnings = $null
+        $applied = Invoke-AfirmaInstallHandlerChoice `
+            -ProtocolKey $protocolKey `
+            -ExecutablePath $executablePath `
+            -IconPath $iconPath `
+            -SnapshotPath $choiceSnapshotPath `
+            -Requested $Requested `
+            -ValidateOnly:$ValidateOnly `
+            -WarningVariable warnings `
+            -WarningAction SilentlyContinue 6>$null
+        $script:lastWarnings = @($warnings | ForEach-Object { [string]$_ })
+        return $applied
+    }
+    $grxCommand = [string]$brandedPlan[3].Value
+    $autoFirmaCommand = "`"$autoFirmaExe`" `"%1`""
+    $autoFirmaValues = @(New-TestAutoFirmaValues -Executable $autoFirmaExe)
+
+    # Primera instalación silenciosa con AutoFirma registrado para el usuario:
+    # como hasta ahora, GrxFirma se registra y guarda lo de AutoFirma.
+    Reset-TestChoiceState -Values $autoFirmaValues
+    $applied = Invoke-TestChoice
+    Assert-True ($applied -eq "grxfirma") "La instalacion silenciosa no dejo GrxFirma por defecto"
+    Assert-True ((Get-TestCurrentCommand) -eq $grxCommand) "La instalacion silenciosa no registro GrxFirma"
+    Assert-True ($script:testPreferenceWrites.Count -eq 0) "La instalacion silenciosa escribio la preferencia"
+    Assert-True ($script:lastWarnings.Count -eq 0) "La instalacion silenciosa aviso sin motivo"
+
+    # /AFIRMA=autofirma: se restaura la instantánea (lo de AutoFirma) y se
+    # guarda la elección.
+    $applied = Invoke-TestChoice -Requested "autofirma"
+    Assert-True ($applied -eq "autofirma") "/AFIRMA=autofirma no se aplico"
+    Assert-True ((Get-TestCurrentCommand) -eq $autoFirmaCommand) "Cambiar a AutoFirma no restauro la instantanea"
+    Assert-True (Test-AfirmaProtocolValuesMatch -Expected $autoFirmaValues) "Cambiar a AutoFirma no restauro todos los valores"
+    Assert-True (($script:testPreferenceWrites -join ",") -eq "autofirma") "/AFIRMA=autofirma no guardo la preferencia"
+
+    # Actualización silenciosa de quien eligió AutoFirma: no se toca nada.
+    $script:mockSetAttempts = 0
+    $script:mockRestoreAttempts = 0
+    $script:testPreferenceWrites = @()
+    $applied = Invoke-TestChoice
+    Assert-True ($applied -eq "autofirma") "La actualizacion no respeto la eleccion de AutoFirma"
+    Assert-True ($script:mockSetAttempts -eq 0 -and $script:mockRestoreAttempts -eq 0) "La actualizacion escribio aunque se eligio AutoFirma"
+    Assert-True ($script:testPreferenceWrites.Count -eq 0) "La actualizacion cambio la preferencia"
+    $applied = Invoke-TestChoice -ValidateOnly
+    Assert-True ($applied -eq "autofirma" -and $script:mockSetAttempts -eq 0) "La comprobacion previa escribio o cambio la eleccion"
+
+    # Política ilegible: aviso y se mantiene la elección de la persona.
+    $script:testPolicy = [pscustomobject]@{ Value = ""; Unreadable = $true }
+    $applied = Invoke-TestChoice
+    Assert-True ($applied -eq "autofirma") "Con la politica ilegible no se mantuvo la preferencia"
+    Assert-True (@($script:lastWarnings | Where-Object { $_ -match "manejador_afirma" }).Count -eq 1) "La politica ilegible no aviso"
+    Assert-True ($script:mockSetAttempts -eq 0) "La politica ilegible escribio registro"
+    $script:testPolicy = [pscustomobject]@{ Value = ""; Unreadable = $false }
+
+    # La política prevalece sobre /AFIRMA= y la preferencia, y nunca escribe
+    # la preferencia.
+    $script:testPolicy = [pscustomobject]@{ Value = "grxfirma"; Unreadable = $false }
+    $applied = Invoke-TestChoice -Requested "autofirma"
+    Assert-True ($applied -eq "grxfirma") "La politica no prevalecio sobre /AFIRMA="
+    Assert-True ((Get-TestCurrentCommand) -eq $grxCommand) "La politica grxfirma no re-registro GrxFirma"
+    Assert-True ($script:testPreferenceWrites.Count -eq 0 -and $script:testPreference -eq "autofirma") "La politica cambio la preferencia"
+    $script:testPolicy = [pscustomobject]@{ Value = "autofirma"; Unreadable = $false }
+    $applied = Invoke-TestChoice -Requested "grxfirma"
+    Assert-True ($applied -eq "autofirma" -and (Get-TestCurrentCommand) -eq $autoFirmaCommand) "La politica autofirma no devolvio el protocolo a AutoFirma"
+    Assert-True ($script:testPreferenceWrites.Count -eq 0) "La politica autofirma escribio la preferencia"
+    $script:testPolicy = [pscustomobject]@{ Value = ""; Unreadable = $false }
+
+    # Volver a GrxFirma (/AFIRMA=grxfirma) re-registra sobre la instantánea.
+    $applied = Invoke-TestChoice -Requested "grxfirma"
+    Assert-True ($applied -eq "grxfirma" -and (Get-TestCurrentCommand) -eq $grxCommand) "Volver a GrxFirma no re-registro afirma://"
+    Assert-True ($script:testPreference -eq "grxfirma") "Volver a GrxFirma no guardo la preferencia"
+    $restoreState = Read-AfirmaProtocolSnapshot `
+        -Path $choiceSnapshotPath `
+        -ProtocolKey $protocolKey `
+        -Plan $brandedPlan
+    Assert-True (
+        Test-AfirmaRegistrySnapshotsEqual -Left $restoreState.Snapshots[3] -Right $autoFirmaValues[3]
+    ) "Volver a GrxFirma perdio la orden de AutoFirma guardada"
+
+    # «Preguntar cada vez» deja afirma:// a GrxFirma, que pregunta.
+    $applied = Invoke-TestChoice -Requested "preguntar"
+    Assert-True ($applied -eq "preguntar" -and (Get-TestCurrentCommand) -eq $grxCommand) "Preguntar no dejo afirma:// a GrxFirma"
+    Assert-True ($script:testPreference -eq "preguntar") "Preguntar no guardo la preferencia"
+
+    # Manejador ajeno: ni /AFIRMA= ni la actualización escriben nada.
+    Set-TestRegistryValues -Values @([pscustomobject]@{
+        Path = $brandedPlan[3].Path; Name = ""; KeyExisted = $true; ValueExisted = $true
+        Kind = "String"; Value = '"C:\Otro\otro.exe" "%1"'
+    })
+    foreach ($requested in @("", "grxfirma", "autofirma", "preguntar")) {
+        $script:mockSetAttempts = 0
+        $script:mockRestoreAttempts = 0
+        $script:testPreferenceWrites = @()
+        $snapshotBefore = [System.IO.File]::ReadAllBytes($choiceSnapshotPath)
+        Assert-Throws { Invoke-TestChoice -Requested $requested } "Un manejador ajeno no aborto (/AFIRMA=$requested)"
+        Assert-True ($script:mockSetAttempts -eq 0 -and $script:mockRestoreAttempts -eq 0) "Un manejador ajeno recibio escrituras (/AFIRMA=$requested)"
+        Assert-True ($script:testPreferenceWrites.Count -eq 0) "Un manejador ajeno cambio la preferencia (/AFIRMA=$requested)"
+        Assert-True (
+            [Convert]::ToBase64String($snapshotBefore) -eq
+            [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($choiceSnapshotPath))
+        ) "Un manejador ajeno cambio la instantanea (/AFIRMA=$requested)"
+    }
+    Assert-Throws { Invoke-TestChoice -Requested "" -ValidateOnly } "La comprobacion previa acepto un manejador ajeno"
+
+    # AutoFirma se reinstaló con la misma cuenta después de GrxFirma: la
+    # actualización avisa y no lo sobrescribe; pedir GrxFirma aborta sin
+    # escribir (la propiedad del registro, d490007, no cambia).
+    Reset-TestChoiceState
+    $null = Invoke-TestChoice
+    Assert-True ((Get-TestCurrentCommand) -eq $grxCommand) "Sin AutoFirma no se registro GrxFirma"
+    Set-TestRegistryValues -Values @(New-TestAutoFirmaValues -Executable $autoFirmaNewExe)
+    $script:mockSetAttempts = 0
+    $applied = Invoke-TestChoice
+    Assert-True ($applied -eq "autofirma") "AutoFirma reinstalado no se respeto en la actualizacion"
+    Assert-True ($script:mockSetAttempts -eq 0) "La actualizacion sobrescribio a AutoFirma reinstalado"
+    Assert-True (@($script:lastWarnings | Where-Object { $_ -match "Configuraci" }).Count -eq 1) "La actualizacion no explico como elegir"
+    Assert-Throws { Invoke-TestChoice -Requested "grxfirma" } "/AFIRMA=grxfirma sobrescribio a AutoFirma reinstalado"
+    Assert-True ($script:mockSetAttempts -eq 0 -and $script:testPreferenceWrites.Count -eq 0) "/AFIRMA=grxfirma escribio sobre AutoFirma reinstalado"
+
+    # Sin AutoFirma no hay nada que elegir: GrxFirma y un aviso si se pidió.
+    Reset-TestChoiceState
+    $script:testAutoFirmaFiles = @()
+    $applied = Invoke-TestChoice -Requested "autofirma"
+    Assert-True ($applied -eq "grxfirma" -and (Get-TestCurrentCommand) -eq $grxCommand) "Sin AutoFirma no quedo GrxFirma"
+    Assert-True (@($script:lastWarnings | Where-Object { $_ -match "AutoFirma no est" }).Count -eq 1) "Sin AutoFirma no se aviso"
+
+    # Valor no válido: se rechaza antes de escribir.
+    Reset-TestChoiceState -Values $autoFirmaValues
+    Assert-Throws { Invoke-TestChoice -Requested "otro" } "/AFIRMA=otro se acepto"
+    Assert-True ($script:mockSetAttempts -eq 0 -and -not (Test-Path -LiteralPath $choiceSnapshotPath)) "/AFIRMA=otro escribio algo"
+    Assert-True (
+        (Resolve-AfirmaInstallHandler -Requested "AutoFirma" -Preference "" -Policy $null).Handler -eq "autofirma"
+    ) "/AFIRMA= no admite mayusculas"
+
+    # Detección para la página del instalador NSIS.
+    Reset-TestChoiceState -Values $autoFirmaValues
+    $script:testPreference = "preguntar"
+    $detected = Write-AfirmaInstallHandlerDetection -InstallDir $tmp -ProtocolKey $protocolKey
+    Assert-True ($detected -eq "1|-|preguntar") "La deteccion para NSIS no es la esperada: $detected"
+    $script:testPolicy = [pscustomobject]@{ Value = "autofirma"; Unreadable = $false }
+    $detected = Write-AfirmaInstallHandlerDetection -InstallDir $tmp -ProtocolKey $protocolKey
+    Assert-True ($detected -eq "1|autofirma|preguntar") "La deteccion no informa de la politica: $detected"
+    Reset-TestChoiceState
+    $script:testAutoFirmaFiles = @()
+    $detected = Write-AfirmaInstallHandlerDetection -InstallDir $tmp -ProtocolKey $protocolKey
+    Assert-True ($detected -eq "0|-|-") "La deteccion sin AutoFirma no es la esperada: $detected"
+    Reset-TestChoiceState
+
     . $helperPath
     $runningOnWindows =
         $PSVersionTable.PSEdition -eq "Desktop" -or

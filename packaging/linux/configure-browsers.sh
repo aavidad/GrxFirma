@@ -24,22 +24,224 @@ have_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
-# Si la persona eligió AutoFirma en «Firmas desde los portales» y AutoFirma
-# sigue instalado, afirma:// no se reasigna a GrxFirma al actualizar.
-afirma_prefers_autofirma() {
-  local pref="${TARGET_HOME}/.config/grxfirma/afirma-protocol-handler"
-  local dir value
-  local -a dirs
-  [[ -f "${pref}" && ! -L "${pref}" ]] || return 1
-  value="$(head -c 32 "${pref}" | tr -d '[:space:]')"
-  [[ "${value}" == "autofirma" ]] || return 1
+# Lanzadores que abrían afirma:// antes de GrxFirma según la copia guardada
+# al instalar (HANDLER_BACKUP), uno por línea. Solo se devuelven nombres de
+# .desktop válidos; el contenido de cada uno se comprueba aparte.
+afirma_saved_handler_ids() {
+  [[ -f "${HANDLER_BACKUP}" && ! -L "${HANDLER_BACKUP}" ]] || return 0
+  have_cmd python3 || return 0
+  python3 - "${HANDLER_BACKUP}" "${DESKTOP_ID}" <<'PY' 2>/dev/null || true
+import json
+import re
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as fh:
+        backup = json.load(fh)
+except (OSError, ValueError):
+    sys.exit(0)
+if not isinstance(backup, dict):
+    sys.exit(0)
+for path in sorted(backup):
+    entry = backup[path]
+    value = entry.get("x-scheme-handler/afirma") if isinstance(entry, dict) else None
+    if not isinstance(value, str):
+        continue
+    for desktop_id in value.split(";"):
+        desktop_id = desktop_id.strip()
+        if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*\.desktop", desktop_id) and desktop_id != sys.argv[2]:
+            print(desktop_id)
+PY
+}
+
+# Verdadero si el .desktop abre afirma:// con un programa que se llama
+# autofirma (como los paquetes oficiales de AutoFirma).
+afirma_desktop_is_autofirma() {
+  local file="$1" exec_line program
+  [[ -f "${file}" && ! -L "${file}" ]] || return 1
+  grep -Eq '^MimeType=(.*;)?x-scheme-handler/afirma(;|$)' "${file}" || return 1
+  exec_line="$(sed -n 's/^Exec=//p' "${file}" | head -n 1)"
+  program="${exec_line%% *}"
+  program="${program//\"/}"
+  program="${program##*/}"
+  [[ "${program,,}" == autofirma* ]]
+}
+
+# Verdadero si AutoFirma está instalado: los nombres de los paquetes
+# oficiales o el lanzador que abría afirma:// antes de GrxFirma, si es
+# AutoFirma (su nombre depende del paquete).
+afirma_autofirma_installed() {
+  local dir id
+  local -a dirs saved
   IFS=: read -r -a dirs <<< "${SYSTEM_APP_DIRS}"
   for dir in "${TARGET_HOME}/.local/share/applications" "${dirs[@]}"; do
     if [[ -f "${dir}/afirma.desktop" || -f "${dir}/autofirma.desktop" ]]; then
       return 0
     fi
   done
+  mapfile -t saved < <(afirma_saved_handler_ids)
+  for id in "${saved[@]}"; do
+    for dir in "${TARGET_HOME}/.local/share/applications" "${dirs[@]}"; do
+      if afirma_desktop_is_autofirma "${dir}/${id}"; then
+        return 0
+      fi
+    done
+  done
   return 1
+}
+
+# Programa para firmar en las webs (lote 15): grxfirma, autofirma o
+# preguntar. «preguntar» deja afirma:// a GrxFirma, que pregunta en cada firma.
+AFIRMA_PREFERENCE_FILE="${TARGET_HOME}/.config/grxfirma/afirma-protocol-handler"
+POLICY_FILE="${GRXFIRMA_POLICY_FILE:-/etc/grxfirma/policy.json}"
+# Programa pedido al instalar (install-suite.sh --afirma-handler=); vacío si no
+# se pidió ninguno.
+REQUESTED_AFIRMA_HANDLER="${GRXFIRMA_AFIRMA_HANDLER:-}"
+AFIRMA_HANDLER=""
+AFIRMA_HANDLER_SOURCE=""
+
+afirma_valid_choice() {
+  case "$1" in
+    grxfirma | autofirma | preguntar) return 0 ;;
+  esac
+  return 1
+}
+
+# Valor de manejador_afirma en la política de máquina: el valor, nada si no lo
+# fija o «!» si el fichero existe pero no se puede leer o no se entiende.
+afirma_policy_value() {
+  [[ -e "${POLICY_FILE}" ]] || return 0
+  if ! have_cmd python3; then
+    printf '!'
+    return 0
+  fi
+  python3 - "${POLICY_FILE}" <<'PY' 2>/dev/null || printf '!'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as fh:
+        data = json.load(fh)
+except (OSError, ValueError):
+    print("!")
+    sys.exit(0)
+if not isinstance(data, dict):
+    print("!")
+    sys.exit(0)
+value = data.get("manejador_afirma")
+if value is None:
+    sys.exit(0)
+value = value.strip().lower() if isinstance(value, str) else ""
+print(value if value in ("grxfirma", "autofirma", "preguntar") else "!")
+PY
+}
+
+# Lo que eligió la persona en Configuración, o nada.
+afirma_preference_value() {
+  local value
+  [[ -f "${AFIRMA_PREFERENCE_FILE}" && ! -L "${AFIRMA_PREFERENCE_FILE}" ]] || return 0
+  value="$(head -c 32 "${AFIRMA_PREFERENCE_FILE}" | tr -d '[:space:]')"
+  if afirma_valid_choice "${value}"; then
+    printf '%s' "${value}"
+  fi
+  return 0
+}
+
+# Decide qué programa atiende afirma:// al instalar: la política; si no, el
+# que pide el instalador; si no, el que eligió la persona; si no, GrxFirma,
+# como hasta ahora. AutoFirma solo si sigue instalado. Deja el resultado en
+# AFIRMA_HANDLER y AFIRMA_HANDLER_SOURCE (politica, parametro, preferencia o
+# defecto).
+afirma_resolve_handler() {
+  local policy preference
+  policy="$(afirma_policy_value)"
+  if [[ "${policy}" == "!" ]]; then
+    log "Aviso: no se pudo leer manejador_afirma en ${POLICY_FILE}; se mantiene la elección de cada usuario."
+    policy=""
+  fi
+  preference="$(afirma_preference_value)"
+  if [[ -n "${policy}" ]]; then
+    AFIRMA_HANDLER="${policy}"
+    AFIRMA_HANDLER_SOURCE="politica"
+  elif [[ -n "${REQUESTED_AFIRMA_HANDLER}" ]]; then
+    AFIRMA_HANDLER="${REQUESTED_AFIRMA_HANDLER}"
+    AFIRMA_HANDLER_SOURCE="parametro"
+  elif [[ -n "${preference}" ]]; then
+    AFIRMA_HANDLER="${preference}"
+    AFIRMA_HANDLER_SOURCE="preferencia"
+  else
+    AFIRMA_HANDLER="grxfirma"
+    AFIRMA_HANDLER_SOURCE="defecto"
+  fi
+  if [[ "${AFIRMA_HANDLER}" != grxfirma ]] && ! afirma_autofirma_installed; then
+    if [[ "${AFIRMA_HANDLER_SOURCE}" == politica || "${AFIRMA_HANDLER_SOURCE}" == parametro ]]; then
+      log "Aviso: AutoFirma no está instalado en este equipo; las firmas de las webs se abrirán con GrxFirma."
+    fi
+    AFIRMA_HANDLER="grxfirma"
+  fi
+}
+
+# Guarda la elección pedida al instalar (--afirma-handler=). La política nunca
+# la escribe, para que vuelva a valer si la organización la retira.
+afirma_save_requested_preference() {
+  local dir tmp
+  [[ "${AFIRMA_HANDLER_SOURCE}" == parametro ]] || return 0
+  [[ "$(afirma_preference_value)" != "${AFIRMA_HANDLER}" ]] || return 0
+  dir="$(dirname "${AFIRMA_PREFERENCE_FILE}")"
+  mkdir -p "${dir}"
+  tmp="$(mktemp "${dir}/.afirma-protocol-handler.XXXXXXXX")"
+  printf '%s\n' "${AFIRMA_HANDLER}" > "${tmp}"
+  chmod 600 "${tmp}"
+  mv -f -- "${tmp}" "${AFIRMA_PREFERENCE_FILE}"
+}
+
+# Lanzador de AutoFirma al que devolver afirma://: el que lo abría antes de
+# GrxFirma si es AutoFirma; si no, el de los paquetes oficiales.
+afirma_autofirma_desktop_id() {
+  local dir id
+  local -a dirs saved
+  IFS=: read -r -a dirs <<< "${SYSTEM_APP_DIRS}"
+  mapfile -t saved < <(afirma_saved_handler_ids)
+  for id in "${saved[@]}" afirma.desktop autofirma.desktop; do
+    for dir in "${TARGET_HOME}/.local/share/applications" "${dirs[@]}"; do
+      if afirma_desktop_is_autofirma "${dir}/${id}"; then
+        printf '%s\n' "${id}"
+        return 0
+      fi
+    done
+  done
+  for id in afirma.desktop autofirma.desktop; do
+    for dir in "${TARGET_HOME}/.local/share/applications" "${dirs[@]}"; do
+      if [[ -f "${dir}/${id}" && ! -L "${dir}/${id}" ]]; then
+        printf '%s\n' "${id}"
+        return 0
+      fi
+    done
+  done
+  return 0
+}
+
+# Verdadero si afirma:// debe quedar para AutoFirma (ya resuelto).
+afirma_prefers_autofirma() {
+  if [[ -z "${AFIRMA_HANDLER}" ]]; then
+    afirma_resolve_handler
+  fi
+  [[ "${AFIRMA_HANDLER}" == autofirma ]]
+}
+
+# Para la pregunta de install-suite.sh: «autofirma|política|preferencia», con
+# «-» cuando no hay valor (una política ilegible cuenta como «-»). Solo lee.
+afirma_detect_handler() {
+  local available=0 policy preference
+  if afirma_autofirma_installed; then
+    available=1
+  fi
+  policy="$(afirma_policy_value)"
+  if [[ -z "${policy}" || "${policy}" == "!" ]]; then
+    policy="-"
+  fi
+  preference="$(afirma_preference_value)"
+  printf '%s|%s|%s\n' "${available}" "${policy}" "${preference:--}"
 }
 
 afirma_schemes() {
@@ -64,8 +266,9 @@ mimeapps_files() {
   fi
 }
 
-# Uso: afirma_handlers_py set|restore <copia> <desktop_id> <esquemas> <mimeapps>...
-# <esquemas> son los que GrxFirma toma, separados por comas (afirma_schemes).
+# Uso: afirma_handlers_py set|restore|autofirma <copia> <desktop_id> <esquemas> <mimeapps>...
+# <esquemas> son los que GrxFirma toma, separados por comas (afirma_schemes);
+# en «autofirma», el lanzador de AutoFirma.
 afirma_handlers_py() {
   python3 - "$@" <<'PY'
 import configparser
@@ -129,6 +332,16 @@ if mode == "set":
     os.replace(tmp, backup_path)
     for handler in sorted(previous_handlers):
         print(handler)
+elif mode == "autofirma":
+    # Devuelve afirma:// a AutoFirma solo donde lo tiene GrxFirma; lo que la
+    # persona haya puesto a mano se respeta. <esquemas> es aquí el lanzador.
+    autofirma_id = schemes_csv
+    for path in paths:
+        parser = load(path)
+        if parser.get(section, schemes[0], fallback=None) != desktop_id:
+            continue
+        parser.set(section, schemes[0], autofirma_id)
+        save(parser, path)
 elif mode == "restore":
     allowed = set(paths)
     for path, entry in backup.items():
@@ -181,6 +394,13 @@ sanitize_afirma_scheme_handlers() {
   previous="$(afirma_handlers_py set "${HANDLER_BACKUP}" "${DESKTOP_ID}" "${scheme_csv}" "${files[@]}")"
   if [[ -n "${previous}" ]]; then
     log "Aviso: los enlaces afirma:// los abría ${previous//$'\n'/, }. Desde ahora los abre GrxFirma. Al desinstalar GrxFirma se devolverán a esa aplicación."
+  fi
+  if afirma_prefers_autofirma; then
+    local autofirma_id
+    autofirma_id="$(afirma_autofirma_desktop_id)"
+    if [[ -n "${autofirma_id}" ]]; then
+      afirma_handlers_py autofirma "${HANDLER_BACKUP}" "${DESKTOP_ID}" "${autofirma_id}" "${files[@]}"
+    fi
   fi
 }
 
@@ -469,7 +689,10 @@ install_firefox_integration() {
 }
 
 register_afirma_scheme() {
+  # Se decide una vez, aquí, para que los avisos no se pierdan en un subproceso.
+  afirma_resolve_handler
   sanitize_afirma_scheme_handlers
+  afirma_save_requested_preference
   if have_cmd update-desktop-database; then
     update-desktop-database "${TARGET_HOME}/.local/share/applications" >/dev/null 2>&1 || true
   fi
@@ -478,7 +701,15 @@ register_afirma_scheme() {
   fi
 }
 
+if [[ -n "${REQUESTED_AFIRMA_HANDLER}" ]] && ! afirma_valid_choice "${REQUESTED_AFIRMA_HANDLER}"; then
+  echo "error: valor no válido para el programa de firma en las webs: '${REQUESTED_AFIRMA_HANDLER}'. Use grxfirma, autofirma o preguntar." >&2
+  exit 2
+fi
+
 case "${1:-}" in
+  --detect-afirma-handler)
+    afirma_detect_handler
+    ;;
   "")
     remove_legacy_native_hosts
     install_chromium_family_manifests
@@ -489,7 +720,7 @@ case "${1:-}" in
     restore_afirma_scheme_handlers
     ;;
   *)
-    echo "uso: configure-browsers.sh [--restore-afirma-handler]" >&2
+    echo "uso: configure-browsers.sh [--restore-afirma-handler | --detect-afirma-handler]" >&2
     exit 2
     ;;
 esac

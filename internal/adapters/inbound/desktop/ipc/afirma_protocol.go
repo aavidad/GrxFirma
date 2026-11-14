@@ -28,6 +28,13 @@ type resultadoProtocoloAfirma struct {
 	AutoFirmaInstalled bool   `json:"autofirmaInstalled"`
 	AutoFirmaPath      string `json:"autofirmaPath,omitempty"`
 	Preference         string `json:"preference,omitempty"`
+	// Policy es lo que fija la política de máquina; con ella el ajuste es de
+	// solo lectura. PolicyUnreadable avisa de una política que no se pudo leer.
+	Policy           string `json:"policy,omitempty"`
+	PolicyUnreadable bool   `json:"policyUnreadable,omitempty"`
+	// Effective es lo que pasa cuando una web pide firmar: grxfirma,
+	// autofirma, preguntar, other o none.
+	Effective string `json:"effective,omitempty"`
 }
 
 type paramsProtocoloAfirma struct {
@@ -49,6 +56,9 @@ func aResultadoProtocoloAfirma(e ports.EstadoProtocoloAfirma) resultadoProtocolo
 		AutoFirmaInstalled: e.AutoFirmaInstalada,
 		AutoFirmaPath:      e.RutaAutoFirma,
 		Preference:         e.Preferencia,
+		Policy:             e.Politica,
+		PolicyUnreadable:   e.PoliticaIlegible,
+		Effective:          e.Efectiva,
 	}
 }
 
@@ -95,6 +105,8 @@ func (m *Manejador) errorProtocoloAfirma(accion string, err error) respuesta {
 		code, key = "autofirma_not_installed", "protocolo.autofirma_no_instalada"
 	case errors.Is(err, ports.ErrGrxFirmaAfirmaNoInstalada):
 		code, key = "grxfirma_afirma_missing", "protocolo.error.grxfirma_no_instalada"
+	case errors.Is(err, ports.ErrProtocoloAfirmaPolitica):
+		code, key = "afirma_handler_policy", "protocolo.error.politica"
 	case errors.Is(err, ports.ErrProgramaAfirmaDesconocido):
 		code, key = "afirma_handler_invalid", "protocolo.error.generico"
 	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):

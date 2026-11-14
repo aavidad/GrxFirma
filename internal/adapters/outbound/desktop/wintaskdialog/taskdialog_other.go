@@ -20,5 +20,10 @@ func Show(context.Context, Spec) (int32, int32, error) {
 	return 0, 0, errors.New("TaskDialog solo está disponible en Windows")
 }
 
+// ShowVerification no está disponible fuera de Windows.
+func ShowVerification(context.Context, Spec) (int32, int32, bool, error) {
+	return 0, 0, false, errors.New("TaskDialog solo está disponible en Windows")
+}
+
 // CheckedRadio no está disponible fuera de Windows.
 func CheckedRadio(uintptr, []int32, []string) int32 { return 0 }

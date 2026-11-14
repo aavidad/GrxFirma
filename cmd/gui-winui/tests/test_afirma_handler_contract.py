@@ -3,7 +3,8 @@
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
 
-"""Selector «Firmas desde los portales» (GrxFirma o AutoFirma para afirma://).
+"""Selector «Programa para firmar en las webs» (GrxFirma, AutoFirma o
+«Preguntar cada vez» para afirma://; lote 15).
 
 La interfaz solo muestra el estado real y pide el cambio al motor; nunca
 toca el registro ni ejecuta PowerShell. WinUI y Qt usan las mismas claves.
@@ -35,7 +36,18 @@ KEYS = [
     "protocolo.error.generico", "ayuda.protocolo", "ayuda.protocolo.grxfirma",
     "ayuda.protocolo.autofirma", "ayuda.protocolo.mas",
     "protocolo.descargar_autofirma", "protocolo.descargar_autofirma.descripcion",
+    "protocolo.opcion.preguntar", "protocolo.estado.preguntar", "ayuda.protocolo.preguntar",
+    "protocolo.opciones_sin_autofirma", "protocolo.error.politica",
+    "protocolo.politica.grxfirma", "protocolo.politica.autofirma",
+    "protocolo.politica.preguntar", "protocolo.politica.sin_autofirma",
+    "protocolo.politica_ilegible",
 ]
+# Claves que la interfaz no escribe tal cual porque las elige el motor.
+CORE_ONLY_KEYS = {
+    "protocolo.politica.grxfirma", "protocolo.politica.autofirma",
+    "protocolo.politica.preguntar", "protocolo.politica.sin_autofirma",
+    "protocolo.politica_ilegible", "protocolo.opciones_sin_autofirma",
+}
 AUTOFIRMA_DOWNLOAD = "https://firmaelectronica.gob.es/Home/Descargas.html"
 
 
@@ -58,10 +70,11 @@ class AfirmaHandlerContractTests(unittest.TestCase):
             # La ayuda no enseña el protocolo técnico a quien firma.
             self.assertNotIn("afirma://", catalog["ayuda.protocolo"], path.stem)
 
-    def test_card_has_both_options_and_help_with_every_option(self):
+    def test_card_has_the_three_options_and_help_with_every_option(self):
         by_name = {e.get(XNAME): e for e in self.xaml.iter() if e.get(XNAME)}
         self.assertEqual(by_name["AfirmaHandlerCard"].get("Visibility"), "Collapsed")
-        radios = [by_name["AfirmaGrxFirmaRadio"], by_name["AfirmaAutoFirmaRadio"]]
+        radios = [by_name["AfirmaGrxFirmaRadio"], by_name["AfirmaAutoFirmaRadio"],
+                  by_name["AfirmaAskRadio"]]
         for radio in radios:
             self.assertEqual(radio.tag, "{%s}RadioButton" % PRESENTATION)
             self.assertEqual(radio.get("GroupName"), "AfirmaHandler")
@@ -76,7 +89,10 @@ class AfirmaHandlerContractTests(unittest.TestCase):
         self.assertEqual(
             help_button.get("Options"),
             "protocolo.opcion.grxfirma=ayuda.protocolo.grxfirma "
-            "protocolo.opcion.autofirma=ayuda.protocolo.autofirma")
+            "protocolo.opcion.autofirma=ayuda.protocolo.autofirma "
+            "protocolo.opcion.preguntar=ayuda.protocolo.preguntar")
+        for name in ("AfirmaHandlerPolicyText", "AfirmaHandlerPolicyUnreadableText"):
+            self.assertEqual(by_name[name].get("Visibility"), "Collapsed")
 
     def test_interface_never_touches_the_registry_or_powershell(self):
         for text in (self.page, self.contracts):
@@ -86,11 +102,11 @@ class AfirmaHandlerContractTests(unittest.TestCase):
         self.assertIn("SelectAfirmaHandlerAsync", self.page)
         self.assertIn("GetAfirmaHandlerStatusAsync", self.page)
 
-    def test_client_only_sends_the_two_choices(self):
+    def test_client_only_sends_the_three_choices(self):
         self.assertIn('AfirmaHandlerStatus = "afirma_handler_status"', self.client)
         self.assertIn('AfirmaHandlerSelect = "afirma_handler_select"', self.client)
         self.assertIn("AfirmaHandlerChoices.IsSelectable(handler)", self.client)
-        self.assertIn("handler is GrxFirma or AutoFirma", self.contracts)
+        self.assertIn("handler is GrxFirma or AutoFirma or Ask", self.contracts)
 
     def test_status_comes_from_the_engine_and_failures_show_the_real_state(self):
         # Tras un fallo se vuelve a leer el estado real y el motivo va aparte.
@@ -98,15 +114,23 @@ class AfirmaHandlerContractTests(unittest.TestCase):
         # Las opciones no se desactivan mientras se trabaja (no pierden el foco).
         self.assertIn("AfirmaGrxFirmaRadio.IsEnabled = AfirmaGrxFirmaRadio.Tag is true;", self.page)
         self.assertIn("AfirmaAutoFirmaRadio.IsEnabled = AfirmaAutoFirmaRadio.Tag is true;", self.page)
+        self.assertIn("AfirmaAskRadio.IsEnabled = AfirmaAskRadio.Tag is true;", self.page)
         self.assertNotIn("enabled: !configTab.afirmaBusy && configTab.afirmaStatus", self.qml)
-        # La opción AutoFirma queda desactivada si no está instalada.
-        self.assertIn("CanChooseAutoFirma: status.AutoFirmaInstalled", self.contracts)
-        self.assertIn("ShowAutoFirmaMissing: !status.AutoFirmaInstalled", self.contracts)
+        # AutoFirma y «Preguntar cada vez» quedan desactivadas sin AutoFirma, y
+        # todo queda en solo lectura con la política de la organización.
+        self.assertIn("CanChooseAutoFirma: status.AutoFirmaInstalled && !locked", self.contracts)
+        self.assertIn("CanChooseAsk: status.AutoFirmaInstalled && status.GrxFirmaInstalled && !locked", self.contracts)
+        self.assertIn("ShowAutoFirmaMissing: !status.AutoFirmaInstalled && !locked", self.contracts)
+        self.assertIn("_afirmaLocked ||", self.page)
+        # La selección muestra lo que pasa de verdad (effective).
+        self.assertIn("var effective = EffectiveHandler(status);", self.contracts)
 
     def test_qt_uses_the_same_keys_and_engine_actions(self):
         for key in KEYS:
             with self.subTest(key=key):
                 self.assertIn('tr("%s")' % key, self.qml)
+                if key in CORE_ONLY_KEYS:
+                    self.assertIn('"%s"' % key, self.contracts)
         self.assertIn("backend.getAfirmaHandlerStatus()", self.qml)
         self.assertIn("backend.selectAfirmaHandler(handler)", self.qml)
         self.assertIn('(Qt.platform.os === "windows" || Qt.platform.os === "linux") && isIpcMode', self.qml)
