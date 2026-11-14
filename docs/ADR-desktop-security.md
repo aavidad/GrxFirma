@@ -163,3 +163,37 @@ Ambos modelos comparten el mismo principio. La diferencia es de mecanismo:
   se abre únicamente al firmar, en `adquirirClaveWindows`, y si la tarjeta no
   está o el usuario cancela, el resto de la misma operación no vuelve a
   pedirla. Un contrato en `wincertstore` comprueba ambas reglas.
+
+---
+
+## Llamantes autorizados del host nativo
+
+Este es el único inventario de las extensiones que pueden abrir el host de
+Native Messaging (`cmd/nativehost/caller.go` y los manifiestos que escriben los
+instaladores de Linux, Windows y macOS). Revisión del 13/11/2026 (hallazgos
+C-07 y G-04), actualizada al llevar los arreglos a la 0.0.125.
+
+| Navegador | ID | Host nativo | Titular | Estado |
+|---|---|---|---|---|
+| Chromium | `pkefjandjcgdmhoonmhnllikibobijgg` | `io.github.aavidad.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | En uso |
+| Firefox | `grxfirma@aavidad.github.io` | `io.github.aavidad.grxfirma`, `com.grxfirma.native` | Extensión oficial de GrxFirma | PENDIENTE: confirmar reserva en AMO |
+
+En Firefox, un ID con forma de correo pertenece a quien lo registra primero en
+AMO; no hace falta tener el dominio. Mientras no conste la reserva, otra
+persona podría registrar `grxfirma@aavidad.github.io`, obtener un XPI firmado y
+hablar con el host de todos los equipos con GrxFirma (hallazgo JD-02). Para
+cerrarlo hay que comprobar en AMO que el ID está en la cuenta del proyecto, la
+de `WEB_EXT_API_KEY` del job `build-firefox-extension`, con al menos una
+versión firmada. Si no lo está, se sube cuanto antes una versión sin listar
+desde esa cuenta. Al confirmarlo se cambia el estado de la fila.
+`TestCallerPolicyOnlyDocumentedIDs` (`cmd/nativehost`) falla si esta tabla y
+los ID integrados en el binario no coinciden.
+
+Además, el host acepta el ID que el instalador deja en
+`extensions/chromium/grxfirma-extension-chromium.id` y los que figuren en un
+manifiesto de host instalado con uno de esos dos nombres que apunte a este
+mismo ejecutable.
+
+Las extensiones «portafirmas» (`com.dipgra.portafirmas`) ya no son llamantes de
+GrxFirma desde la 0.0.125: ni sus ID ni su manifiesto autorizan llamadas
+(`TestNativeCaller_RechazaManifiestoEIDsDePortafirmas`).
