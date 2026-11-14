@@ -268,6 +268,16 @@ func ComprobarIntegridadPAdES(ctx context.Context, pdf []byte) error {
 	if err != nil || result.Integrity.Status == domain.VerificationStatusInvalid {
 		return ErrFirmaNoCorrespondeOriginal
 	}
+	// Una firma de subfiltro antiguo que GrxFirma sabe comprobar y no cuadra
+	// (el PDF cambió tras firmarlo) solo deja el PDF «no verificado» al
+	// verificar, por compatibilidad. Para envolverlo en un ENI no basta: el
+	// documento no corresponde a lo firmado (revisión del lote 17a).
+	for _, detalle := range result.Integrity.Details {
+		if detalle == "firma_no_verificada subfilter="+subFiltroPKCS7SHA1 ||
+			detalle == "firma_no_verificada subfilter="+subFiltroX509RSASHA1 {
+			return ErrFirmaNoCorrespondeOriginal
+		}
+	}
 	if len(algoritmosAntiguos(result)) > 0 {
 		return ErrFirmaCorrespondeConSHA1
 	}
