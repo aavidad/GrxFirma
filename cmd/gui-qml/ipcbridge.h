@@ -47,6 +47,11 @@ public:
   QVariantMap lastDiagnostic() const { return m_lastDiagnostic; }
   QString lastRequestId() const { return m_lastRequestId; }
   QString lastTraceId() const { return m_lastTraceId; }
+  // Avisos del motor sobre la última firma o lote (claves del catálogo que
+  // QML traduce; lote 16d). Se vacían al pedir una firma nueva.
+  Q_INVOKABLE QStringList lastSigningWarnings() const {
+    return m_lastSigningWarnings;
+  }
   bool webCompatibilityActive() const;
   bool activeDiagnosticsRunning() const { return m_activeDiagnosticsRunning; }
 
@@ -363,6 +368,7 @@ private:
   QVariantMap m_lastDiagnostic;
   QString m_lastRequestId;
   QString m_lastTraceId;
+  QStringList m_lastSigningWarnings;
   ActiveDiagnosticsRunner *m_activeDiagnostics = nullptr;
   bool m_activeDiagnosticsRunning = false;
 };

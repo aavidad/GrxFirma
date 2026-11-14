@@ -135,6 +135,8 @@ public sealed class SignPageViewModel
     private IReadOnlyList<BatchSignDisplayItem> _batchItems = [];
     private string _resultMessage =
         Localizer.Text("winui.firmar.no_se_ha_ejecutado_ninguna_firma");
+    private string _signWarningMessage = string.Empty;
+    private string _batchWarningMessage = string.Empty;
     private string _validationMessage =
         Localizer.Text("winui.firmar.seleccione_un_documento_y_un_certificado");
     private bool _isBusy;
@@ -574,6 +576,38 @@ public sealed class SignPageViewModel
         get => _batchProgressText;
         private set => SetProperty(ref _batchProgressText, value);
     }
+
+    // Avisos del motor sobre la última firma o lote, ya traducidos (lote
+    // 16d); vacío si no hay ninguno.
+    public string SignWarningMessage
+    {
+        get => _signWarningMessage;
+        private set
+        {
+            if (SetProperty(ref _signWarningMessage, value))
+            {
+                RaisePropertyChanged(nameof(HasSignWarning));
+            }
+        }
+    }
+
+    public bool HasSignWarning =>
+        !string.IsNullOrWhiteSpace(_signWarningMessage);
+
+    public string BatchWarningMessage
+    {
+        get => _batchWarningMessage;
+        private set
+        {
+            if (SetProperty(ref _batchWarningMessage, value))
+            {
+                RaisePropertyChanged(nameof(HasBatchWarning));
+            }
+        }
+    }
+
+    public bool HasBatchWarning =>
+        !string.IsNullOrWhiteSpace(_batchWarningMessage);
 
     public IReadOnlyList<BatchSignDisplayItem> BatchItems
     {
@@ -2286,6 +2320,7 @@ public sealed class SignPageViewModel
                 Localizer.Format("winui.firmar.firmando_lote_de_documento_s", currentPaths.Count);
             ValidationMessage =
                 Localizer.Text("winui.firmar.el_lote_esta_en_curso_puede_cancelarlo");
+            BatchWarningMessage = string.Empty;
             batchStarted = true;
 
             var result = await operations.SignBatchAsync(
@@ -2349,6 +2384,7 @@ public sealed class SignPageViewModel
                 outputDirectory,
                 out var successCount,
                 out var failureCount);
+            BatchWarningMessage = SigningWarningsText(result.Data.VisibleWarnings);
             BatchProgressValue = currentPaths.Count;
             BatchProgressText = Localizer.Format(
                 "winui.firmar.lote_finalizado_correcto_s_fallido_s",
@@ -2934,6 +2970,7 @@ public sealed class SignPageViewModel
             }
 
             _outputPath = outputPath;
+            SignWarningMessage = SigningWarningsText(result.Data.VisibleWarnings);
             if (signInputGuard is not null &&
                 expectedSignInputDigest is not null)
             {
@@ -4009,10 +4046,37 @@ public sealed class SignPageViewModel
             : error;
     }
 
+    // Avisos del motor (claves del catálogo) en el idioma de la persona, uno
+    // por línea. Una clave que el catálogo no conoce no se enseña: nunca sale
+    // la clave cruda ni texto libre del resultado.
+    private static string SigningWarningsText(IEnumerable<string> keys)
+    {
+        var shown = new List<string>();
+        foreach (var key in keys)
+        {
+            if (!SigningWarningKey.IsMatch(key) || !Localizer.Has(key))
+            {
+                continue;
+            }
+            var text = Localizer.Text(key);
+            if (!string.IsNullOrWhiteSpace(text) && !shown.Contains(text, StringComparer.Ordinal))
+            {
+                shown.Add(text);
+            }
+        }
+        return string.Join(Environment.NewLine, shown);
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex SigningWarningKey = new(
+        @"^[a-z0-9_]+(\.[a-z0-9_]+)+$",
+        System.Text.RegularExpressions.RegexOptions.CultureInvariant,
+        TimeSpan.FromMilliseconds(50));
+
     private void ClearOutput()
     {
         CompletedSignPresentationId = Guid.Empty;
         _outputPath = null;
+        SignWarningMessage = string.Empty;
         ResultMessage = Localizer.Text("winui.firmar.no_se_ha_ejecutado_ninguna_firma_con");
         UpdateCommandStates();
     }
@@ -4417,6 +4481,7 @@ public sealed class SignPageViewModel
                 null))
             .ToArray();
         HasBatchResults = false;
+        BatchWarningMessage = string.Empty;
         BatchProgressMaximum = Math.Max(1, _batchInputPaths.Count);
         BatchProgressValue = 0;
         IsBatchProgressIndeterminate = false;

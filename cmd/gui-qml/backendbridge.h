@@ -148,6 +148,9 @@ public:
   Q_INVOKABLE void getProxySecretStoreStatus();
   Q_INVOKABLE void checkCertificateOnline(const QString &certificateId);
   Q_INVOKABLE void shutdownForExit();
+  // El servicio REST no devuelve avisos de firma (solo IPC, lote 16d); QML
+  // pregunta lo mismo a los dos puentes.
+  Q_INVOKABLE QStringList lastSigningWarnings() const { return {}; }
   Q_INVOKABLE QString getAppDirPath() const {
 #ifdef Q_OS_WIN
     return QCoreApplication::applicationDirPath();

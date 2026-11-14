@@ -302,6 +302,9 @@ type resultadoFirma struct {
 	Format       string `json:"format,omitempty"`
 	OutputPath   string `json:"OutputPath,omitempty"`
 	SignatureB64 string `json:"signature_b64,omitempty"`
+	// Warnings son avisos del motor sobre esta firma (claves de los
+	// catálogos), para que la interfaz los muestre traducidos (lote 16d).
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type resultadoFirmaLoteItem struct {
@@ -310,12 +313,17 @@ type resultadoFirmaLoteItem struct {
 	Format     string `json:"format,omitempty"`
 	OK         bool   `json:"ok"`
 	Error      string `json:"error,omitempty"`
+	// Warnings de este documento, cuando el motor puede atribuirlos (la
+	// cofirma múltiple firma documento a documento).
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type resultadoFirmaLote struct {
 	Results   []resultadoFirmaLoteItem `json:"results"`
 	OkCount   int                      `json:"okCount"`
 	FailCount int                      `json:"failCount"`
+	// Warnings reúne, sin repetir, los avisos del motor en todo el lote.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 // resultadoVerificacion es el objeto data de la respuesta "verify".

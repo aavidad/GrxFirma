@@ -137,6 +137,14 @@
                                 TextWrapping="Wrap" />
                         </StackPanel>
                     </InfoBar>
+                    <InfoBar
+                        x:Name="SignWarningNotice"
+                        AutomationProperties.LiveSetting="Polite"
+                        IsClosable="False"
+                        IsOpen="{x:Bind ViewModel.HasSignWarning, Mode=OneWay}"
+                        Message="{x:Bind ViewModel.SignWarningMessage, Mode=OneWay}"
+                        Severity="Warning"
+                        Title="Advertencias" />
                     <controls:ResponsiveActionPanel Orientation="Horizontal" Spacing="8">
                         <Button MinHeight="40"
                             x:Name="ResultButton"
@@ -1240,6 +1248,14 @@
                             Message="{x:Bind ViewModel.BatchProgressText, Mode=OneWay}"
                             Severity="Informational"
                             Title="Estado de la firma por lotes" />
+                        <InfoBar
+                            x:Name="BatchWarningNotice"
+                            AutomationProperties.LiveSetting="Polite"
+                            IsClosable="False"
+                            IsOpen="{x:Bind ViewModel.HasBatchWarning, Mode=OneWay}"
+                            Message="{x:Bind ViewModel.BatchWarningMessage, Mode=OneWay}"
+                            Severity="Warning"
+                            Title="Advertencias" />
                         <ItemsControl
                             AutomationProperties.Name="Resultados de firma por documento"
                             ItemsSource="{x:Bind ViewModel.BatchItems, Mode=OneWay}">

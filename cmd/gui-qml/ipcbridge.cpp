@@ -33,6 +33,7 @@
 #endif
 #include <QProcessEnvironment>
 #include <QRandomGenerator>
+#include <QRegularExpression>
 #include <QSaveFile>
 #include <QSslCertificate>
 #include <QSslConfiguration>
@@ -50,6 +51,26 @@ static QString it(const QString &key) {
 }
 
 static QStringList IpcBridgeExpectedLocalTLSPins();
+
+// Avisos del motor sobre una firma (lote 16d): claves del catálogo que QML
+// traduce. Solo se aceptan claves con forma de clave y con tope, para que el
+// resultado no pueda colar texto libre en la pantalla.
+static constexpr int kMaxSigningWarnings = 16;
+static QStringList ipcSigningWarnings(const QJsonObject &res) {
+  static const QRegularExpression key(
+      QStringLiteral("^[a-z0-9_]+(\\.[a-z0-9_]+)+$"));
+  QStringList out;
+  const QJsonArray values = res.value(QStringLiteral("warnings")).toArray();
+  for (const auto &value : values) {
+    const QString text = value.toString();
+    if (text.size() > 128 || !key.match(text).hasMatch() || out.contains(text))
+      continue;
+    out << text;
+    if (out.size() >= kMaxSigningWarnings)
+      break;
+  }
+  return out;
+}
 
 // El sello visible se escribe por defecto en el idioma de la interfaz. Si el
 // usuario fijó otro idioma en la configuración, el motor lo impone.
@@ -1427,6 +1448,7 @@ void IpcBridge::signFileAdvanced(const QString &inputPath,
     params["visibleSeal"] = options.value("visibleSeal").toMap();
   }
   ipcMoveRemoteSigningSecrets(params, options);
+  m_lastSigningWarnings.clear();
   sendRequest("sign", params);
   ipcForgetRemoteSigningSecrets(params);
 }
@@ -1460,6 +1482,7 @@ void IpcBridge::signFileMultiAdvanced(const QString &inputPath,
     params["visibleSeal"] = options.value("visibleSeal").toMap();
   }
   ipcMoveRemoteSigningSecrets(params, options);
+  m_lastSigningWarnings.clear();
   sendRequest("sign_multicosign", params);
   ipcForgetRemoteSigningSecrets(params);
 }
@@ -1496,6 +1519,7 @@ void IpcBridge::signBatchAdvanced(const QVariantList &inputPaths,
     params["documentOverrides"] = options.value("documentOverrides").toList();
   }
   ipcMoveRemoteSigningSecrets(params, options);
+  m_lastSigningWarnings.clear();
   sendRequest("sign_batch", params);
   ipcForgetRemoteSigningSecrets(params);
 }
@@ -2502,6 +2526,7 @@ void IpcBridge::onReadyRead() {
               .arg(okCount)
               .arg(failCount);
       setStatus(msg);
+      m_lastSigningWarnings = ipcSigningWarnings(res);
       emit batchSigningFinished(failCount == 0, msg, results);
       continue;
     }
@@ -2543,6 +2568,7 @@ void IpcBridge::onReadyRead() {
       if (res.contains("OutputPath")) {
         QString out = res.value("OutputPath").toString();
         emit backendLogReceived(it(QStringLiteral("Firma completada: ")) + out);
+        m_lastSigningWarnings = ipcSigningWarnings(res);
         emit signingFinished(true,
                              it(QStringLiteral("Firma completada correctamente")),
                              out);

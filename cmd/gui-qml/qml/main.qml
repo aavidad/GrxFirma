@@ -755,6 +755,9 @@ Window {
     property string signResultCause: ""
     property bool signResultVerificationPending: false
     property int signResultGeneration: 0
+    // Avisos del motor sobre la última firma o lote, ya traducidos (lote 16d).
+    property var signResultWarnings: []
+    property var batchSigningWarnings: []
     property string sessionLastDocumentPath: ""
     property var protectionRecipients: []
     property var protectSelectedRecipientIds: []
@@ -831,6 +834,7 @@ Window {
         signResultPath = ""
         signResultCause = ""
         signResultVerificationPending = false
+        signResultWarnings = []
         currentOutputVerificationMessage = ""
         currentOutputVerificationDetails = null
     }
@@ -4016,6 +4020,7 @@ Window {
         window.signingInProgress = true
         window.statusMessage = tr("Procesando firma...")
         window.currentBatchResults = []
+        window.batchSigningWarnings = []
         if (window.multiCosignEnabled && !window.isBatchMode()) {
             const primaryIndex = window.effectiveMultiCosignPrimaryIndex()
             if (primaryIndex === -1) {
@@ -5322,9 +5327,26 @@ Window {
         }
     }
 
+    // Avisos del motor (claves del catálogo) en el idioma de la persona. Una
+    // clave que el catálogo no conoce no se enseña: nunca sale la clave cruda.
+    function visibleSigningWarnings(keys) {
+        if (!Array.isArray(keys)) return []
+        let shown = []
+        for (let i = 0; i < keys.length && shown.length < 16; i++) {
+            const key = typeof keys[i] === "string" ? keys[i] : ""
+            if (!/^[a-z0-9_]+(\.[a-z0-9_]+)+$/.test(key)) continue
+            const text = window.tr(key)
+            if (text === key || text === "" || shown.indexOf(text) !== -1) continue
+            shown.push(text)
+        }
+        return shown
+    }
+
     function signResultAnnouncement() {
         if (signResultKind === "success") {
             let result = tr("Documento firmado correctamente") + ". " + basename(signResultPath)
+            if (signResultWarnings.length > 0)
+                result += ". " + tr("Advertencias") + ": " + signResultWarnings.join(" ")
             if (signResultVerificationPending) return result + ". " + tr("Comprobando la firma...")
             if (currentOutputVerificationDetails !== null && signResultPath === currentOutputPath)
                 return result + ". " + signVerificationResultText()
@@ -8203,6 +8225,7 @@ Window {
             window.signResultKind = success ? "success" : "error"
             window.signResultPath = success ? String(outPath || "") : ""
             window.signResultCause = success ? "" : window.localizeVisibleDiagnosticText(message)
+            window.signResultWarnings = success ? window.visibleSigningWarnings(backend.lastSigningWarnings()) : []
             window.signResultVerificationPending = success && !!outPath
             if (success) {
                 window.clearOperationFailure()
@@ -8235,6 +8258,7 @@ Window {
             window.signingInProgress = false
             window.cscPendingSecrets = null
             window.currentBatchResults = results || []
+            window.batchSigningWarnings = window.visibleSigningWarnings(backend.lastSigningWarnings())
             const firstBatchError = window.firstBatchFailureMessage(window.currentBatchResults)
             window.statusMessage = (!success && firstBatchError !== "")
                 ? (tr("❌ Lote fallido: %1").arg(localizeVisibleDiagnosticText(firstBatchError)))
@@ -9174,6 +9198,10 @@ Window {
                                         font.pixelSize: 15
                                         font.bold: true
                                         wrapMode: Text.WrapAnywhere
+                                    }
+                                    SigningWarningsBox {
+                                        heading: tr("Advertencias")
+                                        warnings: window.signResultKind === "success" ? window.signResultWarnings : []
                                     }
                                     Text {
                                         visible: window.signResultKind === "success" && window.signResultVerificationPending
@@ -11123,6 +11151,11 @@ Window {
                                     color: currentTheme.textColor
                                     font.pixelSize: 16
                                     font.bold: true
+                                }
+
+                                SigningWarningsBox {
+                                    heading: tr("Advertencias")
+                                    warnings: window.batchSigningWarnings
                                 }
 
                                 Repeater {

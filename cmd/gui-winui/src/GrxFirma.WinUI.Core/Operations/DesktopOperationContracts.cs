@@ -1197,6 +1197,17 @@ public sealed record SignResult
     [JsonPropertyName("format")]
     public string? Format { get; init; }
 
+    // Avisos del motor sobre esta firma: claves del catálogo que la página
+    // traduce (lote 16d). Por ejemplo, una cofirma sin el documento original.
+    [JsonPropertyName("warnings")]
+    public IReadOnlyList<string> Warnings { get; init; } = [];
+
+    [JsonIgnore]
+    public IReadOnlyList<string> VisibleWarnings =>
+        OperationResultText.CleanList(Warnings, MaximumWarnings, 128);
+
+    internal const int MaximumWarnings = 16;
+
     [JsonIgnore]
     public string DisplayOutputPath =>
         OperationResultText.Clean(OutputPath, 1024);
@@ -1239,6 +1250,14 @@ public sealed record BatchSignItemResult
         get => _error;
         init => _error = OperationResultText.Clean(value, 1024);
     }
+
+    // Avisos del motor sobre este documento (cofirma múltiple).
+    [JsonPropertyName("warnings")]
+    public IReadOnlyList<string> Warnings { get; init; } = [];
+
+    [JsonIgnore]
+    public IReadOnlyList<string> VisibleWarnings =>
+        OperationResultText.CleanList(Warnings, SignResult.MaximumWarnings, 128);
 }
 
 public sealed record BatchSignResult
@@ -1252,6 +1271,14 @@ public sealed record BatchSignResult
 
     [JsonPropertyName("failCount")]
     public int FailureCount { get; init; }
+
+    // Avisos del motor en todo el lote, sin repetir (lote 16d).
+    [JsonPropertyName("warnings")]
+    public IReadOnlyList<string> Warnings { get; init; } = [];
+
+    [JsonIgnore]
+    public IReadOnlyList<string> VisibleWarnings =>
+        OperationResultText.CleanList(Warnings, SignResult.MaximumWarnings, 128);
 }
 
 public sealed class BatchSignItemResultListConverter

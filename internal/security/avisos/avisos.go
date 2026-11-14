@@ -11,6 +11,7 @@
 package avisos
 
 import (
+	"context"
 	"log/slog"
 	"strings"
 	"sync"
@@ -94,4 +95,64 @@ func Reiniciar() {
 	mu.Lock()
 	defer mu.Unlock()
 	lista = nil
+}
+
+// Recolector junta las claves de catálogo de los avisos de UNA operación
+// (por ejemplo, una firma pedida por Qt o WinUI). A diferencia de Registrar,
+// que guarda textos en una lista global para afirma://, viaja en el contexto
+// de la petición: dos operaciones a la vez no mezclan sus avisos y el
+// resultado los lleva para que la interfaz los traduzca (lote 16d).
+type Recolector struct {
+	mu     sync.Mutex
+	claves []string
+}
+
+type claveContextoRecolector struct{}
+
+// ConRecolector devuelve un contexto con un recolector nuevo. Un recolector
+// anidado recoge solo lo que se anota con su contexto.
+func ConRecolector(ctx context.Context) (context.Context, *Recolector) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	r := &Recolector{}
+	return context.WithValue(ctx, claveContextoRecolector{}, r), r
+}
+
+// Anotar añade la clave de catálogo de un aviso al recolector del contexto.
+// Sin recolector no hace nada: el llamador que no lo pide (la CLI, el móvil)
+// sigue con su registro y sus avisos de siempre.
+func Anotar(ctx context.Context, clave string) {
+	clave = strings.TrimSpace(clave)
+	if ctx == nil || clave == "" {
+		return
+	}
+	r, _ := ctx.Value(claveContextoRecolector{}).(*Recolector)
+	if r == nil {
+		return
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, c := range r.claves {
+		if c == clave {
+			return
+		}
+	}
+	if len(r.claves) < maxAvisos {
+		r.claves = append(r.claves, clave)
+	}
+}
+
+// Claves devuelve una copia de las claves anotadas, en el orden en que se
+// anotaron; nil si no hay ninguna.
+func (r *Recolector) Claves() []string {
+	if r == nil {
+		return nil
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if len(r.claves) == 0 {
+		return nil
+	}
+	return append([]string(nil), r.claves...)
 }

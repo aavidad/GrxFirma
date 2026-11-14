@@ -7,6 +7,7 @@ package signer
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/asn1"
@@ -67,17 +68,25 @@ func cosignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now ti
 	return sd.marshal()
 }
 
+// AvisoCofirmaSinOriginal es la clave de catálogo del aviso que acompaña al
+// resultado de una cofirma o contrafirma de una CAdES explícita sin el
+// documento original (KD-03).
+const AvisoCofirmaSinOriginal = "firma.cofirma_sin_original.aviso"
+
 // avisarCofirmaSinDocumento deja aviso visible y en el registro cuando se
 // cofirma o contrafirma una CAdES explícita: el motor firma el resumen que
 // declara la firma recibida y nadie ha visto el documento. Se mantiene por
 // compatibilidad con AutoFirma; el móvil exige además el original (KD-03).
-func avisarCofirmaSinDocumento(existing []byte) {
+// El aviso va a afirma:// (Registrar) y al resultado de la firma pedida con
+// un recolector en el contexto (Qt y WinUI por IPC, lote 16d).
+func avisarCofirmaSinDocumento(ctx context.Context, existing []byte) {
 	if _, implicita, err := ContenidoCAdESImplicito(existing); err != nil || implicita {
 		return
 	}
 	slog.Warn("cofirma_cades_sin_documento")
+	avisos.Anotar(ctx, AvisoCofirmaSinOriginal)
 	t := localizador.Detectar()
-	avisos.Registrar(t.T("firma.cofirma_sin_original.aviso_titulo"), t.T("firma.cofirma_sin_original.aviso"))
+	avisos.Registrar(t.T("firma.cofirma_sin_original.aviso_titulo"), t.T(AvisoCofirmaSinOriginal))
 }
 
 func countersignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now time.Time) ([]byte, error) {

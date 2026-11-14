@@ -599,6 +599,12 @@ public sealed class DesktopOperationsClientTests
         Assert.IsNotNull(sign);
         Assert.AreEqual(@"C:\signed.pdf", sign!.OutputPath);
         Assert.AreEqual("U0lHTg==", sign.SignatureBase64);
+        Assert.AreEqual(0, sign.VisibleWarnings.Count);
+        var signWithWarnings = JsonSerializer.Deserialize<SignResult>(
+            """{"OutputPath":"C:\\signed.csig","warnings":["firma.cofirma_sin_original.aviso"]}""");
+        CollectionAssert.AreEqual(
+            new[] { "firma.cofirma_sin_original.aviso" },
+            signWithWarnings!.VisibleWarnings.ToArray());
 
         const string verifyJson =
             """
@@ -857,7 +863,8 @@ public sealed class DesktopOperationsClientTests
         AssertJsonPropertyNames<SignResult>(
             "OutputPath",
             "signature_b64",
-            "format");
+            "format",
+            "warnings");
         AssertJsonPropertyNames<VerifyResult>(
             "valid",
             "reason",

@@ -19,6 +19,7 @@ import (
 
 	"golang.org/x/crypto/ocsp"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
 )
 
 type Client struct {
@@ -148,6 +149,11 @@ func (c *Client) Check(ctx context.Context, cert *x509.Certificate, issuer *x509
 	return result, nil
 }
 
+// AvisoCRLNoAplicable es la clave de catálogo del aviso que acompaña al
+// resultado de una firma LT que incrusta una CRL que no cubre al certificado
+// (lote 14-5). La interfaz la muestra tras firmar (lote 16d).
+const AvisoCRLNoAplicable = "firma.lt.crl_no_aplicable.aviso"
+
 // Fetch obtiene la evidencia de revocación que se incrusta al firmar
 // (CAdES-LT, PAdES-LT). Para verificar se usa Check.
 //
@@ -163,6 +169,7 @@ func (c *Client) Fetch(ctx context.Context, cert *x509.Certificate, issuer *x509
 		if len(result.crlNoAplicable) > 0 {
 			slog.Warn("se incrusta una CRL que no es aplicable al certificado; la verificación no la dará por concluyente",
 				"certificado", cert.Subject.String(), "error", err)
+			avisos.Anotar(ctx, AvisoCRLNoAplicable)
 			return ports.RevocationEvidence{CRLs: [][]byte{result.crlNoAplicable}}, nil
 		}
 		return ports.RevocationEvidence{}, err

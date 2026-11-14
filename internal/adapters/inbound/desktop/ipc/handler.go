@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -47,6 +48,7 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/signingpolicy"
 )
 
@@ -718,7 +720,9 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
 	}
 
-	result, err := m.Firmar.Execute(ctx, cmd)
+	// Los avisos que el motor anota mientras firma van al resultado.
+	ctxFirma, recolector := avisos.ConRecolector(ctx)
+	result, err := m.Firmar.Execute(ctxFirma, cmd)
 	if err != nil {
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
 	}
@@ -728,7 +732,7 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 
 	if params.ReturnSignatureB64 {
 		b64 := base64.StdEncoding.EncodeToString(result.Result.Data)
-		return respuesta{OK: true, Action: "sign", Data: resultadoFirma{SignatureB64: b64, Format: string(result.Result.Format)}}
+		return respuesta{OK: true, Action: "sign", Data: resultadoFirma{SignatureB64: b64, Format: string(result.Result.Format), Warnings: recolector.Claves()}}
 	}
 
 	outputPath := params.OutputPath
@@ -751,7 +755,7 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 		}
 	}
 
-	return respuesta{OK: true, Action: "sign", Data: resultadoFirma{OutputPath: outputPath, Format: string(result.Result.Format)}}
+	return respuesta{OK: true, Action: "sign", Data: resultadoFirma{OutputPath: outputPath, Format: string(result.Result.Format), Warnings: recolector.Claves()}}
 }
 
 func (m *Manejador) handleFirmaMultiCofirma(ctx context.Context, raw json.RawMessage) respuesta {
@@ -809,7 +813,8 @@ func (m *Manejador) handleFirmaMultiCofirma(ctx context.Context, raw json.RawMes
 	if err != nil {
 		return respuesta{OK: false, Action: "sign_multicosign", Error: err.Error()}
 	}
-	result, err := m.MultiCofirmar.Execute(ctx, application.MultiCoSignCommand{
+	ctxFirma, recolector := avisos.ConRecolector(ctx)
+	result, err := m.MultiCofirmar.Execute(ctxFirma, application.MultiCoSignCommand{
 		Document:                 doc,
 		Format:                   signFormat,
 		InitialAction:            accionFirma,
@@ -826,7 +831,7 @@ func (m *Manejador) handleFirmaMultiCofirma(ctx context.Context, raw json.RawMes
 	}
 	if params.ReturnSignatureB64 {
 		b64 := base64.StdEncoding.EncodeToString(result.Result.Data)
-		return respuesta{OK: true, Action: "sign_multicosign", Data: resultadoFirma{SignatureB64: b64, Format: string(result.Result.Format)}}
+		return respuesta{OK: true, Action: "sign_multicosign", Data: resultadoFirma{SignatureB64: b64, Format: string(result.Result.Format), Warnings: recolector.Claves()}}
 	}
 
 	outputPath := params.OutputPath
@@ -845,7 +850,7 @@ func (m *Manejador) handleFirmaMultiCofirma(ctx context.Context, raw json.RawMes
 			Error:  m.mensajeErrorSalidaIPC(err, requestedPath, "no se pudo guardar el resultado firmado"),
 		}
 	}
-	return respuesta{OK: true, Action: "sign_multicosign", Data: resultadoFirma{OutputPath: outputPath, Format: string(result.Result.Format)}}
+	return respuesta{OK: true, Action: "sign_multicosign", Data: resultadoFirma{OutputPath: outputPath, Format: string(result.Result.Format), Warnings: recolector.Claves()}}
 }
 
 func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) respuesta {
@@ -1024,7 +1029,10 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 	}
 	cmd.CertificateID = certID
 
-	result, err := m.ProcesarLote.Execute(ctx, cmd)
+	// El lote firma todos los documentos en una llamada: sus avisos se
+	// devuelven para el lote entero.
+	ctxLote, recolector := avisos.ConRecolector(ctx)
+	result, err := m.ProcesarLote.Execute(ctxLote, cmd)
 	if err != nil {
 		return respuesta{OK: false, Action: "sign_batch", Error: err.Error()}
 	}
@@ -1087,6 +1095,7 @@ func (m *Manejador) handleFirmaLote(ctx context.Context, raw json.RawMessage) re
 			Results:   items,
 			OkCount:   okCount,
 			FailCount: failCount,
+			Warnings:  recolector.Claves(),
 		},
 	}
 	if failCount > 0 {
@@ -1105,6 +1114,7 @@ func (m *Manejador) handleFirmaLoteMultiCofirma(ctx context.Context, params para
 	items := make([]resultadoFirmaLoteItem, 0, len(metas))
 	okCount := 0
 	failCount := 0
+	var avisosLote []string
 
 	for metaIndex := range metas {
 		if err := ctx.Err(); err != nil {
@@ -1141,7 +1151,8 @@ func (m *Manejador) handleFirmaLoteMultiCofirma(ctx context.Context, params para
 			items = append(items, item)
 			continue
 		}
-		result, err := m.MultiCofirmar.Execute(ctx, application.MultiCoSignCommand{
+		ctxDocumento, recolector := avisos.ConRecolector(ctx)
+		result, err := m.MultiCofirmar.Execute(ctxDocumento, application.MultiCoSignCommand{
 			Document:                 doc,
 			Format:                   signFormat,
 			InitialAction:            accionFirma,
@@ -1174,6 +1185,8 @@ func (m *Manejador) handleFirmaLoteMultiCofirma(ctx context.Context, params para
 		item.OK = true
 		item.OutputPath = finalPath
 		item.Format = string(result.Result.Format)
+		item.Warnings = recolector.Claves()
+		avisosLote = anadirAvisosSinRepetir(avisosLote, item.Warnings)
 		okCount++
 		items = append(items, item)
 	}
@@ -1185,8 +1198,19 @@ func (m *Manejador) handleFirmaLoteMultiCofirma(ctx context.Context, params para
 			Results:   items,
 			OkCount:   okCount,
 			FailCount: failCount,
+			Warnings:  avisosLote,
 		},
 	}
+}
+
+// anadirAvisosSinRepetir junta los avisos de cada documento en los del lote.
+func anadirAvisosSinRepetir(lote, nuevos []string) []string {
+	for _, aviso := range nuevos {
+		if !slices.Contains(lote, aviso) {
+			lote = append(lote, aviso)
+		}
+	}
+	return lote
 }
 
 func mensajeErrorFirmaLoteSeguro(err error) string {
