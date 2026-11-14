@@ -36,6 +36,7 @@ import "ThemeContrast.js" as Contrast
 //       moreText: ...                               // ampliación de helpText
 //   }
 Button {
+    font.pixelSize: Typography.control
     id: control
 
     // Nombre accesible explícito. Si está vacío se compone con nameTemplate,
@@ -121,8 +122,8 @@ Button {
     focusPolicy: Qt.StrongFocus
     // 32 px: por encima del mínimo táctil de 24 px (WCAG 2.2) sin descuadrar
     // una etiqueta pequeña.
-    implicitWidth: 32
-    implicitHeight: 32
+    implicitWidth: Typography.minimum(32)
+    implicitHeight: Typography.minimum(32)
     // Etiqueta sin iconos iniciales (emoji de los títulos) ni dos puntos finales,
     // para que el lector de pantalla diga «Ayuda sobre Servidor TSA».
     readonly property string cleanLabel: String(controlLabel || "")
@@ -143,8 +144,8 @@ Button {
     contentItem: Item {
         Rectangle {
             anchors.centerIn: parent
-            width: 22
-            height: 22
+            width: Typography.minimum(22)
+            height: Typography.minimum(22)
             radius: 11
             color: "transparent"
             border.color: control.labelColor
@@ -155,7 +156,7 @@ Button {
                 text: control.text
                 color: control.labelColor
                 font.bold: true
-                font.pixelSize: 14
+                font.pixelSize: Typography.size14
             }
         }
     }
@@ -256,6 +257,7 @@ Button {
                 width: helpScroll.width - (helpScroll.contentHeight > helpScroll.height ? 10 : 0)
                 spacing: 8
                 Text {
+                    font.pixelSize: Typography.control
                     objectName: "helpTitle"
                     Layout.fillWidth: true
                     visible: control.title !== ""
@@ -283,6 +285,7 @@ Button {
                             Layout.fillWidth: true
                             spacing: 4
                             Text {
+                                font.pixelSize: Typography.control
                                 id: sentence
                                 objectName: "helpEntry"
                                 Layout.fillWidth: true
@@ -295,12 +298,13 @@ Button {
                                 Accessible.name: control.plainEntry(entryItem.modelData)
                             }
                             Button {
+                                font.pixelSize: Typography.control
                                 id: moreButton
                                 objectName: "helpMoreButton"
                                 visible: entryItem.modelData.more !== ""
                                 Layout.alignment: Qt.AlignTop
-                                implicitWidth: 28
-                                implicitHeight: 28
+                                implicitWidth: Typography.minimum(28)
+                                implicitHeight: Typography.minimum(28)
                                 focusPolicy: Qt.StrongFocus
                                 text: entryItem.expanded ? "\u2212" : "+"
                                 Accessible.role: Accessible.Button
@@ -330,7 +334,7 @@ Button {
                                     text: moreButton.text
                                     color: helpPopup.textColor
                                     font.bold: true
-                                    font.pixelSize: 16
+                                    font.pixelSize: Typography.size16
                                     horizontalAlignment: Text.AlignHCenter
                                     verticalAlignment: Text.AlignVCenter
                                 }
@@ -343,6 +347,7 @@ Button {
                             }
                         }
                         Text {
+                            font.pixelSize: Typography.control
                             id: detail
                             objectName: "helpMoreText"
                             Layout.fillWidth: true

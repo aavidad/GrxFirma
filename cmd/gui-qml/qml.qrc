@@ -6,6 +6,9 @@
 <RCC>
   <qresource prefix="/">
     <file>qml/main.qml</file>
+    <file>qml/qmldir</file>
+    <file>qml/Typography.qml</file>
+    <file>qml/ModalLayer.qml</file>
     <file>qml/SealDrawArea.qml</file>
     <file>qml/SealDrawGeometry.js</file>
     <file>qml/ThemedDialog.qml</file>
@@ -18,6 +21,7 @@
     <file>qml/ThemedSwitch.qml</file>
     <file>qml/AccessibleLabel.js</file>
     <file>qml/AdaptiveRow.qml</file>
+    <file>qml/ResponsiveRow.qml</file>
     <file>qml/SigningWarningsBox.qml</file>
     <file>qml/ThemedTextField.qml</file>
     <file>qml/ThemedTextArea.qml</file>

@@ -10,6 +10,7 @@ import "AccessibleLabel.js" as AccessibleLabel
 // Botón de opción con el texto del tema, ajuste de línea y foco visible
 // (mismo criterio de contraste que ThemedCheckBox).
 RadioButton {
+    font.pixelSize: Typography.control
     id: control
     property string accessibleLabel: ""
     Accessible.name: AccessibleLabel.name(control, text, accessibleLabel)

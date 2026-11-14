@@ -43,6 +43,8 @@ Item {
                 spacing: 4
 
                 Text {
+
+                    font.pixelSize: Typography.control
                     Layout.fillWidth: true
                     text: timeline.emptyTitle
                     textFormat: Text.PlainText
@@ -52,6 +54,8 @@ Item {
                 }
 
                 Text {
+
+                    font.pixelSize: Typography.control
                     Layout.fillWidth: true
                     text: timeline.emptyMessage
                     textFormat: Text.PlainText
@@ -94,7 +98,7 @@ Item {
                             textFormat: Text.PlainText
                             color: timeline.theme.cardColor
                             font.bold: true
-                            font.pixelSize: 17
+                            font.pixelSize: Typography.size17
                             Accessible.ignored: true
                         }
                     }
@@ -128,6 +132,8 @@ Item {
                             spacing: 8
 
                             Text {
+
+                                font.pixelSize: Typography.control
                                 Layout.fillWidth: true
                                 text: modelData.label || ""
                                 textFormat: Text.PlainText
@@ -137,6 +143,8 @@ Item {
                             }
 
                             Label {
+
+                                font.pixelSize: Typography.control
                                 textFormat: Text.PlainText
                                 text: modelData.statusText || ""
                                 color: timeline.theme.textColor || "#ffffff"
@@ -162,11 +170,13 @@ Item {
                             text: modelData.ownerText || ""
                             textFormat: Text.PlainText
                             color: timeline.theme.secondaryTextColor || "#d3d8e0"
-                            font.pixelSize: 11
+                            font.pixelSize: Typography.size11
                             wrapMode: Text.WordWrap
                         }
 
                         Text {
+
+                            font.pixelSize: Typography.control
                             Layout.fillWidth: true
                             visible: String(modelData.message || "") !== ""
                             text: modelData.message || ""
@@ -176,6 +186,8 @@ Item {
                         }
 
                         Text {
+
+                            font.pixelSize: Typography.control
                             Layout.fillWidth: true
                             visible: String(modelData.actionText || "") !== ""
                             text: modelData.actionText || ""

@@ -2399,104 +2399,104 @@
   "Último documento": "Letztes Dokument",
   "Último estado visible: %1": "Letzter sichtbarer Status: %1",
   "• ": "• ",
-  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ Der erkannte REST-Server ist aktiv, wurde aber nicht von diesem Fenster gestartet. Stoppen Sie ihn über den Infobereich oder in der Instanz, die ihn gestartet hat.",
-  "ℹ️ ": "ℹ️ ",
-  "ℹ️ Chequeo exhaustivo de certificados completado.": "ℹ️ Umfassende Zertifikatsprüfung abgeschlossen.",
-  "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "ℹ️ Der Diagnosebericht wurde in die Zwischenablage kopiert.",
-  "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "ℹ️ Keine native Zertifikatsverwaltung gefunden (seahorse/kleopatra).",
-  "↶ Rotar Firma": "↶ Signatur drehen",
-  "↺  Valores por defecto": "↺ Standardwerte",
-  "↻ Actualizar estado": "↻ Status aktualisieren",
-  "↻ Rotar Documento": "↻ Dokument drehen",
-  "⌛ Firmando...": "⌛ Wird signiert...",
-  "⌛ Verificando...": "⌛ Überprüfen...",
-  "⏳  Sellado de Tiempo (TSA)": "⏳ Zeitstempel (TSA)",
-  "▶ Ver detalles": "▶ Details anzeigen",
-  "▼ Ocultar detalles": "▼ Details ausblenden",
-  "● Comprobando estado del servidor...": "● Serverstatus wird geprüft...",
-  "● Estado desconocido (Sin conexión)": "● Unbekannter Status (Keine Verbindung)",
-  "● Servicio activo y corriendo": "● Dienst aktiv und ausgeführt",
-  "● Servicio instalado pero parado": "● Dienst installiert, aber gestoppt",
-  "● Servicio no instalado": "● Dienst nicht installiert",
-  "● Servidor API REST en ejecución": "● REST-API-Server läuft",
-  "● Servidor detenido": "● Server gestoppt",
-  "⚙ Generando reporte de diagnóstico completo...": "⚙ Vollständiger Diagnosebericht wird erstellt...",
-  "⚙ Iniciando diagnóstico TLS (": "⚙ TLS-Diagnose wird gestartet (",
-  "⚙ Iniciando firma IPC para: ": "⚙ IPC-Signatur wird gestartet für: ",
-  "⚙ Iniciando importación de certificado IPC...": "⚙ IPC-Zertifikatsimport wird gestartet...",
-  "⚙ Iniciando instalación de raíces de confianza de AAPP...": "⚙ Installation des lokalen TLS-Vertrauens wird gestartet...",
-  "⚙ Instalando raíces de confianza públicas...": "⚙ Lokales TLS-Vertrauen wird installiert...",
-  "⚙ Obteniendo diagnóstico TLS...": "⚙ TLS-Diagnose wird abgerufen...",
-  "⚙ Preparando firma de: ": "⚙ Signatur wird vorbereitet für: ",
-  "⚙ Realizando chequeo exhaustivo de certificados vía %1...": "⚙ Umfassende Zertifikatsprüfung über %1 wird durchgeführt...",
-  "⚙ Realizando chequeo exhaustivo de certificados...": "⚙ Umfassende Zertifikatsprüfung wird durchgeführt...",
-  "⚙ Vaciando almacén TLS de confianza...": "⚙ TLS-Vertrauensspeicher wird geleert...",
-  "⚙ Verificando firma de: ": "⚙ Signatur wird geprüft für: ",
-  "⚙️  Preferencias Generales": "⚙️ Allgemeine Einstellungen",
-  "⚙️ Modo administrador habilitado.": "⚙️ Administratormodus aktiviert.",
-  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ Von der lokalen IPC-Schnittstelle getrennt (exklusiver REST-Modus oder Motor gestoppt).",
-  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Wichtig: Es wird als Dienst Ihrer Benutzersitzung installiert (nicht als Systemdienst), sodass es Zugriff auf Ihre Zertifikate im persönlichen Speicher hat. Systemdienste können nicht auf Benutzerzertifikate zugreifen.",
-  "⚠️": "⚠️",
-  "⚠️ Conexión IPC cerrada.": "⚠️ IPC-Verbindung geschlossen.",
-  "⚠️ No hay conexión con el motor.": "⚠️ Keine Verbindung zur Engine.",
-  "⚠️ Requisitos faltantes": "⚠️ Fehlende Anforderungen",
-  "✅ Backend Go arrancado (PID ": "✅ Go-Backend gestartet (PID ",
-  "✅ Conexión establecida con el motor de firma.": "✅ Verbindung zur Signatur-Engine hergestellt.",
-  "✅ Firma guardada exitosamente en: ": "✅ Signatur erfolgreich gespeichert unter: ",
-  "✅ Proceso de instalación finalizado.": "✅ Installationsvorgang abgeschlossen.",
+  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "Der erkannte REST-Server ist aktiv, wurde aber nicht von diesem Fenster gestartet. Stoppen Sie ihn über den Infobereich oder in der Instanz, die ihn gestartet hat.",
+  "ℹ️ ": "Hinweis: ",
+  "ℹ️ Chequeo exhaustivo de certificados completado.": "Umfassende Zertifikatsprüfung abgeschlossen.",
+  "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "Der Diagnosebericht wurde in die Zwischenablage kopiert.",
+  "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "Keine native Zertifikatsverwaltung gefunden (seahorse/kleopatra).",
+  "↶ Rotar Firma": "Signatur drehen",
+  "↺  Valores por defecto": "Standardwerte",
+  "↻ Actualizar estado": "Status aktualisieren",
+  "↻ Rotar Documento": "Dokument drehen",
+  "⌛ Firmando...": "Wird signiert...",
+  "⌛ Verificando...": "Überprüfen...",
+  "⏳  Sellado de Tiempo (TSA)": "Zeitstempel (TSA)",
+  "▶ Ver detalles": "Details anzeigen",
+  "▼ Ocultar detalles": "Details ausblenden",
+  "● Comprobando estado del servidor...": "Serverstatus wird geprüft...",
+  "● Estado desconocido (Sin conexión)": "Unbekannter Status (Keine Verbindung)",
+  "● Servicio activo y corriendo": "Dienst aktiv und ausgeführt",
+  "● Servicio instalado pero parado": "Dienst installiert, aber gestoppt",
+  "● Servicio no instalado": "Dienst nicht installiert",
+  "● Servidor API REST en ejecución": "REST-API-Server läuft",
+  "● Servidor detenido": "Server gestoppt",
+  "⚙ Generando reporte de diagnóstico completo...": "Vollständiger Diagnosebericht wird erstellt...",
+  "⚙ Iniciando diagnóstico TLS (": "TLS-Diagnose wird gestartet (",
+  "⚙ Iniciando firma IPC para: ": "IPC-Signatur wird gestartet für: ",
+  "⚙ Iniciando importación de certificado IPC...": "IPC-Zertifikatsimport wird gestartet...",
+  "⚙ Iniciando instalación de raíces de confianza de AAPP...": "Installation des lokalen TLS-Vertrauens wird gestartet...",
+  "⚙ Instalando raíces de confianza públicas...": "Lokales TLS-Vertrauen wird installiert...",
+  "⚙ Obteniendo diagnóstico TLS...": "TLS-Diagnose wird abgerufen...",
+  "⚙ Preparando firma de: ": "Signatur wird vorbereitet für: ",
+  "⚙ Realizando chequeo exhaustivo de certificados vía %1...": "Umfassende Zertifikatsprüfung über %1 wird durchgeführt...",
+  "⚙ Realizando chequeo exhaustivo de certificados...": "Umfassende Zertifikatsprüfung wird durchgeführt...",
+  "⚙ Vaciando almacén TLS de confianza...": "TLS-Vertrauensspeicher wird geleert...",
+  "⚙ Verificando firma de: ": "Signatur wird geprüft für: ",
+  "⚙️  Preferencias Generales": "Allgemeine Einstellungen",
+  "⚙️ Modo administrador habilitado.": "Administratormodus aktiviert.",
+  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "Von der lokalen IPC-Schnittstelle getrennt (exklusiver REST-Modus oder Motor gestoppt).",
+  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Wichtig: Es wird als Dienst Ihrer Benutzersitzung installiert (nicht als Systemdienst), sodass es Zugriff auf Ihre Zertifikate im persönlichen Speicher hat. Systemdienste können nicht auf Benutzerzertifikate zugreifen.",
+  "⚠️": "Warnung",
+  "⚠️ Conexión IPC cerrada.": "IPC-Verbindung geschlossen.",
+  "⚠️ No hay conexión con el motor.": "Keine Verbindung zur Engine.",
+  "⚠️ Requisitos faltantes": "Fehlende Anforderungen",
+  "✅ Backend Go arrancado (PID ": "Go-Backend gestartet (PID ",
+  "✅ Conexión establecida con el motor de firma.": "Verbindung zur Signatur-Engine hergestellt.",
+  "✅ Firma guardada exitosamente en: ": "Signatur erfolgreich gespeichert unter: ",
+  "✅ Proceso de instalación finalizado.": "Installationsvorgang abgeschlossen.",
   "Conectando con el motor de firma del lanzador...": "Verbindung mit der Signatur-Engine des Starters wird hergestellt...",
   "Arrancando el motor de firma de esta ventana...": "Signatur-Engine für dieses Fenster wird gestartet...",
-  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ Für die Verbindung mit der Signatur-Engine gibt es keinen privaten Ordner.",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "Für die Verbindung mit der Signatur-Engine gibt es keinen privaten Ordner.",
   "Error: no se pudo preparar la conexión con el motor de firma": "Fehler: Die Verbindung mit der Signatur-Engine konnte nicht vorbereitet werden",
   "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "Die Verbindung führt nicht zur Signatur-Engine, die GrxFirma gestartet hat, und wurde ohne Datenübertragung getrennt. Schließen Sie GrxFirma und öffnen Sie es erneut.",
   "Error: no se reconoce el motor de firma": "Fehler: Die Signatur-Engine wird nicht erkannt",
-  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ Antwort der Signatur-Engine zu groß; die Verbindung wird getrennt.",
-  "✅ Validar Documento": "✅ Dokument prüfen",
-  "✅ VÁLIDA": "✅ GÜLTIG",
-  "✍ FIRMA DIGITAL": "✍ DIGITALE SIGNATUR",
-  "✍️  Firma por defecto": "✍️  Standardsignatur",
-  "✓ Firma válida": "✓ Gültige Signatur",
-  "✗ Firma inválida": "✗ Ungültige Signatur",
-  "❌ ": "❌ ",
-  "❌ ERROR DEL BACKEND: ": "❌ BACKEND-FEHLER: ",
-  "❌ El fichero no existe: ": "❌ Die Datei existiert nicht: ",
-  "❌ Error de red: ": "❌ Netzwerkfehler: ",
-  "❌ Error en Socket: ": "❌ Socket-Fehler: ",
-  "❌ Error: ": "❌ Fehler: ",
-  "❌ Error: Clave incorrecta.": "❌ Fehler: Falsches Passwort.",
-  "❌ Error: m_socketPath está vacía.": "❌ Fehler: m_socketPath ist leer.",
-  "❌ Lote fallido: %1": "❌ Stapel fehlgeschlagen: %1",
-  "❌ Modo de backend no soportado: ": "❌ Nicht unterstützter Backend-Modus: ",
-  "❌ NO VÁLIDA": "❌ UNGÜLTIG",
-  "❌ No hay conexión IPC activa para firmar.": "❌ Keine aktive IPC-Verbindung zum Signieren.",
-  "❌ No hay conexión IPC activa para verificar.": "❌ Keine aktive IPC-Verbindung zum Prüfen.",
-  "❌ No se encontró grxfirma-gui para iniciar el backend IPC.": "❌ grxfirma-gui zum Starten des IPC-Backends nicht gefunden.",
-  "❌ No se pudo abrir el archivo de certificado.": "❌ Die Zertifikatsdatei konnte nicht geöffnet werden.",
-  "❌ No se pudo abrir el fichero: ": "❌ Die Datei konnte nicht geöffnet werden: ",
-  "❌ No se pudo abrir la URL: ": "❌ Die URL konnte nicht geöffnet werden: ",
-  "❌ No se pudo arrancar GrxFirma: ": "❌ GrxFirma konnte nicht gestartet werden: ",
-  "❌ No se puede instalar: Backend no configurado.": "❌ Installation nicht möglich: Backend nicht konfiguriert.",
-  "❌ No se pudo abrir la carpeta: ": "❌ Ordner konnte nicht geöffnet werden: ",
-  "🌐  Configuración de Proxy": "🌐 Proxy-Einstellungen",
-  "🌐  Servidor API REST Local": "🌐 Lokaler REST-API-Server",
-  "📤 Enviando petición (JSON): ": "📤 Anfrage wird gesendet (JSON): ",
-  "🔄 Solicitando certificados vía %1...": "🔄 Zertifikate werden über %1 angefordert...",
-  "🔌 Intentando conectar a: ": "🔌 Verbindungsversuch zu: ",
-  "🔍 Respuesta de verificación: ": "🔍 Prüfantwort: ",
-  "🔍 Solicitando verificación IPC para: ": "🔍 IPC-Prüfung wird angefordert für: ",
-  "🔑 Clave de Seguridad Requerida": "🔑 Sicherheitsschlüssel erforderlich",
-  "🔑 Configure la clave de acceso para Seguridad y Dominios": "🔑 Richten Sie den Zugangsschlüssel für Sicherheit und Domänen ein",
-  "🔑 Contraseña Requerida": "🔑 Passwort erforderlich",
-  "🔧  Servicio de Usuario al Inicio de Sesión": "🔧 Benutzerservice beim Login",
-  "🗂️  Formato automático por tipo de documento": "🗂️  Automatisches Format nach Dokumenttyp",
-  "🗑": "🗑",
-  "🛑 Deteniendo backend...": "🛑 Backend wird angehalten...",
-  "🛠 Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "🛠 Installation des lokalen TLS-Vertrauens wird gestartet...",
-  "🛡️  Política de firma por defecto": "🛡️  Standard-Signaturrichtlinie",
-  "🛡️ Control de Dominios Permitidos": "🛡️ Kontrolle der zulässigen Domänen",
-  "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "🛡️ Lokales TLS-Vertrauen installieren",
-  "🛡️ Instalar confianza TLS local": "🛡️ Lokales TLS-Vertrauen installieren",
-  "🌐  Navegadores y certificados locales": "🌐  Browser und lokale Zertifikate",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "Antwort der Signatur-Engine zu groß; die Verbindung wird getrennt.",
+  "✅ Validar Documento": "Dokument prüfen",
+  "✅ VÁLIDA": "GÜLTIG",
+  "✍ FIRMA DIGITAL": "DIGITALE SIGNATUR",
+  "✍️  Firma por defecto": "Standardsignatur",
+  "✓ Firma válida": "Gültige Signatur",
+  "✗ Firma inválida": "Ungültige Signatur",
+  "❌ ": "Fehler: ",
+  "❌ ERROR DEL BACKEND: ": "BACKEND-FEHLER: ",
+  "❌ El fichero no existe: ": "Die Datei existiert nicht: ",
+  "❌ Error de red: ": "Netzwerkfehler: ",
+  "❌ Error en Socket: ": "Socket-Fehler: ",
+  "❌ Error: ": "Fehler: ",
+  "❌ Error: Clave incorrecta.": "Fehler: Falsches Passwort.",
+  "❌ Error: m_socketPath está vacía.": "Fehler: m_socketPath ist leer.",
+  "❌ Lote fallido: %1": "Stapel fehlgeschlagen: %1",
+  "❌ Modo de backend no soportado: ": "Nicht unterstützter Backend-Modus: ",
+  "❌ NO VÁLIDA": "UNGÜLTIG",
+  "❌ No hay conexión IPC activa para firmar.": "Keine aktive IPC-Verbindung zum Signieren.",
+  "❌ No hay conexión IPC activa para verificar.": "Keine aktive IPC-Verbindung zum Prüfen.",
+  "❌ No se encontró grxfirma-gui para iniciar el backend IPC.": "grxfirma-gui zum Starten des IPC-Backends nicht gefunden.",
+  "❌ No se pudo abrir el archivo de certificado.": "Die Zertifikatsdatei konnte nicht geöffnet werden.",
+  "❌ No se pudo abrir el fichero: ": "Die Datei konnte nicht geöffnet werden: ",
+  "❌ No se pudo abrir la URL: ": "Die URL konnte nicht geöffnet werden: ",
+  "❌ No se pudo arrancar GrxFirma: ": "GrxFirma konnte nicht gestartet werden: ",
+  "❌ No se puede instalar: Backend no configurado.": "Installation nicht möglich: Backend nicht konfiguriert.",
+  "❌ No se pudo abrir la carpeta: ": "Ordner konnte nicht geöffnet werden: ",
+  "🌐  Configuración de Proxy": "Proxy-Einstellungen",
+  "🌐  Servidor API REST Local": "Lokaler REST-API-Server",
+  "📤 Enviando petición (JSON): ": "Anfrage wird gesendet (JSON): ",
+  "🔄 Solicitando certificados vía %1...": "Zertifikate werden über %1 angefordert...",
+  "🔌 Intentando conectar a: ": "Verbindungsversuch zu: ",
+  "🔍 Respuesta de verificación: ": "Prüfantwort: ",
+  "🔍 Solicitando verificación IPC para: ": "IPC-Prüfung wird angefordert für: ",
+  "🔑 Clave de Seguridad Requerida": "Sicherheitsschlüssel erforderlich",
+  "🔑 Configure la clave de acceso para Seguridad y Dominios": "Richten Sie den Zugangsschlüssel für Sicherheit und Domänen ein",
+  "🔑 Contraseña Requerida": "Passwort erforderlich",
+  "🔧  Servicio de Usuario al Inicio de Sesión": "Benutzerservice beim Login",
+  "🗂️  Formato automático por tipo de documento": "Automatisches Format nach Dokumenttyp",
+  "🗑": "Löschen",
+  "🛑 Deteniendo backend...": "Backend wird angehalten...",
+  "🛠 Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "Installation des lokalen TLS-Vertrauens wird gestartet...",
+  "🛡️  Política de firma por defecto": "Standard-Signaturrichtlinie",
+  "🛡️ Control de Dominios Permitidos": "Kontrolle der zulässigen Domänen",
+  "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "Lokales TLS-Vertrauen installieren",
+  "🛡️ Instalar confianza TLS local": "Lokales TLS-Vertrauen installieren",
+  "🌐  Navegadores y certificados locales": "Browser und lokale Zertifikate",
   "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "Repariert die Integration mit Chrome, Chromium, Edge, Brave und Firefox, einschließlich Snap- oder Flatpak-Profilen, falls vorhanden. Verwenden Sie diese Optionen, wenn eine Website GrxFirma nicht öffnen kann oder der Browser der lokalen Verbindung nicht vertraut.",
   "Reinstalar conectores de navegadores": "Browser-Konnektoren neu installieren",
   "Vuelve a registrar afirma://, Native Messaging y perfiles Firefox detectados. Después reinicia el navegador.": "Registriert afirma://, Native Messaging und erkannte Firefox-Profile erneut. Starten Sie danach den Browser neu.",
@@ -2505,11 +2505,11 @@
   "Diagnóstico TLS": "TLS-Diagnose",
   "Conectores de navegador reinstalados. Reinicia el navegador.": "Browser-Konnektoren neu installiert. Starten Sie den Browser neu.",
   "Error reinstalando conectores de navegador": "Fehler bei der Neuinstallation der Browser-Konnektoren",
-  "❌ No se encontró el instalador de conectores de navegador.": "❌ Das Installationsprogramm für Browser-Konnektoren wurde nicht gefunden.",
+  "❌ No se encontró el instalador de conectores de navegador.": "Das Installationsprogramm für Browser-Konnektoren wurde nicht gefunden.",
   "No se encontraron conectores para reinstalar": "Keine Konnektoren zur Neuinstallation gefunden",
-  "✅ Conectores de navegador reinstalados.": "✅ Browser-Konnektoren neu installiert.",
-  "❌ Error reinstalando conectores de navegador.": "❌ Fehler bei der Neuinstallation der Browser-Konnektoren.",
-  "⚙ Reinstalando conectores de navegador...": "⚙ Browser-Konnektoren werden neu installiert...",
+  "✅ Conectores de navegador reinstalados.": "Browser-Konnektoren neu installiert.",
+  "❌ Error reinstalando conectores de navegador.": "Fehler bei der Neuinstallation der Browser-Konnektoren.",
+  "⚙ Reinstalando conectores de navegador...": "Browser-Konnektoren werden neu installiert...",
   "La reinstalación de conectores desde la app solo está disponible en Linux por ahora.": "Die Neuinstallation der Konnektoren über die App ist derzeit nur unter Linux verfügbar.",
   "Reinstalar conectores": "Konnektoren neu installieren",
   "Reinstalar certificados": "Zertifikate neu installieren",
@@ -3513,7 +3513,7 @@
   ,"Solo consulta": "Nur zur Ansicht"
   ,"Válido para firmar, pero caduca pronto.": "Zum Signieren gültig, läuft aber bald ab."
   ,"Válido y apto para firmar.": "Gültig und zum Signieren geeignet."
-  ,"⚠ No válido": "⚠ Ungültig"
+  ,"⚠ No válido": "Ungültig"
   ,"Solo durante esta sesión": "Nur für diese Sitzung"
   ,"Almacén del sistema": "Systemspeicher"
   ,"NIF / identificador": "NIF / Kennung"
@@ -4092,7 +4092,7 @@
   ,"Operación de firma": "Signaturvorgang"
   ,"Formato de firma": "Signaturformat"
   ,"Seleccione un certificado válido": "Gültiges Zertifikat auswählen"
-  ,"⤢ Ver todos los certificados": "⤢ Alle Zertifikate anzeigen"
+  ,"⤢ Ver todos los certificados": "Alle Zertifikate anzeigen"
   ,"Elija un certificado ya disponible, cargue un archivo solo para esta sesión o impórtelo expresamente en el almacén personal de Windows.": "Wählen Sie ein verfügbares Zertifikat, laden Sie eine Datei nur für diese Sitzung oder importieren Sie sie ausdrücklich in den persönlichen Windows-Zertifikatspeicher."
   ,"Vuelve a consultar los certificados aptos del almacén personal oficial de Windows.": "Fragt geeignete Zertifikate im offiziellen persönlichen Windows-Zertifikatspeicher erneut ab."
   ,"Buscar certificados en Windows": "Zertifikate in Windows suchen"
@@ -5743,7 +5743,7 @@
   ,"winui.certificados.valido_para_firmar_pero_caduca_pronto": "Zum Signieren gültig, läuft aber bald ab."
   ,"winui.certificados.valido_y_apto_para_firmar": "Gültig und zum Signieren geeignet."
   ,"winui.certificados.caduca_en_dia_s_la_fnmt_permite": "Läuft in {days} Tag(en) ab. FNMT erlaubt die Erneuerung in den 60 Tagen vor Ablauf, sofern das Zertifikat nicht widerrufen wurde: Installieren Sie den FNMT-Konfigurator, beantragen Sie die Erneuerung mit diesem Zertifikat zur Identifizierung und laden Sie das neue Zertifikat mit dem per E-Mail zugesandten Code herunter. Eine Erneuerung auf diesem Weg ist nur einmal möglich; danach müssen Sie Ihre Identität erneut nachweisen."
-  ,"winui.certificados.no_valido": "⚠ Ungültig"
+  ,"winui.certificados.no_valido": "Ungültig"
   ,"winui.certificados.caduca_pronto": "Läuft bald ab"
   ,"winui.certificados.valido": "Gültig"
   ,"winui.certificados.vence": "Ablauf: {date}"
@@ -6605,7 +6605,7 @@
   ,"winui.verificar.datos_tecnicos_guardados": "Technische Daten gespeichert."
   ,"portal.operation.cancelled_title": "Vorgang abgebrochen"
   ,"portal.operation.cancelled_body": "Sie haben den Vorgang abgebrochen, und die Website weiß Bescheid. Dieses Fenster schließt sich in wenigen Sekunden von selbst."
-  ,"sign.seal.preview_unavailable_heading": "⚠️ PDF-Vorschau nicht verfügbar"
+  ,"sign.seal.preview_unavailable_heading": "PDF-Vorschau nicht verfügbar"
   ,"winui.verificar.informe_guardado_en": "Bericht gespeichert unter {0}."
   ,"winui.verificar.datos_tecnicos_guardados_en": "Technische Daten gespeichert unter {0}."
   ,"winui.proteger.no_se_pudo_guardar_en_destino": "Speichern unter {0} war nicht möglich; das Dokument befindet sich unter {1}."
@@ -6850,4 +6850,93 @@
   ,"winui.l27.assistant.network": "Beim Vorgang beobachtetes Netzwerk"
   ,"winui.l27.assistant.portal": "Portal oder Behördenwebsite"
   ,"winui.l27.assistant.checked": "Lokale Prüfung beendet. Daten ohne bestätigte Antwort bleiben „Nicht geprüft“. Der Bericht behält den ursprünglichen Fehler bei."
+  ,"Rotar Firma": "Signatur drehen"
+  ,"Valores por defecto": "Standardwerte"
+  ,"Rotar Documento": "Dokument drehen"
+  ,"Firmando...": "Wird signiert..."
+  ,"Verificando...": "Überprüfen..."
+  ,"Sellado de Tiempo (TSA)": "Zeitstempel (TSA)"
+  ,"Ver detalles": "Details anzeigen"
+  ,"Comprobando estado del servidor...": "Serverstatus wird geprüft..."
+  ,"Estado desconocido (Sin conexión)": "Unbekannter Status (Keine Verbindung)"
+  ,"Servicio activo y corriendo": "Dienst aktiv und ausgeführt"
+  ,"Servicio instalado pero parado": "Dienst installiert, aber gestoppt"
+  ,"Servicio no instalado": "Dienst nicht installiert"
+  ,"Servidor API REST en ejecución": "REST-API-Server läuft"
+  ,"Servidor detenido": "Server gestoppt"
+  ,"Generando reporte de diagnóstico completo...": "Vollständiger Diagnosebericht wird erstellt..."
+  ,"Iniciando diagnóstico TLS (": "TLS-Diagnose wird gestartet ("
+  ,"Iniciando firma IPC para: ": "IPC-Signatur wird gestartet für: "
+  ,"Iniciando importación de certificado IPC...": "IPC-Zertifikatsimport wird gestartet..."
+  ,"Iniciando instalación de raíces de confianza de AAPP...": "Installation des lokalen TLS-Vertrauens wird gestartet..."
+  ,"Instalando raíces de confianza públicas...": "Lokales TLS-Vertrauen wird installiert..."
+  ,"Obteniendo diagnóstico TLS...": "TLS-Diagnose wird abgerufen..."
+  ,"Preparando firma de: ": "Signatur wird vorbereitet für: "
+  ,"Realizando chequeo exhaustivo de certificados vía %1...": "Umfassende Zertifikatsprüfung über %1 wird durchgeführt..."
+  ,"Realizando chequeo exhaustivo de certificados...": "Umfassende Zertifikatsprüfung wird durchgeführt..."
+  ,"Vaciando almacén TLS de confianza...": "TLS-Vertrauensspeicher wird geleert..."
+  ,"Verificando firma de: ": "Signatur wird geprüft für: "
+  ,"Preferencias Generales": "Allgemeine Einstellungen"
+  ,"Modo administrador habilitado.": "Administratormodus aktiviert."
+  ,"Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "Von der lokalen IPC-Schnittstelle getrennt (exklusiver REST-Modus oder Motor gestoppt)."
+  ,"Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Wichtig: Es wird als Dienst Ihrer Benutzersitzung installiert (nicht als Systemdienst), sodass es Zugriff auf Ihre Zertifikate im persönlichen Speicher hat. Systemdienste können nicht auf Benutzerzertifikate zugreifen."
+  ,"Aviso": "Warnung"
+  ,"Conexión IPC cerrada.": "IPC-Verbindung geschlossen."
+  ,"No hay conexión con el motor.": "Keine Verbindung zur Engine."
+  ,"Requisitos faltantes": "Fehlende Anforderungen"
+  ,"Backend Go arrancado (PID ": "Go-Backend gestartet (PID "
+  ,"Conexión establecida con el motor de firma.": "Verbindung zur Signatur-Engine hergestellt."
+  ,"No hay un directorio privado para la conexión con el motor de firma.": "Für die Verbindung mit der Signatur-Engine gibt es keinen privaten Ordner."
+  ,"Respuesta del motor de firma demasiado grande; se corta la conexión.": "Antwort der Signatur-Engine zu groß; die Verbindung wird getrennt."
+  ,"Proceso de instalación finalizado.": "Installationsvorgang abgeschlossen."
+  ,"VÁLIDA": "GÜLTIG"
+  ,"Firma por defecto": "Standardsignatur"
+  ,"Firma inválida": "Ungültige Signatur"
+  ,"ERROR DEL BACKEND: ": "BACKEND-FEHLER: "
+  ,"El fichero no existe: ": "Die Datei existiert nicht: "
+  ,"Error de red: ": "Netzwerkfehler: "
+  ,"Error en Socket: ": "Socket-Fehler: "
+  ,"Error: Clave incorrecta.": "Fehler: Falsches Passwort."
+  ,"Error: m_socketPath está vacía.": "Fehler: m_socketPath ist leer."
+  ,"Lote fallido: %1": "Stapel fehlgeschlagen: %1"
+  ,"Modo de backend no soportado: ": "Nicht unterstützter Backend-Modus: "
+  ,"NO VÁLIDA": "UNGÜLTIG"
+  ,"No hay conexión IPC activa para firmar.": "Keine aktive IPC-Verbindung zum Signieren."
+  ,"No hay conexión IPC activa para verificar.": "Keine aktive IPC-Verbindung zum Prüfen."
+  ,"No se encontró grxfirma-gui para iniciar el backend IPC.": "grxfirma-gui zum Starten des IPC-Backends nicht gefunden."
+  ,"No se pudo abrir el fichero: ": "Die Datei konnte nicht geöffnet werden: "
+  ,"No se pudo abrir la carpeta: ": "Ordner konnte nicht geöffnet werden: "
+  ,"No se pudo abrir la URL: ": "Die URL konnte nicht geöffnet werden: "
+  ,"No se pudo arrancar GrxFirma: ": "GrxFirma konnte nicht gestartet werden: "
+  ,"No se puede instalar: Backend no configurado.": "Installation nicht möglich: Backend nicht konfiguriert."
+  ,"Configuración de Proxy": "Proxy-Einstellungen"
+  ,"Servidor API REST Local": "Lokaler REST-API-Server"
+  ,"Enviando petición (JSON): ": "Anfrage wird gesendet (JSON): "
+  ,"Solicitando certificados vía %1...": "Zertifikate werden über %1 angefordert..."
+  ,"Intentando conectar a: ": "Verbindungsversuch zu: "
+  ,"Respuesta de verificación: ": "Prüfantwort: "
+  ,"Solicitando verificación IPC para: ": "IPC-Prüfung wird angefordert für: "
+  ,"Clave de Seguridad Requerida": "Sicherheitsschlüssel erforderlich"
+  ,"Configure la clave de acceso para Seguridad y Dominios": "Richten Sie den Zugangsschlüssel für Sicherheit und Domänen ein"
+  ,"Contraseña Requerida": "Passwort erforderlich"
+  ,"Servicio de Usuario al Inicio de Sesión": "Benutzerservice beim Login"
+  ,"Formato automático por tipo de documento": "Automatisches Format nach Dokumenttyp"
+  ,"Eliminar": "Löschen"
+  ,"Deteniendo backend...": "Backend wird angehalten..."
+  ,"Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "Installation des lokalen TLS-Vertrauens wird gestartet..."
+  ,"Política de firma por defecto": "Standard-Signaturrichtlinie"
+  ,"Control de Dominios Permitidos": "Kontrolle der zulässigen Domänen"
+  ,"Instalar Certificados Raíz de Administraciones Públicas": "Lokales TLS-Vertrauen installieren"
+  ,"Navegadores y certificados locales": "Browser und lokale Zertifikate"
+  ,"No se encontró el instalador de conectores de navegador.": "Das Installationsprogramm für Browser-Konnektoren wurde nicht gefunden."
+  ,"Conectores de navegador reinstalados.": "Browser-Konnektoren neu installiert."
+  ,"Error reinstalando conectores de navegador.": "Fehler bei der Neuinstallation der Browser-Konnektoren."
+  ,"Reinstalando conectores de navegador...": "Browser-Konnektoren werden neu installiert..."
+  ,"qt.accessibility.text_size": "Textgröße"
+  ,"qt.accessibility.percent": "%1 %"
+  ,"El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "Der erkannte REST-Server ist aktiv, wurde aber nicht von diesem Fenster gestartet. Stoppen Sie ihn über den Infobereich oder in der Instanz, die ihn gestartet hat."
+  ,"Chequeo exhaustivo de certificados completado.": "Umfassende Zertifikatsprüfung abgeschlossen."
+  ,"El reporte de diagnóstico se ha copiado al portapapeles.": "Der Diagnosebericht wurde in die Zwischenablage kopiert."
+  ,"No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "Keine native Zertifikatsverwaltung gefunden (seahorse/kleopatra)."
+  ,"Información: ": "Hinweis: "
 }

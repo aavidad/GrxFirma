@@ -2399,104 +2399,104 @@
   "Último documento": "最后一个文档",
   "Último estado visible: %1": "最近可见状态：%1",
   "• ": "• ",
-  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ 检测到的 REST 服务器处于活动状态，但不是由此窗口启动的。从托盘或启动它的实例停止它。",
-  "ℹ️ ": "ℹ️ ",
-  "ℹ️ Chequeo exhaustivo de certificados completado.": "ℹ️ 证书全面检查已完成。",
-  "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "ℹ️ 诊断报告已复制到剪贴板。",
-  "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "ℹ️ 未找到原生证书管理器 (seahorse/kleopatra)。",
-  "↶ Rotar Firma": "↶ 旋转签名",
-  "↺  Valores por defecto": "↺ 默认值",
-  "↻ Actualizar estado": "↻ 更新状态",
-  "↻ Rotar Documento": "↻ 旋转文档",
-  "⌛ Firmando...": "⌛ 正在签名...",
-  "⌛ Verificando...": "⌛ 正在检查...",
-  "⏳  Sellado de Tiempo (TSA)": "⏳ 时间戳 (TSA)",
-  "▶ Ver detalles": "▶ 查看详情",
-  "▼ Ocultar detalles": "▼ 隐藏详情",
-  "● Comprobando estado del servidor...": "● 检查服务器状态...",
-  "● Estado desconocido (Sin conexión)": "● 未知状态（无连接）",
-  "● Servicio activo y corriendo": "● 服务已激活并正在运行",
-  "● Servicio instalado pero parado": "● 服务已安装但已停止",
-  "● Servicio no instalado": "● 服务未安装",
-  "● Servidor API REST en ejecución": "● REST API 服务器正在运行",
-  "● Servidor detenido": "● 服务器停止",
-  "⚙ Generando reporte de diagnóstico completo...": "⚙ 正在生成完整诊断报告...",
-  "⚙ Iniciando diagnóstico TLS (": "⚙ 正在开始 TLS 诊断（",
-  "⚙ Iniciando firma IPC para: ": "⚙ 正在开始 IPC 签名： ",
-  "⚙ Iniciando importación de certificado IPC...": "⚙ 正在开始通过 IPC 导入证书...",
-  "⚙ Iniciando instalación de raíces de confianza de AAPP...": "⚙ 正在开始安装本地 TLS 信任...",
-  "⚙ Instalando raíces de confianza públicas...": "⚙ 正在安装本地 TLS 信任...",
-  "⚙ Obteniendo diagnóstico TLS...": "⚙ 正在获取 TLS 诊断...",
-  "⚙ Preparando firma de: ": "⚙ 正在准备签名： ",
-  "⚙ Realizando chequeo exhaustivo de certificados vía %1...": "⚙ 正在通过 %1 对证书进行全面检查...",
-  "⚙ Realizando chequeo exhaustivo de certificados...": "⚙ 正在对证书进行全面检查...",
-  "⚙ Vaciando almacén TLS de confianza...": "⚙ 正在清空 TLS 信任存储...",
-  "⚙ Verificando firma de: ": "⚙ 正在验证签名： ",
-  "⚙️  Preferencias Generales": "⚙️ 一般偏好",
-  "⚙️ Modo administrador habilitado.": "⚙️ 管理员模式已启用。",
-  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ 与本地 IPC 接口断开连接（仅 REST 模式，或引擎已停止）。",
-  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ 重要提示：它作为您的用户会话的服务（而不是系统服务）安装，以便它可以访问您在个人存储中的证书。系统服务无法访问用户证书。",
-  "⚠️": "⚠️",
-  "⚠️ Conexión IPC cerrada.": "⚠️ IPC 连接已关闭。",
-  "⚠️ No hay conexión con el motor.": "⚠️ 与引擎无连接。",
-  "⚠️ Requisitos faltantes": "⚠️ 缺少的要求",
-  "✅ Backend Go arrancado (PID ": "✅ Go 后端已启动（PID ",
-  "✅ Conexión establecida con el motor de firma.": "✅ 已与签名引擎建立连接。",
-  "✅ Firma guardada exitosamente en: ": "✅ 签名已成功保存到： ",
-  "✅ Proceso de instalación finalizado.": "✅ 安装过程已完成。",
+  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "检测到的 REST 服务器处于活动状态，但不是由此窗口启动的。从托盘或启动它的实例停止它。",
+  "ℹ️ ": "信息：",
+  "ℹ️ Chequeo exhaustivo de certificados completado.": "证书全面检查已完成。",
+  "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "诊断报告已复制到剪贴板。",
+  "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "未找到原生证书管理器 (seahorse/kleopatra)。",
+  "↶ Rotar Firma": "旋转签名",
+  "↺  Valores por defecto": "默认值",
+  "↻ Actualizar estado": "更新状态",
+  "↻ Rotar Documento": "旋转文档",
+  "⌛ Firmando...": "正在签名...",
+  "⌛ Verificando...": "正在检查...",
+  "⏳  Sellado de Tiempo (TSA)": "时间戳 (TSA)",
+  "▶ Ver detalles": "查看详情",
+  "▼ Ocultar detalles": "隐藏详情",
+  "● Comprobando estado del servidor...": "检查服务器状态...",
+  "● Estado desconocido (Sin conexión)": "未知状态（无连接）",
+  "● Servicio activo y corriendo": "服务已激活并正在运行",
+  "● Servicio instalado pero parado": "服务已安装但已停止",
+  "● Servicio no instalado": "服务未安装",
+  "● Servidor API REST en ejecución": "REST API 服务器正在运行",
+  "● Servidor detenido": "服务器停止",
+  "⚙ Generando reporte de diagnóstico completo...": "正在生成完整诊断报告...",
+  "⚙ Iniciando diagnóstico TLS (": "正在开始 TLS 诊断（",
+  "⚙ Iniciando firma IPC para: ": "正在开始 IPC 签名： ",
+  "⚙ Iniciando importación de certificado IPC...": "正在开始通过 IPC 导入证书...",
+  "⚙ Iniciando instalación de raíces de confianza de AAPP...": "正在开始安装本地 TLS 信任...",
+  "⚙ Instalando raíces de confianza públicas...": "正在安装本地 TLS 信任...",
+  "⚙ Obteniendo diagnóstico TLS...": "正在获取 TLS 诊断...",
+  "⚙ Preparando firma de: ": "正在准备签名： ",
+  "⚙ Realizando chequeo exhaustivo de certificados vía %1...": "正在通过 %1 对证书进行全面检查...",
+  "⚙ Realizando chequeo exhaustivo de certificados...": "正在对证书进行全面检查...",
+  "⚙ Vaciando almacén TLS de confianza...": "正在清空 TLS 信任存储...",
+  "⚙ Verificando firma de: ": "正在验证签名： ",
+  "⚙️  Preferencias Generales": "一般偏好",
+  "⚙️ Modo administrador habilitado.": "管理员模式已启用。",
+  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "与本地 IPC 接口断开连接（仅 REST 模式，或引擎已停止）。",
+  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "重要提示：它作为您的用户会话的服务（而不是系统服务）安装，以便它可以访问您在个人存储中的证书。系统服务无法访问用户证书。",
+  "⚠️": "提示",
+  "⚠️ Conexión IPC cerrada.": "IPC 连接已关闭。",
+  "⚠️ No hay conexión con el motor.": "与引擎无连接。",
+  "⚠️ Requisitos faltantes": "缺少的要求",
+  "✅ Backend Go arrancado (PID ": "Go 后端已启动（PID ",
+  "✅ Conexión establecida con el motor de firma.": "已与签名引擎建立连接。",
+  "✅ Firma guardada exitosamente en: ": "签名已成功保存到： ",
+  "✅ Proceso de instalación finalizado.": "安装过程已完成。",
   "Conectando con el motor de firma del lanzador...": "正在连接启动器的签名引擎...",
   "Arrancando el motor de firma de esta ventana...": "正在启动此窗口的签名引擎...",
-  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ 没有用于连接签名引擎的私有文件夹。",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "没有用于连接签名引擎的私有文件夹。",
   "Error: no se pudo preparar la conexión con el motor de firma": "错误：无法准备与签名引擎的连接",
   "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "该连接并未指向 GrxFirma 启动的签名引擎，已在未发送任何数据的情况下断开。请关闭 GrxFirma 并重新打开。",
   "Error: no se reconoce el motor de firma": "错误：无法识别签名引擎",
-  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ 签名引擎的响应过大，连接已断开。",
-  "✅ Validar Documento": "✅ 验证文档",
-  "✅ VÁLIDA": "✅ 有效",
-  "✍ FIRMA DIGITAL": "✍ 数字签名",
-  "✍️  Firma por defecto": "✍️  默认签名",
-  "✓ Firma válida": "✓ 签名有效",
-  "✗ Firma inválida": "✗ 签名无效",
-  "❌ ": "❌ ",
-  "❌ ERROR DEL BACKEND: ": "❌ 后端错误：",
-  "❌ El fichero no existe: ": "❌ 文件不存在： ",
-  "❌ Error de red: ": "❌ 网络错误： ",
-  "❌ Error en Socket: ": "❌ 套接字错误： ",
-  "❌ Error: ": "❌ 错误： ",
-  "❌ Error: Clave incorrecta.": "❌ 错误：密码不正确。",
-  "❌ Error: m_socketPath está vacía.": "❌ 错误：m_socketPath 为空。",
-  "❌ Lote fallido: %1": "❌ 批处理失败：%1",
-  "❌ Modo de backend no soportado: ": "❌ 不支持的后端模式： ",
-  "❌ NO VÁLIDA": "❌无效",
-  "❌ No hay conexión IPC activa para firmar.": "❌ 没有可用于签名的活动 IPC 连接。",
-  "❌ No hay conexión IPC activa para verificar.": "❌ 没有可用于验证的活动 IPC 连接。",
-  "❌ No se encontró grxfirma-gui para iniciar el backend IPC.": "❌ 未找到用于启动 IPC 后端的 grxfirma-gui。",
-  "❌ No se pudo abrir el archivo de certificado.": "❌ 无法打开证书文件。",
-  "❌ No se pudo abrir el fichero: ": "❌ 无法打开文件： ",
-  "❌ No se pudo abrir la URL: ": "❌ 无法打开 URL： ",
-  "❌ No se pudo arrancar GrxFirma: ": "❌ 无法启动 GrxFirma： ",
-  "❌ No se puede instalar: Backend no configurado.": "❌ 无法安装：后端未配置。",
-  "❌ No se pudo abrir la carpeta: ": "❌ 无法打开文件夹：",
-  "🌐  Configuración de Proxy": "🌐 代理设置",
-  "🌐  Servidor API REST Local": "🌐 本地 REST API 服务器",
-  "📤 Enviando petición (JSON): ": "📤 正在发送请求 (JSON)： ",
-  "🔄 Solicitando certificados vía %1...": "🔄 正在通过 %1 请求证书...",
-  "🔌 Intentando conectar a: ": "🔌 正在尝试连接到： ",
-  "🔍 Respuesta de verificación: ": "🔍 验证响应： ",
-  "🔍 Solicitando verificación IPC para: ": "🔍 正在请求 IPC 验证： ",
-  "🔑 Clave de Seguridad Requerida": "🔑 需要安全密钥",
-  "🔑 Configure la clave de acceso para Seguridad y Dominios": "🔑 请设置“安全与域名”的访问密钥",
-  "🔑 Contraseña Requerida": "🔑 需要密码",
-  "🔧  Servicio de Usuario al Inicio de Sesión": "🔧 登录时的用户服务",
-  "🗂️  Formato automático por tipo de documento": "🗂️  按文档类型自动选择格式",
-  "🗑": "🗑",
-  "🛑 Deteniendo backend...": "🛑 正在停止后端...",
-  "🛠 Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "🛠 正在开始安装本地 TLS 信任...",
-  "🛡️  Política de firma por defecto": "🛡️  默认签名策略",
-  "🛡️ Control de Dominios Permitidos": "🛡️ 允许域的控制",
-  "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "🛡️ 安装本地 TLS 信任",
-  "🛡️ Instalar confianza TLS local": "🛡️安装本地 TLS 信任",
-  "🌐  Navegadores y certificados locales": "🌐  浏览器和本地证书",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "签名引擎的响应过大，连接已断开。",
+  "✅ Validar Documento": "验证文档",
+  "✅ VÁLIDA": "有效",
+  "✍ FIRMA DIGITAL": "数字签名",
+  "✍️  Firma por defecto": "默认签名",
+  "✓ Firma válida": "签名有效",
+  "✗ Firma inválida": "签名无效",
+  "❌ ": "错误：",
+  "❌ ERROR DEL BACKEND: ": "后端错误：",
+  "❌ El fichero no existe: ": "文件不存在： ",
+  "❌ Error de red: ": "网络错误： ",
+  "❌ Error en Socket: ": "套接字错误： ",
+  "❌ Error: ": "错误： ",
+  "❌ Error: Clave incorrecta.": "错误：密码不正确。",
+  "❌ Error: m_socketPath está vacía.": "错误：m_socketPath 为空。",
+  "❌ Lote fallido: %1": "批处理失败：%1",
+  "❌ Modo de backend no soportado: ": "不支持的后端模式： ",
+  "❌ NO VÁLIDA": "无效",
+  "❌ No hay conexión IPC activa para firmar.": "没有可用于签名的活动 IPC 连接。",
+  "❌ No hay conexión IPC activa para verificar.": "没有可用于验证的活动 IPC 连接。",
+  "❌ No se encontró grxfirma-gui para iniciar el backend IPC.": "未找到用于启动 IPC 后端的 grxfirma-gui。",
+  "❌ No se pudo abrir el archivo de certificado.": "无法打开证书文件。",
+  "❌ No se pudo abrir el fichero: ": "无法打开文件： ",
+  "❌ No se pudo abrir la URL: ": "无法打开 URL： ",
+  "❌ No se pudo arrancar GrxFirma: ": "无法启动 GrxFirma： ",
+  "❌ No se puede instalar: Backend no configurado.": "无法安装：后端未配置。",
+  "❌ No se pudo abrir la carpeta: ": "无法打开文件夹：",
+  "🌐  Configuración de Proxy": "代理设置",
+  "🌐  Servidor API REST Local": "本地 REST API 服务器",
+  "📤 Enviando petición (JSON): ": "正在发送请求 (JSON)： ",
+  "🔄 Solicitando certificados vía %1...": "正在通过 %1 请求证书...",
+  "🔌 Intentando conectar a: ": "正在尝试连接到： ",
+  "🔍 Respuesta de verificación: ": "验证响应： ",
+  "🔍 Solicitando verificación IPC para: ": "正在请求 IPC 验证： ",
+  "🔑 Clave de Seguridad Requerida": "需要安全密钥",
+  "🔑 Configure la clave de acceso para Seguridad y Dominios": "请设置“安全与域名”的访问密钥",
+  "🔑 Contraseña Requerida": "需要密码",
+  "🔧  Servicio de Usuario al Inicio de Sesión": "登录时的用户服务",
+  "🗂️  Formato automático por tipo de documento": "按文档类型自动选择格式",
+  "🗑": "删除",
+  "🛑 Deteniendo backend...": "正在停止后端...",
+  "🛠 Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "正在开始安装本地 TLS 信任...",
+  "🛡️  Política de firma por defecto": "默认签名策略",
+  "🛡️ Control de Dominios Permitidos": "允许域的控制",
+  "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "安装本地 TLS 信任",
+  "🛡️ Instalar confianza TLS local": "安装本地 TLS 信任",
+  "🌐  Navegadores y certificados locales": "浏览器和本地证书",
   "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "修复与 Chrome、Chromium、Edge、Brave 和 Firefox 的集成，存在 Snap 或 Flatpak 配置文件时也会一并处理。如果网页无法打开 GrxFirma，或浏览器不信任本地连接，请使用这些选项。",
   "Reinstalar conectores de navegadores": "重新安装浏览器连接器",
   "Vuelve a registrar afirma://, Native Messaging y perfiles Firefox detectados. Después reinicia el navegador.": "重新注册 afirma://、Native Messaging 以及检测到的 Firefox 配置文件。然后请重启浏览器。",
@@ -2505,11 +2505,11 @@
   "Diagnóstico TLS": "TLS 诊断",
   "Conectores de navegador reinstalados. Reinicia el navegador.": "浏览器连接器已重新安装。请重启浏览器。",
   "Error reinstalando conectores de navegador": "重新安装浏览器连接器时出错",
-  "❌ No se encontró el instalador de conectores de navegador.": "❌ 未找到浏览器连接器安装程序。",
+  "❌ No se encontró el instalador de conectores de navegador.": "未找到浏览器连接器安装程序。",
   "No se encontraron conectores para reinstalar": "未找到可重新安装的连接器",
-  "✅ Conectores de navegador reinstalados.": "✅ 浏览器连接器已重新安装。",
-  "❌ Error reinstalando conectores de navegador.": "❌ 重新安装浏览器连接器时出错。",
-  "⚙ Reinstalando conectores de navegador...": "⚙ 正在重新安装浏览器连接器...",
+  "✅ Conectores de navegador reinstalados.": "浏览器连接器已重新安装。",
+  "❌ Error reinstalando conectores de navegador.": "重新安装浏览器连接器时出错。",
+  "⚙ Reinstalando conectores de navegador...": "正在重新安装浏览器连接器...",
   "La reinstalación de conectores desde la app solo está disponible en Linux por ahora.": "目前只有在 Linux 上才能从应用内重新安装连接器。",
   "Reinstalar conectores": "重新安装连接器",
   "Reinstalar certificados": "重新安装证书",
@@ -3513,7 +3513,7 @@
   ,"Solo consulta": "仅供查看"
   ,"Válido para firmar, pero caduca pronto.": "可用于签名，但即将到期。"
   ,"Válido y apto para firmar.": "有效且适合签名。"
-  ,"⚠ No válido": "⚠ 无效"
+  ,"⚠ No válido": "无效"
   ,"Solo durante esta sesión": "仅限本次会话"
   ,"Almacén del sistema": "系统存储"
   ,"NIF / identificador": "税号 (NIF)／标识符"
@@ -4092,7 +4092,7 @@
   ,"Operación de firma": "签名操作"
   ,"Formato de firma": "签名格式"
   ,"Seleccione un certificado válido": "请选择有效证书"
-  ,"⤢ Ver todos los certificados": "⤢ 查看所有证书"
+  ,"⤢ Ver todos los certificados": "查看所有证书"
   ,"Elija un certificado ya disponible, cargue un archivo solo para esta sesión o impórtelo expresamente en el almacén personal de Windows.": "选择已有证书、仅在本次会话中加载证书文件，或明确将其导入 Windows 个人证书存储区。"
   ,"Vuelve a consultar los certificados aptos del almacén personal oficial de Windows.": "重新查询 Windows 官方个人存储区中适用的证书。"
   ,"Buscar certificados en Windows": "在 Windows 中查找证书"
@@ -5743,7 +5743,7 @@
   ,"winui.certificados.valido_para_firmar_pero_caduca_pronto": "可用于签名，但即将到期。"
   ,"winui.certificados.valido_y_apto_para_firmar": "有效且适合签名。"
   ,"winui.certificados.caduca_en_dia_s_la_fnmt_permite": "将在 {days} 天后到期。如果证书未被吊销，FNMT 允许在到期前 60 天内续期：安装其配置工具，使用此证书验证身份并申请续期，然后使用电子邮件发送的代码下载新证书。此方式只能续期一次；之后必须重新核验身份。"
-  ,"winui.certificados.no_valido": "⚠ 无效"
+  ,"winui.certificados.no_valido": "无效"
   ,"winui.certificados.caduca_pronto": "即将过期"
   ,"winui.certificados.valido": "有效的"
   ,"winui.certificados.vence": "到期时间：{date}"
@@ -6605,7 +6605,7 @@
   ,"winui.verificar.datos_tecnicos_guardados": "技术数据已保存。"
   ,"portal.operation.cancelled_title": "操作已取消"
   ,"portal.operation.cancelled_body": "您已取消操作，网站已知晓。此窗口将在几秒钟后自动关闭。"
-  ,"sign.seal.preview_unavailable_heading": "⚠️ PDF 预览不可用"
+  ,"sign.seal.preview_unavailable_heading": "PDF 预览不可用"
   ,"winui.verificar.informe_guardado_en": "报告已保存到 {0}。"
   ,"winui.verificar.datos_tecnicos_guardados_en": "技术数据已保存到 {0}。"
   ,"winui.proteger.no_se_pudo_guardar_en_destino": "无法保存到 {0}；文档位于 {1}。"
@@ -6850,4 +6850,93 @@
   ,"winui.l27.assistant.network": "操作期间观察到的网络"
   ,"winui.l27.assistant.portal": "门户网站或政务网站"
   ,"winui.l27.assistant.checked": "本地检查已结束。未收到确认答复的数据仍显示为“未检查”。报告保留原始故障信息。"
+  ,"Rotar Firma": "旋转签名"
+  ,"Valores por defecto": "默认值"
+  ,"Rotar Documento": "旋转文档"
+  ,"Firmando...": "正在签名..."
+  ,"Verificando...": "正在检查..."
+  ,"Sellado de Tiempo (TSA)": "时间戳 (TSA)"
+  ,"Ver detalles": "查看详情"
+  ,"Comprobando estado del servidor...": "检查服务器状态..."
+  ,"Estado desconocido (Sin conexión)": "未知状态（无连接）"
+  ,"Servicio activo y corriendo": "服务已激活并正在运行"
+  ,"Servicio instalado pero parado": "服务已安装但已停止"
+  ,"Servicio no instalado": "服务未安装"
+  ,"Servidor API REST en ejecución": "REST API 服务器正在运行"
+  ,"Servidor detenido": "服务器停止"
+  ,"Generando reporte de diagnóstico completo...": "正在生成完整诊断报告..."
+  ,"Iniciando diagnóstico TLS (": "正在开始 TLS 诊断（"
+  ,"Iniciando firma IPC para: ": "正在开始 IPC 签名： "
+  ,"Iniciando importación de certificado IPC...": "正在开始通过 IPC 导入证书..."
+  ,"Iniciando instalación de raíces de confianza de AAPP...": "正在开始安装本地 TLS 信任..."
+  ,"Instalando raíces de confianza públicas...": "正在安装本地 TLS 信任..."
+  ,"Obteniendo diagnóstico TLS...": "正在获取 TLS 诊断..."
+  ,"Preparando firma de: ": "正在准备签名： "
+  ,"Realizando chequeo exhaustivo de certificados vía %1...": "正在通过 %1 对证书进行全面检查..."
+  ,"Realizando chequeo exhaustivo de certificados...": "正在对证书进行全面检查..."
+  ,"Vaciando almacén TLS de confianza...": "正在清空 TLS 信任存储..."
+  ,"Verificando firma de: ": "正在验证签名： "
+  ,"Preferencias Generales": "一般偏好"
+  ,"Modo administrador habilitado.": "管理员模式已启用。"
+  ,"Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "与本地 IPC 接口断开连接（仅 REST 模式，或引擎已停止）。"
+  ,"Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "重要提示：它作为您的用户会话的服务（而不是系统服务）安装，以便它可以访问您在个人存储中的证书。系统服务无法访问用户证书。"
+  ,"Aviso": "提示"
+  ,"Conexión IPC cerrada.": "IPC 连接已关闭。"
+  ,"No hay conexión con el motor.": "与引擎无连接。"
+  ,"Requisitos faltantes": "缺少的要求"
+  ,"Backend Go arrancado (PID ": "Go 后端已启动（PID "
+  ,"Conexión establecida con el motor de firma.": "已与签名引擎建立连接。"
+  ,"No hay un directorio privado para la conexión con el motor de firma.": "没有用于连接签名引擎的私有文件夹。"
+  ,"Respuesta del motor de firma demasiado grande; se corta la conexión.": "签名引擎的响应过大，连接已断开。"
+  ,"Proceso de instalación finalizado.": "安装过程已完成。"
+  ,"VÁLIDA": "有效"
+  ,"Firma por defecto": "默认签名"
+  ,"Firma inválida": "签名无效"
+  ,"ERROR DEL BACKEND: ": "后端错误："
+  ,"El fichero no existe: ": "文件不存在： "
+  ,"Error de red: ": "网络错误： "
+  ,"Error en Socket: ": "套接字错误： "
+  ,"Error: Clave incorrecta.": "错误：密码不正确。"
+  ,"Error: m_socketPath está vacía.": "错误：m_socketPath 为空。"
+  ,"Lote fallido: %1": "批处理失败：%1"
+  ,"Modo de backend no soportado: ": "不支持的后端模式： "
+  ,"NO VÁLIDA": "无效"
+  ,"No hay conexión IPC activa para firmar.": "没有可用于签名的活动 IPC 连接。"
+  ,"No hay conexión IPC activa para verificar.": "没有可用于验证的活动 IPC 连接。"
+  ,"No se encontró grxfirma-gui para iniciar el backend IPC.": "未找到用于启动 IPC 后端的 grxfirma-gui。"
+  ,"No se pudo abrir el fichero: ": "无法打开文件： "
+  ,"No se pudo abrir la carpeta: ": "无法打开文件夹："
+  ,"No se pudo abrir la URL: ": "无法打开 URL： "
+  ,"No se pudo arrancar GrxFirma: ": "无法启动 GrxFirma： "
+  ,"No se puede instalar: Backend no configurado.": "无法安装：后端未配置。"
+  ,"Configuración de Proxy": "代理设置"
+  ,"Servidor API REST Local": "本地 REST API 服务器"
+  ,"Enviando petición (JSON): ": "正在发送请求 (JSON)： "
+  ,"Solicitando certificados vía %1...": "正在通过 %1 请求证书..."
+  ,"Intentando conectar a: ": "正在尝试连接到： "
+  ,"Respuesta de verificación: ": "验证响应： "
+  ,"Solicitando verificación IPC para: ": "正在请求 IPC 验证： "
+  ,"Clave de Seguridad Requerida": "需要安全密钥"
+  ,"Configure la clave de acceso para Seguridad y Dominios": "请设置“安全与域名”的访问密钥"
+  ,"Contraseña Requerida": "需要密码"
+  ,"Servicio de Usuario al Inicio de Sesión": "登录时的用户服务"
+  ,"Formato automático por tipo de documento": "按文档类型自动选择格式"
+  ,"Eliminar": "删除"
+  ,"Deteniendo backend...": "正在停止后端..."
+  ,"Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "正在开始安装本地 TLS 信任..."
+  ,"Política de firma por defecto": "默认签名策略"
+  ,"Control de Dominios Permitidos": "允许域的控制"
+  ,"Instalar Certificados Raíz de Administraciones Públicas": "安装本地 TLS 信任"
+  ,"Navegadores y certificados locales": "浏览器和本地证书"
+  ,"No se encontró el instalador de conectores de navegador.": "未找到浏览器连接器安装程序。"
+  ,"Conectores de navegador reinstalados.": "浏览器连接器已重新安装。"
+  ,"Error reinstalando conectores de navegador.": "重新安装浏览器连接器时出错。"
+  ,"Reinstalando conectores de navegador...": "正在重新安装浏览器连接器..."
+  ,"qt.accessibility.text_size": "文字大小"
+  ,"qt.accessibility.percent": "%1 %"
+  ,"El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "检测到的 REST 服务器处于活动状态，但不是由此窗口启动的。从托盘或启动它的实例停止它。"
+  ,"Chequeo exhaustivo de certificados completado.": "证书全面检查已完成。"
+  ,"El reporte de diagnóstico se ha copiado al portapapeles.": "诊断报告已复制到剪贴板。"
+  ,"No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "未找到原生证书管理器 (seahorse/kleopatra)。"
+  ,"Información: ": "信息："
 }

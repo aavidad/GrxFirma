@@ -910,7 +910,7 @@ void IpcBridge::startBackend(const QString &addr, const QString &token,
     m_socketPath = IpcPeer::newPrivateSocketPath();
     if (m_socketPath.isEmpty() && mode != QStringLiteral("rest")) {
       emit backendLogReceived(it(QStringLiteral(
-          "❌ No hay un directorio privado para la conexión con el motor de firma.")));
+          "No hay un directorio privado para la conexión con el motor de firma.")));
       setStatus(it(QStringLiteral("Error: no se pudo preparar la conexión con el motor de firma")));
       return;
     }
@@ -967,7 +967,7 @@ void IpcBridge::launchBackendProcess() {
   if (m_serverMode == "ipc") {
     if (wrapperBin.isEmpty()) {
       emit backendLogReceived(
-          it(QStringLiteral("❌ No se encontró grxfirma-gui para iniciar el backend IPC.")));
+          it(QStringLiteral("No se encontró grxfirma-gui para iniciar el backend IPC.")));
       setStatus(it(QStringLiteral("Error al arrancar el backend IPC")));
       return;
     }
@@ -998,7 +998,7 @@ void IpcBridge::launchBackendProcess() {
       args << "--rest-cert-fingerprints" << m_fingerprints;
   } else {
     emit backendLogReceived(
-        it(QStringLiteral("❌ Modo de backend no soportado: ")) + m_serverMode);
+        it(QStringLiteral("Modo de backend no soportado: ")) + m_serverMode);
     setStatus(it(QStringLiteral("Modo backend no soportado")));
     return;
   }
@@ -1021,11 +1021,11 @@ void IpcBridge::launchBackendProcess() {
   });
   m_process->start();
   if (!m_process->waitForStarted(3000)) {
-    emit backendLogReceived(it(QStringLiteral("❌ No se pudo arrancar GrxFirma: ")) +
+    emit backendLogReceived(it(QStringLiteral("No se pudo arrancar GrxFirma: ")) +
                             m_process->errorString());
     setStatus(it(QStringLiteral("Error al arrancar el backend")));
   } else {
-    emit backendLogReceived(it(QStringLiteral("✅ Backend Go arrancado (PID ")) +
+    emit backendLogReceived(it(QStringLiteral("Backend Go arrancado (PID ")) +
                             QString::number(m_process->processId()) +
                             ") modo [" + m_serverMode + "]");
     // El servidor IPC corre en este mismo proceso hijo: es el único PID que
@@ -1050,7 +1050,7 @@ void IpcBridge::tryConnect() {
     return;
   }
   if (m_socketPath.isEmpty()) {
-    emit backendLogReceived(it(QStringLiteral("❌ Error: m_socketPath está vacía.")));
+    emit backendLogReceived(it(QStringLiteral("Error: m_socketPath está vacía.")));
     setStatus(it(QStringLiteral("Error: Ruta IPC vacía")));
     return;
   }
@@ -1061,7 +1061,7 @@ void IpcBridge::tryConnect() {
         it(QStringLiteral(", retry=")) + QString::number(m_retryCount) +
         it(QStringLiteral(", deferred=")) + m_deferredAction);
   } else {
-    emit backendLogReceived(it(QStringLiteral("🔌 Intentando conectar a: ")) +
+    emit backendLogReceived(it(QStringLiteral("Intentando conectar a: ")) +
                             m_socketPath +
                             it(QStringLiteral(" [estado=")) +
                             ipcSocketStateName(m_socket->state()) +
@@ -1112,7 +1112,7 @@ void IpcBridge::stopBackend() {
     disconnect(m_process, nullptr, this, nullptr);
   }
   if (m_process && m_process->state() != QProcess::NotRunning) {
-    emit backendLogReceived(it(QStringLiteral("🛑 Deteniendo backend...")));
+    emit backendLogReceived(it(QStringLiteral("Deteniendo backend...")));
     m_process->terminate();
     if (!m_process->waitForFinished(1000)) {
       m_process->kill();
@@ -1256,7 +1256,7 @@ void IpcBridge::flushDeferredRequest() {
     const QString err =
         it(QStringLiteral("No se pudo reenviar la petición IPC: ")) +
         m_socket->errorString();
-    emit backendLogReceived(it(QStringLiteral("❌ ")) + err);
+    emit backendLogReceived(it(QStringLiteral("Error: ")) + err);
     emit backendLogReceived(ipcOriginHint(action, err));
     failActionDueToConnection(action, err);
     return;
@@ -1385,7 +1385,7 @@ void IpcBridge::refreshCertificates() {
   if (modeLabel == "AMBAS")
     modeLabel = "REST+IPC";
   emit backendLogReceived(
-      it(QStringLiteral("🔄 Solicitando certificados vía %1...")).arg(modeLabel));
+      it(QStringLiteral("Solicitando certificados vía %1...")).arg(modeLabel));
 
   if (m_serverMode == "rest") {
     QUrl url = IpcBridgeMakeUrl(m_addr, "/certificates?check=1", m_useTLS);
@@ -1427,7 +1427,7 @@ void IpcBridge::signFileAdvanced(const QString &inputPath,
                                  const QString &outputPath, int certIndex,
                                  const QVariantMap &options) {
   emit backendLogReceived(
-      it(QStringLiteral("⚙ Iniciando firma IPC para: ")) + inputPath);
+      it(QStringLiteral("Iniciando firma IPC para: ")) + inputPath);
   QVariantMap params;
   params["inputPath"] = inputPath;
   params["outputPath"] = outputPath;
@@ -1538,7 +1538,7 @@ void IpcBridge::verifyFile(const QString &inputPath) {
 void IpcBridge::verifyFileWithOriginal(const QString &inputPath,
                                        const QString &originalPath) {
   emit backendLogReceived(
-      it(QStringLiteral("🔍 Solicitando verificación IPC para: ")) +
+      it(QStringLiteral("Solicitando verificación IPC para: ")) +
       inputPath);
   QVariantMap params;
   params["inputPath"] = inputPath;
@@ -1551,7 +1551,7 @@ void IpcBridge::verifyFileWithOriginal(const QString &inputPath,
 void IpcBridge::verifyFileWithReport(const QString &inputPath,
                                      const QString &originalPath) {
   emit backendLogReceived(
-      it(QStringLiteral("🔍 Solicitando verificación IPC para: ")) +
+      it(QStringLiteral("Solicitando verificación IPC para: ")) +
       inputPath);
   QVariantMap params;
   params["inputPath"] = inputPath;
@@ -1962,7 +1962,7 @@ void IpcBridge::rejectConnectedServer() {
   m_deferredAction.clear();
   const QString message = it(QStringLiteral(
       "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo."));
-  emit backendLogReceived(QStringLiteral("❌ ") + message);
+  emit backendLogReceived(it(QStringLiteral("Error: ")) + message);
   setStatus(it(QStringLiteral("Error: no se reconoce el motor de firma")));
   m_socket->abort();
   if (!deferredAction.isEmpty())
@@ -2026,7 +2026,7 @@ void IpcBridge::onReadyRead() {
   if (!m_socket->canReadLine() &&
       m_socket->bytesAvailable() >= IpcPeer::kMaxResponseLineBytes) {
     emit backendLogReceived(it(QStringLiteral(
-        "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.")));
+        "Respuesta del motor de firma demasiado grande; se corta la conexión.")));
     m_socket->abort();
     return;
   }
@@ -2495,7 +2495,7 @@ void IpcBridge::onReadyRead() {
               .arg(ok)
               .arg(fail);
       setStatus(msg);
-      emit backendLogReceived(it(QStringLiteral("ℹ️ ")) + msg);
+      emit backendLogReceived(it(QStringLiteral("")) + msg);
       continue;
     }
 
@@ -2674,7 +2674,7 @@ void IpcBridge::sendRequest(const QString &action, const QVariantMap &params) {
     data.fill('\0');
     QString err = it(QStringLiteral("No se pudo enviar la petición IPC: ")) +
                   m_socket->errorString();
-    emit backendLogReceived(it(QStringLiteral("❌ ")) + err);
+    emit backendLogReceived(it(QStringLiteral("Error: ")) + err);
     if (!queueDeferredRequest(action, params))
       failActionDueToConnection(action, err);
     return;
@@ -2693,7 +2693,7 @@ void IpcBridge::openExternal(const QString &path) {
     return;
   if (path.startsWith("http://") || path.startsWith("https://")) {
     if (!QDesktopServices::openUrl(QUrl(path))) {
-      emit backendLogReceived(it(QStringLiteral("❌ No se pudo abrir la URL: ")) +
+      emit backendLogReceived(it(QStringLiteral("No se pudo abrir la URL: ")) +
                               path);
       setStatus(it(QStringLiteral("No se pudo abrir el recurso solicitado")));
     }
@@ -2706,7 +2706,7 @@ void IpcBridge::openExternal(const QString &path) {
   }
   QFileInfo info(localPath);
   if (!info.exists()) {
-    emit backendLogReceived(it(QStringLiteral("❌ El fichero no existe: ")) +
+    emit backendLogReceived(it(QStringLiteral("El fichero no existe: ")) +
                             localPath);
     setStatus(it(QStringLiteral("El fichero indicado no existe")));
     return;
@@ -2720,7 +2720,7 @@ void IpcBridge::openExternal(const QString &path) {
     if (!dirPath.isEmpty() &&
         QDesktopServices::openUrl(QUrl::fromLocalFile(dirPath)))
       return;
-    emit backendLogReceived(it(QStringLiteral("❌ No se pudo abrir la carpeta: ")) +
+    emit backendLogReceived(it(QStringLiteral("No se pudo abrir la carpeta: ")) +
                             dirPath);
     setStatus(it(QStringLiteral("No se pudo abrir la carpeta del fichero")));
     return;
@@ -2743,7 +2743,7 @@ void IpcBridge::openExternal(const QString &path) {
     return;
 #endif
 
-  emit backendLogReceived(it(QStringLiteral("❌ No se pudo abrir el fichero: ")) +
+  emit backendLogReceived(it(QStringLiteral("No se pudo abrir el fichero: ")) +
                           localPath);
   setStatus(it(QStringLiteral("No se pudo abrir el fichero firmado")));
 }
@@ -2804,7 +2804,7 @@ void IpcBridge::openCertManager() {
   if (!opened) {
     // Fallback: abrir manual o dar guia
     emit backendLogReceived(it(QStringLiteral(
-        "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).")));
+        "No se encontró un gestor de certificados nativo (seahorse/kleopatra).")));
     setStatus(
         it(QStringLiteral("Abra la configuración de certificados de su navegador.")));
     QDesktopServices::openUrl(
@@ -2872,7 +2872,7 @@ void IpcBridge::checkCertificates() {
   if (modeLabel == "AMBAS")
     modeLabel = "REST+IPC";
   emit backendLogReceived(
-      it(QStringLiteral("⚙ Realizando chequeo exhaustivo de certificados vía %1..."))
+      it(QStringLiteral("Realizando chequeo exhaustivo de certificados vía %1..."))
           .arg(modeLabel));
 
   if (m_serverMode == "rest") {
@@ -2914,7 +2914,7 @@ void IpcBridge::checkUpdates() {
 }
 
 void IpcBridge::runTLSDiagnostics() {
-  emit backendLogReceived(it(QStringLiteral("⚙ Iniciando diagnóstico TLS (")) +
+  emit backendLogReceived(it(QStringLiteral("Iniciando diagnóstico TLS (")) +
                           m_serverMode.toUpper() + ")...");
   if (m_serverMode == "rest") {
     QUrl url = IpcBridgeMakeUrl(m_addr, "/tls/trust-status", m_useTLS);
@@ -2965,7 +2965,7 @@ void IpcBridge::reinstallBrowserConnectors() {
     }
   }
   if (helper.isEmpty()) {
-    emit backendLogReceived(it(QStringLiteral("❌ No se encontró el instalador de conectores de navegador.")));
+    emit backendLogReceived(it(QStringLiteral("No se encontró el instalador de conectores de navegador.")));
     setStatus(it(QStringLiteral("No se encontraron conectores para reinstalar")));
     return;
   }
@@ -2997,11 +2997,11 @@ void IpcBridge::reinstallBrowserConnectors() {
             const bool ok = status == QProcess::NormalExit && code == 0;
             setStatus(ok ? it(QStringLiteral("Conectores de navegador reinstalados. Reinicia el navegador."))
                          : it(QStringLiteral("Error reinstalando conectores de navegador")));
-            emit backendLogReceived(ok ? it(QStringLiteral("✅ Conectores de navegador reinstalados."))
-                                       : it(QStringLiteral("❌ Error reinstalando conectores de navegador.")));
+            emit backendLogReceived(ok ? it(QStringLiteral("Conectores de navegador reinstalados."))
+                                       : it(QStringLiteral("Error reinstalando conectores de navegador.")));
             process->deleteLater();
           });
-  emit backendLogReceived(it(QStringLiteral("⚙ Reinstalando conectores de navegador...")));
+  emit backendLogReceived(it(QStringLiteral("Reinstalando conectores de navegador...")));
   process->start(helper);
 #else
   emit backendLogReceived(it(QStringLiteral("La reinstalación de conectores desde la app solo está disponible en Linux por ahora.")));
@@ -3264,7 +3264,7 @@ void IpcBridge::sendSecretRequest(
     const QString err =
         it(QStringLiteral("No se pudo enviar la petición IPC: ")) +
         m_socket->errorString();
-    emit backendLogReceived(it(QStringLiteral("❌ ")) + err);
+    emit backendLogReceived(it(QStringLiteral("Error: ")) + err);
     failActionDueToConnection(action, err);
     return;
   }
@@ -3280,7 +3280,7 @@ void IpcBridge::sendSecretRequest(
 void IpcBridge::importCertificate(const QString &path,
                                   const QString &password) {
   emit backendLogReceived(
-      it(QStringLiteral("⚙ Iniciando importación de certificado IPC...")));
+      it(QStringLiteral("Iniciando importación de certificado IPC...")));
   sendCredentialRequest(QStringLiteral("import_certificate"), path, password,
                         QStringLiteral("p12B64"), QJsonObject());
 }

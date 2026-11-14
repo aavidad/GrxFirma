@@ -68,7 +68,7 @@ global.certificates = [{id:'token', needsUnlock:true, canSign:false, caducado:fa
                        "assert.equal(summary.valid, false);"
                        "assert.equal(summary.details.certificate, 'pendiente de autorización');"
                        "assert.match(summary.message, /todavía no se ha comprobado/);"
-                       "assert.equal(certificateStatusText(certificates[0]), '⚠ No válido');"
+                       "assert.equal(certificateStatusText(certificates[0]), 'No válido');"
                        "assert.equal(certificateStatusReason(certificates[0]), 'Requiere autorización de la tarjeta');")
 
 

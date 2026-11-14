@@ -144,6 +144,7 @@ class TextPlainTextRuntime(unittest.TestCase):
         signers = (QML / "VerificationSigners.js").resolve().as_uri()
         plantilla = (
             "import QtQuick\n"
+            f'import "{QML.resolve().as_uri()}"\n'
             f'import "{signers}" as Signers\n'
             "Item {\n"
             "    id: window\n"
@@ -167,6 +168,7 @@ class TextPlainTextRuntime(unittest.TestCase):
         )
         plantilla = (
             "import QtQuick\nimport QtQuick.Controls\nimport QtQuick.Layouts\n"
+            f'import "{QML.resolve().as_uri()}"\n'
             "Item {\n"
             "    id: panel\n"
             "    width: 400; height: 120\n"

@@ -12,6 +12,7 @@ import "ThemeContrast.js" as Contrast
 // del campo en todos los temas, el foco se ve con un borde de 2 px y, si el
 // campo tiene un error, el borde pasa al color de error.
 TextField {
+    font.pixelSize: Typography.control
     id: control
     // Marca el campo como erróneo (borde de error de 2 px).
     property bool hasError: false

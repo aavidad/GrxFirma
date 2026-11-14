@@ -9,6 +9,7 @@ import "AccessibleLabel.js" as AccessibleLabel
 
 // Interruptor con el texto del tema (paleta de la ventana), ajuste de línea y foco visible.
 Switch {
+    font.pixelSize: Typography.control
     id: control
     // Rótulo para lectores de pantalla cuando el texto visible está fuera
     // del control y no lo precede en la misma fila.

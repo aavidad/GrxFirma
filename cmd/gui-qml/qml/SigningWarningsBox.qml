@@ -34,6 +34,8 @@ Rectangle {
         spacing: 4
 
         Text {
+
+            font.pixelSize: Typography.control
             Layout.fillWidth: true
             textFormat: Text.PlainText
             text: root.heading
@@ -43,7 +45,7 @@ Rectangle {
         }
         Repeater {
             model: root.warnings
-            delegate: Text {
+            delegate: Text { font.pixelSize: Typography.control;
                 Layout.fillWidth: true
                 textFormat: Text.PlainText
                 text: "• " + String(modelData)

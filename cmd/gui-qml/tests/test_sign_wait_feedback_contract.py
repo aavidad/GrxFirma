@@ -33,7 +33,7 @@ class SignWaitFeedbackContractTest(unittest.TestCase):
         self.assertEqual(QML.count('signValidationErrorDialog.heading = tr("sign.seal.preview_unavailable_heading")'), 2)
         dialog = QML.split("id: signValidationErrorDialog", 1)[1].split("ThemedDialog {", 1)[0]
         self.assertIn("onClosed: heading = \"\"", dialog)
-        self.assertIn('tr("⚠️ Requisitos faltantes")', dialog)
+        self.assertIn('tr("Requisitos faltantes")', dialog)
 
 
 if __name__ == "__main__":

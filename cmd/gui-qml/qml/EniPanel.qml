@@ -132,19 +132,19 @@ Item {
     component SectionTitle: Label {
         color: panel.theme.textColor
         font.bold: true
-        font.pixelSize: 18
+        font.pixelSize: Typography.size18
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
         Accessible.role: Accessible.Heading
         Accessible.name: text
     }
-    component FieldLabel: Label {
+    component FieldLabel: Label { font.pixelSize: Typography.control;
         color: panel.theme.textColor
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
     }
     // Ruta elegida o, si no hay, un estado vacío que lo dice.
-    component PathLabel: Label {
+    component PathLabel: Label { font.pixelSize: Typography.control;
         property string path: ""
         property string emptyKey: "paridad.lote3.eni.no_file"
         textFormat: Text.PlainText
@@ -154,7 +154,7 @@ Item {
         Layout.fillWidth: true
         Accessible.name: text
     }
-    component MessageLabel: Label {
+    component MessageLabel: Label { font.pixelSize: Typography.control;
         visible: text !== ""
         color: panel.theme.textColor
         wrapMode: Text.WordWrap
@@ -171,7 +171,7 @@ Item {
         palette.highlight: panel.focusColor
         palette.mid: panel.theme.secondaryTextColor
     }
-    component EniCombo: ComboBox {
+    component EniCombo: ComboBox { font.pixelSize: Typography.control;
         id: eniCombo
         Layout.fillWidth: true
         palette.button: panel.theme.cardColor
@@ -192,7 +192,7 @@ Item {
     }
     ScrollView { id: scroller; anchors.fill: parent; clip: true; contentWidth: availableWidth
         ColumnLayout { width: Math.max(0, scroller.availableWidth - 48); x: 24; spacing: 12
-            Label { text: tr("paridad.lote3.eni.title"); color: panel.theme.textColor; font.pixelSize: 28; font.bold: true; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
+            Label { text: tr("paridad.lote3.eni.title"); color: panel.theme.textColor; font.pixelSize: Typography.size28; font.bold: true; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.role: Accessible.Heading; Accessible.name: text }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 4

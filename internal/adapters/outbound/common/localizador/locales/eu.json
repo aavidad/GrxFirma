@@ -2399,104 +2399,104 @@
   "Último documento": "Azken dokumentua",
   "Último estado visible: %1": "Azken egoera ikusgaia: %1",
   "• ": "• ",
-  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "ℹ Detektaturiko REST zerbitzaria aktibo dago, baina leiho honek ez du abiarazi. Gelditu erretilutik edo hasi zuen instantziatik.",
-  "ℹ️ ": "ℹ️ ",
-  "ℹ️ Chequeo exhaustivo de certificados completado.": "ℹ️ Ziurtagirien azterketa sakona osatu da.",
-  "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "ℹ️ Diagnostiko-txostena arbelera kopiatu da.",
-  "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "ℹ️ Ez da ziurtagirien kudeatzaile natiborik aurkitu (seahorse/kleopatra).",
-  "↶ Rotar Firma": "↶ Biratu sinadura",
-  "↺  Valores por defecto": "↺ Balio lehenetsiak",
-  "↻ Actualizar estado": "↻ Eguneratu egoera",
-  "↻ Rotar Documento": "↻ Biratu dokumentua",
-  "⌛ Firmando...": "⌛ Sinatzen...",
-  "⌛ Verificando...": "⌛ Egiaztatzen...",
-  "⏳  Sellado de Tiempo (TSA)": "⏳ Denbora-zigilatzea (TSA)",
-  "▶ Ver detalles": "▶ Ikusi xehetasunak",
-  "▼ Ocultar detalles": "▼ Ezkutatu xehetasunak",
-  "● Comprobando estado del servidor...": "● Zerbitzariaren egoera egiaztatzen...",
-  "● Estado desconocido (Sin conexión)": "● Egoera ezezaguna (Konexiorik gabe)",
-  "● Servicio activo y corriendo": "● Zerbitzua aktiboa eta martxan",
-  "● Servicio instalado pero parado": "● Zerbitzua instalatuta baina geldituta",
-  "● Servicio no instalado": "● Zerbitzua ez dago instalatuta",
-  "● Servidor API REST en ejecución": "● REST API zerbitzaria martxan",
-  "● Servidor detenido": "● Zerbitzaria gelditu da",
-  "⚙ Generando reporte de diagnóstico completo...": "⚙ Diagnostiko-txosten osoa sortzen...",
-  "⚙ Iniciando diagnóstico TLS (": "⚙ TLS diagnostikoa hasten (",
-  "⚙ Iniciando firma IPC para: ": "⚙ IPC sinadura hasten honetarako: ",
-  "⚙ Iniciando importación de certificado IPC...": "⚙ IPC ziurtagiri-inportazioa hasten...",
-  "⚙ Iniciando instalación de raíces de confianza de AAPP...": "⚙ TLS konfiantza lokalaren instalazioa hasten...",
-  "⚙ Instalando raíces de confianza públicas...": "⚙ TLS konfiantza lokala instalatzen...",
-  "⚙ Obteniendo diagnóstico TLS...": "⚙ TLS diagnostikoa lortzen...",
-  "⚙ Preparando firma de: ": "⚙ Honen sinadura prestatzen: ",
-  "⚙ Realizando chequeo exhaustivo de certificados vía %1...": "⚙ Ziurtagirien azterketa sakona egiten %1 bidez...",
-  "⚙ Realizando chequeo exhaustivo de certificados...": "⚙ Ziurtagirien azterketa sakona egiten...",
-  "⚙ Vaciando almacén TLS de confianza...": "⚙ TLS konfiantza-biltegia husten...",
-  "⚙ Verificando firma de: ": "⚙ Honen sinadura egiaztatzen: ",
-  "⚙️  Preferencias Generales": "⚙️ Hobespen orokorrak",
-  "⚙️ Modo administrador habilitado.": "⚙️ Administratzaile modua gaituta.",
-  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "⚠ Tokiko IPC interfazetik deskonektatuta (REST modu esklusiboa edo motorra geldituta).",
-  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "⚠ Garrantzitsua: zure erabiltzaile-saioko zerbitzu gisa instalatzen da (ez sistemaren zerbitzu gisa), biltegi pertsonaleko zure ziurtagirietarako sarbidea izan dezan. Sistema-zerbitzuek ezin dute erabiltzaile-ziurtagirietara sartu.",
-  "⚠️": "⚠️",
-  "⚠️ Conexión IPC cerrada.": "⚠️ IPC konexioa itxi da.",
-  "⚠️ No hay conexión con el motor.": "⚠️ Ez dago motorrarekin konexiorik.",
-  "⚠️ Requisitos faltantes": "⚠️ Baldintzak falta dira",
-  "✅ Backend Go arrancado (PID ": "✅ Go backend-a abiarazi da (PID ",
-  "✅ Conexión establecida con el motor de firma.": "✅ Konexioa ezarri da sinadura-motorrarekin.",
-  "✅ Firma guardada exitosamente en: ": "✅ Sinadura behar bezala gorde da hemen: ",
-  "✅ Proceso de instalación finalizado.": "✅ Instalazio-prozesua amaitu da.",
+  "ℹ El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "Detektaturiko REST zerbitzaria aktibo dago, baina leiho honek ez du abiarazi. Gelditu erretilutik edo hasi zuen instantziatik.",
+  "ℹ️ ": "Informazioa: ",
+  "ℹ️ Chequeo exhaustivo de certificados completado.": "Ziurtagirien azterketa sakona osatu da.",
+  "ℹ️ El reporte de diagnóstico se ha copiado al portapapeles.": "Diagnostiko-txostena arbelera kopiatu da.",
+  "ℹ️ No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "Ez da ziurtagirien kudeatzaile natiborik aurkitu (seahorse/kleopatra).",
+  "↶ Rotar Firma": "Biratu sinadura",
+  "↺  Valores por defecto": "Balio lehenetsiak",
+  "↻ Actualizar estado": "Eguneratu egoera",
+  "↻ Rotar Documento": "Biratu dokumentua",
+  "⌛ Firmando...": "Sinatzen...",
+  "⌛ Verificando...": "Egiaztatzen...",
+  "⏳  Sellado de Tiempo (TSA)": "Denbora-zigilatzea (TSA)",
+  "▶ Ver detalles": "Ikusi xehetasunak",
+  "▼ Ocultar detalles": "Ezkutatu xehetasunak",
+  "● Comprobando estado del servidor...": "Zerbitzariaren egoera egiaztatzen...",
+  "● Estado desconocido (Sin conexión)": "Egoera ezezaguna (Konexiorik gabe)",
+  "● Servicio activo y corriendo": "Zerbitzua aktiboa eta martxan",
+  "● Servicio instalado pero parado": "Zerbitzua instalatuta baina geldituta",
+  "● Servicio no instalado": "Zerbitzua ez dago instalatuta",
+  "● Servidor API REST en ejecución": "REST API zerbitzaria martxan",
+  "● Servidor detenido": "Zerbitzaria gelditu da",
+  "⚙ Generando reporte de diagnóstico completo...": "Diagnostiko-txosten osoa sortzen...",
+  "⚙ Iniciando diagnóstico TLS (": "TLS diagnostikoa hasten (",
+  "⚙ Iniciando firma IPC para: ": "IPC sinadura hasten honetarako: ",
+  "⚙ Iniciando importación de certificado IPC...": "IPC ziurtagiri-inportazioa hasten...",
+  "⚙ Iniciando instalación de raíces de confianza de AAPP...": "TLS konfiantza lokalaren instalazioa hasten...",
+  "⚙ Instalando raíces de confianza públicas...": "TLS konfiantza lokala instalatzen...",
+  "⚙ Obteniendo diagnóstico TLS...": "TLS diagnostikoa lortzen...",
+  "⚙ Preparando firma de: ": "Honen sinadura prestatzen: ",
+  "⚙ Realizando chequeo exhaustivo de certificados vía %1...": "Ziurtagirien azterketa sakona egiten %1 bidez...",
+  "⚙ Realizando chequeo exhaustivo de certificados...": "Ziurtagirien azterketa sakona egiten...",
+  "⚙ Vaciando almacén TLS de confianza...": "TLS konfiantza-biltegia husten...",
+  "⚙ Verificando firma de: ": "Honen sinadura egiaztatzen: ",
+  "⚙️  Preferencias Generales": "Hobespen orokorrak",
+  "⚙️ Modo administrador habilitado.": "Administratzaile modua gaituta.",
+  "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "Tokiko IPC interfazetik deskonektatuta (REST modu esklusiboa edo motorra geldituta).",
+  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Garrantzitsua: zure erabiltzaile-saioko zerbitzu gisa instalatzen da (ez sistemaren zerbitzu gisa), biltegi pertsonaleko zure ziurtagirietarako sarbidea izan dezan. Sistema-zerbitzuek ezin dute erabiltzaile-ziurtagirietara sartu.",
+  "⚠️": "Oharra",
+  "⚠️ Conexión IPC cerrada.": "IPC konexioa itxi da.",
+  "⚠️ No hay conexión con el motor.": "Ez dago motorrarekin konexiorik.",
+  "⚠️ Requisitos faltantes": "Baldintzak falta dira",
+  "✅ Backend Go arrancado (PID ": "Go backend-a abiarazi da (PID ",
+  "✅ Conexión establecida con el motor de firma.": "Konexioa ezarri da sinadura-motorrarekin.",
+  "✅ Firma guardada exitosamente en: ": "Sinadura behar bezala gorde da hemen: ",
+  "✅ Proceso de instalación finalizado.": "Instalazio-prozesua amaitu da.",
   "Conectando con el motor de firma del lanzador...": "Abiarazlearen sinadura-motorrera konektatzen...",
   "Arrancando el motor de firma de esta ventana...": "Leiho honen sinadura-motorra abiarazten...",
-  "❌ No hay un directorio privado para la conexión con el motor de firma.": "❌ Ez dago karpeta pribaturik sinadura-motorrarekiko konexiorako.",
+  "❌ No hay un directorio privado para la conexión con el motor de firma.": "Ez dago karpeta pribaturik sinadura-motorrarekiko konexiorako.",
   "Error: no se pudo preparar la conexión con el motor de firma": "Errorea: ezin izan da prestatu sinadura-motorrarekiko konexioa",
   "La conexión no lleva al motor de firma que abrió GrxFirma y se ha cortado sin enviar ningún dato. Cierre GrxFirma y vuelva a abrirlo.": "Konexioa ez doa GrxFirmak ireki duen sinadura-motorrera, eta inolako daturik bidali gabe moztu da. Itxi GrxFirma eta ireki berriro.",
   "Error: no se reconoce el motor de firma": "Errorea: ez da sinadura-motorra ezagutzen",
-  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "❌ Sinadura-motorraren erantzuna handiegia da; konexioa mozten da.",
-  "✅ Validar Documento": "✅ Balioztatu dokumentua",
-  "✅ VÁLIDA": "✅ BALIOZKOA",
-  "✍ FIRMA DIGITAL": "✍ SINADURA DIGITALA",
-  "✍️  Firma por defecto": "✍️  Sinadura lehenetsia",
-  "✓ Firma válida": "✓ Baliozko sinadura",
-  "✗ Firma inválida": "✗ Baliogabeko sinadura",
-  "❌ ": "❌ ",
-  "❌ ERROR DEL BACKEND: ": "❌ BACKEND ERROREA: ",
-  "❌ El fichero no existe: ": "❌ Fitxategia ez da existitzen: ",
-  "❌ Error de red: ": "❌ Sare-errorea: ",
-  "❌ Error en Socket: ": "❌ Socket errorea: ",
-  "❌ Error: ": "❌ Errorea: ",
-  "❌ Error: Clave incorrecta.": "❌ Errorea: pasahitz okerra.",
-  "❌ Error: m_socketPath está vacía.": "❌ Errorea: m_socketPath hutsik dago.",
-  "❌ Lote fallido: %1": "❌ Sortak huts egin du: %1",
-  "❌ Modo de backend no soportado: ": "❌ Backend modua ez da onartzen: ",
-  "❌ NO VÁLIDA": "❌ EZ DA BALIOZKOA",
-  "❌ No hay conexión IPC activa para firmar.": "❌ Ez dago IPC konexio aktiborik sinatzeko.",
-  "❌ No hay conexión IPC activa para verificar.": "❌ Ez dago IPC konexio aktiborik egiaztatzeko.",
-  "❌ No se encontró grxfirma-gui para iniciar el backend IPC.": "❌ Ez da grxfirma-gui aurkitu IPC backend-a abiarazteko.",
-  "❌ No se pudo abrir el archivo de certificado.": "❌ Ezin izan da ziurtagiri-fitxategia ireki.",
-  "❌ No se pudo abrir el fichero: ": "❌ Ezin izan da fitxategia ireki: ",
-  "❌ No se pudo abrir la URL: ": "❌ Ezin izan da URLa ireki: ",
-  "❌ No se pudo arrancar GrxFirma: ": "❌ Ezin izan da GrxFirma abiarazi: ",
-  "❌ No se puede instalar: Backend no configurado.": "❌ Ezin da instalatu: backend-a konfiguratu gabe.",
-  "❌ No se pudo abrir la carpeta: ": "❌ Ezin izan da karpeta ireki: ",
-  "🌐  Configuración de Proxy": "🌐 Proxy ezarpenak",
-  "🌐  Servidor API REST Local": "🌐 REST API zerbitzari lokala",
-  "📤 Enviando petición (JSON): ": "📤 Eskaera bidaltzen (JSON): ",
-  "🔄 Solicitando certificados vía %1...": "🔄 Ziurtagiriak eskatzen %1 bidez...",
-  "🔌 Intentando conectar a: ": "🔌 Honetara konektatzen saiatzen: ",
-  "🔍 Respuesta de verificación: ": "🔍 Egiaztapenaren erantzuna: ",
-  "🔍 Solicitando verificación IPC para: ": "🔍 IPC egiaztapena eskatzen honetarako: ",
-  "🔑 Clave de Seguridad Requerida": "🔑 Segurtasun-giltza behar da",
-  "🔑 Configure la clave de acceso para Seguridad y Dominios": "🔑 Konfiguratu Segurtasuna eta Domeinuak atzitzeko gakoa",
-  "🔑 Contraseña Requerida": "🔑 Pasahitza beharrezkoa da",
-  "🔧  Servicio de Usuario al Inicio de Sesión": "🔧 Erabiltzaile-zerbitzua saioa hastean",
-  "🗂️  Formato automático por tipo de documento": "🗂️  Formatu automatikoa dokumentu motaren arabera",
-  "🗑": "🗑",
-  "🛑 Deteniendo backend...": "🛑 Backend-a gelditzen...",
-  "🛠 Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "🛠 TLS konfiantza lokalaren instalazioa hasten...",
-  "🛡️  Política de firma por defecto": "🛡️  Sinadura-politika lehenetsia",
-  "🛡️ Control de Dominios Permitidos": "🛡️ Baimendutako domeinuen kontrola",
-  "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "🛡️ Instalatu TLS konfiantza lokala",
-  "🛡️ Instalar confianza TLS local": "🛡️ Instalatu tokiko TLS konfiantza",
-  "🌐  Navegadores y certificados locales": "🌐  Nabigatzaileak eta tokiko ziurtagiriak",
+  "❌ Respuesta del motor de firma demasiado grande; se corta la conexión.": "Sinadura-motorraren erantzuna handiegia da; konexioa mozten da.",
+  "✅ Validar Documento": "Balioztatu dokumentua",
+  "✅ VÁLIDA": "BALIOZKOA",
+  "✍ FIRMA DIGITAL": "SINADURA DIGITALA",
+  "✍️  Firma por defecto": "Sinadura lehenetsia",
+  "✓ Firma válida": "Baliozko sinadura",
+  "✗ Firma inválida": "Baliogabeko sinadura",
+  "❌ ": "Errorea: ",
+  "❌ ERROR DEL BACKEND: ": "BACKEND ERROREA: ",
+  "❌ El fichero no existe: ": "Fitxategia ez da existitzen: ",
+  "❌ Error de red: ": "Sare-errorea: ",
+  "❌ Error en Socket: ": "Socket errorea: ",
+  "❌ Error: ": "Errorea: ",
+  "❌ Error: Clave incorrecta.": "Errorea: pasahitz okerra.",
+  "❌ Error: m_socketPath está vacía.": "Errorea: m_socketPath hutsik dago.",
+  "❌ Lote fallido: %1": "Sortak huts egin du: %1",
+  "❌ Modo de backend no soportado: ": "Backend modua ez da onartzen: ",
+  "❌ NO VÁLIDA": "EZ DA BALIOZKOA",
+  "❌ No hay conexión IPC activa para firmar.": "Ez dago IPC konexio aktiborik sinatzeko.",
+  "❌ No hay conexión IPC activa para verificar.": "Ez dago IPC konexio aktiborik egiaztatzeko.",
+  "❌ No se encontró grxfirma-gui para iniciar el backend IPC.": "Ez da grxfirma-gui aurkitu IPC backend-a abiarazteko.",
+  "❌ No se pudo abrir el archivo de certificado.": "Ezin izan da ziurtagiri-fitxategia ireki.",
+  "❌ No se pudo abrir el fichero: ": "Ezin izan da fitxategia ireki: ",
+  "❌ No se pudo abrir la URL: ": "Ezin izan da URLa ireki: ",
+  "❌ No se pudo arrancar GrxFirma: ": "Ezin izan da GrxFirma abiarazi: ",
+  "❌ No se puede instalar: Backend no configurado.": "Ezin da instalatu: backend-a konfiguratu gabe.",
+  "❌ No se pudo abrir la carpeta: ": "Ezin izan da karpeta ireki: ",
+  "🌐  Configuración de Proxy": "Proxy ezarpenak",
+  "🌐  Servidor API REST Local": "REST API zerbitzari lokala",
+  "📤 Enviando petición (JSON): ": "Eskaera bidaltzen (JSON): ",
+  "🔄 Solicitando certificados vía %1...": "Ziurtagiriak eskatzen %1 bidez...",
+  "🔌 Intentando conectar a: ": "Honetara konektatzen saiatzen: ",
+  "🔍 Respuesta de verificación: ": "Egiaztapenaren erantzuna: ",
+  "🔍 Solicitando verificación IPC para: ": "IPC egiaztapena eskatzen honetarako: ",
+  "🔑 Clave de Seguridad Requerida": "Segurtasun-giltza behar da",
+  "🔑 Configure la clave de acceso para Seguridad y Dominios": "Konfiguratu Segurtasuna eta Domeinuak atzitzeko gakoa",
+  "🔑 Contraseña Requerida": "Pasahitza beharrezkoa da",
+  "🔧  Servicio de Usuario al Inicio de Sesión": "Erabiltzaile-zerbitzua saioa hastean",
+  "🗂️  Formato automático por tipo de documento": "Formatu automatikoa dokumentu motaren arabera",
+  "🗑": "Ezabatu",
+  "🛑 Deteniendo backend...": "Backend-a gelditzen...",
+  "🛠 Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "TLS konfiantza lokalaren instalazioa hasten...",
+  "🛡️  Política de firma por defecto": "Sinadura-politika lehenetsia",
+  "🛡️ Control de Dominios Permitidos": "Baimendutako domeinuen kontrola",
+  "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "Instalatu TLS konfiantza lokala",
+  "🛡️ Instalar confianza TLS local": "Instalatu tokiko TLS konfiantza",
+  "🌐  Navegadores y certificados locales": "Nabigatzaileak eta tokiko ziurtagiriak",
   "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "Chrome, Chromium, Edge, Brave eta Firefoxekiko integrazioa konpontzen du, Snap edo Flatpak profilak barne, baldin badaude. Erabili aukera hauek web batek GrxFirma ireki ezin badu edo nabigatzaileak tokiko konexioan konfiantzarik ez badu.",
   "Reinstalar conectores de navegadores": "Berrinstalatu nabigatzaile-konektoreak",
   "Vuelve a registrar afirma://, Native Messaging y perfiles Firefox detectados. Después reinicia el navegador.": "afirma://, Native Messaging eta detektatutako Firefox profilak berriro erregistratzen ditu. Ondoren, berrabiarazi nabigatzailea.",
@@ -2505,11 +2505,11 @@
   "Diagnóstico TLS": "TLS diagnostikoa",
   "Conectores de navegador reinstalados. Reinicia el navegador.": "Nabigatzaile-konektoreak berriro instalatu dira. Berrabiarazi nabigatzailea.",
   "Error reinstalando conectores de navegador": "Errorea nabigatzaile-konektoreak berriro instalatzean",
-  "❌ No se encontró el instalador de conectores de navegador.": "❌ Ez da nabigatzaile-konektoreen instalatzailea aurkitu.",
+  "❌ No se encontró el instalador de conectores de navegador.": "Ez da nabigatzaile-konektoreen instalatzailea aurkitu.",
   "No se encontraron conectores para reinstalar": "Ez da berriro instalatzeko konektorerik aurkitu",
-  "✅ Conectores de navegador reinstalados.": "✅ Nabigatzaile-konektoreak berriro instalatu dira.",
-  "❌ Error reinstalando conectores de navegador.": "❌ Errorea nabigatzaile-konektoreak berriro instalatzean.",
-  "⚙ Reinstalando conectores de navegador...": "⚙ Nabigatzaile-konektoreak berriro instalatzen...",
+  "✅ Conectores de navegador reinstalados.": "Nabigatzaile-konektoreak berriro instalatu dira.",
+  "❌ Error reinstalando conectores de navegador.": "Errorea nabigatzaile-konektoreak berriro instalatzean.",
+  "⚙ Reinstalando conectores de navegador...": "Nabigatzaile-konektoreak berriro instalatzen...",
   "La reinstalación de conectores desde la app solo está disponible en Linux por ahora.": "Aplikaziotik konektoreak berriro instalatzea Linuxen soilik dago erabilgarri oraingoz.",
   "Reinstalar conectores": "Berrinstalatu konektoreak",
   "Reinstalar certificados": "Berrinstalatu ziurtagiriak",
@@ -3383,7 +3383,7 @@
   ,"Abrir diagnóstico detallado": "Ireki diagnostiko xehatua"
   ,"Ver detalle": "Ikusi xehetasunak"
   ,"Diagnóstico en curso": "Diagnostikoa abian da"
-  ,"Cada ✓ o ✕ procede de una respuesta real. «No comprobado» significa que el motor no dispone de evidencia para esa fase.": "✓ edo ✕ bakoitza benetako erantzun batetik dator. «Egiaztatu gabe»k esan nahi du motorrak ez duela fase horretarako frogarik."
+  ,"Cada ✓ o ✕ procede de una respuesta real. «No comprobado» significa que el motor no dispone de evidencia para esa fase.": "edo ✕ bakoitza benetako erantzun batetik dator. «Egiaztatu gabe»k esan nahi du motorrak ez duela fase horretarako frogarik."
   ,"Inspecciona y repara únicamente la CA local inventariada por GrxFirma. Nunca administra certificados personales ni raíces ajenas.": "GrxFirmak inbentariatutako tokiko CA soilik ikuskatzen eta konpontzen du. Ez ditu inoiz ziurtagiri pertsonalak edo beste erro-ziurtagiriak kudeatzen."
   ,"Consulta recuentos y estados saneados, sin exportar rutas ni certificados.": "Kopuruak eta garbitutako egoerak kontsultatzen ditu, bide-izenak edo ziurtagiriak esportatu gabe."
   ,"Solicita confirmación antes de crear la CA local e instalar su confianza para el usuario actual.": "Berrespena eskatzen du tokiko CA sortu eta uneko erabiltzailearentzat konfiantza instalatu aurretik."
@@ -3512,7 +3512,7 @@
   ,"Solo consulta": "Kontsultarako soilik"
   ,"Válido para firmar, pero caduca pronto.": "Sinatzeko balio du, baina laster iraungiko da."
   ,"Válido y apto para firmar.": "Baliozkoa eta sinatzeko egokia."
-  ,"⚠ No válido": "⚠ Baliogabea"
+  ,"⚠ No válido": "Baliogabea"
   ,"Solo durante esta sesión": "Saio honetan soilik"
   ,"Almacén del sistema": "Sistemaren biltegia"
   ,"NIF / identificador": "IFZ / identifikatzailea"
@@ -4091,7 +4091,7 @@
   ,"Operación de firma": "Sinadura-eragiketa"
   ,"Formato de firma": "Sinadura-formatua"
   ,"Seleccione un certificado válido": "Hautatu baliozko ziurtagiri bat"
-  ,"⤢ Ver todos los certificados": "⤢ Ikusi ziurtagiri guztiak"
+  ,"⤢ Ver todos los certificados": "Ikusi ziurtagiri guztiak"
   ,"Elija un certificado ya disponible, cargue un archivo solo para esta sesión o impórtelo expresamente en el almacén personal de Windows.": "Aukeratu eskuragarri dagoen ziurtagiri bat, kargatu fitxategi bat saio honetarako soilik edo inportatu berariaz Windowsen biltegi pertsonalera."
   ,"Vuelve a consultar los certificados aptos del almacén personal oficial de Windows.": "Windowsen biltegi pertsonal ofizialeko ziurtagiri egokiak berriro kontsultatzen ditu."
   ,"Buscar certificados en Windows": "Bilatu ziurtagiriak Windowsen"
@@ -5743,7 +5743,7 @@
   ,"winui.certificados.valido_para_firmar_pero_caduca_pronto": "Sinatzeko balio du, baina laster iraungiko da."
   ,"winui.certificados.valido_y_apto_para_firmar": "Baliozkoa eta sinatzeko egokia."
   ,"winui.certificados.caduca_en_dia_s_la_fnmt_permite": "{days} egun barru iraungiko da. FNMTk iraungi aurreko 60 egunetan berritzeko aukera ematen du, ziurtagiria errebokatuta ez badago: instalatu haren Konfiguratzailea, eskatu berritzea ziurtagiri honekin identifikatuta eta deskargatu berria posta elektronikoz jasoko duzun kodearekin. Horrela behin bakarrik berritu daiteke; ondoren, nortasuna berriro egiaztatu behar da."
-  ,"winui.certificados.no_valido": "⚠ Baliogabea"
+  ,"winui.certificados.no_valido": "Baliogabea"
   ,"winui.certificados.caduca_pronto": "Laster iraungiko da"
   ,"winui.certificados.valido": "Baliozkoa"
   ,"winui.certificados.vence": "Iraungitze-data: {date}"
@@ -6605,7 +6605,7 @@
   ,"winui.verificar.datos_tecnicos_guardados": "Datu teknikoak gorde dira."
   ,"portal.operation.cancelled_title": "Eragiketa bertan behera utzi da"
   ,"portal.operation.cancelled_body": "Eragiketa bertan behera utzi duzu, eta webguneak badaki. Leiho hau bere kabuz itxiko da segundo batzuk barru."
-  ,"sign.seal.preview_unavailable_heading": "⚠️ PDFaren bista ez dago erabilgarri"
+  ,"sign.seal.preview_unavailable_heading": "PDFaren bista ez dago erabilgarri"
   ,"winui.verificar.informe_guardado_en": "Txostena hemen gorde da: {0}."
   ,"winui.verificar.datos_tecnicos_guardados_en": "Datu teknikoak hemen gorde dira: {0}."
   ,"winui.proteger.no_se_pudo_guardar_en_destino": "Ezin izan da hemen gorde: {0}; dokumentua hemen dago: {1}."
@@ -6850,4 +6850,93 @@
   ,"winui.l27.assistant.network": "Eragiketan behatutako sarea"
   ,"winui.l27.assistant.portal": "Ataria edo egoitza elektronikoa"
   ,"winui.l27.assistant.checked": "Tokiko egiaztapena amaitu da. Erantzun berretsirik gabeko datuek «Egiaztatu gabe» jarraitzen dute. Jatorrizko hutsegitea txostenean gordetzen da."
+  ,"Rotar Firma": "Biratu sinadura"
+  ,"Valores por defecto": "Balio lehenetsiak"
+  ,"Rotar Documento": "Biratu dokumentua"
+  ,"Firmando...": "Sinatzen..."
+  ,"Verificando...": "Egiaztatzen..."
+  ,"Sellado de Tiempo (TSA)": "Denbora-zigilatzea (TSA)"
+  ,"Ver detalles": "Ikusi xehetasunak"
+  ,"Comprobando estado del servidor...": "Zerbitzariaren egoera egiaztatzen..."
+  ,"Estado desconocido (Sin conexión)": "Egoera ezezaguna (Konexiorik gabe)"
+  ,"Servicio activo y corriendo": "Zerbitzua aktiboa eta martxan"
+  ,"Servicio instalado pero parado": "Zerbitzua instalatuta baina geldituta"
+  ,"Servicio no instalado": "Zerbitzua ez dago instalatuta"
+  ,"Servidor API REST en ejecución": "REST API zerbitzaria martxan"
+  ,"Servidor detenido": "Zerbitzaria gelditu da"
+  ,"Generando reporte de diagnóstico completo...": "Diagnostiko-txosten osoa sortzen..."
+  ,"Iniciando diagnóstico TLS (": "TLS diagnostikoa hasten ("
+  ,"Iniciando firma IPC para: ": "IPC sinadura hasten honetarako: "
+  ,"Iniciando importación de certificado IPC...": "IPC ziurtagiri-inportazioa hasten..."
+  ,"Iniciando instalación de raíces de confianza de AAPP...": "TLS konfiantza lokalaren instalazioa hasten..."
+  ,"Instalando raíces de confianza públicas...": "TLS konfiantza lokala instalatzen..."
+  ,"Obteniendo diagnóstico TLS...": "TLS diagnostikoa lortzen..."
+  ,"Preparando firma de: ": "Honen sinadura prestatzen: "
+  ,"Realizando chequeo exhaustivo de certificados vía %1...": "Ziurtagirien azterketa sakona egiten %1 bidez..."
+  ,"Realizando chequeo exhaustivo de certificados...": "Ziurtagirien azterketa sakona egiten..."
+  ,"Vaciando almacén TLS de confianza...": "TLS konfiantza-biltegia husten..."
+  ,"Verificando firma de: ": "Honen sinadura egiaztatzen: "
+  ,"Preferencias Generales": "Hobespen orokorrak"
+  ,"Modo administrador habilitado.": "Administratzaile modua gaituta."
+  ,"Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "Tokiko IPC interfazetik deskonektatuta (REST modu esklusiboa edo motorra geldituta)."
+  ,"Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Garrantzitsua: zure erabiltzaile-saioko zerbitzu gisa instalatzen da (ez sistemaren zerbitzu gisa), biltegi pertsonaleko zure ziurtagirietarako sarbidea izan dezan. Sistema-zerbitzuek ezin dute erabiltzaile-ziurtagirietara sartu."
+  ,"Aviso": "Oharra"
+  ,"Conexión IPC cerrada.": "IPC konexioa itxi da."
+  ,"No hay conexión con el motor.": "Ez dago motorrarekin konexiorik."
+  ,"Requisitos faltantes": "Baldintzak falta dira"
+  ,"Backend Go arrancado (PID ": "Go backend-a abiarazi da (PID "
+  ,"Conexión establecida con el motor de firma.": "Konexioa ezarri da sinadura-motorrarekin."
+  ,"No hay un directorio privado para la conexión con el motor de firma.": "Ez dago karpeta pribaturik sinadura-motorrarekiko konexiorako."
+  ,"Respuesta del motor de firma demasiado grande; se corta la conexión.": "Sinadura-motorraren erantzuna handiegia da; konexioa mozten da."
+  ,"Proceso de instalación finalizado.": "Instalazio-prozesua amaitu da."
+  ,"VÁLIDA": "BALIOZKOA"
+  ,"Firma por defecto": "Sinadura lehenetsia"
+  ,"Firma inválida": "Baliogabeko sinadura"
+  ,"ERROR DEL BACKEND: ": "BACKEND ERROREA: "
+  ,"El fichero no existe: ": "Fitxategia ez da existitzen: "
+  ,"Error de red: ": "Sare-errorea: "
+  ,"Error en Socket: ": "Socket errorea: "
+  ,"Error: Clave incorrecta.": "Errorea: pasahitz okerra."
+  ,"Error: m_socketPath está vacía.": "Errorea: m_socketPath hutsik dago."
+  ,"Lote fallido: %1": "Sortak huts egin du: %1"
+  ,"Modo de backend no soportado: ": "Backend modua ez da onartzen: "
+  ,"NO VÁLIDA": "EZ DA BALIOZKOA"
+  ,"No hay conexión IPC activa para firmar.": "Ez dago IPC konexio aktiborik sinatzeko."
+  ,"No hay conexión IPC activa para verificar.": "Ez dago IPC konexio aktiborik egiaztatzeko."
+  ,"No se encontró grxfirma-gui para iniciar el backend IPC.": "Ez da grxfirma-gui aurkitu IPC backend-a abiarazteko."
+  ,"No se pudo abrir el fichero: ": "Ezin izan da fitxategia ireki: "
+  ,"No se pudo abrir la carpeta: ": "Ezin izan da karpeta ireki: "
+  ,"No se pudo abrir la URL: ": "Ezin izan da URLa ireki: "
+  ,"No se pudo arrancar GrxFirma: ": "Ezin izan da GrxFirma abiarazi: "
+  ,"No se puede instalar: Backend no configurado.": "Ezin da instalatu: backend-a konfiguratu gabe."
+  ,"Configuración de Proxy": "Proxy ezarpenak"
+  ,"Servidor API REST Local": "REST API zerbitzari lokala"
+  ,"Enviando petición (JSON): ": "Eskaera bidaltzen (JSON): "
+  ,"Solicitando certificados vía %1...": "Ziurtagiriak eskatzen %1 bidez..."
+  ,"Intentando conectar a: ": "Honetara konektatzen saiatzen: "
+  ,"Respuesta de verificación: ": "Egiaztapenaren erantzuna: "
+  ,"Solicitando verificación IPC para: ": "IPC egiaztapena eskatzen honetarako: "
+  ,"Clave de Seguridad Requerida": "Segurtasun-giltza behar da"
+  ,"Configure la clave de acceso para Seguridad y Dominios": "Konfiguratu Segurtasuna eta Domeinuak atzitzeko gakoa"
+  ,"Contraseña Requerida": "Pasahitza beharrezkoa da"
+  ,"Servicio de Usuario al Inicio de Sesión": "Erabiltzaile-zerbitzua saioa hastean"
+  ,"Formato automático por tipo de documento": "Formatu automatikoa dokumentu motaren arabera"
+  ,"Eliminar": "Ezabatu"
+  ,"Deteniendo backend...": "Backend-a gelditzen..."
+  ,"Iniciando instalación de certificados TSA públicos (Multi-plataforma)...": "TLS konfiantza lokalaren instalazioa hasten..."
+  ,"Política de firma por defecto": "Sinadura-politika lehenetsia"
+  ,"Control de Dominios Permitidos": "Baimendutako domeinuen kontrola"
+  ,"Instalar Certificados Raíz de Administraciones Públicas": "Instalatu TLS konfiantza lokala"
+  ,"Navegadores y certificados locales": "Nabigatzaileak eta tokiko ziurtagiriak"
+  ,"No se encontró el instalador de conectores de navegador.": "Ez da nabigatzaile-konektoreen instalatzailea aurkitu."
+  ,"Conectores de navegador reinstalados.": "Nabigatzaile-konektoreak berriro instalatu dira."
+  ,"Error reinstalando conectores de navegador.": "Errorea nabigatzaile-konektoreak berriro instalatzean."
+  ,"Reinstalando conectores de navegador...": "Nabigatzaile-konektoreak berriro instalatzen..."
+  ,"qt.accessibility.text_size": "Testuaren tamaina"
+  ,"qt.accessibility.percent": "%1 %"
+  ,"El servidor REST detectado está activo, pero no fue iniciado por esta ventana. Deténgalo desde el tray o desde la instancia que lo arrancó.": "Detektaturiko REST zerbitzaria aktibo dago, baina leiho honek ez du abiarazi. Gelditu erretilutik edo hasi zuen instantziatik."
+  ,"Chequeo exhaustivo de certificados completado.": "Ziurtagirien azterketa sakona osatu da."
+  ,"El reporte de diagnóstico se ha copiado al portapapeles.": "Diagnostiko-txostena arbelera kopiatu da."
+  ,"No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "Ez da ziurtagirien kudeatzaile natiborik aurkitu (seahorse/kleopatra)."
+  ,"Información: ": "Informazioa: "
 }

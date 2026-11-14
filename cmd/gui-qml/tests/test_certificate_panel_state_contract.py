@@ -47,10 +47,11 @@ class CertificatePanelStateContract(unittest.TestCase):
         self.assertIn("signCertificatePanelExpanded: !window.signCertificatePanelCollapsed", QML)
         self.assertIn("if (!window.certificateCanSign(certificate))", QML)
         self.assertIn("&& window.selectedCertificateUsable", QML)
-        self.assertIn('return "⚠ " + tr("No válido")', QML)
+        self.assertIn('return tr("No válido")', QML)
         self.assertIn('return tr("Caducado el %1").arg(certificateExpiry(cert))', QML)
         self.assertIn("return Number(window.certificateCanSign(b)) - Number(window.certificateCanSign(a))", QML)
-        self.assertEqual(QML.count("height: Math.max(92, cardContents.implicitHeight + 24)"), 2)
+        self.assertIn("height: Math.max(92, cardContents.implicitHeight + 24)", QML)
+        self.assertIn("height: Math.max(92, protectCardContents.implicitHeight + 24)", QML)
 
     def test_qt_status_palette_reaches_aa_on_every_card_and_sidebar(self) -> None:
         themes = QML.split("property var themes:", 1)[1].split(
@@ -85,7 +86,7 @@ class CertificatePanelStateContract(unittest.TestCase):
         self.assertIn("CertificateSidebar.Visibility = !_certificatePanelExpanded", view)
         self.assertIn("SignCertificatePanelExpanded = _certificatePanelExpanded", view)
         self.assertIn('JsonPropertyName("signCertificatePanelExpanded")', settings)
-        self.assertIn('CardStatusText = !suitable\n                ? "⚠ No válido"', cards)
+        self.assertIn('CardStatusText = !suitable\n                ? "No válido"', cards)
         self.assertIn("VisibleCertificates = visible.OrderBy(item => item.CanSign ? 0 : 1)", cards)
         self.assertIn(".OrderBy(item => item.CanSign ? 0 : 1)", signing)
         self.assertIn("SelectedCertificate?.CanSign == true", signing)

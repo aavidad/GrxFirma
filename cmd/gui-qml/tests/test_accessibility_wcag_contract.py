@@ -47,9 +47,9 @@ def block_end(start: int) -> int:
 
 
 def portal_layer_range() -> range:
-    """Capa del sello del portal: la cubre otra rama y queda fuera."""
+    """Delimita la capa del sello, que tiene sus pruebas de teclado propias."""
     for index, line in enumerate(LINES[:-1]):
-        if line.strip() == "Rectangle {" and LINES[index + 1].strip() == "visible: portalSealMode":
+        if line.strip() == "ModalLayer {" and LINES[index + 1].strip() == "visible: portalSealMode":
             return range(index, block_end(index) + 1)
     raise AssertionError("no se encontró la capa del sello del portal")
 
@@ -126,7 +126,10 @@ class FieldNamesContract(ContractCase):
                     "paridad.lote3.csv.text_optional", "Ciudad", "Provincia",
                     "Código postal", "País", "Identificador de política FacturaE"):
             with self.subTest(key=key):
-                self.assertTrue(re.search(r'Text \{ text: tr\("' + re.escape(key) + r'"\)', MAIN), key)
+                self.assertTrue(any(
+                    direct_property(block, "text") == f'tr("{key}")'
+                    for _line, _kind, block in element_blocks(TEXT_START)
+                ), key)
                 self.assertInMain(f'Accessible.name: tr("{key}")')
 
     def test_outside_the_portal_layer_controls_use_themed_borders(self) -> None:
