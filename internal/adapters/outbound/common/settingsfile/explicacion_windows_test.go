@@ -193,7 +193,7 @@ func TestWindowsElevadoNoEscribeLosAjustesDeOtraPersona(t *testing.T) {
 	err = usersettings.New(dir).Guardar(ctx, map[string]any{"idioma": "es"})
 	exigirExplicacion(t, err, settingsfile.KeyOtherUser)
 	_, err = excepciones.ActivateLocal(excepciones.ForLocalCLI(ctx), dir, excepciones.ActivationRequest{
-		ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion, Origin: excepciones.OriginSettings,
+		ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
 	})
 	exigirExplicacion(t, err, settingsfile.KeyOtherUser)
 
