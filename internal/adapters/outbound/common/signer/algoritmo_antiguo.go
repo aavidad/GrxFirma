@@ -29,7 +29,7 @@ func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result do
 	if len(algoritmos) == 0 {
 		return result
 	}
-	if err := excepciones.Check("sha1_leer", contexts...); err != nil {
+	if err := usarExcepcion("sha1_leer", contexts...); err != nil {
 		result = result.WithPolicyError(err)
 		result.Valid = false
 		result.Coverage = domain.CoberturaNoAcreditada
@@ -62,7 +62,7 @@ func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result do
 // cambiado, y eso no se sabe.
 func anotarAlgoritmoAntiguo(result domain.VerificationResult, algoritmos []string, contexts ...context.Context) domain.VerificationResult {
 	if len(algoritmos) > 0 {
-		if err := excepciones.Check("sha1_leer", contexts...); err != nil {
+		if err := usarExcepcion("sha1_leer", contexts...); err != nil {
 			result = result.WithPolicyError(err)
 			result.Valid = false
 			result.Coverage = domain.CoberturaNoAcreditada
@@ -91,6 +91,18 @@ func anotarAlgoritmoAntiguo(result domain.VerificationResult, algoritmos []strin
 		result.Evidence = append(result.Evidence, domain.VerificationEvidence{Type: domain.EvidenciaAlgoritmoAntiguo, Summary: algoritmo})
 	}
 	return result.Normalize()
+}
+
+// usarExcepcion pide el ajuste de una excepción para usarla. Con el contexto
+// de la operación lo hace como excepciones.Require: si está activa, anota su
+// aviso en el registro de la operación, que las interfaces enseñan en el aviso
+// común, y el registro deduplica las llamadas repetidas de una misma
+// verificación. Sin contexto solo comprueba, como Check.
+func usarExcepcion(id string, contexts ...context.Context) error {
+	if len(contexts) > 0 && contexts[0] != nil {
+		return excepciones.Require(contexts[0], id)
+	}
+	return excepciones.Check(id)
 }
 
 // algoritmosAntiguos recoge lo marcado en un resultado parcial (una firma)
