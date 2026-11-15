@@ -83,6 +83,34 @@ class BlockedVerification(unittest.TestCase):
         self.assertIn("La interfaz y el motor local usan versiones incompatibles.", es)
 
 
+class SettingsRows(unittest.TestCase):
+    def setUp(self):
+        self.code = read(UI / "Views/SettingsPage.UnsafeExceptions.cs")
+
+    def test_rows_are_updated_in_place_and_focus_stays_on_the_row(self):
+        load = block_after(self.code, "private async Task LoadUnsafeExceptionsAsync(")
+        # Solo se rehacen las filas si cambia la lista de casos.
+        clear = load.index("UnsafeRows.Children.Clear()")
+        self.assertIn("SequenceEqual", load[:clear])
+        self.assertIn("UpdateUnsafeRow(", load)
+        self.assertIn("KeepUnsafeFocus(changed)", load)
+        focus = block_after(self.code, "private void KeepUnsafeFocus(")
+        self.assertIn("FocusManager.GetFocusedElement(XamlRoot)", focus)
+        self.assertIn("StartBringIntoView()", focus)
+
+    def test_focused_buttons_are_never_disabled_while_busy(self):
+        # Un botón con el foco que se desactiva lo pierde: así saltaba a «Idioma».
+        self.assertNotRegex(self.code, r"\.Change\.IsEnabled\s*=\s*false")
+        self.assertNotRegex(self.code, r"UnsafeRefresh\.IsEnabled\s*=\s*false")
+        self.assertIn("if (_unsafeBusy) return;", self.code)
+
+    def test_change_is_confirmed_in_the_live_region(self):
+        load = block_after(self.code, "private async Task LoadUnsafeExceptionsAsync(")
+        self.assertIn('Localizer.Format("{0}: {1}", changed.Title.Text, changed.Status.Text)', load)
+        xaml = read(UI / "Views/SettingsPage.xaml")
+        self.assertRegex(xaml, r'x:Name="UnsafeMessage"\s+AutomationProperties.LiveSetting="Polite"')
+
+
 class StaleNotice(unittest.TestCase):
     def test_notice_is_cleared_on_new_operation_and_setting_change(self):
         window = read(UI / "MainWindow.xaml.cs")
