@@ -1202,6 +1202,13 @@ public sealed partial class SignPage : Page
 
     private void OnToggleSealOnPageClick(object sender, RoutedEventArgs args) => ViewModel.ToggleSealOnCurrentPage();
 
+    private bool ResendAfterUnsafeActivation(
+        OperationDiagnostic? diagnostic,
+        CancellationTokenSource cancellation) =>
+        diagnostic is null && ViewModel.TakeUnsafeResend() && _isSubscribed &&
+        ReferenceEquals(_pageCancellation, cancellation) &&
+        !cancellation.IsCancellationRequested;
+
     private async void OnSignClick(
         object sender,
         RoutedEventArgs args)
@@ -1263,6 +1270,13 @@ public sealed partial class SignPage : Page
         finally
         {
             ViewModel.PropertyChanged -= ObserveSignProgress;
+        }
+        // «Activar y continuar» en el aviso de una firma bloqueada: se relanza
+        // la firma desde el principio, otra vez con su confirmación.
+        if (ResendAfterUnsafeActivation(diagnostic, cancellation))
+        {
+            OnSignClick(sender, args);
+            return;
         }
         var completion = ViewModel.CompletedSignPresentationId;
         if (diagnostic is null && completion != Guid.Empty && completion != previousCompletion)
@@ -1524,6 +1538,11 @@ public sealed partial class SignPage : Page
                     ViewModel.BatchProgressText, ViewModel.ValidationMessage);
                 LiveAnnouncer.Announce(BatchLiveProgress);
             }
+        }
+        if (ResendAfterUnsafeActivation(diagnostic, cancellation))
+        {
+            OnSignBatchClick(sender, args);
+            return;
         }
         await ShowDiagnosticIfPresentAsync(diagnostic);
     }

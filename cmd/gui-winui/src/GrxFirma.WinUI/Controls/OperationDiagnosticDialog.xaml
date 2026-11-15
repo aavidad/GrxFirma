@@ -224,6 +224,7 @@
                             TextWrapping="Wrap" />
                     </StackPanel>
                     <TextBox
+                        x:Name="ExpertDetailBox"
                         MinHeight="120"
                         AutomationProperties.Name="Detalle técnico del diagnóstico"
                         FontFamily="Consolas"

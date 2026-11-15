@@ -418,6 +418,32 @@ public sealed class SignPageViewModel
             _ => null,
         };
 
+    private bool _unsafeResendRequested;
+
+    /// <summary>
+    /// Tras activar una excepción en el aviso de una firma bloqueada, la
+    /// página relanza la firma una vez; vuelve a pasar por la confirmación.
+    /// </summary>
+    public bool TakeUnsafeResend()
+    {
+        var requested = _unsafeResendRequested;
+        _unsafeResendRequested = false;
+        return requested;
+    }
+
+    // Un bloqueo de una excepción insegura no es una avería: no abre el
+    // diagnóstico. Si se activó, se pide relanzar; si no, se explica.
+    private bool HandleUnsafeBlock<TData>(IpcCallResult<TData> result)
+    {
+        var outcome = UnsafeBlock.Classify(result);
+        if (outcome == UnsafeBlockOutcome.None) return false;
+        _unsafeResendRequested = outcome == UnsafeBlockOutcome.Resend;
+        ValidationMessage = outcome == UnsafeBlockOutcome.Resend
+            ? string.Empty
+            : Localizer.Text(UnsafeBlock.MessageKey(result.UnsafeException!, Localizer.Has));
+        return true;
+    }
+
     private async Task<bool> ConfirmSignAsync(
         bool required,
         SignConfirmationSummary summary,
@@ -2274,6 +2300,7 @@ public sealed class SignPageViewModel
     public async Task<OperationDiagnostic?> SignBatchAsync(
         CancellationToken cancellationToken = default)
     {
+        _unsafeResendRequested = false;
         var validation = ValidateBeforeBatch(
             out var signatureReason,
             out var signatureLocation,
@@ -2439,6 +2466,11 @@ public sealed class SignPageViewModel
                 operationCancellation.Token);
 
             IsBatchProgressIndeterminate = false;
+            if (HandleUnsafeBlock(result))
+            {
+                MarkBatchNotProcessed(currentPaths, ValidationMessage);
+                return null;
+            }
             if (!result.IsSuccess ||
                 result.Outcome is not ("success" or "partial"))
             {
@@ -2830,6 +2862,7 @@ public sealed class SignPageViewModel
     public async Task<OperationDiagnostic?> SignAsync(
         CancellationToken cancellationToken = default)
     {
+        _unsafeResendRequested = false;
         var validation = ValidateBeforeSign();
         if (validation is not null)
         {
@@ -3039,6 +3072,10 @@ public sealed class SignPageViewModel
                 : await operations.SignAsync(
                     signParameters,
                     operationCancellation.Token);
+            if (HandleUnsafeBlock(result))
+            {
+                return null;
+            }
             if (!result.IsSuccess ||
                 !string.Equals(
                     result.Outcome,

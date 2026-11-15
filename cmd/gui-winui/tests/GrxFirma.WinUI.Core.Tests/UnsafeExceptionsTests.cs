@@ -67,8 +67,32 @@ public sealed class UnsafeExceptionsTests
             var activation = transport.Calls[1].Parameters;
             Assert.IsFalse(activation.TryGetProperty("retryId", out _), action);
             Assert.AreEqual("aviso", activation.GetProperty("origin").GetString(), action);
-            Assert.AreEqual("excepciones.pantalla.reenviar", notice, action);
+            // Lote 39j: la página relanza la firma con su confirmación; no
+            // queda «pulse de nuevo» ni se trata como avería.
+            Assert.IsTrue(result.UnsafeExceptionActivated, action);
+            Assert.IsNull(notice, action);
+            Assert.AreEqual(UnsafeBlockOutcome.Resend, UnsafeBlock.Classify(result), action);
         }
+    }
+
+    // Lote 39j: un bloqueo nunca es una avería. Si no se activó, la página
+    // muestra el motivo del bloqueo; si se activó, relanza la operación.
+    [TestMethod]
+    public async Task Block_IsClassifiedApartFromFailures()
+    {
+        var transport = new Fake();
+        var client = new UnsafeExceptionsClient(transport) { RequestAcceptance = (_, _) => Task.FromResult(false) };
+        var cancelled = await client.SendAsync<object, JsonElement>("sign", new { });
+        Assert.AreEqual(UnsafeBlockOutcome.Blocked, UnsafeBlock.Classify(cancelled));
+        Assert.IsFalse(cancelled.UnsafeExceptionActivated);
+        var failure = cancelled with { UnsafeException = null, ErrorCode = "operation_failed" };
+        Assert.AreEqual(UnsafeBlockOutcome.None, UnsafeBlock.Classify(failure));
+        Assert.AreEqual(UnsafeBlockOutcome.None, UnsafeBlock.Classify(cancelled with { IsSuccess = true }));
+
+        var policy = Item(false, true) with { OrganizationKey = "excepciones.organizacion" };
+        Assert.AreEqual("excepciones.organizacion", UnsafeBlock.MessageKey(policy, _ => true));
+        Assert.AreEqual("excepciones.pantalla.titulo", UnsafeBlock.MessageKey(policy, _ => false));
+        Assert.AreEqual("excepciones.pantalla.titulo", UnsafeBlock.MessageKey(Item() with { OrganizationKey = "excepciones.organizacion" }, _ => true));
     }
 
     // Lote 39f: el recibo distingue Configuración del aviso de un bloqueo.
@@ -128,6 +152,10 @@ public sealed class UnsafeExceptionsTests
         Assert.IsFalse(transport.Calls[1].Parameters.TryGetProperty("retryId", out _));
         Assert.AreEqual("aviso", transport.Calls[1].Parameters.GetProperty("origin").GetString());
         Assert.AreEqual("excepciones.pantalla.reenviar", notice);
+        // Sin reintento, la operación sigue sin hacer: no es una avería.
+        var result = await new UnsafeExceptionsClient(new Fake { RetryId = null }) { RequestAcceptance = (_, _) => Task.FromResult(true) }
+            .SendAsync<object, JsonElement>("protect", new { });
+        Assert.AreEqual(UnsafeBlockOutcome.Resend, UnsafeBlock.Classify(result));
     }
 
     [TestMethod]

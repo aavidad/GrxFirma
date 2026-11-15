@@ -212,6 +212,38 @@ public sealed class OperationDiagnosticMapperTests
             mapped.Steps.Single().Status);
     }
 
+    // Lote 39j: los ajustes sin permiso o de otra cuenta llevan su propio
+    // aviso con la orden entera; no pasan por el filtro de rutas.
+    [TestMethod]
+    public void SettingsAccessCodes_KeepTheWholeCommandOutsideTheRedaction()
+    {
+        const string icacls = "icacls \"%APPDATA%\\GrxFirma\" /grant \"%USERNAME%:(OI)(CI)F\" /T";
+        var catalog = new Dictionary<string, string>
+        {
+            ["error.settings_sin_permiso"] = "No se pueden abrir los ajustes. Ejecute:\n" + icacls,
+            ["error.settings_otro_usuario"] = "La carpeta es de otra cuenta.",
+        };
+        string Text(string key) => catalog.TryGetValue(key, out var value) ? value : key;
+        foreach (var code in new[] { SettingsAccessFailure.NoPermissionCode, "settings_other_user" })
+        {
+            var engine = new OperationDiagnostic
+            {
+                Category = "local_configuration",
+                FailureCode = "SETTINGS_ACCESS",
+                UserMessage = "icacls \"%APPDATA%\\GrxFirma\" /grant",
+            };
+            var mapped = OperationDiagnosticMapper.FromResult(NewResult<object>(
+                false, "failure", code, diagnostic: engine), Text);
+            var expected = SettingsAccessFailure.From(code, Text);
+            Assert.IsNotNull(mapped.SettingsAccess, code);
+            Assert.AreEqual(expected!.Command, mapped.SettingsAccess.Command, code);
+            Assert.AreEqual(expected.Explanation, mapped.UserMessage, code);
+        }
+        Assert.AreEqual(icacls, OperationDiagnosticMapper.FromResult(NewResult<object>(
+            false, "failure", SettingsAccessFailure.NoPermissionCode), Text).SettingsAccess!.Command);
+        Assert.IsNull(OperationDiagnosticMapper.FromResult(NewResult<object>(false, "failure", "operation_failed"), Text).SettingsAccess);
+    }
+
     private static IpcCallResult<TData> NewResult<TData>(
         bool isSuccess,
         string outcome,

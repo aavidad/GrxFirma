@@ -38,12 +38,52 @@ public sealed partial class OperationDiagnosticDialog : ContentDialog
             failedStep?.Label ?? Localizer.Text("report.status.unknown"));
         ContextualNextAction.Text = Localizer.Text(ContextualFailureAssistant.ActionKey(_diagnostic));
         ContextualEvidence.ItemsSource = ContextualFailureAssistant.Rows(_diagnostic);
+        if (diagnostic.SettingsAccess is { } settingsAccess) ShowSettingsAccess(settingsAccess);
         Closed += (_, _) =>
         {
             _closed = true;
             _localCheckCancellation?.Cancel();
             if (_correctFieldRequested) _correctFieldAction?.Invoke();
         };
+    }
+
+    // Ajustes sin permiso o de otra cuenta: no es una avería. Se enseña el
+    // mismo aviso que en Configuración (explicación y orden entera en un campo
+    // de solo lectura que se selecciona y copia), sin informe ni pasos.
+    private void ShowSettingsAccess(SettingsAccessFailure failure)
+    {
+        Title = Localizer.Text("winui.ajustes.no_se_pudo_cargar");
+        PrimaryButtonText = string.Empty;
+        SecondaryButtonText = string.Empty;
+        DefaultButton = ContentDialogButton.Close;
+        var body = new StackPanel { Spacing = 12, MaxWidth = 640 };
+        body.Children.Add(new TextBlock
+        {
+            Text = failure.Explanation,
+            TextWrapping = TextWrapping.Wrap,
+            IsTextSelectionEnabled = true,
+        });
+        if (failure.Command.Length > 0)
+        {
+            var command = new TextBox
+            {
+                Text = failure.Command,
+                IsReadOnly = true,
+                IsSpellCheckEnabled = false,
+                TextWrapping = TextWrapping.Wrap,
+                FontFamily = ExpertDetailBox.FontFamily,
+            };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(command, failure.Command);
+            command.GotFocus += (_, _) => command.SelectAll();
+            body.Children.Add(command);
+        }
+        Content = new ScrollViewer
+        {
+            Content = body,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(this, Title as string ?? string.Empty);
     }
 
     private CancellationTokenSource? _localCheckCancellation;
