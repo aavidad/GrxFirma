@@ -366,6 +366,125 @@ public sealed class IpcClientTests
         Assert.AreEqual("protocol_violation", exception.Code);
     }
 
+    // Contrato del lote 39: el bloqueo de una verificación llega como fallo.
+    private static object? VerifyBlockedAsFailure(string action, string protocol, string requestId, string traceId) => action switch
+    {
+        "verify" => new
+        {
+            protocol, requestId, traceId, action, ok = false, outcome = "failure", phase = "operation",
+            retryable = false, errorCode = "unsafe_exception_blocked", exceptionId = "sha1_leer", activable = true,
+            retryId = "retry-token", acceptanceVersion = "2026-11-15.2", settingKey = "excepciones.sha1_leer.ajuste",
+            riskKey = "excepciones.sha1_leer.riesgo", acceptanceKey = "excepciones.sha1_leer.aceptacion",
+            helpKey = "excepciones.sha1_leer.ayuda",
+        },
+        "unsafe_exceptions_activate" => new
+        {
+            protocol, requestId, traceId, action, ok = true, outcome = "success", phase = "operation",
+            retryable = false, data = new { },
+        },
+        "unsafe_operation_retry" => new
+        {
+            protocol, requestId, traceId, action, ok = true, outcome = "success", phase = "operation",
+            retryable = false, data = new { valid = true, warnings = new[] { "excepciones.sha1_leer.aviso" } },
+        },
+        _ => null,
+    };
+
+    [TestMethod]
+    public async Task VerifyBlockedAsFailure_OpensConsentAndRetriesWithServerToken()
+    {
+        var stream = new ScriptedDuplexStream(respond: VerifyBlockedAsFailure);
+        await using var transport = await NdjsonIpcClient.ConnectAsync(
+            new FakeConnector(stream), new IpcEndpoint(@"\\.\pipe\UNIT_TEST_ONLY", 123));
+        GrxFirma.WinUI.Core.Operations.UnsafeExceptionState? shown = null;
+        var events = new List<string>();
+        var client = new GrxFirma.WinUI.Core.Operations.UnsafeExceptionsClient(transport)
+        {
+            RequestAcceptance = (item, _) => { shown = item; return Task.FromResult(true); },
+            ClearNotice = () => events.Add("clear"),
+            Warnings = keys => events.Add("warn:" + string.Join(",", keys)),
+        };
+
+        var result = await client.SendAsync<object, JsonElement>("verify", new { inputPath = "fixture.csig" });
+
+        Assert.IsTrue(result.IsSuccess);
+        Assert.AreEqual("verify", result.Action);
+        Assert.IsNotNull(shown);
+        Assert.AreEqual("sha1_leer", shown.Id);
+        Assert.IsTrue(shown.OperationPending);
+        Assert.IsTrue(shown.Activable);
+        Assert.AreEqual("excepciones.sha1_leer.aceptacion", shown.AcceptanceKey);
+        CollectionAssert.AreEqual(
+            new[] { "hello", "verify", "unsafe_exceptions_activate", "unsafe_operation_retry" },
+            stream.Actions);
+        CollectionAssert.AreEqual(new[] { "clear", "clear", "warn:excepciones.sha1_leer.aviso" }, events);
+    }
+
+    [TestMethod]
+    public async Task VerifyBlockedAsFailure_CancelKeepsTheBlockAndNeverRetries()
+    {
+        var stream = new ScriptedDuplexStream(respond: VerifyBlockedAsFailure);
+        await using var transport = await NdjsonIpcClient.ConnectAsync(
+            new FakeConnector(stream), new IpcEndpoint(@"\\.\pipe\UNIT_TEST_ONLY", 123));
+        var client = new GrxFirma.WinUI.Core.Operations.UnsafeExceptionsClient(transport)
+        { RequestAcceptance = (_, _) => Task.FromResult(false) };
+
+        var result = await client.SendAsync<object, JsonElement>("verify", new { });
+
+        Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual("unsafe_exception_blocked", result.ErrorCode);
+        Assert.IsNotNull(result.UnsafeException);
+        CollectionAssert.AreEqual(new[] { "hello", "verify" }, stream.Actions);
+    }
+
+    // Lo que veía el recorrido del 15/11 con un motor anterior al lote 39:
+    // ok:true con errorCode. Sigue sin aceptarse, pero ya no es un «respuesta
+    // no válida» mudo: dice que las versiones no casan y el código lo nombra.
+    [TestMethod]
+    public async Task VerifyBlockedAsSuccess_IsRejectedWithUsefulMessageAndCode()
+    {
+        var stream = new ScriptedDuplexStream(respond: (action, protocol, requestId, traceId) => action == "verify"
+            ? new
+            {
+                protocol, requestId, traceId, action, ok = true, outcome = "success", phase = "operation",
+                retryable = false, errorCode = "unsafe_exception_blocked", exceptionId = "sha1_leer",
+                activable = true, retryId = "retry-token", data = new { valid = false },
+            }
+            : null);
+        await using var client = await NdjsonIpcClient.ConnectAsync(
+            new FakeConnector(stream), new IpcEndpoint(@"\\.\pipe\UNIT_TEST_ONLY", 123));
+
+        var exception = await Assert.ThrowsExactlyAsync<IpcClientException>(
+            () => client.SendAsync<object, JsonElement>("verify", new { }));
+
+        Assert.AreEqual("protocol_violation", exception.Code);
+        Assert.AreEqual("SUCCESS_WITH_UNSAFE_EXCEPTION_BLOCKED", exception.Reason);
+        Assert.AreEqual(
+            GrxFirma.WinUI.Core.Localization.CatalogLocalizer.Shared.TranslateVisibleText(
+                "La interfaz y el motor local usan versiones incompatibles."),
+            exception.UserMessage);
+        var diagnostic = GrxFirma.WinUI.Core.Diagnostics.OperationDiagnosticMapper.FromException(exception);
+        Assert.AreEqual("SUCCESS_WITH_UNSAFE_EXCEPTION_BLOCKED", diagnostic.FailureCode);
+        StringAssert.Contains(diagnostic.SuggestedAction, "misma versión");
+    }
+
+    [TestMethod]
+    public void InconsistentEnvelope_NamesWhatDidNotMatch()
+    {
+        Assert.IsNull(NdjsonIpcClient.InconsistencyReason(true, "success", null, "operation"));
+        Assert.IsNull(NdjsonIpcClient.InconsistencyReason(false, "failure", "x", "operation"));
+        Assert.IsNull(NdjsonIpcClient.InconsistencyReason(true, "partial", "x", "operation"));
+        Assert.AreEqual("RESPONSE_UNKNOWN_OUTCOME", NdjsonIpcClient.InconsistencyReason(true, null, null, "operation"));
+        Assert.AreEqual("RESPONSE_UNKNOWN_PHASE", NdjsonIpcClient.InconsistencyReason(true, "success", null, "other"));
+        Assert.AreEqual("RESPONSE_FAILURE_WITHOUT_FAILURE_OUTCOME", NdjsonIpcClient.InconsistencyReason(false, "partial", "x", "operation"));
+        Assert.AreEqual("RESPONSE_OK_WITH_FAILURE_OUTCOME", NdjsonIpcClient.InconsistencyReason(true, "failure", "x", "operation"));
+        Assert.AreEqual("RESPONSE_FAILURE_WITHOUT_ERROR_CODE", NdjsonIpcClient.InconsistencyReason(false, "failure", null, "operation"));
+        Assert.AreEqual("RESPONSE_PARTIAL_WITHOUT_ERROR_CODE", NdjsonIpcClient.InconsistencyReason(true, "partial", null, "operation"));
+        Assert.AreEqual("SUCCESS_WITH_SAFE_FAILURE", NdjsonIpcClient.InconsistencyReason(true, "success", "safe_failure", "operation"));
+        Assert.AreEqual("RESPONSE_SUCCESS_WITH_ERROR_CODE",
+            NdjsonIpcClient.InconsistencyReason(true, "success", new string('a', 60), "operation"));
+    }
+
     [TestMethod]
     public void CorrelationIds_AreAsciiBoundedAndNotRepeated()
     {
@@ -441,6 +560,7 @@ public sealed class IpcClientTests
         private readonly bool _mismatchCorrelationAfterHello;
         private readonly string? _blockAction;
         private readonly string? _closeAction;
+        private readonly Func<string, string, string, string, object?>? _respond;
         private byte[] _response = [];
         private int _responseOffset;
         private bool _blockReads;
@@ -455,8 +575,10 @@ public sealed class IpcClientTests
             string? blockAction = null,
             string? closeAction = null,
             string helloErrorCode = "",
-            string helloPhase = "operation")
+            string helloPhase = "operation",
+            Func<string, string, string, string, object?>? respond = null)
         {
+            _respond = respond;
             _unsafeFailureText = unsafeFailureText;
             _mismatchCorrelation = mismatchCorrelation;
             _helloVersion = helloVersion;
@@ -563,6 +685,13 @@ public sealed class IpcClientTests
             if (string.Equals(action, _closeAction, StringComparison.Ordinal))
             {
                 _response = [];
+                _responseOffset = 0;
+                return;
+            }
+
+            if (_respond?.Invoke(action, protocol, requestId, traceId) is { } scripted)
+            {
+                _response = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(scripted) + "\n");
                 _responseOffset = 0;
                 return;
             }

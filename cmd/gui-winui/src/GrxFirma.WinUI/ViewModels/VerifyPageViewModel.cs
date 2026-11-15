@@ -470,6 +470,19 @@ public sealed class VerifyPageViewModel
                     ReportLanguage = Localizer.Language,
                 },
                 operationCancellation.Token);
+            if (!result.IsSuccess && result.UnsafeException is { } block)
+            {
+                // La puerta de excepciones ya mostró su aviso y la persona
+                // decidió (o lo fija la organización). No es un fallo que
+                // diagnosticar ni una firma inválida: no se evaluó.
+                HasResult = true;
+                ResultSeverity = InfoBarSeverity.Warning;
+                ResultTitle = Localizer.Text("winui.verificar.no_se_pudo_verificar");
+                ResultMessage = !block.Activable && Localizer.Has(block.OrganizationKey)
+                    ? Localizer.Text(block.OrganizationKey)
+                    : Localizer.Text("excepciones.pantalla.titulo");
+                return;
+            }
             if (!result.IsSuccess || result.Outcome != "success")
             {
                 HasResult = true;

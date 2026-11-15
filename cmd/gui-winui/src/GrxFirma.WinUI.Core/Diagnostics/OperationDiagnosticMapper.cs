@@ -275,7 +275,10 @@ public static class OperationDiagnosticMapper
         return new OperationDiagnostic
         {
             Category = owner,
-            FailureCode = NormalizeTechnicalCode(exception.Code),
+            // El motivo concreto (p. ej. SUCCESS_WITH_UNSAFE_EXCEPTION_BLOCKED)
+            // dice a soporte qué forma llegó; si no hay, el código general.
+            FailureCode = NormalizeTechnicalCode(exception.Reason) ??
+                NormalizeTechnicalCode(exception.Code),
             UserMessage = userMessage,
             ExpertMessage = phase switch
             {

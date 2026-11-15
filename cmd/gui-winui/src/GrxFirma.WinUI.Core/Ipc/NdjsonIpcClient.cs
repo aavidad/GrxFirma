@@ -251,16 +251,10 @@ public sealed class NdjsonIpcClient : IIpcClient
             var outcome = NormalizeOutcome(response.Outcome);
             var errorCode = NormalizeCode(response.ErrorCode);
             var phase = NormalizeCode(response.Phase);
-            if (outcome is null ||
-                phase is not ("admission" or "protocol" or "operation") ||
-                (!response.Ok.Value && outcome != "failure") ||
-                (response.Ok.Value && outcome == "failure") ||
-                (!response.Ok.Value && errorCode is null) ||
-                (outcome == "success" && errorCode is not null) ||
-                (outcome == "partial" &&
-                    (!response.Ok.Value || errorCode is null)))
+            var reason = InconsistencyReason(response.Ok.Value, outcome, errorCode, phase);
+            if (reason is not null || outcome is null)
             {
-                throw IpcClientException.Protocol();
+                throw IpcClientException.InconsistentResponse(reason ?? "RESPONSE_UNKNOWN_OUTCOME");
             }
 
             var result = new IpcCallResult<TData>
@@ -465,6 +459,32 @@ public sealed class NdjsonIpcClient : IIpcClient
         {
             // La telemetría opcional nunca puede interrumpir ni alterar IPC.
         }
+    }
+
+    // Mismas reglas que antes, cada una con su motivo. Un bloqueo de una
+    // excepción insegura llega siempre como fallo (ok:false, outcome failure,
+    // errorCode unsafe_exception_blocked); un ok:true con errorCode no se
+    // acepta como éxito ni como bloqueo.
+    internal static string? InconsistencyReason(
+        bool ok,
+        string? outcome,
+        string? errorCode,
+        string? phase)
+    {
+        if (outcome is null) return "RESPONSE_UNKNOWN_OUTCOME";
+        if (phase is not ("admission" or "protocol" or "operation"))
+            return "RESPONSE_UNKNOWN_PHASE";
+        if (!ok && outcome != "failure") return "RESPONSE_FAILURE_WITHOUT_FAILURE_OUTCOME";
+        if (ok && outcome == "failure") return "RESPONSE_OK_WITH_FAILURE_OUTCOME";
+        if (!ok && errorCode is null) return "RESPONSE_FAILURE_WITHOUT_ERROR_CODE";
+        if (outcome == "success" && errorCode is not null)
+        {
+            // El código del motor ya está normalizado (ASCII, 64 como mucho).
+            var specific = "SUCCESS_WITH_" + errorCode.ToUpperInvariant();
+            return specific.Length <= 64 ? specific : "RESPONSE_SUCCESS_WITH_ERROR_CODE";
+        }
+        if (outcome == "partial" && errorCode is null) return "RESPONSE_PARTIAL_WITHOUT_ERROR_CODE";
+        return null;
     }
 
     private static string? NormalizeOutcome(string? outcome) =>

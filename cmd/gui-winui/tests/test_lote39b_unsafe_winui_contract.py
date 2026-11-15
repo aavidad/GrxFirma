@@ -59,6 +59,30 @@ class StartupOnWindows10(unittest.TestCase):
         self.assertIn("ThemeBrushes.RefreshFromSystem()", handler)
 
 
+class BlockedVerification(unittest.TestCase):
+    def test_cancelled_block_is_not_a_failure_to_diagnose(self):
+        model = read(UI / "ViewModels/VerifyPageViewModel.cs")
+        verify = block_after(model, "public async Task VerifyAsync()")
+        block = block_after(verify, "if (!result.IsSuccess && result.UnsafeException is { } block)")
+        self.assertNotIn("RequestDiagnostic", block)
+        self.assertIn("InfoBarSeverity.Warning", block)
+        self.assertLess(verify.index("result.UnsafeException is { } block"),
+                        verify.index("if (!result.IsSuccess || result.Outcome != \"success\")"))
+
+    def test_inconsistent_envelope_explains_itself(self):
+        client = read(CORE / "Ipc/NdjsonIpcClient.cs")
+        self.assertIn("IpcClientException.InconsistentResponse(reason ?? ", client)
+        exception = read(CORE / "Ipc/IpcClientException.cs")
+        factory = exception[exception.index("InconsistentResponse(string reason)"):]
+        factory = factory[:factory.index(";")]
+        self.assertIn("La interfaz y el motor local usan versiones incompatibles.", factory)
+        self.assertIn("reason: reason", factory)
+        mapper = read(CORE / "Diagnostics/OperationDiagnosticMapper.cs")
+        self.assertIn("NormalizeTechnicalCode(exception.Reason)", mapper)
+        es = json.loads(read(LOCALES / "es.json"))
+        self.assertIn("La interfaz y el motor local usan versiones incompatibles.", es)
+
+
 class StaleNotice(unittest.TestCase):
     def test_notice_is_cleared_on_new_operation_and_setting_change(self):
         window = read(UI / "MainWindow.xaml.cs")
