@@ -112,6 +112,13 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                     SafeWindowInsets.fullScreenDialog(dialog.window!!)
                 }
                 cases.forEach { assertNotNull(binding.root.findViewWithTag<android.view.View>("unsafe-case-${it.id}")) }
+                // Lote 39d: una sola acción rellena por caso y el caso activado se distingue a la vista.
+                val change = binding.root.findViewWithTag<com.google.android.material.button.MaterialButton>("unsafe-change-sha1_leer")
+                val help = binding.root.findViewWithTag<com.google.android.material.button.MaterialButton>("unsafe-help-sha1_leer")
+                assertEquals("Más información va como texto", 0, help.strokeWidth)
+                assertNotEquals("Más información no va rellena", change.backgroundTintList?.defaultColor, help.backgroundTintList?.defaultColor)
+                assertNotNull("El caso activado lleva fondo", binding.root.findViewWithTag<View>("unsafe-case-cms_cbc").background)
+                assertNull("Un caso desactivado no lleva fondo", binding.root.findViewWithTag<View>("unsafe-case-sha1_leer").background)
             }
             onView(withTagValue(org.hamcrest.Matchers.`is`("unsafe-change-cms_cbc" as Any))).inRoot(isDialog()).perform(scrollTo(), click())
             assertEquals("cms_cbc", disabled)
@@ -194,6 +201,73 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                     .check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist())
                 scenario.onActivity { dialog.close() }
             }
+        }
+    }
+
+    /** Lote 39d: ningún párrafo toma el foco al abrir; TalkBack empieza por el título. */
+    @Test fun noParagraphTakesTheInitialFocus() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { UnsafeExceptionDialog(it, item, true, {}, {}).show() }
+            assertConsentWindowHasFocus()
+            onView(withId(R.id.unsafeAcceptanceText)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                val text = view as android.widget.TextView
+                assertFalse("El texto de aceptación no es seleccionable", text.isTextSelectable)
+                assertFalse("El texto de aceptación no recibe foco", text.isFocusable)
+                val focused = view.rootView.findFocus()
+                assertFalse("Foco inicial en un párrafo: $focused",
+                    focused is android.widget.TextView && focused !is android.widget.Button)
+            }
+            onView(withId(R.id.unsafeMore)).inRoot(isDialog()).perform(click())
+            onView(withId(R.id.unsafeHelpText)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                assertFalse("La ayuda no recibe el foco antes que su título", view.isFocusable)
+            }
+        }
+    }
+
+    /** Lote 39d: el riesgo ya va en el texto de aceptación y no se repite, ni la forma de desactivarlo. */
+    @Test fun eachThingIsSaidOnce() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            lateinit var risk: String
+            scenario.onActivity {
+                risk = UiText.Engine(item.key("riesgo")).resolve(it)
+                UnsafeExceptionDialog(it, item, true, {}, {}).show()
+            }
+            onView(withId(R.id.unsafeAcceptanceText)).inRoot(isDialog()).check(matches(isDisplayed()))
+            onView(withText(risk)).inRoot(isDialog()).check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist())
+        }
+    }
+
+    /** Lote 39d: desde Preferencias no hay nada que continuar. */
+    @Test fun activateLabelDependsOnWhereTheDialogOpens() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            for (fromBlock in listOf(false, true)) {
+                lateinit var expected: String
+                lateinit var dialog: UnsafeExceptionDialog
+                scenario.onActivity {
+                    expected = UiText.Engine(UnsafeExceptionDialog.activateKey(fromBlock)).resolve(it)
+                    dialog = UnsafeExceptionDialog(it, item, fromBlock, {}, {})
+                    dialog.show()
+                }
+                onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(withText(expected)))
+                scenario.onActivity { dialog.close() }
+            }
+        }
+    }
+
+    /** Lote 39d: con letra normal la ventana se ajusta al contenido y no queda hueco bajo los botones. */
+    @Test fun noEmptySpaceBelowTheButtons() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { UnsafeExceptionDialog(it, item, true, {}, {}).show() }
+            onView(withId(R.id.unsafeFooter)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                val content = view.rootView.findViewById<View>(android.R.id.content)
+                val gap = locationY(content) + content.height - content.paddingBottom - (locationY(view) + view.height)
+                val density = view.resources.displayMetrics.density
+                assertTrue("Hueco bajo los botones: $gap px", gap <= (32 * density).toInt())
+            }
+            onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).check(matches(isCompletelyDisplayed()))
         }
     }
 

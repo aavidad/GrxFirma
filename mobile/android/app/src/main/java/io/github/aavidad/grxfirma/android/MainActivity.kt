@@ -124,10 +124,12 @@ import io.github.aavidad.grxfirma.android.qr.QrCapture
 import io.github.aavidad.grxfirma.android.qr.QrImagePreparer
 import io.github.aavidad.grxfirma.android.ui.IdentityPanel
 import io.github.aavidad.grxfirma.android.ui.VerificationCard
+import io.github.aavidad.grxfirma.android.ui.UnsafeExceptionTexts
 import io.github.aavidad.grxfirma.android.model.VerificationSummary
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 
@@ -580,6 +582,9 @@ class MainActivity : AppCompatActivity() {
             } else signWithSealIfSelected()
         }
         verifyButton.setOnClickListener { viewModel.verify() }
+        // Verificar de nuevo vuelve a abrir el aviso del bloqueo con su reintento.
+        resultUnsafeReview.text = UnsafeExceptionTexts.text(this@MainActivity, "revisar_aviso")
+        resultUnsafeReview.setOnClickListener { viewModel.verify() }
         retrySaveButton.setOnClickListener { viewModel.retryPendingOutput() }
         discardPendingOutputButton.setOnClickListener { confirmDiscard() }
         configureTools()
@@ -1231,6 +1236,9 @@ class MainActivity : AppCompatActivity() {
         renderHints(state)
         wave4.render(state)
 
+        // Tras «Cancelar» el aviso ya no está: la tarjeta ofrece volver a verlo.
+        resultUnsafeReview.visibility = if (state.result is OperationResult.Blocked && state.unsafePrompt == null) View.VISIBLE else View.GONE
+        resultUnsafeReview.isEnabled = state.canVerify
         when (val result = state.result) {
             OperationResult.Idle -> {
                 resultTitle.setText(R.string.result_idle)
@@ -1373,7 +1381,15 @@ class MainActivity : AppCompatActivity() {
                 text.append("\n")
             }
             text.append(getString(R.string.verification_document, state.verifiedDocumentName)).append("\n")
+            val summaryStart = text.length
             text.append(verification.resolve(this@MainActivity))
+            // El aviso de una excepción insegura se destaca: el resultado no es una garantía.
+            val warnings = VerificationCard.exceptionWarnings(verification).map { it.resolve(this@MainActivity) }
+            VerificationCard.highlightRanges(text, warnings, summaryStart).forEach { range ->
+                text.setSpan(BackgroundColorSpan(ContextCompat.getColor(this@MainActivity, R.color.status_warning_container)),
+                    range.first, range.last + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                text.setSpan(StyleSpan(Typeface.BOLD), range.first, range.last + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
         } else if (state.postSignVerificationFailed) {
             text.append(getString(R.string.verification_document, state.verifiedDocumentName)).append("\n")
             val start = text.length

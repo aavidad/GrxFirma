@@ -7,6 +7,8 @@ package io.github.aavidad.grxfirma.android.ui
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
@@ -45,6 +47,8 @@ private fun paragraph(context: Context, value: CharSequence, heading: Boolean = 
     setPadding(0, context.dp(8), 0, context.dp(8))
     ViewCompat.setAccessibilityHeading(this, heading)
 }
+/** Con letra grande dos botones no caben uno al lado del otro. */
+private fun Context.largeText() = resources.configuration.fontScale > 1.3f
 private fun MaterialButton.touchTarget(context: Context) = apply {
     insetTop = 0
     insetBottom = 0
@@ -105,7 +109,7 @@ class UnsafeExceptionDialog(
         accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         visibility = View.GONE
     }
-    val activate = action(context, UnsafeExceptionTexts.text(context, "activar_continuar")).primaryEvenWhenDisabled(context).apply {
+    val activate = action(context, EngineText.resolve(context, activateKey(fromBlock))).primaryEvenWhenDisabled(context).apply {
         id = R.id.unsafeActivate
         visibility = if (item.canActivate) View.VISIBLE else View.GONE
         isEnabled = false
@@ -126,20 +130,16 @@ class UnsafeExceptionDialog(
         ViewCompat.setAccessibilityPaneTitle(body, title)
         body.addView(paragraph(context, title, heading = true))
         body.addView(paragraph(context, EngineText.resolve(context, item.key("ajuste")), heading = true))
-        body.addView(paragraph(context, EngineText.resolve(context, item.key("riesgo"))))
-        if (!item.activable || item.fixed || item.policyUnreadable) {
-            body.addView(paragraph(context, EngineText.resolve(context, item.key("organizacion"))))
-        } else if (item.acceptanceVersion.isBlank()) {
-            body.addView(paragraph(context, UnsafeExceptionTexts.text(context, "version_no_disponible")))
-        }
-        if (item.canActivate) {
-            // La versión aceptada viaja al núcleo con la activación; a la persona no le sirve para decidir.
-            body.addView(paragraph(context, EngineText.resolve(context, item.key("aceptacion"))).apply {
-                id = R.id.unsafeAcceptanceText
-                labelFor = acceptance.id
-                setTextIsSelectable(true)
+        // Ningún párrafo es seleccionable: un texto seleccionable recibe el foco
+        // al abrir la ventana y TalkBack empezaría por él, no por el título.
+        bodyKeys(item).forEach { key ->
+            body.addView(paragraph(context, EngineText.resolve(context, key)).apply {
+                // La versión aceptada viaja al núcleo con la activación; a la persona no le sirve para decidir.
+                if (key == item.key("aceptacion")) {
+                    id = R.id.unsafeAcceptanceText
+                    labelFor = acceptance.id
+                }
             })
-            body.addView(paragraph(context, UnsafeExceptionTexts.text(context, "desactivar_aqui")))
         }
         val scroll = ScrollView(context).apply {
             id = R.id.unsafeScroll
@@ -162,7 +162,7 @@ class UnsafeExceptionDialog(
         footer.addView(status)
         footer.addView(activate)
         // Las secundarias van aparte, con otro estilo y separadas de la principal.
-        val large = context.resources.configuration.fontScale > 1.3f
+        val large = context.largeText()
         val secondaries = LinearLayout(context).apply {
             orientation = if (large) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -192,7 +192,9 @@ class UnsafeExceptionDialog(
         dialog.show()
         dialog.window?.let {
             it.setAccessibleTitle(title)
-            it.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            // La ventana se ajusta al contenido: sin hueco vacío bajo los botones.
+            // Con letra grande crece hasta la pantalla y solo se desplaza el texto.
+            it.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             SafeWindowInsets.fullScreenDialog(it)
         }
     }
@@ -216,6 +218,21 @@ class UnsafeExceptionDialog(
         fun titleKey(item: UnsafeExceptionState, fromBlock: Boolean): String =
             if (fromBlock) item.key("titulo") else "android.inseguro.aceptar_titulo"
 
+        /** Desde Preferencias no hay ninguna operación detenida que continuar. */
+        fun activateKey(fromBlock: Boolean): String =
+            if (fromBlock) "android.inseguro.activar_continuar" else "android.inseguro.activar"
+
+        /**
+         * Cada cosa se dice una vez. El texto de aceptación ya nombra el riesgo
+         * y cómo desactivarlo, así que con él no se añade el riesgo. Sin
+         * aceptación posible se explica el riesgo y por qué no se puede activar.
+         */
+        fun bodyKeys(item: UnsafeExceptionState): List<String> = when {
+            item.canActivate -> listOf(item.key("aceptacion"))
+            !item.activable || item.fixed || item.policyUnreadable -> listOf(item.key("riesgo"), item.key("organizacion"))
+            else -> listOf(item.key("riesgo"), "android.inseguro.version_no_disponible")
+        }
+
         fun showHelp(context: Context, item: UnsafeExceptionState) {
             val body = column(context).apply {
                 setPadding(context.dp(24), context.dp(12), context.dp(24), context.dp(24))
@@ -224,7 +241,6 @@ class UnsafeExceptionDialog(
             body.addView(paragraph(context, EngineText.resolve(context, item.key("ajuste")), heading = true))
             body.addView(paragraph(context, EngineText.resolve(context, item.key("ayuda"))).apply {
                 id = R.id.unsafeHelpText
-                setTextIsSelectable(true)
             })
             val close = action(context, UnsafeExceptionTexts.text(context, "cerrar"))
             body.addView(close)
@@ -279,9 +295,22 @@ class UnsafeExceptionsPanel(
             controls.clear()
             state.unsafeExceptions.forEach { item ->
                 val name = EngineText.resolve(context, item.key("ajuste"))
-                val row = column(context).apply { tag = "unsafe-case-${item.id}" }
+                val row = column(context).apply {
+                    tag = "unsafe-case-${item.id}"
+                    setPadding(context.dp(12), context.dp(8), context.dp(12), context.dp(12))
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                        topMargin = context.dp(8)
+                    }
+                    // Un caso activado se ve de un vistazo, no solo por la palabra «Activada».
+                    if (item.enabled) background = GradientDrawable().apply {
+                        cornerRadius = context.dp(12).toFloat()
+                        setColor(ContextCompat.getColor(context, R.color.status_warning_container))
+                    }
+                }
                 row.addView(paragraph(context, name, heading = true))
-                row.addView(paragraph(context, EngineText.resolve(context, item.statusKey)))
+                row.addView(paragraph(context, EngineText.resolve(context, item.statusKey)).apply {
+                    if (item.enabled) setTypeface(typeface, Typeface.BOLD)
+                })
                 if (item.enabled && item.acceptedAt.isNotBlank()) row.addView(paragraph(context,
                     UnsafeExceptionTexts.text(context, "aceptada_fecha").replace("{fecha}", UiText.DateTime(item.acceptedAt, true).resolve(context))))
                 if (item.fixed || item.policyUnreadable) row.addView(paragraph(context, EngineText.resolve(context, item.key("organizacion"))))
@@ -295,12 +324,25 @@ class UnsafeExceptionsPanel(
                     setOnClickListener { if (item.enabled) disable(item) else activate(item) }
                 }
                 controls += change to (if (item.enabled) item.canDisable else true)
-                row.addView(change)
-                row.addView(action(context, UnsafeExceptionTexts.text(context, "mas_informacion")).apply {
+                // Una sola acción rellena por caso; «Más información» va como texto.
+                val help = secondary(context, UnsafeExceptionTexts.text(context, "mas_informacion"), outlined = false).apply {
                     tag = "unsafe-help-${item.id}"
                     contentDescription = "$text: $name"
                     setOnClickListener { UnsafeExceptionDialog.showHelp(context, item) }
-                })
+                }
+                val large = context.largeText()
+                val actions = LinearLayout(context).apply {
+                    orientation = if (large) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                }
+                listOf(change, help).forEachIndexed { index, button ->
+                    button.layoutParams = if (large) LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        else LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                            if (index > 0) marginStart = context.dp(8)
+                        }
+                    actions.addView(button)
+                }
+                row.addView(actions)
                 rows.addView(row)
             }
         }
