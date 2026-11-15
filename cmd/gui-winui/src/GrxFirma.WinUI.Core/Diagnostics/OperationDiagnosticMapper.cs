@@ -59,8 +59,11 @@ public static class OperationDiagnosticMapper
         RegexOptions.CultureInvariant,
         TimeSpan.FromMilliseconds(100));
 
+    // catalogText solo lo cambian las pruebas; la aplicación usa el catálogo
+    // compartido.
     public static OperationDiagnostic FromResult<TData>(
-        IpcCallResult<TData> result)
+        IpcCallResult<TData> result,
+        Func<string, string>? catalogText = null)
     {
         ArgumentNullException.ThrowIfNull(result);
 
@@ -72,7 +75,7 @@ public static class OperationDiagnosticMapper
         // icacls "%APPDATA%\GrxFirma" /grant … por la primera barra.
         var settingsAccess = result.IsSuccess
             ? null
-            : SettingsAccessFailure.From(result.ErrorCode, CatalogLocalizer.Shared.Text);
+            : SettingsAccessFailure.From(result.ErrorCode, catalogText ?? CatalogLocalizer.Shared.Text);
 
         return diagnostic with
         {

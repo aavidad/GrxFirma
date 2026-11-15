@@ -88,7 +88,7 @@ class SettingsAccessAtStartupContract(unittest.TestCase):
 
     def test_mapper_takes_the_catalog_text_by_error_code_outside_redaction(self):
         mapper = read(CORE / "Diagnostics/OperationDiagnosticMapper.cs")
-        self.assertIn("SettingsAccessFailure.From(result.ErrorCode, CatalogLocalizer.Shared.Text)", mapper)
+        self.assertIn("SettingsAccessFailure.From(result.ErrorCode, catalogText ?? CatalogLocalizer.Shared.Text)", mapper)
         self.assertIn("SettingsAccess = settingsAccess", mapper)
         diagnostic = read(CORE / "Diagnostics/OperationDiagnostic.cs")
         field = diagnostic.index("public SettingsAccessFailure? SettingsAccess")

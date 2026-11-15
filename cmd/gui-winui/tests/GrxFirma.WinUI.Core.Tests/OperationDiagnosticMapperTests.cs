@@ -6,7 +6,6 @@
 using System.Text.Json;
 using GrxFirma.WinUI.Core.Diagnostics;
 using GrxFirma.WinUI.Core.Ipc;
-using GrxFirma.WinUI.Core.Localization;
 
 namespace GrxFirma.WinUI.Core.Tests;
 
@@ -218,6 +217,13 @@ public sealed class OperationDiagnosticMapperTests
     [TestMethod]
     public void SettingsAccessCodes_KeepTheWholeCommandOutsideTheRedaction()
     {
+        const string icacls = "icacls \"%APPDATA%\\GrxFirma\" /grant \"%USERNAME%:(OI)(CI)F\" /T";
+        var catalog = new Dictionary<string, string>
+        {
+            ["error.settings_sin_permiso"] = "No se pueden abrir los ajustes. Ejecute:\n" + icacls,
+            ["error.settings_otro_usuario"] = "La carpeta es de otra cuenta.",
+        };
+        string Text(string key) => catalog.TryGetValue(key, out var value) ? value : key;
         foreach (var code in new[] { SettingsAccessFailure.NoPermissionCode, "settings_other_user" })
         {
             var engine = new OperationDiagnostic
@@ -227,14 +233,15 @@ public sealed class OperationDiagnosticMapperTests
                 UserMessage = "icacls \"%APPDATA%\\GrxFirma\" /grant",
             };
             var mapped = OperationDiagnosticMapper.FromResult(NewResult<object>(
-                false, "failure", code, diagnostic: engine));
-            var expected = SettingsAccessFailure.From(code, CatalogLocalizer.Shared.Text);
+                false, "failure", code, diagnostic: engine), Text);
+            var expected = SettingsAccessFailure.From(code, Text);
             Assert.IsNotNull(mapped.SettingsAccess, code);
             Assert.AreEqual(expected!.Command, mapped.SettingsAccess.Command, code);
             Assert.AreEqual(expected.Explanation, mapped.UserMessage, code);
-            Assert.IsFalse(mapped.SettingsAccess.Command.Contains("[", StringComparison.Ordinal), code);
         }
-        Assert.IsNull(OperationDiagnosticMapper.FromResult(NewResult<object>(false, "failure", "operation_failed")).SettingsAccess);
+        Assert.AreEqual(icacls, OperationDiagnosticMapper.FromResult(NewResult<object>(
+            false, "failure", SettingsAccessFailure.NoPermissionCode), Text).SettingsAccess!.Command);
+        Assert.IsNull(OperationDiagnosticMapper.FromResult(NewResult<object>(false, "failure", "operation_failed"), Text).SettingsAccess);
     }
 
     private static IpcCallResult<TData> NewResult<TData>(
