@@ -283,6 +283,9 @@ signals:
   void serviceActionFinished(bool ok, QString message);
   void settingsLoaded(QVariantMap settings);
   void settingsSaved(bool ok, QString message);
+  // Ajustes sin permiso o de otra cuenta (lote 39g): texto del catálogo de la
+  // interfaz, con la orden para arreglarlo en la última línea si la hay.
+  void settingsAccessFailed(QString action, QString message);
   void pdfPreviewReceived(QString requestId, QString requestedPath,
                           int requestedPage, bool ok, QString data,
                           double width, double height, int currentPage,

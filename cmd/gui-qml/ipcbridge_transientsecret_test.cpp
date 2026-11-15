@@ -56,6 +56,7 @@ private slots:
   void tokenSettingsRejectsRemoteModuleURLs();
   void tokenSettingsTimeoutIgnoresLateReply();
   void tokenSettingsUsesFixedErrorCodeNotMessage();
+  void settingsAccessUsesInterfaceCatalogAndOwnDialog();
   void unexpectedServerReceivesNothing();
   void expectedServerReceivesDeferredRequest();
   void secretFrameZeroesInputs();
@@ -308,6 +309,72 @@ void IpcBridgeTransientSecretTest::tokenSettingsUsesFixedErrorCodeNotMessage() {
     QCOMPARE(args.at(3).toString(), code == "token_settings_unsafe" ? code : QStringLiteral("token_settings_failed"));
     QVERIFY(!args.at(3).toString().contains("UNTRUSTED_DRIVER_TEXT"));
   }
+}
+
+// Lote 39g: ajustes sin permiso o de otra cuenta. Qt pinta el texto de su
+// catálogo (con la orden entera, sin [PATH]) en su propio diálogo; leerlos no
+// se presenta como una firma fallida y guardar sigue avisando del resultado.
+void IpcBridgeTransientSecretTest::settingsAccessUsesInterfaceCatalogAndOwnDialog() {
+  TranslatorBridge translator;
+  translator.setLocale(QStringLiteral("en"));
+#ifdef Q_OS_WIN
+  const QString noPermissionKey = QStringLiteral("error.settings_sin_permiso");
+  const QString command = QStringLiteral("icacls \"%APPDATA%\\GrxFirma\" /grant \"%USERNAME%:(OI)(CI)F\" /T");
+#else
+  const QString noPermissionKey = QStringLiteral("error.settings_sin_permiso_unix");
+  const QString command = QStringLiteral("sudo chown -R \"$USER\" ~/.config/grxfirma");
+#endif
+  const QString noPermission = translator.t(noPermissionKey);
+  const QString otherUser = translator.t(QStringLiteral("error.settings_otro_usuario"));
+  QVERIFY(noPermission != noPermissionKey);
+  QVERIFY(noPermission.endsWith(QLatin1Char('\n') + command));
+  IpcBridge bridge;
+  QLocalServer server;
+  auto *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  peer->readAll();
+  QSignalSpy access(&bridge, &IpcBridge::settingsAccessFailed);
+  QSignalSpy signing(&bridge, &IpcBridge::signingFinished);
+  QSignalSpy saved(&bridge, &IpcBridge::settingsSaved);
+  const QJsonObject diagnostic{{"category", "app_local"}, {"failureCode", "SETTINGS_ACCESS"},
+      {"userMessage", "texto del motor"}, {"expertMessage", noPermissionKey}};
+
+  bridge.getSettings();
+  auto sent = nextRequest(peer);
+  QCOMPARE(sent.value("action").toString(), QStringLiteral("get_settings"));
+  QJsonObject reply{{"action", "get_settings"}, {"requestId", sent.value("requestId")},
+      {"ok", false}, {"errorCode", "settings_no_permission"}, {"outcome", "failure"},
+      {"error", QStringLiteral("texto del motor en otro idioma /home/maria/.config/grxfirma")},
+      {"diagnostic", diagnostic}};
+  peer->write(QJsonDocument(reply).toJson(QJsonDocument::Compact) + '\n'); peer->flush();
+  QTRY_COMPARE(access.count(), 1);
+  QCOMPARE(access.at(0).at(0).toString(), QStringLiteral("get_settings"));
+  QCOMPARE(access.at(0).at(1).toString(), noPermission);
+  QVERIFY(!access.at(0).at(1).toString().contains(QStringLiteral("[PATH]")));
+  QCOMPARE(signing.count(), 0);
+
+  bridge.saveSettings(QVariantMap{{"tema", "oscuro"}});
+  sent = nextRequest(peer);
+  QCOMPARE(sent.value("action").toString(), QStringLiteral("save_settings"));
+  reply = QJsonObject{{"action", "save_settings"}, {"requestId", sent.value("requestId")},
+      {"ok", false}, {"errorCode", "settings_other_user"}, {"outcome", "failure"},
+      {"error", QStringLiteral("texto del motor")}, {"diagnostic", diagnostic}};
+  peer->write(QJsonDocument(reply).toJson(QJsonDocument::Compact) + '\n'); peer->flush();
+  QTRY_COMPARE(access.count(), 2);
+  QCOMPARE(access.at(1).at(0).toString(), QStringLiteral("save_settings"));
+  QCOMPARE(access.at(1).at(1).toString(), otherUser);
+  QTRY_COMPARE(saved.count(), 1);
+  QVERIFY(!saved.at(0).at(0).toBool());
+  QCOMPARE(signing.count(), 0);
+
+  // Otro código de fallo sigue el camino de siempre.
+  bridge.saveSettings(QVariantMap{{"tema", "claro"}});
+  sent = nextRequest(peer);
+  reply = QJsonObject{{"action", "save_settings"}, {"requestId", sent.value("requestId")},
+      {"ok", false}, {"errorCode", "operation_failed"}, {"error", QStringLiteral("Configuración de usuario no disponible")}};
+  peer->write(QJsonDocument(reply).toJson(QJsonDocument::Compact) + '\n'); peer->flush();
+  QTRY_COMPARE(saved.count(), 2);
+  QCOMPARE(access.count(), 2);
 }
 
 static QByteArray readRequestsUntil(QLocalSocket *peer,

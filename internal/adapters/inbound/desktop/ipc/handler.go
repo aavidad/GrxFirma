@@ -2162,12 +2162,18 @@ func (m *Manejador) handleGetSettings(ctx context.Context) respuesta {
 	}
 	if tipado, ok := m.Settings.(ports.ConfiguracionUsuarioTipada); ok {
 		doc, err := tipado.CargarDocumento(ctx)
+		if explicado, ok := m.falloAjustesExplicado("get_settings", err); ok {
+			return explicado
+		}
 		if err != nil {
 			return respuesta{OK: false, Action: "get_settings", Error: err.Error()}
 		}
 		return respuesta{OK: true, Action: "get_settings", Data: doc.Mapa()}
 	}
 	datos, err := m.Settings.Cargar(ctx)
+	if explicado, ok := m.falloAjustesExplicado("get_settings", err); ok {
+		return explicado
+	}
 	if err != nil {
 		return respuesta{OK: false, Action: "get_settings", Error: err.Error()}
 	}
@@ -2198,6 +2204,9 @@ func (m *Manejador) handleSaveSettings(ctx context.Context, raw json.RawMessage)
 	// proxy_secret_store/proxy_secret_delete. Una GUI que guarde el resto de
 	// preferencias no debe poder borrarla ni sustituirla con un ID arbitrario.
 	actual, err := m.loadSettingsDocument(ctx)
+	if explicado, ok := m.falloAjustesExplicado("save_settings", err); ok {
+		return explicado
+	}
 	if err != nil {
 		return respuesta{OK: false, Action: "save_settings", Error: m.t("error.settings_no_configurado")}
 	}
@@ -2225,6 +2234,9 @@ func (m *Manejador) handleSaveSettings(ctx context.Context, raw json.RawMessage)
 	siguiente.Proxy.SecretID = actual.Proxy.SecretID
 	siguiente.Proxy.Realm = actual.Proxy.Realm
 	if err := m.saveSettingsDocument(ctx, siguiente); err != nil {
+		if explicado, ok := m.falloAjustesExplicado("save_settings", err); ok {
+			return explicado
+		}
 		return respuesta{OK: false, Action: "save_settings", Error: m.t("error.settings_no_configurado")}
 	}
 	return respuesta{OK: true, Action: "save_settings", Data: m.t("info.settings_guardados")}
