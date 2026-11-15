@@ -767,6 +767,10 @@ type verifyResponse struct {
 	Details []string `json:"details"`
 	Signers []string `json:"signers"`
 	Result  any      `json:"result,omitempty"`
+	// Error da el motivo cuando una excepción insegura desactivada dejó la
+	// firma sin evaluar. REST no ofrece activarla (solo se activa en la app
+	// local), pero tampoco da ese resultado por bueno: ok no va a true.
+	Error string `json:"error,omitempty"`
 	// Dictamen es el resultado explícito de la verificación autónoma. Se
 	// añade sin alterar los campos anteriores.
 	Dictamen *dictamenResponse `json:"dictamen,omitempty"`
@@ -1727,7 +1731,7 @@ func buildVerifyResponse(result application.VerifyResult) verifyResponse {
 	for _, signer := range result.Firmantes {
 		signers = append(signers, signer.ID)
 	}
-	return verifyResponse{
+	resp := verifyResponse{
 		OK:       true,
 		Valid:    result.Verification.Valid,
 		Reason:   result.Verification.Reason,
@@ -1736,6 +1740,13 @@ func buildVerifyResponse(result application.VerifyResult) verifyResponse {
 		Result:   buildVerifyRichResult(result.Verification, result.Firmantes, signers),
 		Dictamen: buildDictamenResponse(result.Dictamen),
 	}
+	var bloqueo *excepciones.Block
+	if errors.As(result.Verification.PolicyError(), &bloqueo) {
+		resp.OK = false
+		resp.Valid = false
+		resp.Error = bloqueo.Error()
+	}
+	return resp
 }
 
 func buildVerifyRichResult(v domain.VerificationResult, signerRefs []domain.CertificateRef, signers []string) verifyRichResultResponse {

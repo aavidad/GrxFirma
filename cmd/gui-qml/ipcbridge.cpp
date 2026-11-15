@@ -72,6 +72,42 @@ static QStringList ipcSigningWarnings(const QJsonObject &res) {
   return out;
 }
 
+// Motivo de un bloqueo de excepción insegura en el idioma de la interfaz
+// (lote 39a). El texto del motor sale en el idioma del proceso; aquí se pinta
+// desde las claves del bloqueo con el catálogo de Qt. Solo se aceptan claves
+// «excepciones.*»; si falta alguna, queda el texto del motor.
+static QString ipcUnsafeBlockMessage(const QJsonObject &res,
+                                     const QString &fallback) {
+  static const QRegularExpression key(
+      QStringLiteral("^excepciones\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"));
+  const QJsonObject block = res.value(QStringLiteral("exception")).toObject();
+  auto field = [&](const char *top, const char *inner) {
+    QString value = res.value(QLatin1String(top)).toString();
+    if (value.isEmpty())
+      value = block.value(QLatin1String(inner)).toString();
+    return value.size() <= 128 && key.match(value).hasMatch() ? value
+                                                              : QString();
+  };
+  auto text = [](const QString &k) {
+    if (k.isEmpty())
+      return QString();
+    const QString translated = it(k);
+    return translated == k ? QString() : translated;
+  };
+  QString message;
+  if (block.value(QStringLiteral("config_unavailable")).toBool()) {
+    message = text(QStringLiteral("excepciones.directorio_no_disponible"));
+  } else if (res.value(QStringLiteral("activable")).toBool(false)) {
+    message = text(field("blockKey", "block_key"));
+  } else {
+    const QString risk = text(field("riskKey", "risk_key"));
+    const QString organization = text(field("", "organization_key"));
+    if (!risk.isEmpty() && !organization.isEmpty())
+      message = risk + QLatin1Char('\n') + organization;
+  }
+  return message.isEmpty() ? fallback : message;
+}
+
 // El sello visible se escribe por defecto en el idioma de la interfaz. Si el
 // usuario fijó otro idioma en la configuración, el motor lo impone.
 static QVariantMap ipcWithInterfaceSealLanguage(QVariantMap extraOptions) {
@@ -2068,9 +2104,15 @@ void IpcBridge::onReadyRead() {
             line.size()));
     QString errMsg = IncidentSanitizeText(obj.value("error").toString());
     QJsonValue data = obj.value("data");
+    // Lote 39a: un bloqueo de lo inseguro no es una avería. Su motivo se pinta
+    // con el catálogo de la interfaz y no deja diagnóstico guiado.
+    const bool unsafeBlocked =
+        !ok && !obj.value("exceptionId").toString().isEmpty();
+    if (unsafeBlocked)
+      errMsg = ipcUnsafeBlockMessage(obj, errMsg);
     const QVariantMap diagnostic =
         obj.value("diagnostic").toObject().toVariantMap();
-    if (!diagnostic.isEmpty()) {
+    if (!diagnostic.isEmpty() && !unsafeBlocked) {
       setLastDiagnostic(diagnostic);
       emit backendLogReceived(
           it(QStringLiteral("🩺 Diagnóstico guiado: ")) +
@@ -2336,8 +2378,12 @@ void IpcBridge::onReadyRead() {
       emit backendLogReceived(it(QStringLiteral("Error IPC: ")) + errMsg);
       emit backendLogReceived(ipcOriginHint(action, errMsg));
       if (action == "verify") {
-        setStatus(errMsg);
-        emit verificationFinished(false, errMsg, QVariantMap());
+        setStatus(QString(errMsg).replace(QLatin1Char('\n'), QLatin1Char(' ')));
+        // Firma sin evaluar por un bloqueo: la QML no la pinta como inválida.
+        emit verificationFinished(
+            false, errMsg,
+            unsafeBlocked ? QVariantMap{{QStringLiteral("unsafeBlocked"), true}}
+                          : QVariantMap());
       } else if (action == "protect" || action == "protect_sign") {
         setStatus(errMsg);
         emit protectionFinished(false, errMsg, QVariantMap());

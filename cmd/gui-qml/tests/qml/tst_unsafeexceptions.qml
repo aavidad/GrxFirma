@@ -13,7 +13,7 @@ TestCase {
     name: "UnsafeExceptions"
     width: 900; height: 800
     when: windowShown
-    property var theme: ({cardColor: "#ffffff", textColor: "#202124", secondaryTextColor: "#555555"})
+    property var theme: ({cardColor: "#ffffff", textColor: "#202124", secondaryTextColor: "#555555", primaryColor: "#2980b9"})
     property var dialog
     SignalSpy { id: cancelled; target: tests.dialog; signalName: "cancelled" }
     QtObject {
@@ -115,6 +115,33 @@ TestCase {
         fromPreferences.operationPending = true
         dialog.present(fromPreferences, false)
         compare(dialog.title, "excepciones.pantalla.titulo")
+    }
+    // Lote 39a: desde Configuración el botón solo activa; «Activar y
+    // continuar» se reserva para un bloqueo que se puede repetir.
+    function test_activate_label_depends_on_pending_operation() {
+        const fromPreferences = entry(true)
+        dialog.present(fromPreferences, false)
+        compare(findChild(dialog, "unsafeActivate").text, "excepciones.pantalla.activar")
+        const blockedRetry = entry(true); blockedRetry.operationPending = true
+        dialog.present(blockedRetry, false)
+        compare(findChild(dialog, "unsafeActivate").text, "excepciones.activar_continuar")
+        const blockedResend = entry(true); blockedResend.operationPending = true
+        blockedResend.retryId = ""; blockedResend.resend = true
+        dialog.present(blockedResend, false)
+        compare(findChild(dialog, "unsafeActivate").text, "excepciones.activar_continuar")
+        const blockedNoRepeat = entry(true); blockedNoRepeat.operationPending = true; blockedNoRepeat.retryId = ""
+        dialog.present(blockedNoRepeat, false)
+        compare(dialog.title, "excepciones.pantalla.titulo")
+        compare(findChild(dialog, "unsafeActivate").text, "excepciones.pantalla.activar")
+    }
+    function test_primary_action_stands_out_from_secondary() {
+        dialog.present(entry(true), false)
+        const primary = findChild(dialog, "unsafeActivate")
+        const cancel = findChild(dialog, "unsafeCancel")
+        verify(primary.font.bold)
+        verify(!cancel.font.bold)
+        verify(!Qt.colorEqual(primary.palette.button, cancel.palette.button))
+        verify(Qt.colorEqual(primary.palette.button, tests.theme.primaryColor))
     }
     function test_help_200_percent_and_escape() {
         Typography.textScalePercent = 200

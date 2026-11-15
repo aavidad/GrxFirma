@@ -21,6 +21,7 @@ class TranslatorBridge : public QObject {
 
 public:
   explicit TranslatorBridge(QObject *parent = nullptr);
+  ~TranslatorBridge() override;
 
   QString locale() const { return m_locale; }
   void setLocale(const QString &locale);

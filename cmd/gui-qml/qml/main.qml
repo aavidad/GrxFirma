@@ -70,6 +70,7 @@ Window {
         onActivated: function(item) {
             unsafePanel.load()
             if (item.operationPending === true && item.retryId) backend.retryUnsafeOperation(item.retryId)
+            else if (item.operationPending === true && item.resend === true) window.resendUnsafeOperation(item)
             else {
                 window.finishUnsafeInterruptedFlow(item)
                 window.unsafeNotice = [window.tr(item.operationPending === true
@@ -78,6 +79,28 @@ Window {
         }
         onActivationFailed: unsafePanel.load()
         onCancelled: function(item) { window.finishUnsafeInterruptedFlow(item) }
+    }
+    // Firmas que el motor no puede repetir con retryId (guardan en disco o
+    // llevan opciones del formulario): «Activar y continuar» las vuelve a
+    // lanzar desde el formulario, que el diálogo modal ha dejado intacto.
+    readonly property var unsafeResendActions: ["sign", "sign_multicosign", "sign_batch"]
+    function unsafeOperationCanResend(block) {
+        return block.operationPending === true && !block.retryId
+                && window.unsafeResendActions.indexOf(String(block.operationAction || "")) !== -1
+    }
+    function resendUnsafeOperation(item) {
+        if (window.unsafeResendActions.indexOf(String(item.operationAction || "")) === -1) return
+        Qt.callLater(function() { window.executeSignRequest(window.selectedCertIndex) })
+    }
+    // Un aviso de uso pertenece a la operación que lo dio: se vacía al empezar
+    // otra a mano y se suma al de la comprobación automática que sigue a una
+    // firma, sin repetir textos.
+    function resetUnsafeNotice() { window.unsafeNotice = [] }
+    function addUnsafeNotice(texts) {
+        const merged = window.unsafeNotice.slice()
+        for (let i = 0; i < texts.length && merged.length < 16; i++)
+            if (merged.indexOf(texts[i]) === -1) merged.push(texts[i])
+        if (merged.length !== window.unsafeNotice.length) window.unsafeNotice = merged
     }
     function finishUnsafeInterruptedFlow(item) {
         if (item.operationAction === "cosign_original_check") {
@@ -98,11 +121,16 @@ Window {
     Connections {
         target: typeof isIpcMode !== "undefined" && isIpcMode ? backend : null
         ignoreUnknownSignals: true
-        function onUnsafeExceptionBlocked(block) { unsafeDialog.present(block, false) }
+        function onUnsafeExceptionBlocked(block) {
+            // A blocked operation never keeps a notice saying a previous one was allowed.
+            window.resetUnsafeNotice()
+            const pending = Object.assign({}, block)
+            pending.resend = window.unsafeOperationCanResend(pending)
+            unsafeDialog.present(pending, false)
+        }
         function onUnsafeOperationWarnings(warnings) {
             // Settings/list replies must not erase the last operation warning.
-            const visible = window.visibleSigningWarnings(warnings)
-            if (visible.length) window.unsafeNotice = visible
+            window.addUnsafeNotice(window.visibleSigningWarnings(warnings))
         }
     }
     Rectangle {
@@ -2776,6 +2804,7 @@ Window {
     // informe imprimible (HTML) del motor en el idioma de la aplicación.
     function requestVerification(path, original, withReport) {
         verificationPendingCount += 1
+        if (withReport !== false) resetUnsafeNotice()
         const originalPath = (original !== undefined && original !== null) ? String(original) : ""
         if (withReport !== false && backend && typeof backend.verifyFileWithReport === "function")
             backend.verifyFileWithReport(path, originalPath)
@@ -4181,6 +4210,7 @@ Window {
         if (cosignOriginal !== "" && window.isCosignOrCountersign(String(payload.action || signAction)))
             payload.originalPath = cosignOriginal
         window.signingInProgress = true
+        window.resetUnsafeNotice()
         window.statusMessage = tr("Procesando firma...")
         window.currentBatchResults = []
         window.batchSigningWarnings = []
@@ -5155,6 +5185,26 @@ Window {
             signerSummaries: [],
             warnings: [],
             errors: [message],
+            evidence: []
+        }
+    }
+
+    // Sin «valid» ni integridad, el resultado sale como verificación
+    // incompleta con el motivo del bloqueo, nunca como firma no válida.
+    function unsafeBlockedVerificationPayload(message) {
+        return {
+            unsafeBlocked: true,
+            reason: message,
+            details: [],
+            signers: [],
+            format: "",
+            coverage: "",
+            integrity: { status: "unknown", reason: message, details: [] },
+            certificate: { status: "unknown", reason: "", details: [] },
+            trust: { status: "unknown", reason: "", details: [] },
+            signerSummaries: [],
+            warnings: [],
+            errors: [],
             evidence: []
         }
     }
@@ -8810,7 +8860,9 @@ Window {
                 window.currentOutputVerificationMessage = ""
                 window.currentOutputVerificationDetails = null
                 window.enqueueAutoVerification({ kind: "single", path: outPath })
-            } else if (!success) {
+            } else if (!success && !unsafeDialog.visible) {
+                // Lo inseguro desactivado no es una avería: sin incidencia ni
+                // asistente encima del aviso de bloqueo (lote 39a).
                 window.clearOperationFailure()
                 const incidentPath = window.persistIncidentReport("sign-failure", message, {
                     source: "signingFinished"
@@ -8846,7 +8898,9 @@ Window {
                     queued++
                 }
             }
-            if (!success) {
+            if (!success && unsafeDialog.visible) {
+                window.clearOperationFailure()
+            } else if (!success) {
                 window.clearOperationFailure()
                 const failureMessage = firstBatchError !== "" ? firstBatchError : message
                 const incidentPath = window.persistIncidentReport("batch-sign-failure", failureMessage, {
@@ -8869,6 +8923,14 @@ Window {
             window.verificationPendingCount = Math.max(0, window.verificationPendingCount - 1)
             if (!success && unsafeDialog.visible) {
                 window.signingInProgress = false
+                // Una verificación detenida por lo inseguro queda sin evaluar,
+                // no «No válida». Los pasos previos a una firma esperan al diálogo.
+                if (details && details.unsafeBlocked === true && window.autoVerificationContext === null
+                        && window.pendingSignedDocumentWarningContext === null
+                        && window.pendingSealSignerSummaryContext === null) {
+                    verifyTab.verifyDetails = window.unsafeBlockedVerificationPayload(message)
+                    window.statusMessage = message
+                }
                 return
             }
             if (window.autoVerificationContext !== null) {
@@ -8976,7 +9038,7 @@ Window {
             window.protectResult = success ? result : { error: message }
             if (success && result && result.outputPath) {
                 window.rememberSessionDocumentPath(result.outputPath)
-            } else if (!success) {
+            } else if (!success && !unsafeDialog.visible) {
                 window.clearOperationFailure()
                 const incidentPath = window.persistIncidentReport("protect-failure", message, {
                     source: "protectionFinished"
@@ -8995,7 +9057,7 @@ Window {
             window.unprotectResult = success ? result : { error: message }
             if (success && result && result.outputPath) {
                 window.rememberSessionDocumentPath(result.outputPath)
-            } else if (!success) {
+            } else if (!success && !unsafeDialog.visible) {
                 window.clearOperationFailure()
                 const incidentPath = window.persistIncidentReport("unprotect-failure", message, {
                     source: "unprotectionFinished"

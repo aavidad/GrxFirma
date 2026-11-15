@@ -25,3 +25,6 @@ HEADERS += \
     transientsecret.h \
     translatorbridge.h \
     webcompatibilitylease.h
+
+# Lote 39a: el catálogo de la interfaz para pintar el motivo de un bloqueo.
+RESOURCES += ipcbridge_transientsecret_test.qrc

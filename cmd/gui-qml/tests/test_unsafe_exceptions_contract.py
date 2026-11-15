@@ -62,6 +62,37 @@ class UnsafeExceptionsContract(unittest.TestCase):
         winui = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI/ViewModels/SignPageViewModel.cs").read_text()
         self.assertIn("if (!check.IsSuccess && check.UnsafeException is not null)", winui)
 
+    def test_block_is_not_a_failure_report_and_activation_continues(self):
+        """Lote 39a: un bloqueo no abre el asistente ni guarda incidencia, la
+        verificación bloqueada no sale «No válida», «Activar y continuar»
+        continúa y el aviso común se suma sin repetirse."""
+        source = (QML / "main.qml").read_text()
+        for kind, guard in (("sign-failure", "} else if (!success && !unsafeDialog.visible) {"),
+                            ("protect-failure", "} else if (!success && !unsafeDialog.visible) {"),
+                            ("unprotect-failure", "} else if (!success && !unsafeDialog.visible) {")):
+            report = source.index('window.persistIncidentReport("%s"' % kind)
+            self.assertEqual(source.rfind(guard, 0, report), source.rfind("} else if (!success", 0, report), kind)
+        batch = source.split("function onBatchSigningFinished(success, message, results)", 1)[1]
+        self.assertLess(batch.index("if (!success && unsafeDialog.visible) {"), batch.index('persistIncidentReport("batch-sign-failure"'))
+        verify = source.split("function onVerificationFinished(success, message, details)", 1)[1]
+        early = verify[:verify.index("window.handleAutoVerificationFinished")]
+        self.assertIn("details.unsafeBlocked === true", early)
+        self.assertIn("window.unsafeBlockedVerificationPayload(message)", early)
+        payload = source.split("function unsafeBlockedVerificationPayload(message)", 1)[1].split("\n    }\n", 1)[0]
+        self.assertNotIn("valid:", payload)
+        self.assertIn('integrity: { status: "unknown"', payload)
+        blocked = source.split("function onUnsafeExceptionBlocked(block) {", 1)[1].split("\n        }\n", 1)[0]
+        self.assertIn("window.resetUnsafeNotice()", blocked)
+        self.assertIn("pending.resend = window.unsafeOperationCanResend(pending)", blocked)
+        self.assertIn("else if (item.operationPending === true && item.resend === true) window.resendUnsafeOperation(item)", source)
+        self.assertIn("window.executeSignRequest(window.selectedCertIndex)", source.split("function resendUnsafeOperation(item)", 1)[1].split("\n    }\n", 1)[0])
+        warnings = source.split("function onUnsafeOperationWarnings(warnings) {", 1)[1].split("\n        }\n", 1)[0]
+        self.assertIn("window.addUnsafeNotice(window.visibleSigningWarnings(warnings))", warnings)
+        self.assertIn("if (withReport !== false) resetUnsafeNotice()", source)
+        bridge = (ROOT / "cmd/gui-qml/ipcbridge.cpp").read_text()
+        self.assertIn("if (!diagnostic.isEmpty() && !unsafeBlocked) {", bridge)
+        self.assertIn("errMsg = ipcUnsafeBlockMessage(obj, errMsg);", bridge)
+
 
 if __name__ == "__main__":
     unittest.main()

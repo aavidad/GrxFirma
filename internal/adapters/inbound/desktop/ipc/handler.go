@@ -420,6 +420,13 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		bloqueo = blockReport.ForMessage(mensajeBloqueo)
 	}
 	if bloqueo != nil {
+		// Un bloqueo nunca es un éxito, tampoco el de una verificación que
+		// terminó con la firma sin evaluar: llega como fallo, sin los datos de
+		// esa verificación y sin diagnóstico de avería (lote 39a).
+		resp.OK = false
+		resp.Outcome = ipcOutcomeFailure
+		resp.Data = nil
+		resp.Diagnostic = nil
 		resp.ErrorCode = "unsafe_exception_blocked"
 		resp.ExceptionID = bloqueo.ID
 		resp.BlockKey = bloqueo.BlockKey
@@ -440,18 +447,16 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		if trustedBlock && effective.Activable {
 			resp.RetryID = m.storeUnsafeRetry(ctx, pendingRetry, bloqueo.ID)
 		}
-		if !resp.OK {
-			key := effective.BlockKey
-			if policyBlocked {
-				key = effective.OrganizationKey
-			}
-			if effective.ConfigUnavailable {
-				key = "excepciones.directorio_no_disponible"
-			}
-			resp.Error = m.t(key)
-			if policyBlocked {
-				resp.Error = m.t(effective.RiskKey) + "\n" + resp.Error
-			}
+		key := effective.BlockKey
+		if policyBlocked {
+			key = effective.OrganizationKey
+		}
+		if effective.ConfigUnavailable {
+			key = "excepciones.directorio_no_disponible"
+		}
+		resp.Error = m.t(key)
+		if policyBlocked {
+			resp.Error = m.t(effective.RiskKey) + "\n" + resp.Error
 		}
 	}
 	resp = m.explicarFalloRemoto(resp, peticionRemota)
@@ -511,6 +516,11 @@ func (m *Manejador) handleClockDiagnostics(
 
 func enrichIPCErrorDiagnostic(resp respuesta) respuesta {
 	if resp.OK || strings.TrimSpace(resp.Error) == "" || resp.Diagnostic != nil {
+		return resp
+	}
+	// Lo inseguro desactivado no es una avería: el clasificador de fallos lo
+	// atribuiría al certificado o al lector por las palabras del texto.
+	if resp.ErrorCode == "unsafe_exception_blocked" {
 		return resp
 	}
 	resp.Diagnostic = guidedDiagnosticResult(resp.Action, resp.Error)

@@ -80,7 +80,7 @@ func comprobarSelloCMS(token, valorFirma []byte, firmante *x509.Certificate, anc
 		ctx = contexts[0]
 	}
 	if cryptopolicy.CMSUsesSHA1(p7.Signers[0].DigestAlgorithm.Algorithm, p7.Signers[0].DigestEncryptionAlgorithm.Algorithm) {
-		if excepciones.Check("sha1_leer", ctx) != nil {
+		if usarExcepcion("sha1_leer", ctx) != nil {
 			domain.AnotarAviso(ctx, "excepciones.sha1_leer.bloqueo")
 			return time.Time{}, false, false
 		}

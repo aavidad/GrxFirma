@@ -428,7 +428,8 @@ func verifyResponseSchema() map[string]any {
 	return map[string]any{
 		"type": "object",
 		"properties": map[string]any{
-			"ok":       map[string]any{"type": "boolean"},
+			"ok":       map[string]any{"type": "boolean", "description": "Ausente o false si una excepción insegura desactivada dejó la firma sin evaluar"},
+			"error":    map[string]any{"type": "string", "description": "Motivo del bloqueo cuando la firma quedó sin evaluar"},
 			"valid":    map[string]any{"type": "boolean"},
 			"reason":   map[string]any{"type": "string"},
 			"details":  map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
