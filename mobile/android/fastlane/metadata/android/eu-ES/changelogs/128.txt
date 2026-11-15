@@ -1,0 +1,3 @@
+Irisgarritasun-hobekuntzak.
+Aukera ez-seguruak lehenespenez desaktibatuta daude eta abisua erakusten dute aktibatzean.
+Doikuntzak instalatzaileetan.

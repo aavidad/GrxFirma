@@ -31,7 +31,7 @@
 - [Geometría del sello visible](GEOMETRIA_SELLO_GIRADO.md)
 - [Ayuda contextual de las opciones técnicas](AYUDA_CONTEXTUAL.md)
 - [Dependencias y licencias](INVENTARIO_DEPENDENCIAS_LICENCIAS.md)
-- [Expediente de dependencias por versión](dependencias/README.md) (la versión actual es la [0.0.127](dependencias/0.0.127/README.md))
+- [Expediente de dependencias por versión](dependencias/README.md) (versión en preparación: [0.0.128](dependencias/0.0.128/README.md); expediente anterior: [0.0.127](dependencias/0.0.127/README.md))
 - [Construcción y publicación](RELEASE.md)
 - [Firma de distribuciones](RELEASE_SIGNING.md)
 - [Distribución: certificados, SignPath, tiendas de extensiones y Android](distribucion/README.md)

@@ -1,0 +1,3 @@
+Miglioramenti all’accessibilità.
+Le opzioni non sicure sono disattivate per impostazione predefinita e mostrano un avviso quando vengono attivate.
+Modifiche ai programmi di installazione.

@@ -1,0 +1,3 @@
+Melhorias de acessibilidade.
+As opções inseguras estão desativadas por predefinição e mostram um aviso ao serem ativadas.
+Ajustes nos instaladores.
