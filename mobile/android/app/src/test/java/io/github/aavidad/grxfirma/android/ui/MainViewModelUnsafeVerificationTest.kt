@@ -16,6 +16,7 @@ import io.github.aavidad.grxfirma.android.files.DocumentRepository
 import io.github.aavidad.grxfirma.android.model.CertificateSummary
 import io.github.aavidad.grxfirma.android.model.LoadedFile
 import io.github.aavidad.grxfirma.android.model.SelectedFile
+import io.github.aavidad.grxfirma.android.model.SignatureInspection
 import io.github.aavidad.grxfirma.android.model.SignedOutput
 import io.github.aavidad.grxfirma.android.model.VerificationSummary
 import kotlinx.coroutines.Dispatchers
@@ -72,6 +73,8 @@ class MainViewModelUnsafeVerificationTest {
             return VerificationSummary(false, "", emptyList(), emptyList(), "CAdES", "full", "valid", "unknown", "unknown",
                 "embedded_evidence_only", listOf("excepciones.sha1_leer.aviso"), emptyList())
         }
+        // Al elegir el documento solo se inspecciona; no cuenta como verificación.
+        override fun inspectSignature(document: LoadedFile) = SignatureInspection(true, "cades")
         override fun selectCertificate() = CertificateSummary("id", "Titular", "Emisor", "huella")
         override fun importCertificate(data: ByteArray, password: CharArray) = selectCertificate()
         override fun sign(document: LoadedFile, format: String, certificateId: String, options: Map<String, String>, action: String): SignedOutput =

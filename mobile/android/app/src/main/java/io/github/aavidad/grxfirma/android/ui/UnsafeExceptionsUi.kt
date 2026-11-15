@@ -46,7 +46,7 @@ private fun action(context: Context, value: String) = MaterialButton(context).to
 /** Acción secundaria del diálogo: borde o texto, nunca el relleno de la principal. */
 private fun secondary(context: Context, value: String, outlined: Boolean) = MaterialButton(context, null,
     if (outlined) com.google.android.material.R.attr.materialButtonOutlinedStyle
-    else com.google.android.material.R.attr.borderlessButtonStyle).touchTarget(context).apply { text = value }
+    else androidx.appcompat.R.attr.borderlessButtonStyle).touchTarget(context).apply { text = value }
 
 /**
  * La acción principal deshabilitada conserva su color, más tenue: sigue
