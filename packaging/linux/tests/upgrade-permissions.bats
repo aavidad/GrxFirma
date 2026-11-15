@@ -22,6 +22,10 @@ setup() {
     [[ "${POSTINST}" == *"${d}"* ]]
   done
   [[ "${POSTINST}" == *'chmod go-w "${grx_dir}" || true'* ]]
+  [[ "${POSTINST}" == *'"$(stat -c %u "${grx_dir}")" == 0'* ]]
+  for d in /etc/opt/chrome /etc/opt/brave.com /usr/lib/mozilla /usr/share/google-chrome; do
+    [[ "${POSTINST}" == *"  ${d} "* ]]
+  done
   [[ "${POSTINST}" != *'chmod -R'* ]]
 }
 

@@ -850,9 +850,22 @@ for grx_dir in \
   /etc/opt/opera/native-messaging-hosts \
   /usr/lib/mozilla/native-messaging-hosts \
   /usr/share/google-chrome/extensions \
-  /usr/share/chromium/extensions
+  /usr/share/chromium/extensions \
+  /etc/opt/chrome \
+  /etc/chromium \
+  /etc/opt/edge \
+  /etc/opt/brave.com/brave \
+  /etc/opt/brave.com \
+  /etc/opt/vivaldi \
+  /etc/opt/opera \
+  /usr/lib/mozilla \
+  /usr/share/google-chrome \
+  /usr/share/chromium
 do
-  if [[ -d "${grx_dir}" && ! -L "${grx_dir}" ]]; then
+  # Solo carpetas de root: quitar la escritura de grupo u otros nunca abre
+  # permisos, y quien pudiera escribir en la carpeta padre podría cambiar la
+  # de mensajería nativa por otra con un manifiesto suyo.
+  if [[ -d "${grx_dir}" && ! -L "${grx_dir}" && "$(stat -c %u "${grx_dir}")" == 0 ]]; then
     chmod go-w "${grx_dir}" || true
   fi
 done
