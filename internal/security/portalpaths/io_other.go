@@ -18,13 +18,13 @@ func readFilePinned(path string, max int64) ([]byte, error) {
 	return securefile.ReadFileLimit(path, max)
 }
 
-// WriteFile comprueba la ruta y escribe en la ruta pedida, no en la física
+// writeFile comprueba la ruta y escribe en la ruta pedida, no en la física
 // que devuelve Check. El escritor recorre esa ruta con Lstat y rechaza un
 // enlace simbólico o una unión en cualquier componente; con la ruta ya
 // resuelta por EvalSymlinks no quedaría ningún enlace que rechazar y se
 // guardaría fuera de la carpeta elegida.
-func WriteFile(path string, data []byte, force bool) (string, error) {
-	if _, err := Check(path); err != nil {
+func writeFile(path string, data []byte, force bool, check func(string) (string, error)) (string, error) {
+	if _, err := check(path); err != nil {
 		return "", err
 	}
 	policy := filesystem.PoliticaRenombrar

@@ -35,6 +35,7 @@ import (
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/portalpaths"
 	"grxfirma/presentation/desktop/certpicker"
 	"grxfirma/presentation/desktop/progressdialog"
 	"grxfirma/presentation/desktop/trustdialog"
@@ -611,12 +612,17 @@ func newNativeWindowsDocumentPicker() ports.DocumentPicker {
 				}
 				if len(paths) != 1 {
 					return desktopdocumentpicker.SelectedDocument{},
-						errors.New("fallo local: el selector no devolvió un único documento")
+						errors.New(tl("portalpaths.selector_un_documento"))
 				}
-				resolved, ok := resolveUserChosenReadablePath(paths[0])
-				if !ok {
+				resolved, err := resolveUserChosenReadablePath(paths[0])
+				if err != nil {
+					explicarRutaRechazada("document_select", err)
+					mensaje := tl("portalpaths.documento_no_valido")
+					if errors.Is(err, portalpaths.ErrCarpetaPropia) {
+						mensaje = tl("portalpaths.documento_no_permitido")
+					}
 					return desktopdocumentpicker.SelectedDocument{},
-						errors.New("fallo local: el documento está fuera del ámbito local permitido")
+						fmt.Errorf("%s: %w", mensaje, err)
 				}
 				data, err := securefile.ReadFileLimit(
 					resolved,

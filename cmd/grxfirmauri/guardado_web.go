@@ -135,8 +135,14 @@ func sinInterfazDeConfirmacion(aprobador ports.UserApproval) bool {
 // llevar macros o código); sin interfaz para pedirla se guardan, como antes
 // del lote 4, con un aviso en el registro y, en Windows, con la marca de
 // procedencia (lote 13c).
-func (h *legacyWebSocketHandler) autorizarDestinoGuardado(ctx context.Context, path string) string {
-	if _, err := portalpaths.Check(path); err != nil {
+// desdeDialogo dice si path salió de un diálogo de guardar del sistema, y con
+// ello qué barrera de portalpaths se vuelve a aplicar.
+func (h *legacyWebSocketHandler) autorizarDestinoGuardado(ctx context.Context, path string, desdeDialogo bool) string {
+	check := portalpaths.Check
+	if desdeDialogo {
+		check = portalpaths.CheckElegida
+	}
+	if _, err := check(path); err != nil {
 		return "SAF_05: Ruta fuera del ámbito permitido"
 	}
 	clase := clasificarDestinoGuardado(path)

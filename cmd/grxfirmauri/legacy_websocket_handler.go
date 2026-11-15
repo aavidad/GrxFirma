@@ -1000,8 +1000,10 @@ func (h *legacyWebSocketHandler) pickLegacyLoadPaths(ctx context.Context, initia
 	return picker(ctx, initialPath, extensions, multi)
 }
 
-// pickLegacySaveTarget devuelve la ruta elegida y si la persona ya confirmó en
-// el diálogo del sistema que puede reemplazarse.
+// pickLegacySaveTarget devuelve la ruta y si salió de un diálogo de guardar
+// del sistema. Ese diálogo ya pregunta antes de reemplazar, y lo que la
+// persona elige en él solo se protege si cae en las carpetas de GrxFirma. Sin
+// diálogo (compilación sin interfaz) la ruta es la que propuso la web.
 func (h *legacyWebSocketHandler) pickLegacySaveTarget(ctx context.Context, defaultPath, extensions string) (string, bool, error) {
 	picker := legacySavePicker(selectLegacySaveTargetPath)
 	confirms := legacySavePickerConfirmsOverwrite
@@ -1044,11 +1046,12 @@ func (h *legacyWebSocketHandler) handleSave(ctx context.Context, solicitud afirm
 	if selectedPath == "" {
 		return "CANCEL"
 	}
-	targetPath, ok := resolveUserChosenWritablePath(selectedPath)
-	if !ok {
+	targetPath, err = resolveSaveTarget(selectedPath, overwriteConfirmed)
+	if err != nil {
+		explicarRutaRechazada("save_select", err)
 		return "SAF_05: Ruta fuera del ámbito permitido"
 	}
-	if resp := h.autorizarDestinoGuardado(ctx, targetPath); resp != "" {
+	if resp := h.autorizarDestinoGuardado(ctx, targetPath, overwriteConfirmed); resp != "" {
 		return resp
 	}
 	savedPath, err := writeLegacySavedFile(targetPath, data, overwriteConfirmed, solicitud.OrigenSolicitante)
@@ -1213,6 +1216,11 @@ func presentLegacySHA1Failure(action string, err error) bool {
 	if presentLegacyDocumentoNoPDF(action, err) {
 		return true
 	}
+	if errors.Is(err, portalpaths.ErrCarpetaPropia) {
+		explicarRutaRechazada("document_pick", err)
+		protocolDiagnosticPersistFailure(action, err)
+		return true
+	}
 	var blocked *excepciones.Block
 	if errors.As(err, &blocked) {
 		setProtocolPhase("sign_execute", tl(legacySHA1BlockedTitleID), blocked.Error())
@@ -1266,6 +1274,7 @@ func (h *legacyWebSocketHandler) handleLoad(ctx context.Context, solicitud afirm
 			if isLegacyCancellation(err) {
 				return "CANCEL"
 			}
+			explicarRutaRechazada("load_select", err)
 			return "SAF_25: No se pudo cargar el fichero"
 		}
 		displayName := filepath.Base(strings.TrimSpace(documento.Name))
@@ -1286,17 +1295,26 @@ func (h *legacyWebSocketHandler) handleLoad(ctx context.Context, solicitud afirm
 		if !isLegacyLoadResponseNameAllowed(displayName) {
 			return "SAF_25: Nombre de fichero no representable en el protocolo"
 		}
-		resolve := resolveLegacyReadablePath
+		var data []byte
 		if elegidasPorUsuario {
-			resolve = resolveUserChosenReadablePath
-		}
-		resolved, ok := resolve(rawPath)
-		if !ok {
-			return "SAF_25: Ruta fuera del ámbito permitido"
-		}
-		data, err := portalpaths.ReadFileLimit(resolved, legacyLoadMaxBytes)
-		if err != nil {
-			return "SAF_25: No se pudo cargar el fichero"
+			resolved, err := resolveUserChosenReadablePath(rawPath)
+			if err != nil {
+				explicarRutaRechazada("load_select", err)
+				return "SAF_25: Ruta fuera del ámbito permitido"
+			}
+			if data, err = portalpaths.ReadFileLimitElegida(resolved, legacyLoadMaxBytes); err != nil {
+				explicarRutaRechazada("load_select", err)
+				return "SAF_25: No se pudo cargar el fichero"
+			}
+		} else {
+			resolved, ok := resolveLegacyReadablePath(rawPath)
+			if !ok {
+				return "SAF_25: Ruta fuera del ámbito permitido"
+			}
+			var err error
+			if data, err = portalpaths.ReadFileLimit(resolved, legacyLoadMaxBytes); err != nil {
+				return "SAF_25: No se pudo cargar el fichero"
+			}
 		}
 		items = append(items, displayName+":"+base64.StdEncoding.EncodeToString(data))
 	}
@@ -1354,11 +1372,12 @@ func (h *legacyWebSocketHandler) handleSignAndSave(ctx context.Context, solicitu
 	if selectedPath == "" {
 		return "CANCEL", nil
 	}
-	targetPath, ok := resolveUserChosenWritablePath(selectedPath)
-	if !ok {
+	targetPath, err = resolveSaveTarget(selectedPath, overwriteConfirmed)
+	if err != nil {
+		explicarRutaRechazada("save_select", err)
 		return "SAF_05: Ruta fuera del ámbito permitido", nil
 	}
-	if resp := h.autorizarDestinoGuardado(ctx, targetPath); resp != "" {
+	if resp := h.autorizarDestinoGuardado(ctx, targetPath, overwriteConfirmed); resp != "" {
 		return resp, nil
 	}
 	savedPath, err := writeLegacySavedFile(targetPath, resultado.Result.Data, overwriteConfirmed, solicitud.OrigenSolicitante)
@@ -1742,55 +1761,95 @@ func resolveLegacyWritablePath(rawPath string) (string, bool) {
 // writeLegacySavedFile solo reemplaza un fichero existente si la persona lo
 // confirmó en el diálogo de guardar del sistema. Sin esa confirmación (por
 // ejemplo, en la compilación sin interfaz, que acepta la ruta propuesta por el
-// portal) se guarda con otro nombre y se devuelve la ruta real. Los datos
-// vienen de la web: en Windows llevan la marca de descarga de Internet (A-09)
-// para que SmartScreen y Office los traten como tales.
+// portal) se guarda con otro nombre y se devuelve la ruta real. La
+// confirmación también dice que la ruta salió del diálogo, y entonces solo se
+// protegen las carpetas de GrxFirma. Los datos vienen de la web: en Windows
+// llevan la marca de descarga de Internet (A-09) para que SmartScreen y Office
+// los traten como tales.
 func writeLegacySavedFile(targetPath string, data []byte, overwriteConfirmed bool, origen string) (string, error) {
-	saved, err := portalpaths.WriteFile(targetPath, data, overwriteConfirmed)
+	write, check := portalpaths.WriteFile, portalpaths.Check
+	if overwriteConfirmed {
+		write, check = portalpaths.WriteFileElegida, portalpaths.CheckElegida
+	}
+	saved, err := write(targetPath, data, overwriteConfirmed)
 	if err != nil {
 		return saved, err
 	}
-	if _, err := portalpaths.Check(saved); err == nil {
+	if _, err := check(saved); err == nil {
 		marcarDescargaWeb(saved, origen)
 	}
 	return saved, nil
 }
 
+// resolveSaveTarget comprueba el destino de guardar con la barrera que
+// corresponde a su origen: la de lo elegido en un diálogo del sistema o, sin
+// diálogo, la de lo que propone la web.
+func resolveSaveTarget(selected string, desdeDialogo bool) (string, error) {
+	if desdeDialogo {
+		return resolveUserChosenWritablePath(selected)
+	}
+	cleanPath, ok := cleanUserChosenPath(selected)
+	if !ok {
+		return "", portalpaths.ErrProtected
+	}
+	if info, err := os.Lstat(cleanPath); err == nil && !info.Mode().IsRegular() {
+		return "", portalpaths.ErrProtected
+	}
+	if _, err := portalpaths.Check(cleanPath); err != nil {
+		return "", err
+	}
+	return cleanPath, nil
+}
+
+// explicarRutaRechazada dice a la persona, en la ventana de GrxFirma, por qué
+// no se usa lo que eligió y qué puede hacer. La web solo recibe el código.
+func explicarRutaRechazada(phase string, err error) {
+	if !errors.Is(err, portalpaths.ErrCarpetaPropia) {
+		return
+	}
+	mostrarRutaRechazada(phase, tl("portalpaths.carpeta_propia.titulo"), tl("portalpaths.carpeta_propia.detalle"))
+}
+
+// mostrarRutaRechazada pinta el motivo en la ventana del protocolo; las
+// pruebas lo sustituyen para comprobar qué ve la persona.
+var mostrarRutaRechazada = setProtocolPhase
+
 // Las rutas que el usuario elige en el diálogo nativo son decisión suya, como
-// en AutoFirma Java: pueden estar en otra unidad o en una carpeta de red. Solo
-// las rutas propuestas por el portal quedan limitadas a su carpeta personal.
+// en AutoFirma Java: pueden estar en otra unidad, en una carpeta de red o en
+// %TEMP%. Solo se rechazan las carpetas propias de GrxFirma. Las rutas
+// propuestas por el portal quedan limitadas a su carpeta personal.
 // Se rechazan rutas relativas, espacios de nombres de dispositivo de Windows
 // (\\.\ y \\?\) y destinos que no sean ficheros regulares.
-func resolveUserChosenReadablePath(rawPath string) (string, bool) {
+func resolveUserChosenReadablePath(rawPath string) (string, error) {
 	cleanPath, ok := cleanUserChosenPath(rawPath)
 	if !ok {
-		return "", false
+		return "", portalpaths.ErrProtected
 	}
-	resolved, err := portalpaths.Check(cleanPath)
+	resolved, err := portalpaths.CheckElegida(cleanPath)
 	if err != nil {
-		return "", false
+		return "", err
 	}
 	info, err := os.Stat(resolved)
 	if err != nil || !info.Mode().IsRegular() {
-		return "", false
+		return "", portalpaths.ErrProtected
 	}
-	return resolved, true
+	return resolved, nil
 }
 
-func resolveUserChosenWritablePath(rawPath string) (string, bool) {
+func resolveUserChosenWritablePath(rawPath string) (string, error) {
 	cleanPath, ok := cleanUserChosenPath(rawPath)
 	if !ok {
-		return "", false
+		return "", portalpaths.ErrProtected
 	}
 	if info, err := os.Lstat(cleanPath); err == nil && !info.Mode().IsRegular() {
-		return "", false
+		return "", portalpaths.ErrProtected
 	}
-	if _, err := portalpaths.Check(cleanPath); err != nil {
-		return "", false
+	if _, err := portalpaths.CheckElegida(cleanPath); err != nil {
+		return "", err
 	}
 	// No se resuelven enlaces simbólicos del directorio: el escritor rechaza
 	// seguirlos, igual que antes.
-	return cleanPath, true
+	return cleanPath, nil
 }
 
 func cleanUserChosenPath(rawPath string) (string, bool) {

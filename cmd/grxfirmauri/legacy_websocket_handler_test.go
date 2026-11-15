@@ -805,11 +805,11 @@ func TestLegacyWebSocketHandler_SaveAceptaDestinoElegidoPorElUsuarioFueraDelHome
 
 func TestLegacyWebSocketHandler_SaveRechazaRutasDeDispositivoORelativas(t *testing.T) {
 	for _, ruta := range []string{`\\.\PhysicalDrive0`, `\\?\C:\x.txt`, "relativa.txt", ""} {
-		if _, ok := resolveUserChosenWritablePath(ruta); ok {
+		if _, err := resolveUserChosenWritablePath(ruta); err == nil {
 			t.Fatalf("ruta %q aceptada", ruta)
 		}
 	}
-	if _, ok := resolveUserChosenWritablePath(t.TempDir()); ok {
+	if _, err := resolveUserChosenWritablePath(t.TempDir()); err == nil {
 		t.Fatal("un directorio no es un destino de guardado válido")
 	}
 }

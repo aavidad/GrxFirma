@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -25,13 +26,15 @@ func TestPortalNoPuedeLeerNiGuardarEnDatosDeLaAplicacion(t *testing.T) {
 	home := t.TempDir()
 	setTestUserHome(t, home)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirRutasDirectas, true)
-	roots := []string{appdirs.Config(home), appdirs.Data(home), appdirs.State(home), appdirs.Cache(home)}
+	propias := []string{appdirs.Config(home), appdirs.Data(home), appdirs.State(home), appdirs.Cache(home)}
+	roots := append([]string(nil), propias...)
 	if runtime.GOOS == "windows" {
 		roots = append(roots, filepath.Join(home, "AppData", "Roaming", "OtraApp"))
 	} else {
 		roots = append(roots, filepath.Join(home, ".config", "otra-app"), filepath.Join(home, ".local", "share", "otra-app"), filepath.Join(home, ".cache", "otra-app"))
 	}
-	for _, root := range roots {
+	for i, root := range roots {
+		propia := i < len(propias)
 		if err := os.MkdirAll(root, 0o700); err != nil {
 			t.Fatal(err)
 		}
@@ -42,14 +45,21 @@ func TestPortalNoPuedeLeerNiGuardarEnDatosDeLaAplicacion(t *testing.T) {
 		if _, err := buildSafeLegacyTargetPath(url.Values{"filePath": {target}}, "settings.json", ".json"); err == nil {
 			t.Errorf("se aceptó como propuesta del portal: %q", target)
 		}
-		if _, ok := resolveUserChosenWritablePath(target); ok {
-			t.Errorf("se aceptó tras el diálogo: %q", target)
-		}
 		if _, ok := resolveLegacyReadablePath(target); ok {
 			t.Errorf("el portal puede leer datos de aplicación: %q", target)
 		}
-		if _, ok := resolveUserChosenReadablePath(target); ok {
-			t.Errorf("la selección de lectura permite datos de aplicación: %q", target)
+		if _, err := resolveSaveTarget(target, false); err == nil {
+			t.Errorf("sin diálogo se guardó en datos de aplicación: %q", target)
+		}
+		// Lo elegido en un diálogo del sistema solo se rechaza en las
+		// carpetas de GrxFirma.
+		_, errEscritura := resolveUserChosenWritablePath(target)
+		_, errLectura := resolveUserChosenReadablePath(target)
+		if propia && (!errors.Is(errEscritura, portalpaths.ErrCarpetaPropia) || !errors.Is(errLectura, portalpaths.ErrCarpetaPropia)) {
+			t.Errorf("el diálogo admitió una carpeta de GrxFirma %q: %v %v", target, errEscritura, errLectura)
+		}
+		if !propia && (errEscritura != nil || errLectura != nil) {
+			t.Errorf("el diálogo rechazó una carpeta de otra aplicación %q: %v %v", target, errEscritura, errLectura)
 		}
 	}
 }
@@ -73,13 +83,13 @@ func TestPortalNoPuedeUsarAliasSimbolicoHaciaConfiguracion(t *testing.T) {
 	if _, err := buildSafeLegacyTargetPath(url.Values{"filePath": {target}}, "settings.json", ".json"); err == nil {
 		t.Fatal("el portal propuso alias hacia config.json")
 	}
-	if _, ok := resolveUserChosenWritablePath(target); ok {
+	if _, err := resolveUserChosenWritablePath(target); err == nil {
 		t.Fatal("el diálogo aceptó alias hacia config.json")
 	}
 	if _, ok := resolveLegacyReadablePath(target); ok {
 		t.Fatal("el portal leyó mediante alias")
 	}
-	if _, ok := resolveUserChosenReadablePath(target); ok {
+	if _, err := resolveUserChosenReadablePath(target); err == nil {
 		t.Fatal("la selección leyó mediante alias")
 	}
 }
@@ -93,7 +103,7 @@ func TestPortalSaveRevalidaDestinoDespuesDelDialogo(t *testing.T) {
 		t.Fatal(err)
 	}
 	target := filepath.Join(protected, "settings.json")
-	h := &legacyWebSocketHandler{savePicker: func(context.Context, string, string) (string, error) { return target, nil }}
+	h := &legacyWebSocketHandler{savePicker: func(context.Context, string, string) (string, error) { return target, nil }, savePickerConfirmsOverwrite: true}
 	result := h.handleSave(context.Background(), afirmauri.Solicitud{Operacion: afirmauri.OperacionSave, LegacyParams: url.Values{
 		"dat":      {base64.StdEncoding.EncodeToString([]byte(`{"excepciones_inseguras":{"aprobacion_automatica":true}}`))},
 		"filename": {"firma.json"},
@@ -158,7 +168,7 @@ func TestPortalRevalidaSiUnDirectorioCambiaTrasSeleccion(t *testing.T) {
 		t.Fatal(err)
 	}
 	selected := filepath.Join(safeDir, "settings.json")
-	if _, ok := resolveUserChosenWritablePath(selected); !ok {
+	if _, err := resolveUserChosenWritablePath(selected); err != nil {
 		t.Fatal("la ruta segura elegida fue rechazada antes del cambio")
 	}
 	readPath := filepath.Join(safeDir, "documento.txt")
@@ -198,7 +208,7 @@ func TestPortalNoUsaTemporalComoHomeSiFaltaHome(t *testing.T) {
 		t.Skip("el sistema aún proporciona una carpeta personal fiable")
 	}
 	path := filepath.Join(t.TempDir(), "documento.txt")
-	if _, ok := resolveUserChosenWritablePath(path); ok {
+	if _, err := resolveUserChosenWritablePath(path); err == nil {
 		t.Fatal("se aceptó una ruta sin carpeta personal fiable")
 	}
 	if _, err := portalpaths.Check(path); err == nil {
@@ -214,7 +224,7 @@ func TestPortalRechazaComponentesPadreAntesDeLimpiarRuta(t *testing.T) {
 	if _, err := buildSafeLegacyTargetPath(url.Values{"filePath": {path}}, "firma.pdf", ".pdf"); err == nil {
 		t.Fatal("se limpió un componente padre antes de comprobarlo")
 	}
-	if _, ok := resolveUserChosenWritablePath(path); ok {
+	if _, err := resolveUserChosenWritablePath(path); err == nil {
 		t.Fatal("el diálogo aceptó una ruta con componente padre")
 	}
 	if _, ok := resolveLegacyReadablePath(path); ok {

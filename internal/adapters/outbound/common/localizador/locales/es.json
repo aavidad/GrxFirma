@@ -6940,6 +6940,11 @@
   ,"No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "No se encontró un gestor de certificados nativo (seahorse/kleopatra)."
   ,"Información: ": "Información: ",
   "excepciones.autofirma.aviso": "La operación se ha delegado en AutoFirma. Se aplican sus propios controles de seguridad y sus ajustes.",
+  "portalpaths.carpeta_propia.titulo": "No se puede usar esta carpeta",
+  "portalpaths.carpeta_propia.detalle": "GrxFirma no puede usar esta carpeta porque guarda en ella su propia configuración y sus datos. Elija otra carpeta, por ejemplo Documentos o Descargas.",
+  "portalpaths.documento_no_permitido": "GrxFirma no puede abrir un documento de la carpeta donde guarda su propia configuración y sus datos. Elija un documento de otra carpeta.",
+  "portalpaths.documento_no_valido": "GrxFirma no puede abrir el documento elegido. Elija un fichero de una carpeta de su equipo o de una carpeta de red.",
+  "portalpaths.selector_un_documento": "Elija un solo documento para firmar.",
   "excepciones.politica_ilegible.aviso": "No se pudo leer la directiva de este equipo. Las excepciones inseguras quedan desactivadas hasta que el administrador corrija la directiva.",
   "excepciones.trifasica_redireccion.aviso": "El servidor de firma trifásica ha redirigido la operación a otro origen autorizado. Compruebe el destino antes de continuar.",
   "excepciones.anclas_locales.aviso": "Esta verificación usa las anclas locales indicadas al iniciar el servicio REST. Sustituyen a las raíces de confianza del sistema para esta consulta.",
