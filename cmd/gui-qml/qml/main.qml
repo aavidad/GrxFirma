@@ -5909,6 +5909,23 @@ Window {
         }
     }
 
+    // Ajustes sin permiso o de otra cuenta (lote 39g): explicación y orden
+    // copiable, fuera de la barra de estado, que corta el texto.
+    SettingsAccessDialog {
+        id: settingsAccessDialog
+        objectName: "settingsAccessDialog"
+        parent: window.contentItem
+        theme: currentTheme
+        translate: function(key) { return window.tr(key) }
+    }
+    Connections {
+        target: backend
+        ignoreUnknownSignals: true
+        function onSettingsAccessFailed(action, message) {
+            settingsAccessDialog.present(action, message)
+        }
+    }
+
     ThemedDialog {
         translate: function(key) { return window.tr(key) }
         theme: currentTheme

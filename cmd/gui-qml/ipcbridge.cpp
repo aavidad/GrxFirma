@@ -52,6 +52,24 @@ static QString it(const QString &key) {
 
 static QStringList IpcBridgeExpectedLocalTLSPins();
 
+// Lote 39g: ajustes que no se pueden leer o guardar por permisos. El motor
+// manda un errorCode cerrado y el texto sale del catálogo de la interfaz: lleva
+// una orden con «/grant» o «~/.config» que el filtro de rutas del texto libre
+// del motor cambiaría por [PATH]. Cualquier otro código queda como estaba.
+static QString ipcSettingsAccessKey(const QJsonObject &res) {
+  const QString code = res.value(QStringLiteral("errorCode")).toString();
+  if (code == QLatin1String("settings_other_user"))
+    return QStringLiteral("error.settings_otro_usuario");
+  if (code == QLatin1String("settings_no_permission")) {
+#ifdef Q_OS_WIN
+    return QStringLiteral("error.settings_sin_permiso");
+#else
+    return QStringLiteral("error.settings_sin_permiso_unix");
+#endif
+  }
+  return QString();
+}
+
 // Avisos del motor sobre una firma (lote 16d): claves del catálogo que QML
 // traduce. Solo se aceptan claves con forma de clave y con tope, para que el
 // resultado no pueda colar texto libre en la pantalla.
@@ -2110,6 +2128,10 @@ void IpcBridge::onReadyRead() {
         !ok && !obj.value("exceptionId").toString().isEmpty();
     if (unsafeBlocked)
       errMsg = ipcUnsafeBlockMessage(obj, errMsg);
+    const QString settingsAccessKey =
+        ok ? QString() : ipcSettingsAccessKey(obj);
+    if (!settingsAccessKey.isEmpty() && it(settingsAccessKey) != settingsAccessKey)
+      errMsg = it(settingsAccessKey);
     const QVariantMap diagnostic =
         obj.value("diagnostic").toObject().toVariantMap();
     if (!diagnostic.isEmpty() && !unsafeBlocked) {
@@ -2377,6 +2399,16 @@ void IpcBridge::onReadyRead() {
     if (!ok) {
       emit backendLogReceived(it(QStringLiteral("Error IPC: ")) + errMsg);
       emit backendLogReceived(ipcOriginHint(action, errMsg));
+      if (!settingsAccessKey.isEmpty() &&
+          (action == "get_settings" || action == "save_settings")) {
+        // No es una firma fallida ni una avería: un diálogo propio con la
+        // orden copiable. Guardar avisa además a quien espera el resultado.
+        setStatus(errMsg.section(QLatin1Char('\n'), 0, 0));
+        emit settingsAccessFailed(action, errMsg);
+        if (action == "save_settings")
+          emit settingsSaved(false, errMsg);
+        continue;
+      }
       if (action == "verify") {
         setStatus(QString(errMsg).replace(QLatin1Char('\n'), QLatin1Char(' ')));
         // Firma sin evaluar por un bloqueo: la QML no la pinta como inválida.

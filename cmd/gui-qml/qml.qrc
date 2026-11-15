@@ -32,6 +32,7 @@
     <file>qml/TokenSettingsPanel.qml</file>
     <file>qml/UnsafeExceptionDialog.qml</file>
     <file>qml/UnsafeExceptionsPanel.qml</file>
+    <file>qml/SettingsAccessDialog.qml</file>
     <file>qml/FacturaePanel.qml</file>
     <file>qml/EniPanel.qml</file>
     <file>qml/EniCatalog.js</file>
