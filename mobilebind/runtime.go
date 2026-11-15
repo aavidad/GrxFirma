@@ -121,6 +121,7 @@ func newPlatformFacade(platform string, includeAndroidIntent bool, temporaryDire
 	facade.session = store
 	facade.temporaryDirectory = temporaryDirectory
 	facade.configDir = configDir
+	facade.platform = platform
 	facade.revocationMode = "embedded_evidence_only"
 	if includeAndroidIntent {
 		facade.androidIntentAdapter = androidintent.New(nil)

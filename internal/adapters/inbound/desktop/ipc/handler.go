@@ -205,6 +205,8 @@ type Manejador struct {
 	confianzaMu       sync.Mutex
 	confianzaForzable map[string]domain.ObstaculoConfianza
 
+	unsafeRetryMu          sync.Mutex
+	unsafeRetries          map[string]*unsafeRetry
 	settingsMu             sync.Mutex
 	certsMu                sync.RWMutex
 	tlsDeps                tlsIPCDependencies
@@ -230,7 +232,7 @@ func (m *Manejador) despacharConTimeout(parent context.Context, p peticion) resp
 
 func desktopIPCTimeoutDe(accion string) time.Duration {
 	switch accion {
-	case "sign", "sign_multicosign", "sign_batch", "protect_sign",
+	case "unsafe_operation_retry", "sign", "sign_multicosign", "sign_batch", "protect_sign",
 		"verify", "pdf_preview", "hash_create", "hash_check", "validate_invoice", "validate_eni", "generate_eni_document", "generate_eni_file",
 		// Conectar espera a que la persona autorice en el navegador.
 		"csc_connect":
@@ -243,6 +245,12 @@ func desktopIPCTimeoutDe(accion string) time.Duration {
 func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 	ctx = excepciones.WithConfigDir(ctx, m.configDirSeguro())
 	ctx, avisosOperacion := domain.ConAvisosOperacion(ctx)
+	ctx, blockReport := excepciones.WithBlockReport(ctx)
+	pendingRetry := m.prepareUnsafeRetry(ctx, p)
+	if pendingRetry != nil {
+		ctx = context.WithValue(ctx, unsafeRetryFilesKey{}, pendingRetry.files)
+	}
+	defer pendingRetry.clearUnlessStored()
 	accion := strings.ToLower(strings.TrimSpace(p.Action))
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: accion, Error: err.Error()}
@@ -347,7 +355,9 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handleServiceStart(ctx)
 	case "service_stop":
 		resp = m.handleServiceStop(ctx)
-	case "unsafe_exceptions_list", "unsafe_exceptions_set":
+	case "unsafe_operation_retry":
+		resp = m.handleUnsafeRetry(ctx, p.Params)
+	case "unsafe_exceptions_list", "unsafe_exceptions_set", "unsafe_exceptions_activate":
 		resp = m.handleUnsafeExceptions(ctx, accion, p.Params)
 	case "get_settings":
 		resp = m.handleGetSettings(ctx)
@@ -410,8 +420,31 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp.ExceptionID = bloqueo.ID
 		resp.BlockKey = bloqueo.BlockKey
 		resp.SettingKey = bloqueo.SettingKey
+		effective := excepciones.DescribeAt(m.configDirSeguro(), bloqueo.ID)
+		policyBlocked := !effective.Activable
+		trustedBlock := blockReport.For(bloqueo.ID) != nil
+		if !esInterfazVerificada(ctx) || !trustedBlock {
+			effective.Activable = false
+		}
+		resp.Exception = effective
+		resp.Activable = &effective.Activable
+		resp.TitleKey = effective.TitleKey
+		resp.RiskKey = effective.RiskKey
+		resp.AcceptanceKey = effective.AcceptanceKey
+		resp.HelpKey = effective.HelpKey
+		resp.AcceptanceVersion = effective.AcceptanceVersion
+		if trustedBlock && effective.Activable {
+			resp.RetryID = m.storeUnsafeRetry(ctx, pendingRetry, bloqueo.ID)
+		}
 		if !resp.OK {
-			resp.Error = m.t(bloqueo.BlockKey)
+			key := effective.BlockKey
+			if policyBlocked {
+				key = effective.OrganizationKey
+			}
+			resp.Error = m.t(key)
+			if policyBlocked {
+				resp.Error = m.t(effective.RiskKey) + "\n" + resp.Error
+			}
 		}
 	}
 	resp = m.explicarFalloRemoto(resp, peticionRemota)
@@ -699,7 +732,7 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
 	}
 
-	contenido, err := leerFicheroSeguroIPC(params.InputPath)
+	contenido, err := leerFicheroReintentoIPC(ctx, params.InputPath)
 	if err != nil {
 		return respuesta{OK: false, Action: "sign", Error: m.t("error.archivo_no_encontrado", params.InputPath)}
 	}
@@ -1280,7 +1313,7 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 		return respuesta{OK: false, Action: "verify", Error: err.Error()}
 	}
 
-	contenido, err := leerFicheroSeguroIPC(params.InputPath)
+	contenido, err := leerFicheroReintentoIPC(ctx, params.InputPath)
 	if err != nil {
 		return respuesta{OK: false, Action: "verify", Error: m.t("error.archivo_no_encontrado", params.InputPath)}
 	}
@@ -1298,7 +1331,7 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 		if err := verificarTamano(originalPath); err != nil {
 			return respuesta{OK: false, Action: "verify", Error: err.Error()}
 		}
-		originalContent, err := leerFicheroSeguroIPC(originalPath)
+		originalContent, err := leerFicheroReintentoIPC(ctx, originalPath)
 		if err != nil {
 			return respuesta{OK: false, Action: "verify", Error: m.t("error.archivo_no_encontrado", originalPath)}
 		}
@@ -2149,6 +2182,19 @@ func (m *Manejador) handleSaveSettings(ctx context.Context, raw json.RawMessage)
 	actual, err := m.loadSettingsDocument(ctx)
 	if err != nil {
 		return respuesta{OK: false, Action: "save_settings", Error: m.t("error.settings_no_configurado")}
+	}
+	for _, key := range []string{excepciones.UserField, excepciones.AcceptanceField} {
+		if proposed, exists := datos[key]; exists {
+			a, _ := json.Marshal(proposed)
+			b, _ := json.Marshal(actual.Extras[key])
+			if string(a) != string(b) {
+				return respuesta{OK: false, Action: "save_settings", ErrorCode: "unsafe_acceptance_required", Error: m.t("excepciones.aceptacion_requerida")}
+			}
+		}
+		delete(datos, key)
+		if value, exists := actual.Extras[key]; exists {
+			datos[key] = value
+		}
 	}
 	delete(datos, "proxySecretId")
 	delete(datos, "proxyRealm")

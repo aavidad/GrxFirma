@@ -24,7 +24,7 @@ func TestSHA1DesactivadoPorDefecto(t *testing.T) {
 		t.Fatalf("RequireLegacySHA1() error = %v", err)
 	}
 	message := err.Error()
-	for _, fragment := range []string{"SHA-1", "porque", "config.json", "sha1_crear"} {
+	for _, fragment := range []string{"SHA-1", "organización", "administrador", "sha1_crear"} {
 		if !strings.Contains(message, fragment) {
 			t.Fatalf("el rechazo no explica el riesgo o la remediación (%q): %q", fragment, message)
 		}

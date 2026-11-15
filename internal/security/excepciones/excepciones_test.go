@@ -92,7 +92,8 @@ func TestUserSettingsPersistenceAndPrecedence(t *testing.T) {
 	t.Setenv("HOME", home)
 	e, _ := Find("tsa_http")
 	machinepolicy.UnsetForTest(t, e.PolicyKey)
-	if err := SetUser(e.ID, true); err != nil {
+	dir, _ := configDir()
+	if _, err := ActivateLocal(ForLocalCLI(context.Background()), dir, ActivationRequest{ID: e.ID, Accepted: true, AcceptanceVersion: AcceptanceVersion}); err != nil {
 		t.Fatal(err)
 	}
 	if err := Check(e.ID); err != nil {
@@ -112,7 +113,7 @@ func TestUserSettingsPersistenceAndPrecedence(t *testing.T) {
 func TestContextDirectoryIsIsolated(t *testing.T) {
 	first, second := t.TempDir(), t.TempDir()
 	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
-	if err := SetUserAt(first, "tsa_http", true); err != nil {
+	if _, err := ActivateLocal(ForLocalCLI(context.Background()), first, ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: AcceptanceVersion}); err != nil {
 		t.Fatal(err)
 	}
 	if err := Check("tsa_http", WithConfigDir(context.Background(), first)); err != nil {

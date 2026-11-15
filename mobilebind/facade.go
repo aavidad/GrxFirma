@@ -84,6 +84,7 @@ type Facade struct {
 	session              *sessionIdentityStore
 	temporaryDirectory   string
 	configDir            string
+	platform             string
 	systemTrustAnchors   bool
 	revocationMode       string
 	timeout              time.Duration

@@ -24,12 +24,18 @@ import (
 const UserField = "excepciones_inseguras"
 
 type Exception struct {
-	ID         string `json:"id"`
-	UserKey    string `json:"user_key"`
-	PolicyKey  string `json:"policy_key"`
-	WarningKey string `json:"warning_key"`
-	BlockKey   string `json:"block_key"`
-	SettingKey string `json:"setting_key"`
+	ID                string `json:"id"`
+	UserKey           string `json:"user_key"`
+	PolicyKey         string `json:"policy_key"`
+	WarningKey        string `json:"warning_key"`
+	BlockKey          string `json:"block_key"`
+	SettingKey        string `json:"setting_key"`
+	TitleKey          string `json:"title_key"`
+	RiskKey           string `json:"risk_key"`
+	AcceptanceKey     string `json:"acceptance_key"`
+	HelpKey           string `json:"help_key"`
+	OrganizationKey   string `json:"organization_key"`
+	AcceptanceVersion string `json:"acceptance_version"`
 }
 
 var catalog = buildCatalog()
@@ -52,7 +58,7 @@ func buildCatalog() []Exception {
 			policy = name
 		}
 		prefix := "excepciones." + id
-		out = append(out, Exception{ID: id, UserKey: UserField + "." + id, PolicyKey: policy, WarningKey: prefix + ".aviso", BlockKey: prefix + ".bloqueo", SettingKey: prefix + ".ajuste"})
+		out = append(out, Exception{ID: id, UserKey: UserField + "." + id, PolicyKey: policy, WarningKey: prefix + ".aviso", BlockKey: prefix + ".bloqueo", SettingKey: prefix + ".ajuste", TitleKey: prefix + ".titulo", RiskKey: prefix + ".riesgo", AcceptanceKey: prefix + ".aceptacion", HelpKey: prefix + ".ayuda", OrganizationKey: prefix + ".organizacion", AcceptanceVersion: AcceptanceVersion})
 	}
 	return out
 }
@@ -70,17 +76,51 @@ func Warning(id string) string { e, _ := Find(id); return e.WarningKey }
 
 // Block conserva ID y claves incluso cuando un adaptador envuelve el error.
 type Block struct {
-	ID         string
-	BlockKey   string
-	SettingKey string
-	PolicyKey  string
+	ID                string `json:"id"`
+	BlockKey          string `json:"block_key"`
+	SettingKey        string `json:"setting_key"`
+	PolicyKey         string `json:"policy_key"`
+	TitleKey          string `json:"title_key"`
+	RiskKey           string `json:"risk_key"`
+	AcceptanceKey     string `json:"acceptance_key"`
+	HelpKey           string `json:"help_key"`
+	OrganizationKey   string `json:"organization_key"`
+	AcceptanceVersion string `json:"acceptance_version"`
+	Activable         bool   `json:"activable"`
 }
 
 func (b *Block) Error() string {
-	return localizador.Detectar().T(b.BlockKey) + " [" + b.ID + "; " + b.BlockKey + "]"
+	loc := localizador.Detectar()
+	key := b.BlockKey
+	if !b.Activable && b.OrganizationKey != "" {
+		key = b.OrganizationKey
+	}
+	message := loc.T(key)
+	if !b.Activable && b.OrganizationKey != "" {
+		message = loc.T(b.RiskKey) + "\n" + message + " [" + b.ID + "; " + b.OrganizationKey + "]"
+	}
+	return message + " [" + b.ID + "; " + b.BlockKey + "]"
 }
-func blocked(e Exception) error {
-	return &Block{ID: e.ID, BlockKey: e.BlockKey, SettingKey: e.SettingKey, PolicyKey: e.PolicyKey}
+func blockForState(e Exception, s State) *Block {
+	return &Block{ID: e.ID, BlockKey: e.BlockKey, SettingKey: e.SettingKey, PolicyKey: e.PolicyKey, TitleKey: e.TitleKey, RiskKey: e.RiskKey, AcceptanceKey: e.AcceptanceKey, HelpKey: e.HelpKey, OrganizationKey: e.OrganizationKey, AcceptanceVersion: AcceptanceVersion, Activable: s.Activable}
+}
+func blocked(e Exception) error { return Describe(e.ID) }
+
+// Describe devuelve metadatos sin permitir activar una excepción por sí solo.
+func Describe(id string) *Block {
+	dir, err := configDir()
+	e, ok := Find(id)
+	if !ok {
+		return nil
+	}
+	return blockForState(e, state(e, dir, err))
+}
+func DescribeAt(dir, id string) *Block {
+	e, ok := Find(id)
+	if !ok {
+		return nil
+	}
+	return blockForState(e, state(e, dir, nil))
 }
 
 // FromText recupera el contrato en adaptadores antiguos que guardan Error().
@@ -96,10 +136,12 @@ func FromText(message string) *Block {
 
 type State struct {
 	Exception
-	Enabled          bool `json:"enabled"`
-	Fixed            bool `json:"fixed"`
-	UserEnabled      bool `json:"user_enabled"`
-	PolicyUnreadable bool `json:"policy_unreadable"`
+	Activable        bool        `json:"activable"`
+	LastAcceptance   *Acceptance `json:"last_acceptance,omitempty"`
+	Enabled          bool        `json:"enabled"`
+	Fixed            bool        `json:"fixed"`
+	UserEnabled      bool        `json:"user_enabled"`
+	PolicyUnreadable bool        `json:"policy_unreadable"`
 }
 
 func configDir() (string, error) {
@@ -126,11 +168,15 @@ func listAt(dir string, err error) []State {
 	return out
 }
 func state(e Exception, dir string, dirErr error) State {
-	s := State{Exception: e}
+	s := State{Exception: e, Activable: true}
+	if dirErr == nil && dir != "" {
+		s.LastAcceptance = readAcceptance(dir, e.ID)
+	}
 	value, present, err := machinepolicy.ReadOptIn(e.PolicyKey)
 	if err != nil {
 		s.Fixed = true
 		s.PolicyUnreadable = true
+		s.Activable = false
 		return s
 	}
 	if e.ID == "cms_cifrado_heredado" || e.ID == "cms_cbc" || e.ID == "cms_aes_ecb" {
@@ -138,6 +184,7 @@ func state(e Exception, dir string, dirErr error) State {
 		if perr != nil || prohibited {
 			s.Fixed = true
 			s.PolicyUnreadable = perr != nil
+			s.Activable = false
 			return s
 		}
 	}
@@ -145,6 +192,7 @@ func state(e Exception, dir string, dirErr error) State {
 	s.UserEnabled = user
 	if present {
 		s.Enabled = value
+		s.Activable = value
 		s.Fixed = true
 		return s
 	}
@@ -174,8 +222,13 @@ func Check(id string, contexts ...context.Context) error {
 			err = nil
 		}
 	}
-	if !state(e, dir, err).Enabled {
-		return blocked(e)
+	effective := state(e, dir, err)
+	if !effective.Enabled {
+		b := blockForState(e, effective)
+		if len(contexts) > 0 {
+			reportBlock(contexts[0], b)
+		}
+		return b
 	}
 	return nil
 }
@@ -261,49 +314,18 @@ func SetUser(id string, enabled bool) error {
 }
 
 func SetUserAt(dir, id string, enabled bool) error {
+	if enabled {
+		return fmt.Errorf("excepciones.aceptacion_requerida")
+	}
+	writeMu.Lock()
+	defer writeMu.Unlock()
 	e, ok := Find(id)
 	if !ok {
 		return fmt.Errorf("excepciones.id_desconocido: %s", id)
 	}
 	s := state(e, dir, nil)
 	if s.Fixed {
-		return blocked(e)
+		return blockForState(e, s)
 	}
-	writeMu.Lock()
-	defer writeMu.Unlock()
-	if err := os.MkdirAll(dir, 0700); err != nil {
-		return err
-	}
-	for _, file := range []string{"settings.json"} {
-		path := filepath.Join(dir, file)
-		doc := map[string]json.RawMessage{}
-		raw, err := securefile.ReadFileLimit(path, 4<<20)
-		if err != nil && !os.IsNotExist(err) {
-			return err
-		}
-		if len(raw) > 0 {
-			if err = json.Unmarshal(raw, &doc); err != nil {
-				return err
-			}
-		}
-		values := map[string]bool{}
-		if data, ok := doc[UserField]; ok {
-			if err = json.Unmarshal(data, &values); err != nil {
-				return err
-			}
-		}
-		values[id] = enabled
-		doc[UserField], err = json.Marshal(values)
-		if err != nil {
-			return err
-		}
-		raw, err = json.MarshalIndent(doc, "", "  ")
-		if err != nil {
-			return err
-		}
-		if err = securefile.WriteFileAtomic(path, append(raw, '\n'), 0600); err != nil {
-			return err
-		}
-	}
-	return nil
+	return writeUserSettings(context.Background(), dir, id, false, nil)
 }

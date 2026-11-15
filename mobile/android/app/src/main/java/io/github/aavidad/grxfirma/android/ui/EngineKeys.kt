@@ -43,17 +43,21 @@ object EngineKeys {
     )
 
     fun isClosed(key: String): Boolean {
+		if (key in setOf("excepciones.aceptacion_requerida", "excepciones.version_aceptacion_invalida", "excepciones.canal_no_local", "excepciones.activar_continuar", "excepciones.cancelar", "excepciones.mas_informacion", "excepciones.reintento_caducado", "excepciones.reintento_no_disponible")) return true
 		if (CATALOGUE_KEY.matches(key)) return true
 		val parts = key.split('.')
 		return parts.size == 3 && parts[0] == "excepciones" && parts[1] in EXCEPTION_IDS &&
-			parts[2] in setOf("aviso", "bloqueo", "ajuste")
+			parts[2] in setOf("aviso", "bloqueo", "ajuste", "titulo", "riesgo", "aceptacion", "ayuda", "organizacion")
 	}
 
 	fun blockKey(message: String): String? {
 		val marker = BLOCK_MARKER.find(message) ?: return null
 		val id = marker.groupValues[1]
 		val key = marker.groupValues[2]
-		return key.takeIf { id in EXCEPTION_IDS && it == "excepciones.$id.bloqueo" }
+		if (id !in EXCEPTION_IDS || key != "excepciones.$id.bloqueo") return null
+        val organizationKey = "excepciones.$id.organizacion"
+        if (message.contains("[$id; $organizationKey]")) return organizationKey
+        return key
 	}
 
     @StringRes
