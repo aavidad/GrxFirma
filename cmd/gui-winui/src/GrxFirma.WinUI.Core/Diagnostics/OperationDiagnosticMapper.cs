@@ -5,6 +5,7 @@
 
 using System.Text.RegularExpressions;
 using GrxFirma.WinUI.Core.Ipc;
+using GrxFirma.WinUI.Core.Localization;
 
 namespace GrxFirma.WinUI.Core.Diagnostics;
 
@@ -66,12 +67,20 @@ public static class OperationDiagnosticMapper
         var diagnostic = result.Diagnostic is not null
             ? SanitizeBackendDiagnostic(result.Diagnostic)
             : BuildFromResultMetadata(result);
+        // Ajustes sin permiso: el texto sale del catálogo de la interfaz, no
+        // del motor, y no pasa por el filtro de rutas, que cortaba la orden
+        // icacls "%APPDATA%\GrxFirma" /grant … por la primera barra.
+        var settingsAccess = result.IsSuccess
+            ? null
+            : SettingsAccessFailure.From(result.ErrorCode, CatalogLocalizer.Shared.Text);
 
         return diagnostic with
         {
             RequestId = NormalizeOpaqueIdentifier(result.RequestId, 128),
             TraceId = NormalizeOpaqueIdentifier(result.TraceId, 128),
             Action = NormalizeOpaqueIdentifier(result.Action, 64),
+            SettingsAccess = settingsAccess,
+            UserMessage = settingsAccess?.Explanation ?? diagnostic.UserMessage,
         };
     }
 

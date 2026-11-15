@@ -30,6 +30,12 @@ public sealed record OperationDiagnostic
     [JsonIgnore]
     public string? Action { get; init; }
 
+    // Ajustes sin permiso o de otra cuenta (lote 39g): texto del catálogo de
+    // la interfaz y la orden entera para copiar. Lo pone solo el mapeador a
+    // partir del errorCode del sobre; el motor no puede fijarlo en el JSON.
+    [JsonIgnore]
+    public SettingsAccessFailure? SettingsAccess { get; init; }
+
     [JsonPropertyName("category")]
     public string Category { get; init; } = "unknown";
 
