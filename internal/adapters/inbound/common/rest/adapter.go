@@ -2468,9 +2468,13 @@ func (a *Adaptador) handleInstallPublicRoots(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	tlsDir := a.directorioTLSRest()
-	artifactPaths := tlsRESTManagedArtifactPaths(tlsDir)
-	if err := validateTLSRESTCleanupTargets(tlsDir, artifactPaths); err != nil {
+	tlsDir, err := a.directorioTLSRest()
+	var artifactPaths []string
+	if err == nil {
+		artifactPaths = tlsRESTManagedArtifactPaths(tlsDir)
+		err = validateTLSRESTCleanupTargets(tlsDir, artifactPaths)
+	}
+	if err != nil {
 		writeJSON(w, http.StatusOK, publicRootsResponse{
 			OK:                    false,
 			LocalCertificateState: "not_generated",
@@ -2650,9 +2654,13 @@ func (a *Adaptador) handleTLSClearStore(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	tlsDir := a.directorioTLSRest()
-	artifactPaths := tlsRESTManagedArtifactPaths(tlsDir)
-	if err := validateTLSRESTCleanupTargets(tlsDir, artifactPaths); err != nil {
+	tlsDir, err := a.directorioTLSRest()
+	var artifactPaths []string
+	if err == nil {
+		artifactPaths = tlsRESTManagedArtifactPaths(tlsDir)
+		err = validateTLSRESTCleanupTargets(tlsDir, artifactPaths)
+	}
+	if err != nil {
 		writeJSON(w, http.StatusOK, tlsClearStoreResponse{
 			OK:      false,
 			Message: "No se pudo validar el almacén TLS local.",
@@ -3791,15 +3799,18 @@ func (a *Adaptador) defaultServiceSocketPath() string {
 	return filepath.Join(os.TempDir(), "grxfirma_ipc.sock")
 }
 
-func (a *Adaptador) directorioTLSRest() string {
+// directorioTLSRest devuelve la carpeta del TLS local. Sin carpeta indicada y
+// sin carpeta personal válida falla cerrado: la clave TLS nunca va a la
+// carpeta temporal compartida.
+func (a *Adaptador) directorioTLSRest() (string, error) {
 	if strings.TrimSpace(a.ConfigDir) != "" {
-		return filepath.Join(a.ConfigDir, "tls")
+		return filepath.Join(a.ConfigDir, "tls"), nil
 	}
 	dir, err := appdirs.ConfigUsuario()
 	if err != nil {
-		return filepath.Join(os.TempDir(), "grxfirma", "tls")
+		return "", err
 	}
-	return filepath.Join(dir, "tls")
+	return filepath.Join(dir, "tls"), nil
 }
 
 func (a *Adaptador) directorioP12() (string, error) {
@@ -3813,11 +3824,15 @@ func (a *Adaptador) directorioP12() (string, error) {
 }
 
 func (a *Adaptador) tlsStoreDiagnostic() tlsStoreDiagnostic {
-	dir := a.directorioTLSRest()
 	resultado := tlsStoreDiagnostic{
 		State:                 "not_created",
 		LocalCertificateState: "not_generated",
 		SystemTrustState:      "platform_dependent",
+	}
+	dir, err := a.directorioTLSRest()
+	if err != nil {
+		resultado.State = "unavailable"
+		return resultado
 	}
 
 	entries, err := os.ReadDir(dir)
