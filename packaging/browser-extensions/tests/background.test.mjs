@@ -8,221 +8,11 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import vm from "node:vm";
+import { loadBackground } from "./helpers/background.mjs";
 import { fileURLToPath } from "node:url";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const extensionRoot = path.resolve(testDir, "..");
-
-function storageArea() {
-  const values = new Map();
-  return {
-    async get(keys) {
-      const result = {};
-      for (const key of keys === null ? values.keys() : (Array.isArray(keys) ? keys : [keys])) {
-        if (values.has(key)) result[key] = values.get(key);
-      }
-      return result;
-    },
-    async set(items) {
-      for (const [key, value] of Object.entries(items)) values.set(key, value);
-    },
-    async remove(keys) {
-      for (const key of Array.isArray(keys) ? keys : [keys]) values.delete(key);
-    }
-  };
-}
-
-async function loadBackground(variant, options = {}) {
-  const nativeMessageListeners = [];
-  const runtimeMessageListeners = [];
-  const disconnectListeners = [];
-  const liveTimers = new Set();
-  const localStorage = storageArea();
-  const sessionStorage = storageArea();
-  const managedStorage = storageArea();
-  const grantedOrigins = new Set(options.grantedOrigins || []);
-  const registeredScripts = new Map();
-  if (options.managedSites) await managedStorage.set({ sitiosConfianza: options.managedSites });
-  if (options.userSites) await localStorage.set({ sitiosConfianza: options.userSites });
-  const postedMessages = [];
-  const openedTabs = [];
-  const runtimeId = options.runtimeId || "abcdefghijklmnopabcdefghijklmnop";
-  const extensionScheme = variant === "firefox" ? "moz-extension" : "chrome-extension";
-  const extensionBase = `${extensionScheme}://${runtimeId}/`;
-
-  const port = {
-    onMessage: {
-      addListener(listener) {
-        nativeMessageListeners.push(listener);
-      }
-    },
-    onDisconnect: {
-      addListener(listener) {
-        disconnectListeners.push(listener);
-      }
-    },
-    postMessage(message) {
-      postedMessages.push(message);
-      if (options.postMessageError) throw options.postMessageError;
-      if (options.nativeResponse) {
-        queueMicrotask(() => {
-          const response = options.nativeResponse(message);
-          const responses = Array.isArray(response) ? response : [response];
-          for (const item of responses) {
-            for (const listener of nativeMessageListeners) listener(item);
-          }
-        });
-      }
-    }
-  };
-
-  const context = vm.createContext({
-    AbortController,
-    URL,
-    atob,
-    btoa,
-    crypto: globalThis.crypto,
-    TextEncoder,
-    console: { log() {}, warn() {}, error() {} },
-    queueMicrotask,
-    fetch: options.fetch || (async () => {
-      throw new Error("unexpected fetch");
-    }),
-    setTimeout(callback, delay) {
-      const handle = setTimeout(callback, delay);
-      liveTimers.add(handle);
-      return handle;
-    },
-    clearTimeout(handle) {
-      liveTimers.delete(handle);
-      clearTimeout(handle);
-    },
-    CONFIG: {
-      API_URL: "https://api.example.invalid",
-      LOCAL_REST_URL: "https://127.0.0.1:63118",
-      LOCAL_REST_BEARER: options.restBearer || ""
-    },
-    CryptoUtils: {
-      async decrypt() { return null; },
-      async getIdentity() { return null; },
-      async generateIdentity() { return { pub: "test" }; }
-    },
-    grxfirmaExt: {
-      i18n: {
-        message(key) {
-          const messages = {
-            popupNativeHostUnavailable: "No se pudo establecer el canal seguro. Reinstale el conector oficial y reinicie el navegador.",
-            nativeRequestTimeout: "La operación agotó el tiempo. Repítala; si persiste, reinicie el navegador.",
-            runtimeRequestRejected: "Solicitud bloqueada por seguridad. Use el conector oficial desde una sede autorizada."
-          };
-          return messages[key] || key;
-        }
-      },
-      runtime: {
-        id: runtimeId,
-        getURL(relative = "") {
-          return extensionBase + String(relative).replace(/^\/+/, "");
-        },
-        getManifest() {
-          return {
-            host_permissions: [
-              "https://*.dipgra.es/*",
-              "https://*.savia.net/*",
-              "https://127.0.0.1/*"
-            ]
-          };
-        },
-        connectNative() {
-          if (options.connectError) throw options.connectError;
-          return port;
-        },
-        lastErrorMessage() {
-          return options.disconnectError || "";
-        },
-        async sendMessage() {},
-        onInstalled: { addListener() {} },
-        onStartup: { addListener() {} },
-        onMessage: {
-          addListener(listener) {
-            runtimeMessageListeners.push(listener);
-          }
-        }
-      },
-      tabs: {
-        async create(properties) {
-          openedTabs.push(properties);
-        }
-      },
-      permissions: {
-        async contains({ origins }) { return origins.every((origin) => grantedOrigins.has(origin)); },
-        onAdded: { addListener() {} }, onRemoved: { addListener() {} }
-      },
-      scripting: {
-        async getRegisteredContentScripts() { return [...registeredScripts.values()]; },
-        async registerContentScripts(items) { for (const item of items) registeredScripts.set(item.id, item); },
-        async unregisterContentScripts({ ids }) { for (const id of ids) registeredScripts.delete(id); }
-      },
-      storageOnChanged: { addListener() {} },
-      storageManaged: managedStorage,
-      storageLocal: localStorage,
-      storageSession: sessionStorage,
-      hasStorageSession() { return true; }
-    }
-  });
-
-  const trustedSource = await readFile(path.join(extensionRoot, "src", variant, "trusted_sites.js"), "utf8");
-  vm.runInContext(trustedSource, context, { filename: `${variant}/trusted_sites.js` });
-  const source = await readFile(path.join(extensionRoot, "src", variant, "background.js"), "utf8");
-  vm.runInContext(source, context, { filename: `${variant}/background.js` });
-  await vm.runInContext('trustedSitesRefresh', context);
-
-  return {
-    context,
-    postedMessages,
-    openedTabs,
-    localStorage, sessionStorage, managedStorage, grantedOrigins, registeredScripts,
-    internalSender(relative = "popup.html") {
-      return {
-        id: runtimeId,
-        url: extensionBase + relative.replace(/^\/+/, "")
-      };
-    },
-    dispatchRuntimeMessage(request, sender) {
-      const effectiveSender = sender || {
-        id: runtimeId,
-        url: extensionBase + "popup.html"
-      };
-      return new Promise((resolve, reject) => {
-        if (runtimeMessageListeners.length === 0) {
-          resolve(undefined);
-          return;
-        }
-        let settled = false;
-        const sendResponse = (response) => {
-          if (!settled) {
-            settled = true;
-            resolve(response);
-          }
-        };
-        try {
-          const keepOpen = runtimeMessageListeners.some(
-            (listener) => listener(request, effectiveSender, sendResponse) === true
-          );
-          if (!keepOpen && !settled) {
-            settled = true;
-            resolve(undefined);
-          }
-        } catch (error) {
-          reject(error);
-        }
-      });
-    },
-    disconnect() {
-      for (const listener of disconnectListeners) listener();
-    },
-    liveTimers
-  };
-}
 
 for (const variant of ["chromium", "firefox"]) {
   test(`${variant}: no persiste documentos del firmador en storage.local`, async () => {
@@ -317,7 +107,7 @@ for (const variant of ["chromium", "firefox"]) {
     const userScripts = [...harness.registeredScripts.values()].filter((script) => script.matches[0].includes('usuario.org'));
     assert.equal(userScripts.length, 1);
     assert.deepEqual([...userScripts[0].js], ['compat.js', 'content_scripts/pdf_detector.js']);
-    const user = { id: 'abcdefghijklmnopabcdefghijklmnop', url: 'https://x.usuario.org/archivo.pdf', tab: { id: 12 } };
+    const user = { id: 'abcdefghijklmnopabcdefghijklmnop', url: 'https://x.usuario.org/archivo.pdf', tab: { id: 12, url: 'https://x.usuario.org/archivo.pdf' } };
     assert.equal((await harness.dispatchRuntimeMessage({ action: 'openSigner' }, user)).success, true);
     assert.equal((await harness.dispatchRuntimeMessage({ action: 'proveIdentity', canonicalPayloadB64: 'e30=' }, user)).success, false);
     assert.equal((await harness.dispatchRuntimeMessage({ action: 'openSigner' }, user)).code, 'opening_pending');
@@ -406,7 +196,8 @@ for (const variant of ["chromium", "firefox"]) {
     const harness = await loadBackground(variant);
     const portalSender = {
       id: "abcdefghijklmnopabcdefghijklmnop",
-      url: "https://sede.dipgra.es/documento.pdf"
+      url: "https://sede.dipgra.es/documento.pdf",
+      tab: { id: 12, url: "https://sede.dipgra.es/" }
     };
     const opened = await harness.dispatchRuntimeMessage(
       { action: "openSigner" },
@@ -618,4 +409,120 @@ for (const variant of ["chromium", "firefox"]) {
     }]);
     assert.equal(harness.liveTimers.size, 0);
   });
+}
+
+for (const variant of ['chromium', 'firefox']) {
+  for (const kind of ['userSites', 'managedSites']) {
+    test(`${variant}: principal de confianza ${kind} permite PDF de fábrica y se revoca`, async () => {
+      const harness = await loadBackground(variant, {
+        [kind]: ['portal.organismo.es'], grantedOrigins: ['https://portal.organismo.es/*']
+      });
+      const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', frameId: 1,
+        url: 'https://sede.dipgra.es/archivo.pdf', tab: { id: 12, url: 'https://portal.organismo.es/expediente' } };
+      const request = { action: 'openSigner', pdfUrl: sender.url };
+      assert.equal((await harness.dispatchRuntimeMessage(request, sender)).success, true);
+      harness.grantedOrigins.clear();
+      await vm.runInContext('refreshTrustedSites()', harness.context);
+      assert.equal((await harness.dispatchRuntimeMessage(request, sender)).code, 'pdf_top_page_not_trusted');
+      assert.equal(harness.openedTabs.length, 1);
+    });
+  }
+  for (const topURL of [undefined, 'https://prueba.ejemplo.org/', 'http://sede.dipgra.es/', 'https://sede.dipgra.es:9443/']) {
+    test(`${variant}: rechaza principal ausente o no autorizada: ${topURL}`, async () => {
+      const harness = await loadBackground(variant);
+      const response = await harness.dispatchRuntimeMessage({ action: 'openSigner',
+        topURL: 'https://sede.dipgra.es/', tab: { url: 'https://sede.dipgra.es/' } }, {
+        id: 'abcdefghijklmnopabcdefghijklmnop', url: 'https://sede.dipgra.es/archivo.pdf',
+        tab: { id: 12, url: topURL }
+      });
+      assert.equal(response.code, 'pdf_top_page_not_trusted');
+      assert.equal(harness.openedTabs.length, 0);
+      assert.ok(harness.debugLogs.includes('pdfTopPageNotTrusted'));
+    });
+  }
+  for (const pdfURL of ['https://sede.dipgra.es:9443/archivo.pdf', 'https://ajeno.example/archivo.pdf']) {
+    test(`${variant}: principal y marco de confianza rechazan PDF ${pdfURL}`, async () => {
+      const harness = await loadBackground(variant);
+      const response = await harness.dispatchRuntimeMessage({ action: 'openSigner', pdfUrl: pdfURL }, {
+        id: 'abcdefghijklmnopabcdefghijklmnop', url: 'https://sede.dipgra.es/visor',
+        tab: { id: 12, url: 'https://sede.dipgra.es/visor' }
+      });
+      assert.equal(response.code, 'pdf_url_not_trusted');
+      assert.equal(harness.openedTabs.length, 0);
+    });
+  }
+}
+
+for (const variant of ['chromium', 'firefox']) {
+  test(`${variant}: la elección del mismo PDF es independiente por pestaña`, async () => {
+    const h = await loadBackground(variant);
+    const url = 'https://sede.dipgra.es/documento.pdf';
+    const owners = [[], []];
+    const ports = [12, 13].map((tabId, index) => {
+      const port = h.connectContent({ id: 'abcdefghijklmnopabcdefghijklmnop',
+        frameId: 0, url, tab: { id: tabId, url } });
+      port.onMessage.addListener((message) => { owners[index] = [...message.urls]; });
+      port.postMessage({ action: 'candidates', urls: [url], direct: true });
+      return port;
+    });
+    await h.settle();
+    assert.deepEqual(owners, [[url], [url]]);
+    ports[0].disconnect();
+    await h.settle();
+    assert.deepEqual(owners[1], [url]);
+  });
+}
+
+for (const variant of ['chromium', 'firefox']) {
+  test(`${variant}: marco sin URL ni origin no hereda confianza de la principal`, async () => {
+    const h = await loadBackground(variant);
+    const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', frameId: 1,
+      tab: { id: 12, url: 'https://sede.dipgra.es/' } };
+    const port = h.connectContent(sender);
+    assert.throws(() => port.postMessage({ action: 'candidates', urls: ['https://sede.dipgra.es/a.pdf'], depth: 0 }), /disconnected/);
+    assert.equal((await h.dispatchRuntimeMessage({ action: 'openSigner' }, sender)).success, false);
+    assert.equal(h.openedTabs.length, 0);
+  });
+  test(`${variant}: origin del marco sirve cuando el navegador omite sender.url`, async () => {
+    const h = await loadBackground(variant);
+    const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', origin: 'https://otro.savia.net',
+      frameId: 1, tab: { id: 12, url: 'https://sede.dipgra.es/' } };
+    const url = 'https://otro.savia.net/a.pdf';
+    let owners = [];
+    const port = h.connectContent(sender);
+    port.onMessage.addListener((message) => { owners = [...message.urls]; });
+    port.postMessage({ action: 'candidates', urls: [url], depth: 1, direct: true });
+    await h.settle();
+    assert.deepEqual(owners, [url]);
+    assert.equal((await h.dispatchRuntimeMessage({ action: 'openSigner', pdfUrl: url }, sender)).success, true);
+  });
+  for (const withDocumentID of [true, false]) {
+    test(`${variant}: puerto antiguo no recupera un frameId reutilizado, documentId=${withDocumentID}`, async () => {
+      const h = await loadBackground(variant);
+      const url = 'https://sede.dipgra.es/a.pdf';
+      const owners = [[], [], []];
+      function connect(frameId, documentId, index) {
+        const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', frameId, url,
+          ...(withDocumentID ? { documentId } : {}), tab: { id: 12, url: 'https://sede.dipgra.es/' } };
+        const port = h.connectContent(sender);
+        port.onMessage.addListener((message) => { owners[index] = [...message.urls]; });
+        port.postMessage({ action: 'candidates', urls: [url], depth: 1, direct: true });
+        return port;
+      }
+      const old = connect(1, 'anterior', 0);
+      const other = connect(2, 'hermano', 1);
+      await h.settle();
+      assert.deepEqual(owners, [[url], [], []]);
+      connect(1, 'nuevo', 2);
+      await h.settle();
+      assert.deepEqual(owners, [[], [url], []]);
+      old.postMessage({ action: 'candidates', urls: [url], depth: 0, direct: true });
+      old.disconnect();
+      await h.settle();
+      assert.deepEqual(owners, [[], [url], []]);
+      other.disconnect();
+      await h.settle();
+      assert.deepEqual(owners, [[], [url], [url]]);
+    });
+  }
 }

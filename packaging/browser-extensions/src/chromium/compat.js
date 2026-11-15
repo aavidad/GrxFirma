@@ -91,6 +91,8 @@
     },
     runtime: {
       id: api.runtime.id,
+      connect(connectInfo) { return api.runtime.connect(connectInfo); },
+      onConnect: api.runtime.onConnect,
       connectNative(name) {
         return api.runtime.connectNative(name);
       },

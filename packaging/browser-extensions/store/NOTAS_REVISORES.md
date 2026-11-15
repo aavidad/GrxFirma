@@ -23,6 +23,8 @@ En Windows, el instalador de GrxFirma registra la ficha de tienda para Chrome y 
 
 Los sitios fijados por política de empresa se muestran como «Fijado por su organización» y no pueden borrarse desde la extensión. La organización también debe conceder el permiso de host: sin él, la extensión no registra scripts en ese sitio. La prueba de identidad solo está disponible en los dominios de fábrica y en los fijados por esa política. Chromium declara un esquema `managed_schema`; Firefox lee `storage.managed` de su política empresarial.
 
+Esta corrección no añade permisos: no usa `webNavigation` ni `tabs`. La principal debe ser de confianza según `sender.tab.url`, proporcionada por el navegador; si falta, se rechazan el botón y la apertura. También se comprueban el marco (`sender.url` o `sender.origin`) y la URL del PDF. La profundidad y el indicador de PDF directo, calculados por el contenido, solo ordenan candidatos autorizados. Los puertos retiran candidaturas al desaparecer documentos; el fondo revalida la confianza al abrir el firmador.
+
 ### Datos y prueba
 
 La extensión descarga el PDF con la sesión del portal solo cuando el usuario pulsa «Firmar». Lo entrega temporalmente al firmador local; si la descarga o el guardado fallan, abre el firmador sin documento. Tras la aprobación de una prueba de identidad, devuelve al mismo portal el certificado público, su cadena y la firma del reto. No comparte claves privadas. No envía estos datos a servidores de GrxFirma. El código ejecutado está incluido en el paquete: no se descarga ni ejecuta código remoto.
@@ -64,6 +66,8 @@ On Windows, the GrxFirma installer registers the store listing for Chrome and Ed
 - `optional_host_permissions`: lets the user grant HTTPS access when adding a trusted site. The request follows a user gesture. Removing a site removes its permission and PDF detector. User-added sites get only the PDF button.
 
 Sites fixed by enterprise policy are marked as organization-managed and cannot be removed in the extension. The organization must also grant host permission; without it, the extension does not register scripts on that site. Identity proof remains limited to the built-in domains and enterprise-managed sites. Chromium declares a `managed_schema`; Firefox reads `storage.managed` from its enterprise policy.
+
+This correction adds no permissions: it uses neither `webNavigation` nor `tabs`. The top-level page must be trusted according to the browser-provided `sender.tab.url`; if it is absent, both the button and signer launch are denied. The frame (`sender.url` or `sender.origin`) and PDF URL must also be trusted. Content-calculated depth and direct-PDF status only rank authorized candidates. Ports withdraw candidates when documents disappear, and the background checks trust again on signer launch.
 
 ### Data and testing
 
