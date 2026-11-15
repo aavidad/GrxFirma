@@ -1062,6 +1062,43 @@ Window {
         else window.contentItem.forceActiveFocus(Qt.OtherFocusReason)
     }
 
+    // Foco visible y no tapado (WCAG 2.4.7 y 2.4.11, lote 39m): al llegar con el
+    // teclado a un control dentro de una zona desplazable (por ejemplo, la lista
+    // de casos inseguros de Configuración > Seguridad), la zona se desplaza lo
+    // justo para que el control se vea entero. Con el ratón no se mueve nada.
+    readonly property int focusScrollMargin: 12
+    onActiveFocusItemChanged: Qt.callLater(ensureFocusVisible)
+    function isFlickable(item) {
+        return item !== null && item.contentY !== undefined && item.contentHeight !== undefined
+            && item.contentItem !== undefined && item.flick !== undefined
+    }
+    function ensureFocusVisible() {
+        const focused = window.activeFocusItem
+        if (focused === null || focused === window.contentItem) return
+        if (focused.focusReason === Qt.MouseFocusReason) return
+        if (!itemIsShown(focused) || focused.height <= 0) return
+        for (let flick = focused.parent; flick; flick = flick.parent) {
+            if (!isFlickable(flick) || flick.height <= 0) continue
+            const top = focused.mapToItem(flick.contentItem, 0, 0).y
+            const bottom = top + focused.height
+            const margin = focusScrollMargin
+            // Un control más alto que la zona (un texto largo) que ya asoma no
+            // se recoloca: se perdería la posición de lectura.
+            if (bottom - top + 2 * margin > flick.height
+                    && bottom > flick.contentY && top < flick.contentY + flick.height)
+                continue
+            let target = flick.contentY
+            if (bottom + margin > target + flick.height)
+                target = bottom + margin - flick.height
+            if (top - margin < target)
+                target = top - margin
+            const minY = flick.originY
+            const maxY = flick.originY + Math.max(0, flick.contentHeight - flick.height)
+            target = Math.max(minY, Math.min(maxY, target))
+            if (Math.abs(target - flick.contentY) >= 1) flick.contentY = target
+        }
+    }
+
     function localPathFromUrl(urlValue) {
         let path = String(urlValue === undefined || urlValue === null ? "" : urlValue)
         if (!path.startsWith("file://")) return path
