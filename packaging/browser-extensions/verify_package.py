@@ -36,7 +36,7 @@ def verify_archive(path: Path) -> str:
             raise ValueError(f"{path}: faltan ficheros: {sorted(required - names)}")
         manifest = json.loads(archive.read("manifest.json"))
         version = manifest.get("version")
-        if version != "1.1.0":
+        if version != "1.2.0":
             raise ValueError(f"{path}: versión de extensión inesperada: {version}")
         background = archive.read("background.js")
         identity = archive.read("content_scripts/identity_bridge.js")

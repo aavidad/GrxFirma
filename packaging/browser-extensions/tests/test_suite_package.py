@@ -25,12 +25,12 @@ class SuitePackageTests(unittest.TestCase):
     def make_packages(self, directory: Path, host: str = "io.github.aavidad.grxfirma", prefix: str = "grxfirma-") -> None:
         for filename in ("grxfirma-extension-chromium.zip", "grxfirma-extension-firefox.xpi"):
             with zipfile.ZipFile(directory / filename, "w") as archive:
-                archive.writestr("manifest.json", json.dumps({"version": "1.1.0"}))
+                archive.writestr("manifest.json", json.dumps({"version": "1.2.0"}))
                 archive.writestr("background.js", f'const HOST = "{host}";')
                 archive.writestr("content_scripts/identity_bridge.js", f'const PREFIX = "{prefix}";')
         xpi = directory / "grxfirma-extension-firefox.xpi"
         (directory / "grxfirma-extension-firefox.metadata.json").write_text(
-            json.dumps({"version": "1.1.0", "xpi_sha256": hashlib.sha256(xpi.read_bytes()).hexdigest()}),
+            json.dumps({"version": "1.2.0", "xpi_sha256": hashlib.sha256(xpi.read_bytes()).hexdigest()}),
             encoding="utf-8",
         )
 
