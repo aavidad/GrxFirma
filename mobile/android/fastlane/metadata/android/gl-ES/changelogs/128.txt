@@ -1,3 +1,3 @@
-Melloras de accesibilidade.
-As opcións inseguras veñen desactivadas e amosan un aviso ao activalas.
-Axustes nos instaladores.
+• As opcións inseguras veñen desactivadas, tamén ao actualizar. Se unha operación necesita algunha, o aviso explica o risco e permite activala baixo a súa responsabilidade; tamén se pode facer en Preferencias. Cada uso mostra un aviso.
+• Ao asinar e cifrar, a chave protéxese con RSA-OAEP e SHA-256.
+• Accesibilidade: nomes e cabeceiras para TalkBack, áreas táctiles máis grandes, e o teclado e as barras do sistema xa non tapan o contido.

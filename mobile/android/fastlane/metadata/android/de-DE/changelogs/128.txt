@@ -1,3 +1,3 @@
-Verbesserungen bei der Barrierefreiheit.
-Unsichere Optionen sind standardmäßig deaktiviert und zeigen beim Aktivieren eine Warnung an.
-Anpassungen an den Installationsprogrammen.
+• Unsichere Optionen sind deaktiviert, auch nach einem Update. Braucht ein Vorgang eine davon, erklärt die Warnung das Risiko und lässt Sie sie auf eigene Verantwortung aktivieren; das geht auch in den Einstellungen. Jede Verwendung zeigt eine Warnung.
+• Beim Signieren und Verschlüsseln wird der Schlüssel mit RSA-OAEP und SHA-256 geschützt.
+• Barrierefreiheit: Namen und Überschriften für TalkBack, größere Tippflächen, und Tastatur und Systemleisten verdecken den Inhalt nicht mehr.
