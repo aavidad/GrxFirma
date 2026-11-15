@@ -205,17 +205,6 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 		}
 	}
 
-	// El lote JSON lleva propiedades globales y por firma que el servidor
-	// recibirá en prefirma. Una TSA HTTP requiere autorización antes de enviarlas.
-	if err := requireTriphaseTSAOptions(ctx, globalSignOptions); err != nil {
-		return "", err
-	}
-	for _, options := range perSignOptions {
-		if err := requireTriphaseTSAOptions(ctx, options); err != nil {
-			return "", err
-		}
-	}
-
 	if requireExchange {
 		if err := e.sendLegacyBatchWait(ctx, req.Session); err != nil {
 			traceLegacyBatch("wait error err=%v", err)
@@ -857,7 +846,15 @@ func legacyDecodeBatchExtraParams(v string) map[string]string {
 
 // El control no fusiona alias ni identificadores: el servidor puede distinguirlos.
 func requireTriphaseTSAProperties(ctx context.Context, raw string) error {
-	for _, pair := range legacyBatchExtraParamPairs(raw) {
+	body := raw
+	if decoded, err := decodeLegacyProtocolBase64(strings.TrimSpace(raw)); err == nil && len(decoded) > 0 {
+		body = string(decoded)
+	}
+	pairs, err := readJavaProperties(body)
+	if err != nil {
+		return err
+	}
+	for _, pair := range pairs {
 		if err := requireTriphaseTSAOptions(ctx, map[string]string{pair[0]: pair[1]}); err != nil {
 			return err
 		}

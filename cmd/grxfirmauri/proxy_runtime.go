@@ -19,11 +19,9 @@ import (
 	"strings"
 	"time"
 
-	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/desktop/proxysecretstore"
 	"grxfirma/internal/adapters/outbound/desktop/usersettings"
 	"grxfirma/internal/ports"
-	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/excepciones"
 )
 
@@ -337,12 +335,5 @@ func ensureTransportProxyFromEnvironment(transport *http.Transport) {
 }
 
 func requireProxyHTTPForRequest(ctx context.Context, proxyURL *url.URL) error {
-	if proxyURL == nil || proxyURL.User == nil || !strings.EqualFold(proxyURL.Scheme, "http") {
-		return nil
-	}
-	if err := excepciones.Require(ctx, "proxy_http"); err != nil {
-		return err
-	}
-	avisos.Registrar(localizador.Detectar().T(excepciones.Warning("proxy_http")), "")
-	return nil
+	return excepciones.RequireProxyCredentials(ctx, proxyURL)
 }

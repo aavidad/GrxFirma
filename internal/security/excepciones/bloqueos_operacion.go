@@ -3,6 +3,7 @@ package excepciones
 
 import (
 	"context"
+	"strings"
 	"sync"
 )
 
@@ -39,4 +40,17 @@ func reportBlock(ctx context.Context, b *Block) {
 	r.mu.Lock()
 	r.blocks[b.ID] = b
 	r.mu.Unlock()
+}
+
+// ForMessage devuelve únicamente un bloqueo que Check ya emitió en esta operación.
+// El texto puede identificarlo para un adaptador antiguo, pero nunca crearlo.
+func (r *BlockReport) ForMessage(message string) *Block {
+	for _, e := range Catalog() {
+		if strings.Contains(message, "["+e.ID+"; "+e.BlockKey+"]") {
+			if b := r.For(e.ID); b != nil {
+				return b
+			}
+		}
+	}
+	return nil
 }

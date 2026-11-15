@@ -74,6 +74,8 @@ func (p *peticion) UnmarshalJSON(data []byte) error {
 //	{"ok":true,"action":"sign","data":{...}}
 //	{"ok":false,"action":"sign","error":"mensaje localizado"}
 type respuesta struct {
+	cause error // Causa interna; no procede de JSON ni se serializa.
+
 	Protocol  string `json:"protocol,omitempty"`
 	RequestID string `json:"requestId,omitempty"`
 	TraceID   string `json:"traceId,omitempty"`

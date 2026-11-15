@@ -4,6 +4,7 @@ package ipc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"grxfirma/internal/security/excepciones"
 )
 
@@ -46,7 +47,7 @@ func (m *Manejador) handleUnsafeExceptions(ctx context.Context, action string, r
 		receipt, err := excepciones.ActivateLocal(ctx, m.configDirSeguro(), excepciones.ActivationRequest{ID: p.ID, Accepted: *p.Accepted, AcceptanceVersion: p.AcceptanceVersion})
 		m.settingsMu.Unlock()
 		if err != nil {
-			return respuesta{OK: false, Action: action, Error: localUnsafeError(m, err)}
+			return respuesta{OK: false, Action: action, Error: localUnsafeError(m, err), cause: err}
 		}
 		if p.RetryID != "" {
 			m.activateUnsafeRetry(ctx, p.RetryID)
@@ -77,13 +78,14 @@ func (m *Manejador) handleUnsafeExceptions(ctx context.Context, action string, r
 		err = excepciones.SetUserAt(m.configDirSeguro(), p.ID, false)
 		m.settingsMu.Unlock()
 		if err != nil {
-			return respuesta{OK: false, Action: action, Error: localUnsafeError(m, err)}
+			return respuesta{OK: false, Action: action, Error: localUnsafeError(m, err), cause: err}
 		}
 	}
 	return respuesta{OK: true, Action: action, Data: excepciones.ListAt(m.configDirSeguro())}
 }
 func localUnsafeError(m *Manejador, err error) string {
-	if excepciones.FromText(err.Error()) != nil {
+	var block *excepciones.Block
+	if errors.As(err, &block) {
 		return err.Error()
 	}
 	switch err {

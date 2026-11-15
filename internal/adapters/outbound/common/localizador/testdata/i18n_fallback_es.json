@@ -71,6 +71,8 @@
     "excepciones.cli.como_activar",
     "excepciones.cli.confirmacion_requerida",
     "excepciones.cli.confirmar",
+    "excepciones.cli.desactivacion_fijada",
+    "excepciones.cli.desactivada",
     "excepciones.cli.id_requerido",
     "excepciones.cli_activar_uso",
     "excepciones.cms_aes_ecb.aceptacion",
@@ -252,6 +254,7 @@
     "proteccion.cms.saed.rsa_no_admitido",
     "proteccion.cms.saed.sobre_invalido",
     "proteccion.cms.saed.version_invalida",
-    "protocolo.cli.ayuda"
+    "protocolo.cli.ayuda",
+    "triphase.properties.unicode_invalido"
   ]
 }

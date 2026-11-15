@@ -30,6 +30,7 @@ func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result do
 		return result
 	}
 	if err := excepciones.Check("sha1_leer", contexts...); err != nil {
+		result = result.WithPolicyError(err)
 		result.Valid = false
 		result.Coverage = domain.CoberturaNoAcreditada
 		result.Reason = err.Error()

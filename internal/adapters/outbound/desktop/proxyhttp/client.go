@@ -150,11 +150,8 @@ func setEnvironmentProxy(transport *http.Transport) {
 		if err != nil || proxyURL == nil {
 			return proxyURL, err
 		}
-		if proxyURL.User != nil && strings.EqualFold(proxyURL.Scheme, "http") {
-			if err := excepciones.Require(req.Context(), "proxy_http"); err != nil {
-				return nil, err
-			}
-			avisos.Registrar(localizador.Detectar().T(excepciones.Warning("proxy_http")), "")
+		if err := excepciones.RequireProxyCredentials(req.Context(), proxyURL); err != nil {
+			return nil, err
 		}
 		return proxyURL, nil
 	}

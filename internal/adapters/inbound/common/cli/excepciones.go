@@ -89,17 +89,42 @@ func (a *Adaptador) mensajeErrorExcepcion(err error) string {
 		return ""
 	}
 	var block *excepciones.Block
-	if !errors.As(err, &block) {
-		if a.ConfigDir != "" {
-			block = excepciones.FromText(err.Error(), excepciones.WithConfigDir(context.Background(), a.ConfigDir))
-		} else {
-			block = excepciones.FromText(err.Error())
-		}
-	}
+	_ = errors.As(err, &block)
+
 	message := err.Error()
 	if block != nil && block.Activable && !block.ConfigUnavailable {
 		instruction := a.excepcionLocalizador().T("excepciones.cli.como_activar")
 		message += "\n" + strings.ReplaceAll(instruction, "{id}", block.ID)
 	}
 	return message
+}
+
+func (a *Adaptador) ejecutarDesactivarExcepcion(ctx context.Context, cfg configCLI) int {
+	id := strings.TrimSpace(cfg.excepcionDesactivar)
+	loc := a.excepcionLocalizador()
+	if _, ok := excepciones.Find(id); !ok {
+		fmt.Fprintln(a.Stderr, loc.T("excepciones.cli.id_requerido"))
+		return 1
+	}
+	dir := strings.TrimSpace(a.ConfigDir)
+	if dir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Fprintln(a.Stderr, err)
+			return 1
+		}
+		dir = appdirs.Config(home)
+	}
+	err := excepciones.SetUserAtContext(ctx, dir, id, false)
+	if err != nil {
+		var block *excepciones.Block
+		if errors.As(err, &block) {
+			fmt.Fprintln(a.Stderr, loc.T("excepciones.cli.desactivacion_fijada", id))
+		} else {
+			fmt.Fprintln(a.Stderr, loc.T(err.Error()))
+		}
+		return 1
+	}
+	fmt.Fprintln(a.Stdout, loc.T("excepciones.cli.desactivada", id))
+	return 0
 }

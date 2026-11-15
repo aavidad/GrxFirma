@@ -111,8 +111,9 @@ const (
 // claves de catálogo y a un código estable; los demás errores se devuelven
 // como siempre.
 func (m *Manejador) respuestaErrorFirma(err error) respuesta {
-	resp := respuesta{OK: false, Action: "sign", Error: err.Error()}
-	if excepciones.FromText(resp.Error) != nil {
+	resp := respuesta{OK: false, Action: "sign", Error: err.Error(), cause: err}
+	var block *excepciones.Block
+	if errors.As(err, &block) {
 		return resp
 	}
 	switch {

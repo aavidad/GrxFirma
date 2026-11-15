@@ -334,7 +334,8 @@ func ensureLocalTLSStartup(ctx context.Context, configDir string) ipc.LocalTLSSt
 		return err
 	})
 	if err != nil {
-		if block := excepciones.FromText(err.Error()); block != nil {
+		var block *excepciones.Block
+		if errors.As(err, &block) {
 			status.ExceptionID = block.ID
 			status.BlockKey = block.BlockKey
 		}

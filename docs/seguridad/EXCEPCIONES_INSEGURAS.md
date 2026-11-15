@@ -381,17 +381,17 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `proxy_http`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: enviar credenciales de proxy por HTTP. Un proxy es un servidor intermedio de red. HTTP no cifra el trayecto hasta él.
+Qué ha pasado: GrxFirma ha detenido el envío de un usuario y una contraseña a un servidor intermedio de red sin una conexión cifrada. El proxy puede usar HTTP o SOCKS5.
 
-Por qué es inseguro: HTTP no protege las credenciales en el tramo hasta el proxy. Por ejemplo, otro equipo en la red puede capturar el usuario y la contraseña del proxy.
+Por qué es inseguro: HTTP y SOCKS5 no cifran las credenciales en el tramo hasta el proxy. Otro equipo en esa red puede capturar el usuario y la contraseña.
 
-Cuándo tiene sentido: Solo en una red administrada donde el proxy requerido no admite un transporte protegido.
+Cuándo tiene sentido: Solo en una red administrada donde el proxy requerido no tenga una conexión cifrada.
 
-Alternativa: Use un proxy HTTPS o uno que no pida credenciales por HTTP.
+Alternativa: Use un proxy HTTPS o uno que no pida credenciales.
 
-Qué cambia: al activar «Enviar credenciales a un proxy HTTP», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
+Qué cambia: al activar «Enviar credenciales a un proxy sin cifrar», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Enviar credenciales a un proxy HTTP» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Enviar credenciales a un proxy sin cifrar» en Preferencias, Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -532,3 +532,9 @@ Las claves `excepciones.<id>.bloqueo` explican la operación, el riesgo y el nom
 La CLI añade `excepciones.cli.como_activar`, sustituyendo `{id}` por el identificador. La orden es `grxfirma -activar-excepcion <id>` con confirmación interactiva; para automatizarla se necesita `-acepto-el-aviso`. El texto de aceptación y su versión `2026-11-15.2` no cambian.
 
 La barrera de rutas compara la identidad de cada antecesor existente con las carpetas protegidas mediante `os.SameFile`. Así se comprueban también los alias por mayúsculas y las uniones de compatibilidad de Windows. Las pruebas específicas de esos sistemas deben ejecutarse allí; compilarlas en Linux no acredita ese resultado.
+
+### Desactivar desde la CLI (vuelta 9)
+
+`grxfirma -desactivar-excepcion ID` guarda el ajuste desactivado sin pedir aceptación. Su alias es `-disable-unsafe-exception`. La elección y la fecha quedan en la auditoría local. Si una directiva fija el valor, hay que dirigirse al administrador. Una directiva ilegible mantiene el cierre de seguridad y permite guardar la renuncia local, que seguirá desactivada cuando vuelva a poder leerse la directiva y no haya un valor fijado.
+
+La excepción `proxy_http` y su directiva conservan el identificador. Protegen las credenciales que se envían sin cifrar hasta un proxy HTTP, SOCKS5 o SOCKS5H; un proxy HTTPS no necesita esta excepción. Se mantienen intactos los textos de aceptación y su versión.

@@ -89,7 +89,8 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	if err := e.ValidarDestino(ctx, servidor.Scheme+"://"+servidor.Host); err != nil {
 		return nil, fmt.Errorf("servidor de firma trifásica no autorizado: %w", err)
 	}
-	if err := requireTriphaseTSAOptions(ctx, req.ExtraParams); err != nil {
+	params := propiedadesTrifasicas(req.ExtraParams)
+	if err := requireTriphaseTSAProperties(ctx, params); err != nil {
 		return nil, err
 	}
 	formato, err := formatoServidorTrifasico(req.FormatoLegacy)
@@ -127,7 +128,6 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 		certParam = append(certParam, base64.URLEncoding.EncodeToString(c))
 	}
 	doc := base64.URLEncoding.EncodeToString(req.Datos)
-	params := propiedadesTrifasicas(req.ExtraParams)
 
 	comunes := [][2]string{
 		{"cop", cop}, {"format", formato}, {"algo", algoritmo}, {"cert", strings.Join(certParam, ",")},

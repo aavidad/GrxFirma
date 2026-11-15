@@ -1028,9 +1028,6 @@ func legacyWebSocketErrorText(err error) string {
 	if errors.As(err, &blocked) {
 		return compatError("SAF_09", blocked.Error())
 	}
-	if blocked = excepciones.FromText(err.Error()); blocked != nil {
-		return compatError("SAF_09", blocked.Error())
-	}
 	if errors.Is(err, cryptopolicy.ErrSHA1Disabled) {
 		return compatError(
 			"SAF_09",

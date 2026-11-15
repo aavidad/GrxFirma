@@ -133,6 +133,8 @@ func DescribeAt(dir, id string) *Block {
 
 // FromText recupera el contrato en adaptadores antiguos que guardan Error().
 // Solo reconoce la marca completa emitida por Block, nunca texto libre.
+// Deprecated: solo diagnóstico de formatos antiguos. Nunca usar para decidir
+// políticas o presentar activaciones; use errors.As o BlockReport.
 func FromText(message string, contexts ...context.Context) *Block {
 	for _, e := range catalog {
 		if strings.Contains(message, "["+e.ID+"; "+e.BlockKey+"]") {
@@ -364,6 +366,11 @@ func SetUser(id string, enabled bool) error {
 }
 
 func SetUserAt(dir, id string, enabled bool) error {
+	return SetUserAtContext(context.Background(), dir, id, enabled)
+}
+
+// SetUserAtContext permite renunciar al permiso local sin aceptar ningún riesgo.
+func SetUserAtContext(ctx context.Context, dir, id string, enabled bool) error {
 	if enabled {
 		return ErrAcceptanceRequired
 	}
@@ -376,11 +383,11 @@ func SetUserAt(dir, id string, enabled bool) error {
 	if !ok {
 		return ErrAcceptanceRequired
 	}
-	return settingsfile.WithLock(context.Background(), dir, func() error {
+	return settingsfile.WithLock(ctx, dir, func() error {
 		effective := state(e, dir, nil)
-		if effective.Fixed {
+		if effective.Fixed && !effective.PolicyUnreadable {
 			return blockForState(e, effective)
 		}
-		return writeUserSettings(context.Background(), dir, id, false, nil)
+		return writeUserSettings(ctx, dir, id, false, nil)
 	})
 }

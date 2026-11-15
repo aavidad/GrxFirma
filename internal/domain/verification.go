@@ -92,6 +92,10 @@ type VerificationEvidence struct {
 // Mantiene los campos legacy (Valid/Reason/Details) y añade una capa más rica
 // para superficies avanzadas de producto sin romper compatibilidad.
 type VerificationResult struct {
+	// policyError conserva un fallo de confianza del motor, nunca texto del documento.
+	// Es privado para que no se pueda reconstruir desde JSON u otro canal.
+	policyError error
+
 	Valid   bool
 	Reason  string
 	Details []string
@@ -115,6 +119,18 @@ type VerificationResult struct {
 	// evaluación autónoma posterior. Nunca se serializa.
 	Material MaterialVerificacion `json:"-"`
 }
+
+// WithPolicyError conserva la causa tipada de una comprobación de política.
+func (v VerificationResult) WithPolicyError(err error) VerificationResult {
+	v.policyError = err
+	if err != nil {
+		v.Valid = false
+	}
+	return v
+}
+
+// PolicyError no interpreta Reason, nombres de certificado ni mensajes externos.
+func (v VerificationResult) PolicyError() error { return v.policyError }
 
 // NewVerificationSuccess crea un resultado íntegro. Coverage queda en
 // CoberturaCompleta solo como valor inicial para formatos cuyo resumen cubre

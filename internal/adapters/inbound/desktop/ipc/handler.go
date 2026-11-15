@@ -415,7 +415,11 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 	if verified, ok := resp.Data.(resultadoVerificacion); ok {
 		mensajeBloqueo += verified.Reason + strings.Join(verified.Errors, " ") + strings.Join(verified.Warnings, " ")
 	}
-	if bloqueo := excepciones.FromText(mensajeBloqueo); bloqueo != nil {
+	var bloqueo *excepciones.Block
+	if !errors.As(resp.cause, &bloqueo) {
+		bloqueo = blockReport.ForMessage(mensajeBloqueo)
+	}
+	if bloqueo != nil {
 		resp.ErrorCode = "unsafe_exception_blocked"
 		resp.ExceptionID = bloqueo.ID
 		resp.BlockKey = bloqueo.BlockKey

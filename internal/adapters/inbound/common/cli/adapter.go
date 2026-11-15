@@ -215,6 +215,7 @@ type configCLI struct {
 	huellaConfianza       string
 	aceptoAvisoConfianza  bool
 	excepcionInsegura     string
+	excepcionDesactivar   string
 	programaFirmaWeb      string
 	ficheroAutoseleccion  string
 	ficheroP12            string
@@ -583,6 +584,8 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		return a.ejecutarConfianzaForzadaQuitar(ctx, cfg)
 	case "unsafe-exception-activate":
 		return a.ejecutarActivarExcepcion(ctx, cfg)
+	case "unsafe-exception-deactivate":
+		return a.ejecutarDesactivarExcepcion(ctx, cfg)
 	case "web-signing-program-status":
 		return a.ejecutarProgramaFirmaWebVer(ctx, cfg)
 	case "web-signing-program-set":
@@ -778,6 +781,8 @@ func parsearArgs(args []string) (configCLI, error) {
 	fs.BoolVar(&cfg.aceptoAvisoConfianza, "accept-warning", false, "")
 	fs.StringVar(&cfg.excepcionInsegura, "activar-excepcion", "", "")
 	fs.StringVar(&cfg.excepcionInsegura, "enable-unsafe-exception", "", "")
+	fs.StringVar(&cfg.excepcionDesactivar, "desactivar-excepcion", "", "")
+	fs.StringVar(&cfg.excepcionDesactivar, "disable-unsafe-exception", "", "")
 	fs.BoolVar(&opVerProgramaFirmaWeb, "ver-programa-firma-web", false, "")
 	fs.BoolVar(&opVerProgramaFirmaWeb, "web-signing-program", false, "")
 	fs.StringVar(&cfg.programaFirmaWeb, "elegir-programa-firma-web", "", "")
@@ -893,23 +898,34 @@ func parsearArgs(args []string) (configCLI, error) {
 	if err := fs.Parse(args); err != nil {
 		return configCLI{}, err
 	}
-	activationFlag := false
-	activationInvalidFlag := false
+	activationFlag, deactivationFlag := false, false
+	invalidExceptionFlag := false
 	fs.Visit(func(f *flag.Flag) {
-		if f.Name == "activar-excepcion" || f.Name == "enable-unsafe-exception" {
-			activationFlag = true
-		}
 		switch f.Name {
-		case "activar-excepcion", "enable-unsafe-exception", "acepto-el-aviso", "accept-warning", "cli", "modo-cli", "timeout", "t", "tiempo-espera":
+		case "activar-excepcion", "enable-unsafe-exception":
+			activationFlag = true
+		case "desactivar-excepcion", "disable-unsafe-exception":
+			deactivationFlag = true
+		case "acepto-el-aviso", "accept-warning", "cli", "modo-cli", "timeout", "t", "tiempo-espera":
 		default:
-			activationInvalidFlag = true
+			invalidExceptionFlag = true
 		}
 	})
-	if activationFlag {
-		if strings.TrimSpace(cfg.excepcionInsegura) == "" || strings.TrimSpace(cfg.operacion) != "" || activationInvalidFlag {
+	if activationFlag || deactivationFlag {
+		if activationFlag && deactivationFlag || cfg.operacion != "" || invalidExceptionFlag {
 			return configCLI{}, errCLIActivationFlag
 		}
-		cfg.operacion = "activar-excepcion"
+		if activationFlag {
+			if strings.TrimSpace(cfg.excepcionInsegura) == "" {
+				return configCLI{}, errCLIActivationFlag
+			}
+			cfg.operacion = "activar-excepcion"
+		} else {
+			if strings.TrimSpace(cfg.excepcionDesactivar) == "" || cfg.aceptoAvisoConfianza {
+				return configCLI{}, errCLIActivationFlag
+			}
+			cfg.operacion = "desactivar-excepcion"
+		}
 	}
 	timeout, err := time.ParseDuration(timeoutRaw)
 	if err != nil {
@@ -1007,7 +1023,7 @@ func parsearArgs(args []string) (configCLI, error) {
 	if cfg.entrada == "" && cfg.lote == "" && !cfg.listarCerts && !cfg.comprobarCerts && !cfg.mostrarAyuda {
 		switch normalizarOperacion(cfg.operacion, cfg.accion, cfg.lote, cfg.entrada) {
 		case "domains-list", "domains-add", "domains-remove", "domains-import", "domains-export", "domains-clear", "diagnostics-report",
-			"forced-trust-list", "forced-trust-accept", "forced-trust-remove", "unsafe-exception-activate",
+			"forced-trust-list", "forced-trust-accept", "forced-trust-remove", "unsafe-exception-activate", "unsafe-exception-deactivate",
 			"web-signing-program-status", "web-signing-program-set",
 			"protect-recipients-list",
 			"import-p12", "cert-selection-list", "cert-selection-remove", "cert-selection-reset", "cert-selection-export", "cert-selection-import", "cert-selection-clear", "tls-store-status", "tls-store-clear", "tls-trust-status", "tls-generate-certs", "tls-install-trust",
@@ -3727,6 +3743,8 @@ func normalizarOperacion(op, accion, lote, entrada string) string {
 		return "forced-trust-remove"
 	case "activar-excepcion", "enable-unsafe-exception":
 		return "unsafe-exception-activate"
+	case "desactivar-excepcion", "disable-unsafe-exception":
+		return "unsafe-exception-deactivate"
 	case "ver-programa-firma-web":
 		return "web-signing-program-status"
 	case "elegir-programa-firma-web":

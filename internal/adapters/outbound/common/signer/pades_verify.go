@@ -132,7 +132,8 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 			fmt.Sprintf("byterange=%d,%d,%d,%d", signature.ByteRange[0], signature.ByteRange[1], signature.ByteRange[2], signature.ByteRange[3]),
 			fmt.Sprintf("subfilter=%s", signature.SubFilter),
 		}
-		if excepciones.FromText(result.Reason) == nil {
+		var blocked *excepciones.Block
+		if !errors.As(result.PolicyError(), &blocked) {
 			detallesPDF = append(detallesPDF, detallePDFVerificado)
 		}
 		aggregate.Details = append(aggregate.Details, detallesPDF...)
@@ -170,10 +171,13 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	if !aggregate.Valid && aggregate.Reason == "" {
 		aggregate.Reason = "una o más firmas PAdES no son válidas"
 	}
-	if excepciones.FromText(aggregate.Reason) != nil {
+	var blocked *excepciones.Block
+	if errors.As(aggregate.PolicyError(), &blocked) {
 		aggregate.Coverage = domain.CoberturaNoAcreditada
-		aggregate.Integrity.Status = domain.VerificationStatusUnknown
-		aggregate.Integrity.Reason = aggregate.Reason
+		if aggregate.Integrity.Status != domain.VerificationStatusInvalid {
+			aggregate.Integrity.Status = domain.VerificationStatusUnknown
+			aggregate.Integrity.Reason = aggregate.Reason
+		}
 	} else if hasFullDocumentCoverage {
 		aggregate.Coverage = "full"
 	} else {
@@ -623,9 +627,13 @@ func mergePAdESVerificationResult(base, next domain.VerificationResult) domain.V
 	base.Material = base.Material.Anadir(next.Material)
 	base.SigningTimes = append(base.SigningTimes, next.SigningTimes...)
 	base.Integrity = mergeVerificationAspect(base.Integrity, next.Integrity)
-	if excepciones.FromText(next.Reason) != nil {
-		base.Integrity.Status = domain.VerificationStatusUnknown
-		base.Integrity.Reason = next.Reason
+	var blocked *excepciones.Block
+	if errors.As(next.PolicyError(), &blocked) {
+		base = base.WithPolicyError(blocked)
+		if base.Integrity.Status != domain.VerificationStatusInvalid {
+			base.Integrity.Status = domain.VerificationStatusUnknown
+			base.Integrity.Reason = next.Reason
+		}
 	}
 	base.Certificate = mergeVerificationAspect(base.Certificate, next.Certificate)
 	base.Trust = mergeVerificationAspect(base.Trust, next.Trust)

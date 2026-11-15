@@ -141,7 +141,11 @@ func CotejarXAdESSeparada(firma, original []byte, contexts ...context.Context) e
 		}
 		return ErrFirmaNoCorrespondeOriginal
 	}
-	if block := excepciones.FromText(verificacion.result.Reason, ctx); block != nil {
+	if verificacion.result.Certificate.Status == domain.VerificationStatusInvalid {
+		return ErrFirmaNoCorrespondeOriginal
+	}
+	var block *excepciones.Block
+	if errors.As(verificacion.result.PolicyError(), &block) {
 		return block
 	}
 	if !externa && !contenidoInternoCoincide(firma, original) {
@@ -301,13 +305,11 @@ func ComprobarIntegridadPAdES(ctx context.Context, pdf []byte) error {
 		return ErrFirmaNoCorrespondeOriginal
 	}
 	result, _, err := verifier.Verify(ctx, doc, domain.CertificateChain{})
-	if err == nil {
-		for _, mensaje := range append(append([]string{result.Reason}, result.Errors...), result.Warnings...) {
-			if block := excepciones.FromText(mensaje, ctx); block != nil && block.ID == "sha1_leer" {
-				return block
-			}
-		}
+	var block *excepciones.Block
+	if errors.As(err, &block) || errors.As(result.PolicyError(), &block) {
+		return block
 	}
+
 	if err != nil || result.Integrity.Status == domain.VerificationStatusInvalid {
 		return ErrFirmaNoCorrespondeOriginal
 	}
