@@ -1,0 +1,3 @@
+Améliorations de l’accessibilité.
+Les options non sûres sont désactivées par défaut et affichent un avertissement à leur activation.
+Ajustements des programmes d’installation.

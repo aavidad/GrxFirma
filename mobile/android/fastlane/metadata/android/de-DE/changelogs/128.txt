@@ -1,0 +1,3 @@
+Verbesserungen bei der Barrierefreiheit.
+Unsichere Optionen sind standardmäßig deaktiviert und zeigen beim Aktivieren eine Warnung an.
+Anpassungen an den Installationsprogrammen.

@@ -1,0 +1,3 @@
+Millores d’accessibilitat.
+Les opcions insegures estan desactivades per defecte i mostren un avís en activar-les.
+Ajustos als instal·ladors.
