@@ -123,7 +123,11 @@ func TestProtocolDiagnosticPersistFailureNoEscribeSecretos(t *testing.T) {
 		errors.New("SAF_25: open "+filepath.Join(home, "Documentos", "nomina-secreta.pdf")+": token=TOKEN-SECRETO"),
 	)
 
-	entries, err := os.ReadDir(protocolIncidentDir())
+	incidentDir, err := protocolIncidentDir()
+	if err != nil {
+		t.Fatalf("protocolIncidentDir: %v", err)
+	}
+	entries, err := os.ReadDir(incidentDir)
 	if err != nil {
 		t.Fatalf("ReadDir(protocolIncidentDir): %v", err)
 	}
@@ -134,7 +138,7 @@ func TestProtocolDiagnosticPersistFailureNoEscribeSecretos(t *testing.T) {
 		if entry.IsDir() {
 			continue
 		}
-		data, err := os.ReadFile(filepath.Join(protocolIncidentDir(), entry.Name()))
+		data, err := os.ReadFile(filepath.Join(incidentDir, entry.Name()))
 		if err != nil {
 			t.Fatalf("ReadFile(%s): %v", entry.Name(), err)
 		}

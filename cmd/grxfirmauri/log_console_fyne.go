@@ -107,11 +107,11 @@ func resolveDebugLogPath() string {
 	if path := strings.TrimSpace(os.Getenv("GRXFIRMA_DEBUG_LOG_FILE")); path != "" {
 		return path
 	}
-	home, err := os.UserHomeDir()
+	state, err := appdirs.StateUsuario()
 	if err != nil {
-		return "/tmp/grxfirma-debug.log"
+		return ""
 	}
-	return filepath.Join(appdirs.State(home), "logs", "grxfirma-debug.log")
+	return filepath.Join(state, "logs", "grxfirma-debug.log")
 }
 
 func readTailRedacted(path string, maxBytes int64) (string, error) {
