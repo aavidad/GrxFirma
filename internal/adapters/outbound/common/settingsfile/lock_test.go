@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
@@ -118,16 +119,24 @@ func TestLockCannotFollowSymlink(t *testing.T) {
 func TestLockWaitRespectsContext(t *testing.T) {
 	dir := t.TempDir()
 	release := make(chan struct{})
+	releaseHolder := sync.OnceFunc(func() { close(release) })
+	defer releaseHolder()
 	ready := make(chan struct{})
 	done := make(chan error, 1)
 	go func() {
 		done <- WithLock(context.Background(), dir, func() error { close(ready); <-release; return nil })
 	}()
-	<-ready
+	select {
+	case <-ready:
+	case err := <-done:
+		t.Fatalf("no se pudo tomar el cerrojo: %v", err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("agotado al tomar el cerrojo")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Millisecond)
 	defer cancel()
 	err := WithLock(ctx, dir, func() error { t.Fatal("callback tras cancelación"); return nil })
-	close(release)
+	releaseHolder()
 	if holderErr := <-done; holderErr != nil {
 		t.Fatal(holderErr)
 	}

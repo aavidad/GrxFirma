@@ -66,7 +66,7 @@ func WithLock(ctx context.Context, dir string, fn func() error) error {
 	} else if runtime.GOOS != "windows" && info.Mode().Perm()&0077 != 0 {
 		return ErrDirectory
 	}
-	file, err := securefile.OpenAppend(filepath.Join(dir, ".settings.lock"), 0600)
+	file, err := securefile.OpenLockFile(filepath.Join(dir, ".settings.lock"), 0600)
 	if err != nil {
 		return err
 	}

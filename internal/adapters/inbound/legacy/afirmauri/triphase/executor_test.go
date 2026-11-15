@@ -220,6 +220,7 @@ func TestFlujoCompletoSinCifrado(t *testing.T) {
 }
 
 func TestUploadCertificateSinClaveUsaBase64URL(t *testing.T) {
+	ctx, warnings := contextoHTTPTrifasicaConRecibo(t)
 	var datRecibido string
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -235,7 +236,7 @@ func TestUploadCertificateSinClaveUsaBase64URL(t *testing.T) {
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, "")
 
-	if err := executor.UploadCertificate(context.Background(), sesion, []byte("cert-der"), nil); err != nil {
+	if err := executor.UploadCertificate(ctx, sesion, []byte("cert-der"), nil); err != nil {
 		t.Fatalf("UploadCertificate: error inesperado: %v", err)
 	}
 
@@ -243,9 +244,11 @@ func TestUploadCertificateSinClaveUsaBase64URL(t *testing.T) {
 	if datRecibido != esperado {
 		t.Fatalf("dat inesperado: got=%q want=%q", datRecibido, esperado)
 	}
+	assertHTTPTrifasicaWarning(t, warnings)
 }
 
 func TestUploadCertificateConClaveUsaFormatoLegacyDES(t *testing.T) {
+	ctx, warnings := contextoHTTPTrifasicaConRecibo(t)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
 	var datRecibido string
 
@@ -262,7 +265,7 @@ func TestUploadCertificateConClaveUsaFormatoLegacyDES(t *testing.T) {
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, "abcd")
 
-	if err := executor.UploadCertificate(context.Background(), sesion, []byte("cert-der"), nil); err != nil {
+	if err := executor.UploadCertificate(ctx, sesion, []byte("cert-der"), nil); err != nil {
 		t.Fatalf("UploadCertificate: error inesperado: %v", err)
 	}
 
@@ -273,6 +276,7 @@ func TestUploadCertificateConClaveUsaFormatoLegacyDES(t *testing.T) {
 	if string(descifrado) != "cert-der" {
 		t.Fatalf("certificado descifrado inesperado: %q", string(descifrado))
 	}
+	assertHTTPTrifasicaWarning(t, warnings)
 }
 
 func TestShouldRetryLegacyProtocolWithFallback_ConexionCerrada(t *testing.T) {
@@ -301,6 +305,7 @@ func TestNew_DeshabilitaHTTP2EnClienteLegacy(t *testing.T) {
 }
 
 func TestUploadCertificateSinClaveHaceFallbackLegacyConCert(t *testing.T) {
+	ctx, warnings := contextoHTTPTrifasicaConRecibo(t)
 	intentos := 0
 	var certRecibido string
 
@@ -324,7 +329,7 @@ func TestUploadCertificateSinClaveHaceFallbackLegacyConCert(t *testing.T) {
 	sesion := sesionTest(srv.URL, srv.URL, "")
 	legacy := url.Values{"customToken": []string{"abc123"}}
 
-	if err := executor.UploadCertificate(context.Background(), sesion, []byte("cert-der"), legacy); err != nil {
+	if err := executor.UploadCertificate(ctx, sesion, []byte("cert-der"), legacy); err != nil {
 		t.Fatalf("UploadCertificate con fallback: error inesperado: %v", err)
 	}
 	if intentos != 2 {
@@ -333,6 +338,7 @@ func TestUploadCertificateSinClaveHaceFallbackLegacyConCert(t *testing.T) {
 	if certRecibido != base64.StdEncoding.EncodeToString([]byte("cert-der")) {
 		t.Fatalf("cert fallback inesperado: %q", certRecibido)
 	}
+	assertHTTPTrifasicaWarning(t, warnings)
 }
 
 func TestDoLegacyBatchPOST_ReintentaConClienteFallbackAnteErrorDeProtocolo(t *testing.T) {
@@ -377,7 +383,7 @@ func TestDoLegacyBatchPOST_ReintentaConClienteFallbackAnteErrorDeProtocolo(t *te
 }
 
 func TestRetrieveRaw_ReintentaConClienteFallbackAnteEOF(t *testing.T) {
-	t.Parallel()
+	ctx, warnings := contextoHTTPTrifasicaConRecibo(t)
 
 	var fallbackVisto bool
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -397,7 +403,7 @@ func TestRetrieveRaw_ReintentaConClienteFallbackAnteEOF(t *testing.T) {
 	}
 	executor.fallbackHTTPClient = srv.Client()
 
-	data, err := executor.RetrieveRaw(context.Background(), sesionTest(srv.URL+"/RetrieveService", srv.URL+"/StorageService", ""))
+	data, err := executor.RetrieveRaw(ctx, sesionTest(srv.URL+"/RetrieveService", srv.URL+"/StorageService", ""))
 	if err != nil {
 		t.Fatalf("RetrieveRaw: error inesperado: %v", err)
 	}
@@ -410,6 +416,7 @@ func TestRetrieveRaw_ReintentaConClienteFallbackAnteEOF(t *testing.T) {
 	if len(data) == 0 {
 		t.Fatal("retrieve vacío")
 	}
+	assertHTTPTrifasicaWarning(t, warnings)
 }
 
 func TestFlujoCompletoUsaClaveDelContexto(t *testing.T) {
@@ -760,6 +767,7 @@ func TestFlujoCompleto_TrasladaExtraParamsRetrieveALaFirmaLocal(t *testing.T) {
 }
 
 func TestUploadCertificateConClaveNoEnviaClaveNiCertificadoEnClaro(t *testing.T) {
+	ctx, warnings := contextoHTTPTrifasicaConRecibo(t)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
 	intentos := 0
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -782,10 +790,11 @@ func TestUploadCertificateConClaveNoEnviaClaveNiCertificadoEnClaro(t *testing.T)
 	sesion := sesionTest(srv.URL, srv.URL, "abcd")
 	legacy := url.Values{"key": []string{"abcd"}, "customToken": []string{"abc123"}}
 
-	if err := executor.UploadCertificate(context.Background(), sesion, []byte("cert-der"), legacy); err == nil {
+	if err := executor.UploadCertificate(ctx, sesion, []byte("cert-der"), legacy); err == nil {
 		t.Fatal("se esperaba error: el servidor rechazó la única subida cifrada")
 	}
 	if intentos != 1 {
 		t.Fatalf("intentos = %d, want 1 (sin reintento en claro)", intentos)
 	}
+	assertHTTPTrifasicaWarning(t, warnings)
 }

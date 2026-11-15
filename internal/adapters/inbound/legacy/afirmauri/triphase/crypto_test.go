@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
@@ -251,8 +252,9 @@ func TestLegacyDESDesactivadoExplicaComoReactivarlo(t *testing.T) {
 		t.Fatal("se esperaba error")
 	}
 	if !strings.Contains(err.Error(), "[des_intercambio; excepciones.des_intercambio.bloqueo]") ||
-		!strings.Contains(err.Error(), "grxfirma -activar-excepcion des_intercambio") {
-		t.Fatalf("el error debe dar la orden de activación local y el identificador: %v", err)
+		!strings.Contains(err.Error(), localizador.Detectar().T("excepciones.des_intercambio.bloqueo")) ||
+		strings.Contains(err.Error(), "-activar-excepcion") || strings.Contains(err.Error(), "-acepto-el-aviso") {
+		t.Fatalf("el error debe dar preferencias y el identificador sin instrucciones de terminal: %v", err)
 	}
 }
 

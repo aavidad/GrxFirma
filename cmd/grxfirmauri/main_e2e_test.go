@@ -892,6 +892,7 @@ func TestRun_ProcesaURISelectCertYSubeCertificado(t *testing.T) {
 	}
 
 	setTestUserHome(t, home)
+	operationCtx, operationWarnings := aceptarExcepcionProtocoloPrueba(t, configDir, "trifasica_http")
 	t.Setenv("GRXFIRMA_PKCS12_DIR", p12Dir)
 	t.Setenv("GRXFIRMA_PKCS12_PASSWORD", "valor-prueba")
 
@@ -899,7 +900,7 @@ func TestRun_ProcesaURISelectCertYSubeCertificado(t *testing.T) {
 	rawURI := "afirma://selectcert?id=req-selectcert-e2e&stservlet=" + storage
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 
@@ -927,6 +928,7 @@ func TestRun_ProcesaURISelectCertYSubeCertificado(t *testing.T) {
 			sha256.Sum256(certFixture.Raw),
 		)
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
@@ -986,6 +988,7 @@ func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
 	}
 
 	setTestUserHome(t, home)
+	operationCtx, operationWarnings := aceptarExcepcionProtocoloPrueba(t, configDir, "trifasica_http")
 	t.Setenv("GRXFIRMA_PKCS12_DIR", p12Dir)
 	t.Setenv("GRXFIRMA_PKCS12_PASSWORD", "valor-prueba")
 
@@ -993,7 +996,7 @@ func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
 	rawURI := "afirma://selectcert?id=req-selectcert-fallback&stservlet=" + storage + "&customToken=abc123"
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 
@@ -1016,6 +1019,7 @@ func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
 	if _, err := x509.ParseCertificate(certSubido); err != nil {
 		t.Fatalf("certificado legacy no es DER X.509 válido: %v", err)
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 // Con clave de sesión el certificado solo viaja cifrado y la clave nunca
@@ -1071,6 +1075,7 @@ func TestRun_ProcesaURISelectCertConSessionKeyNoReintentaEnClaro(t *testing.T) {
 	}
 
 	setTestUserHome(t, home)
+	operationCtx, operationWarnings := aceptarExcepcionProtocoloPrueba(t, configDir, "trifasica_http")
 	t.Setenv("GRXFIRMA_PKCS12_DIR", p12Dir)
 	t.Setenv("GRXFIRMA_PKCS12_PASSWORD", "valor-prueba")
 
@@ -1078,12 +1083,13 @@ func TestRun_ProcesaURISelectCertConSessionKeyNoReintentaEnClaro(t *testing.T) {
 	rawURI := "afirma://selectcert?id=req-selectcert-key&stservlet=" + storage + "&key=abcd&customToken=abc123"
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code == 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code == 0 {
 		t.Fatal("run() debía fallar: el servidor rechazó la única subida cifrada")
 	}
 	if intentos != 1 {
 		t.Fatalf("intentos upload selectcert sessionkey = %d, want 1", intentos)
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
@@ -1149,6 +1155,7 @@ func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
 	}
 
 	setTestUserHome(t, home)
+	operationCtx, operationWarnings := aceptarExcepcionProtocoloPrueba(t, configDir, "trifasica_http")
 	t.Setenv("GRXFIRMA_PKCS12_DIR", p12Dir)
 	t.Setenv("GRXFIRMA_PKCS12_PASSWORD", "valor-prueba")
 
@@ -1166,7 +1173,7 @@ func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
 		return certpicker.ResultadoSeleccion{}, errors.New("el catálogo QA no contiene la identidad elegida explícitamente")
 	})
 	var stderr bytes.Buffer
-	if code := runE2EAisladoConAprobador(context.Background(), []string{rawURI}, &stderr, aprobacionE2E{}, selector); code != 0 {
+	if code := runE2EAisladoConAprobador(operationCtx, []string{rawURI}, &stderr, aprobacionE2E{}, selector); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 
@@ -1195,6 +1202,7 @@ func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
 	if !bytes.Equal(certSubido, esperado.Raw) {
 		t.Fatal("se subió una identidad distinta de la exigida por el contrato de selección")
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func generarP12(t *testing.T, commonName, password string) []byte {

@@ -364,8 +364,16 @@ func ejecutarURIProtocolo(
 	if handled, code := decidirProgramaFirmaWeb(ctx, rawURI); handled {
 		return code
 	}
-	if err := prepareStartupLocalTLSTrust(ctx, defaultProtocolConfigDir(), stderr); err != nil {
-		return 1
+	// selectcert sube un certificado al portal y no necesita confianza TLS local.
+	// No se toca la CA ni se muestra un bloqueo de instalación ajeno a esa operación.
+	action := normalizeProtocolLaunchAction(extractProtocolLaunchAction(parsed))
+	if action == "" {
+		action = normalizeProtocolLaunchAction(firstQueryParam(parsed.Query(), "op", "operation", "action"))
+	}
+	if action != "selectcert" {
+		if err := prepareStartupLocalTLSTrust(ctx, defaultProtocolConfigDir(), stderr); err != nil {
+			return 1
+		}
 	}
 	if forwarded, err := tryForwardLaunchToResident(rawURI); forwarded {
 		if err == nil {
