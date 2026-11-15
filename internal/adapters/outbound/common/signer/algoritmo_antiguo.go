@@ -62,6 +62,7 @@ func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result do
 func anotarAlgoritmoAntiguo(result domain.VerificationResult, algoritmos []string, contexts ...context.Context) domain.VerificationResult {
 	if len(algoritmos) > 0 {
 		if err := excepciones.Check("sha1_leer", contexts...); err != nil {
+			result = result.WithPolicyError(err)
 			result.Valid = false
 			result.Coverage = domain.CoberturaNoAcreditada
 			result.Reason = err.Error()
@@ -111,7 +112,7 @@ func bloqueoSHA1Previo(ctx context.Context, formato string) (domain.Verification
 	if err == nil {
 		return domain.VerificationResult{}, false
 	}
-	result := domain.NewVerificationFailure(formato, err.Error(), nil)
+	result := domain.NewVerificationFailure(formato, err.Error(), nil).WithPolicyError(err)
 	result.Coverage = domain.CoberturaNoAcreditada
 	result.Integrity.Status = domain.VerificationStatusUnknown
 	result.Integrity.Reason = err.Error()
