@@ -58,8 +58,12 @@ func TestWindowsSettingsLockPermiteCrearGuardarYDesactivar(t *testing.T) {
 	if err != nil || control&windows.SE_DACL_PROTECTED == 0 {
 		t.Fatalf("DACL sin protección de herencia: %v", err)
 	}
-	allowed := map[string]bool{}
-	for _, kind := range []windows.WELL_KNOWN_SID_TYPE{windows.WinCreatorOwnerRightsSid, windows.WinLocalSystemSid, windows.WinBuiltinAdministratorsSid} {
+	tokenUser, err := windows.GetCurrentProcessToken().GetTokenUser()
+	if err != nil {
+		t.Fatal(err)
+	}
+	allowed := map[string]bool{tokenUser.User.Sid.String(): false}
+	for _, kind := range []windows.WELL_KNOWN_SID_TYPE{windows.WinLocalSystemSid, windows.WinBuiltinAdministratorsSid} {
 		sid, err := windows.CreateWellKnownSid(kind)
 		if err != nil {
 			t.Fatal(err)
@@ -77,6 +81,12 @@ func TestWindowsSettingsLockPermiteCrearGuardarYDesactivar(t *testing.T) {
 		sid := (*windows.SID)(unsafe.Pointer(&ace.SidStart)).String()
 		if _, ok := allowed[sid]; !ok {
 			t.Fatalf("directorio concede acceso a %s", sid)
+		}
+		if ace.Header.AceFlags&windows.INHERIT_ONLY_ACE != 0 {
+			t.Fatalf("ACE sin acceso efectivo: %s", sid)
+		}
+		if ace.Header.AceFlags&(windows.OBJECT_INHERIT_ACE|windows.CONTAINER_INHERIT_ACE) != (windows.OBJECT_INHERIT_ACE | windows.CONTAINER_INHERIT_ACE) {
+			t.Fatalf("ACE no heredable por ficheros y carpetas: %s", sid)
 		}
 		allowed[sid] = true
 	}

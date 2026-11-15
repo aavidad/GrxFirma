@@ -15,10 +15,13 @@ import (
 	"crypto/x509/pkix"
 	"encoding/base64"
 	"math/big"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -395,17 +398,17 @@ func probarRevocacionProxyCompartido(t *testing.T, tlsProxy bool) {
 
 func splitProxyHostPort(t *testing.T, raw string) (string, int) {
 	t.Helper()
-	trimmed := strings.TrimPrefix(raw, "http://")
-	host, portText, ok := strings.Cut(trimmed, ":")
-	if !ok {
-		t.Fatalf("proxy URL inesperada: %q", raw)
+	parsed, err := url.Parse(raw)
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		t.Fatalf("proxy URL inesperada: %q (%v)", raw, err)
 	}
-	port := 0
-	for _, ch := range portText {
-		if ch < '0' || ch > '9' {
-			t.Fatalf("puerto proxy inesperado: %q", portText)
-		}
-		port = port*10 + int(ch-'0')
+	host, portText, err := net.SplitHostPort(parsed.Host)
+	if err != nil || host == "" {
+		t.Fatalf("host y puerto proxy inesperados: %q (%v)", raw, err)
+	}
+	port, err := strconv.Atoi(portText)
+	if err != nil || port < 1 || port > 65535 {
+		t.Fatalf("puerto proxy inesperado: %q", portText)
 	}
 	return host, port
 }

@@ -53,14 +53,14 @@ func WithLock(ctx context.Context, dir string, fn func() error) error {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
-	if err := securefile.ProtectDirectory(dir, 0700); err != nil {
-		return err
-	}
 	directory, err := securefile.OpenDir(dir)
 	if err != nil {
 		return err
 	}
 	defer directory.Close()
+	if err := protectSettingsDirectory(directory); err != nil {
+		return err
+	}
 	if info, err := directory.Stat(); err != nil {
 		return err
 	} else if runtime.GOOS != "windows" && info.Mode().Perm()&0077 != 0 {
