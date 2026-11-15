@@ -35,7 +35,7 @@ func TestWindowsSettingsLockPermiteCrearGuardarYDesactivar(t *testing.T) {
 		t.Fatal("guardar preferencias:", err)
 	}
 	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
-	if _, err := excepciones.ActivateLocal(excepciones.ForLocalDesktop(ctx), dir, excepciones.ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion}); err != nil {
+	if _, err := excepciones.ActivateLocal(excepciones.ForLocalDesktop(ctx), dir, excepciones.ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion, Origin: excepciones.OriginSettings}); err != nil {
 		t.Fatal("activar:", err)
 	}
 	if err := excepciones.Check("tsa_http", ctx); err != nil {

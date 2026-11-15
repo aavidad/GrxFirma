@@ -93,7 +93,7 @@ func TestWindowsAjustesIlegiblesDicenQuePasaYComoArreglarlo(t *testing.T) {
 		err = usersettings.New(dir).Guardar(ctx, map[string]any{"idioma": "en"})
 		exigirExplicacion(t, err, settingsfile.KeyNoPermission)
 		_, err = excepciones.ActivateLocal(excepciones.ForLocalDesktop(ctx), dir, excepciones.ActivationRequest{
-			ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
+			ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion, Origin: excepciones.OriginSettings,
 		})
 		exigirExplicacion(t, err, settingsfile.KeyNoPermission)
 	})
@@ -193,7 +193,7 @@ func TestWindowsElevadoNoEscribeLosAjustesDeOtraPersona(t *testing.T) {
 	err = usersettings.New(dir).Guardar(ctx, map[string]any{"idioma": "es"})
 	exigirExplicacion(t, err, settingsfile.KeyOtherUser)
 	_, err = excepciones.ActivateLocal(excepciones.ForLocalCLI(ctx), dir, excepciones.ActivationRequest{
-		ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
+		ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion, Origin: excepciones.OriginSettings,
 	})
 	exigirExplicacion(t, err, settingsfile.KeyOtherUser)
 
