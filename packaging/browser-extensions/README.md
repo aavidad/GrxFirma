@@ -13,6 +13,10 @@ En los sitios permitidos, la extensión detecta PDF y muestra el botón «Firmar
 
 `dipgra.es` y `savia.net` están permitidos de fábrica. En «Sitios de confianza», el usuario puede conceder acceso HTTPS a otros sitios y retirarlo después. Un administrador también puede fijar sitios mediante `storage.managed`; el usuario puede verlos, pero no eliminarlos. Para que funcionen, la política o el despliegue empresarial también debe conceder el permiso de host correspondiente. Los sitios añadidos por el usuario solo reciben el botón de PDF.
 
+El botón y la apertura desde un PDF requieren HTTPS en el puerto 443 y sitios de confianza tanto para la página principal como para el marco y la URL del PDF. Una página ajena que incruste un PDF permitido no muestra el botón; el fondo deja el motivo en el registro de depuración con un texto localizado.
+
+El fondo elige un único dueño por pestaña y URL del PDF, ignorando el fragmento (`#page=…`). Prefiere el propio documento PDF para conservar la descarga con su origen y sesión; después elige el marco menos profundo y, en empate, el primero registrado. Los contenedores HTML sirven de respaldo si el visor no admite scripts. Al retirar el dueño, el botón pasa a otro candidato del mismo PDF. La negociación usa puertos privados de la extensión, sin enviar URL ni credenciales a las páginas.
+
 La prueba de identidad funciona únicamente en los dominios de fábrica y en los sitios fijados por la organización. El portal solicita un reto; GrxFirma pide seleccionar un certificado y aprobar la operación. Después, la extensión devuelve al mismo portal la firma, el certificado público y su cadena. No entrega la clave privada ni enumera certificados al portal.
 
 El paquete no incluye bóveda de contraseñas, autologin, sincronización de sesiones ni el firmador antiguo de `src/*/signer/`. `config.js` se distribuye con `LOCAL_REST_BEARER` vacío; `build.py` rechaza un bearer incrustado. Los archivos de referencia heredados permanecen en la fuente, fuera del ZIP/XPI.
@@ -43,7 +47,7 @@ python3 -m unittest discover -s packaging/browser-extensions/tests -p 'test_buil
 node --test packaging/browser-extensions/tests/*.test.mjs
 ```
 
-El paquete debe usar el host `io.github.aavidad.grxfirma` y los prefijos `grxfirma-`. La extensión usa `storage` para la configuración y una precarga temporal del PDF, `nativeMessaging` para la aplicación local y `scripting` para registrar el detector en sitios que el usuario concede. `host_permissions` cubre los dominios de fábrica y el servicio local `https://127.0.0.1`; `optional_host_permissions` permite pedir acceso HTTPS a un sitio nuevo solo cuando el usuario lo añade. La identidad no se activa por ese permiso opcional.
+El paquete debe usar el host `io.github.aavidad.grxfirma` y los prefijos `grxfirma-`. La extensión usa `storage` para la configuración y una precarga temporal del PDF, `nativeMessaging` para la aplicación local y `scripting` para registrar el detector en sitios que el usuario concede y `webNavigation` para comprobar la página principal, la jerarquía y las navegaciones de los marcos. No requiere el permiso `tabs` ni nuevos permisos de host. `host_permissions` cubre los dominios de fábrica y el servicio local `https://127.0.0.1`; `optional_host_permissions` permite pedir acceso HTTPS a un sitio nuevo solo cuando el usuario lo añade. La identidad no se activa por ese permiso opcional.
 
 Los textos visibles están en `_locales/es` y `_locales/en`. Al modificarlos, actualiza ambos catálogos y ejecuta `tests/i18n.test.mjs`.
 

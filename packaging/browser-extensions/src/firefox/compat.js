@@ -91,6 +91,8 @@
     },
     runtime: {
       id: api.runtime.id,
+      connect(connectInfo) { return api.runtime.connect(connectInfo); },
+      onConnect: api.runtime.onConnect,
       connectNative(name) {
         return api.runtime.connectNative(name);
       },
@@ -112,6 +114,10 @@
       create(createProperties) {
         return call(api.tabs, "create", [createProperties]);
       }
+    },
+    webNavigation: {
+      getAllFrames(details) { return call(api.webNavigation, "getAllFrames", [details]); },
+      onCommitted: api.webNavigation && api.webNavigation.onCommitted
     },
     permissions: {
       contains(value) { return call(api.permissions, "contains", [value]); },

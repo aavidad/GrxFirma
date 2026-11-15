@@ -9,6 +9,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import vm from 'node:vm';
+import { loadBackground } from './helpers/background.mjs';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'src');
@@ -17,7 +18,22 @@ async function detector(variant, fetch, frame = {}) {
   const controls = [];
   const sent = [];
   const posted = [];
+  const events = new Map();
+  const intervals = [];
+  const reconnects = [];
+  const ports = [];
   let changed;
+  const background = frame.background || frame.parent?.background || await loadBackground(variant, frame.options);
+  background.detectors ||= [];
+  background.nextFrameId ||= 0;
+  const frameId = frame.parent ? ++background.nextFrameId : 0;
+  const location = frame.location || { href: 'https://sede.dipgra.es/archivo.pdf', pathname: '/archivo.pdf' };
+  const navigationFrame = { frameId, parentFrameId: frame.parent?.frameId ?? -1, url: location.href,
+    documentId: `doc-${frameId}` };
+  if (!frame.parent) background.frames.length = 0;
+  background.frames.push(navigationFrame);
+  const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', url: location.href, frameId,
+    documentId: navigationFrame.documentId, tab: { id: 12, url: background.frames[0].url } };
   const document = {
     contentType: frame.contentType || 'application/pdf', title: 'documento', documentElement: {},
     querySelectorAll() { return frame.embedded || []; },
@@ -27,52 +43,59 @@ async function detector(variant, fetch, frame = {}) {
         tagName: tag, style: {}, children: [], id: '', title: '', textContent: '', attributes: {},
         setAttribute(key, value) { this.attributes[key] = value; },
         append(...nodes) { this.children.push(...nodes); },
-        remove() { elements.delete(this.id); controls.splice(controls.indexOf(this), 1); }
+        remove() { elements.delete(this.id); const i = controls.indexOf(this); if (i >= 0) controls.splice(i, 1); }
       };
     },
     body: { appendChild(element) { if (element.id) elements.set(element.id, element); controls.push(element); } }
   };
-  const listeners = [];
+  if (frame.noBody) document.body = null;
   const window = {
-    location: frame.location || { href: 'https://sede.dipgra.es/archivo.pdf', pathname: '/archivo.pdf' },
-    frames: { length: 0 },
-    addEventListener(type, callback) { if (type === 'message') listeners.push(callback); },
-    async dispatch(data, source) { await Promise.all(listeners.map((callback) => callback({ data, source }))); }
+    location,
+    addEventListener(type, callback) {
+      if (!events.has(type)) events.set(type, []);
+      events.get(type).push(callback);
+    },
+    async dispatch(data, source) { for (const callback of events.get('message') || []) await callback({ data, source }); }
   };
-  window.parent = window;
-  if (frame.parent) {
-    const parent = frame.parent.window;
-    const parentProxy = { postMessage(data) { posted.push(data); void parent.dispatch(data, childProxy); } };
-    const childProxy = { parent, postMessage(data) { frame.parent.posted.push(data); void window.dispatch(data, parentProxy); } };
-    window.parent = parentProxy;
-    parent.frames[parent.frames.length++] = childProxy;
-    if (frame.element?.tagName === 'IFRAME') frame.element.contentWindow = childProxy;
-  }
   const context = vm.createContext({
-    document, window, URL, Blob, AbortController, setTimeout, clearTimeout, TextEncoder,
-    crypto: { subtle: { async digest(algorithm, bytes) {
-      return Uint8Array.from(createHash('sha256').update(bytes).digest()).buffer;
-    } } },
+    document, window, URL, Blob, AbortController, clearTimeout, TextEncoder,
+    setTimeout(callback, delay) {
+      if (delay === 500) { reconnects.push(callback); return 0; }
+      return setTimeout(callback, delay);
+    },
+    setInterval(callback) { intervals.push(callback); },
     MutationObserver: class { constructor(callback) { changed = callback; } observe() {} },
     console: { log() {}, warn() {}, error() {} }, fetch,
     grxfirmaExt: {
       i18n: { message(key) { return key; } },
-      runtime: { getURL(path) { return 'moz-extension://test/' + path; },
-        async sendMessage(message) { sent.push(message); return { success: true }; } }
+      runtime: {
+        connect() { const port = background.connectContent(sender); ports.push(port); return port; },
+        async sendMessage(message) { sent.push(message); return background.dispatchRuntimeMessage(message, sender); }
+      }
     }
   });
   const source = await readFile(path.join(root, variant, 'content_scripts/pdf_detector.js'), 'utf8');
-  const start = async () => {
-    vm.runInContext(source, context);
-    await new Promise((resolve) => setImmediate(resolve));
-  };
-  if (!frame.defer) await start();
-  return {
+  const start = async () => { vm.runInContext(source, context); await background.settle(); };
+  const h = {
     get button() { return controls.find((node) => node.tagName === 'button'); },
     get notice() { return controls.find((node) => node.attributes.role === 'status'); },
     get buttons() { return controls.filter((node) => node.tagName === 'button'); },
-    sent, posted, window, start, changed() { changed(); }
+    sent, posted, window, start, background, frameId, parent: frame.parent,
+    async changed() { changed(); await background.settle(); },
+    async heartbeat() { intervals.forEach((callback) => callback()); await background.settle(); },
+    async disconnect() { ports.at(-1).disconnect(); await background.settle(); },
+    async reconnect() { reconnects.splice(0).forEach((callback) => callback()); await background.settle(); },
+    async remove() {
+      for (const child of background.detectors.filter((item) => item.parent === h)) await child.remove();
+      for (const callback of events.get('pagehide') || []) callback();
+      const i = background.frames.findIndex((item) => item.frameId === frameId);
+      if (i >= 0) background.frames.splice(i, 1);
+      await background.settle();
+    }
   };
+  background.detectors.push(h);
+  if (!frame.defer) await start();
+  return h;
 }
 
 function pdfElement(tagName, url = '/archivo.pdf', type = 'application/pdf') {
@@ -127,162 +150,271 @@ for (const variant of ['chromium', 'firefox']) {
   });
 }
 
-// Regresión: ambos marcos negocian con independencia del orden de inyección.
+// Las regresiones usan el fondo y los detectores reales, con las API del
+// navegador simuladas; no acceden a la red ni arrancan un navegador.
 const paginaConPDF = {
   contentType: 'text/html',
   location: { href: 'https://sede.dipgra.es/expediente', pathname: '/expediente' }
 };
+const sinRed = async () => { throw new Error('sin red'); };
+const count = (...frames) => frames.reduce((sum, frame) => sum + frame.buttons.length, 0);
 for (const variant of ['chromium', 'firefox']) {
-  const sinRed = async () => { throw new Error('sin red'); };
   for (const tagName of ['embed', 'object', 'iframe']) {
     for (const parentFirst of [true, false]) {
-      test(`${variant}: <${tagName}>, padre primero=${parentFirst}: un botón`, async () => {
-        const element = pdfElement(tagName);
+      test(`${variant}: <${tagName}>, padre primero=${parentFirst}: gana el propio PDF`, async () => {
         const parent = await detector(variant, sinRed, {
-          ...paginaConPDF, embedded: [element], defer: !parentFirst
+          ...paginaConPDF, embedded: [pdfElement(tagName)], defer: !parentFirst
         });
-        const child = await detector(variant, sinRed, { parent, element });
+        const child = await detector(variant, sinRed, { parent });
         if (!parentFirst) await parent.start();
-        assert.equal(parent.buttons.length + child.buttons.length, 1);
+        assert.equal(count(parent, child), 1);
         assert.ok(child.button);
         await child.button.onclick({ isTrusted: true });
         assert.equal(child.sent[0].pdfUrl, 'https://sede.dipgra.es/archivo.pdf');
       });
     }
   }
-  test(`${variant}: mantiene el botón si el visor interno no admite scripts`, async () => {
-    const h = await detector(variant, sinRed, { ...paginaConPDF, embedded: [pdfElement('iframe')] });
-    assert.equal(h.buttons.length, 1);
-  });
-  test(`${variant}: varios PDF distintos y varias referencias al mismo PDF`, async () => {
-    const elements = [pdfElement('embed', '/uno.pdf'), pdfElement('object', '/dos.pdf'),
-      pdfElement('iframe', '/uno.pdf#page=2')];
-    const h = await detector(variant, sinRed, { ...paginaConPDF, embedded: elements });
-    assert.equal(h.buttons.length, 2);
-    assert.notEqual(h.buttons[0].style.bottom, h.buttons[1].style.bottom);
-    for (const button of h.buttons) await button.onclick({ isTrusted: true });
-    assert.deepEqual(h.sent.map((message) => message.pdfUrl),
-      ['https://sede.dipgra.es/uno.pdf', 'https://sede.dipgra.es/dos.pdf']);
-  });
-  test(`${variant}: iframe con URL opaca, el marco detecta el tipo PDF`, async () => {
-    const element = pdfElement('iframe', '/descarga', '');
-    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [element] });
-    const child = await detector(variant, sinRed, { parent, element, location: {
-      href: 'https://sede.dipgra.es/descarga', pathname: '/descarga'
-    } });
-    assert.equal(parent.buttons.length, 0);
-    assert.equal(child.buttons.length, 1);
-  });
-  test(`${variant}: el PDF de otro origen negocia sin acceder al DOM del padre`, async () => {
-    const element = pdfElement('object', 'https://otro.savia.net/archivo.pdf');
-    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [element] });
-    const child = await detector(variant, sinRed, { parent, element, location: {
-      href: 'https://otro.savia.net/archivo.pdf', pathname: '/archivo.pdf'
-    } });
-    assert.equal(parent.buttons.length + child.buttons.length, 1);
-  });
-  test(`${variant}: sin detector en el padre, el marco conserva su botón`, async () => {
+  for (const otherOrigin of [false, true]) {
+    for (const parentFirst of [true, false]) {
+      test(`${variant}: envoltorios HTML, otro origen=${otherOrigin}, principal primero=${parentFirst}`, async () => {
+        const parent = await detector(variant, sinRed, {
+          ...paginaConPDF, embedded: [pdfElement('embed')], defer: !parentFirst
+        });
+        const wrappers = [];
+        const pdfs = [];
+        for (let i = 0; i < 2; i++) {
+          const wrapper = await detector(variant, sinRed, { ...paginaConPDF, parent,
+            location: { href: `https://${otherOrigin ? 'otro.savia.net' : 'sede.dipgra.es'}/visor${i}`, pathname: `/visor${i}` },
+            embedded: [pdfElement('embed', 'https://sede.dipgra.es/archivo.pdf')]
+          });
+          wrappers.push(wrapper);
+          pdfs.push(await detector(variant, sinRed, { parent: wrapper }));
+        }
+        if (!parentFirst) await parent.start();
+        assert.equal(count(parent, ...wrappers, ...pdfs), 1);
+        assert.ok(pdfs[0].button);
+        // Una mutación o una nueva elección no cambia el dueño estable.
+        await wrappers[1].heartbeat();
+        assert.equal(count(parent, ...wrappers, ...pdfs), 1);
+        assert.ok(pdfs[0].button);
+      });
+    }
+  }
+  test(`${variant}: sin detector en el padre, conserva el botón en el PDF`, async () => {
     const parent = await detector(variant, sinRed, { ...paginaConPDF, defer: true });
     const child = await detector(variant, sinRed, { parent });
     assert.equal(child.buttons.length, 1);
   });
-  test(`${variant}: ignora confirmaciones de otros marcos y páginas`, async () => {
-    const child = await detector(variant, sinRed);
-    await child.window.dispatch({ channel: 'grxfirma-pdf-owner-v1', action: 'owned',
-      key: createHash('sha256').update('https://sede.dipgra.es/archivo.pdf').digest('hex') }, {});
-    assert.equal(child.buttons.length, 1);
+  test(`${variant}: respaldo si el visor interno no admite scripts`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [pdfElement('iframe')] });
+    assert.equal(parent.buttons.length, 1);
   });
-  test(`${variant}: PDF directo con embed interno, una sola URL`, async () => {
-    const h = await detector(variant, sinRed, { embedded: [pdfElement('embed', '/otro.pdf')] });
+  test(`${variant}: varios PDF y referencias con fragmentos`, async () => {
+    const h = await detector(variant, sinRed, { ...paginaConPDF, embedded: [
+      pdfElement('embed', '/uno.pdf'), pdfElement('object', '/dos.pdf'), pdfElement('iframe', '/uno.pdf#page=2')
+    ] });
+    assert.equal(h.buttons.length, 2);
+    assert.notEqual(h.buttons[0].style.bottom, h.buttons[1].style.bottom);
+    for (const button of h.buttons) await button.onclick({ isTrusted: true });
+    assert.deepEqual(h.sent.map((message) => message.pdfUrl),
+      ['https://sede.dipgra.es/dos.pdf', 'https://sede.dipgra.es/uno.pdf']);
+  });
+  test(`${variant}: PDF sin extensión en dos marcos`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF });
+    const location = { href: 'https://sede.dipgra.es/descarga', pathname: '/descarga' };
+    const child1 = await detector(variant, sinRed, { parent, location });
+    const child2 = await detector(variant, sinRed, { parent, location });
+    assert.equal(count(parent, child1, child2), 1);
+    assert.ok(child1.button);
+    await child1.remove();
+    assert.equal(child2.buttons.length, 1);
+  });
+  test(`${variant}: retirada del dueño HTML y de su subárbol, traspaso al hermano`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF });
+    const first = await detector(variant, sinRed, { ...paginaConPDF, parent, embedded: [pdfElement('embed')] });
+    const nested = await detector(variant, sinRed, { parent: first });
+    const second = await detector(variant, sinRed, { ...paginaConPDF, parent, embedded: [pdfElement('object')] });
+    assert.equal(count(parent, first, nested, second), 1);
+    assert.ok(nested.button);
+    await first.remove();
+    assert.equal(count(parent, first, nested, second), 1);
+    assert.ok(second.button);
+    await second.remove();
+    assert.equal(count(parent, first, nested, second), 0);
+  });
+  test(`${variant}: retirar el marco PDF devuelve el respaldo al HTML`, async () => {
+    const embedded = [pdfElement('embed')];
+    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded });
+    const child = await detector(variant, sinRed, { parent });
+    assert.ok(child.button);
+    await child.remove();
+    assert.equal(count(parent, child), 1);
+    assert.ok(parent.button);
+  });
+  test(`${variant}: principal sin confianza, PDF de confianza oculto y apertura rechazada`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF,
+      location: { href: 'https://prueba.ejemplo.org/', pathname: '/' }, defer: true });
+    const child = await detector(variant, sinRed, { parent });
+    assert.equal(count(parent, child), 0);
+    assert.ok(child.background.debugLogs.includes('pdfTopPageNotTrusted'));
+    const response = await child.background.dispatchRuntimeMessage({ action: 'openSigner',
+      pdfUrl: child.window.location.href, topURL: 'https://sede.dipgra.es/' }, {
+      id: 'abcdefghijklmnopabcdefghijklmnop', frameId: child.frameId, url: child.window.location.href,
+      tab: { id: 12, url: parent.window.location.href }
+    });
+    assert.equal(response.success, false);
+    assert.equal(response.code, 'pdf_top_page_not_trusted');
+    assert.equal(child.background.openedTabs.length, 0);
+  });
+  for (const position of ['top', 'frame', 'pdf']) {
+    test(`${variant}: puerto 9443 en ${position}, sin botón ni apertura`, async () => {
+      const location = { href: 'https://sede.dipgra.es:9443/archivo.pdf', pathname: '/archivo.pdf' };
+      const parent = await detector(variant, sinRed, { ...paginaConPDF,
+        ...(position === 'top' ? { location } : {}),
+        embedded: position === 'frame' ? [] : [pdfElement('embed', position === 'pdf' ? location.href : '/archivo.pdf')]
+      });
+      const child = position === 'frame' ? await detector(variant, sinRed, { parent, location }) : null;
+      assert.equal(count(parent, ...(child ? [child] : [])), 0);
+      const response = await parent.background.dispatchRuntimeMessage({ action: 'openSigner',
+        pdfUrl: location.href }, {
+        id: 'abcdefghijklmnopabcdefghijklmnop', url: child ? location.href : parent.window.location.href,
+        tab: { id: 12, url: parent.window.location.href }
+      });
+      assert.equal(response.success, false);
+      assert.equal(parent.background.openedTabs.length, 0);
+    });
+  }
+  test(`${variant}: fallo de webNavigation cierra el acceso`, async () => {
+    const h = await detector(variant, sinRed, { options: { framesError: true } });
+    assert.equal(h.buttons.length, 0);
+  });
+  test(`${variant}: cambio de confianza de la principal retira el botón`, async () => {
+    const h = await detector(variant, sinRed);
+    assert.ok(h.button);
+    h.background.frames[0].url = 'https://sinconfianza.example/';
+    h.background.navigation();
+    await h.background.settle();
+    assert.equal(h.buttons.length, 0);
+  });
+  test(`${variant}: desconexión del puerto y recuperación del detector`, async () => {
+    const h = await detector(variant, sinRed);
+    await h.disconnect();
+    assert.equal(h.buttons.length, 0);
+    await h.reconnect();
     assert.equal(h.buttons.length, 1);
-    await h.button.onclick({ isTrusted: true });
-    assert.equal(h.sent[0].pdfUrl, 'https://sede.dipgra.es/archivo.pdf');
   });
   test(`${variant}: inserción, cambio de URL y retirada de PDF`, async () => {
     const embedded = [];
     const h = await detector(variant, sinRed, { ...paginaConPDF, embedded });
     assert.equal(h.buttons.length, 0);
     embedded.push(pdfElement('embed'));
-    h.changed();
+    await h.changed();
     assert.equal(h.buttons.length, 1);
     embedded[0] = pdfElement('object', '/nuevo.pdf');
-    h.changed();
+    await h.changed();
     await h.button.onclick({ isTrusted: true });
     assert.equal(h.sent[0].pdfUrl, 'https://sede.dipgra.es/nuevo.pdf');
     embedded.length = 0;
-    h.changed();
+    await h.changed();
     assert.equal(h.buttons.length, 0);
   });
-  test(`${variant}: una segunda inyección no duplica botones ni observadores`, async () => {
+  test(`${variant}: una segunda inyección no duplica controles`, async () => {
     const h = await detector(variant, sinRed);
     await h.start();
     assert.equal(h.buttons.length, 1);
   });
-
-  test(`${variant}: la negociación no revela URL ni contenido del PDF`, async () => {
-    const url = 'https://otro.savia.net/archivo.pdf?token=credencial-temporal';
-    const element = pdfElement('object', url);
-    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [element] });
-    const child = await detector(variant, sinRed, { parent, element, location: {
-      href: url, pathname: '/archivo.pdf'
+  test(`${variant}: visor PDF anidado y embed interno, una URL`, async () => {
+    const h = await detector(variant, sinRed, { embedded: [pdfElement('embed', '/otro.pdf')] });
+    const child = await detector(variant, sinRed, { parent: h });
+    assert.equal(count(h, child), 1);
+    await h.button.onclick({ isTrusted: true });
+    assert.equal(h.sent[0].pdfUrl, 'https://sede.dipgra.es/archivo.pdf');
+  });
+  test(`${variant}: no expone la negociación a páginas ni acepta su postMessage`, async () => {
+    const h = await detector(variant, sinRed, { location: {
+      href: 'https://sede.dipgra.es/archivo.pdf?token=temporal', pathname: '/archivo.pdf'
     } });
-    assert.equal(parent.buttons.length + child.buttons.length, 1);
-    const messages = [...parent.posted, ...child.posted];
-    assert.ok(messages.some((message) => message.action === 'selected'));
-    for (const message of messages) {
-      assert.equal(message.url, undefined);
-      assert.equal(message.pendingDocument, undefined);
-      if (message.key) assert.match(message.key, /^[a-f0-9]{64}$/);
-      assert.ok(!JSON.stringify(message).includes('credencial-temporal'));
-    }
+    await h.window.dispatch({ channel: 'grxfirma-pdf-owner-v1', action: 'owned',
+      key: createHash('sha256').update(h.window.location.href).digest('hex') }, {});
+    assert.equal(h.buttons.length, 1);
+    assert.deepEqual(h.posted, []);
   });
-  test(`${variant}: transmite la propiedad del botón a un visor PDF anidado`, async () => {
-    const outer = pdfElement('iframe');
-    const inner = pdfElement('embed');
-    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [outer] });
-    const child = await detector(variant, sinRed, { parent, element: outer, embedded: [inner] });
-    const viewer = await detector(variant, sinRed, { parent: child, element: inner });
-    assert.equal(parent.buttons.length + child.buttons.length + viewer.buttons.length, 1);
-  });
+}
 
-  test(`${variant}: dos marcos del mismo PDF eligen uno y recuperan el otro al retirarlo`, async () => {
-    const first = pdfElement('iframe');
-    const second = pdfElement('iframe');
-    const embedded = [first, second];
-    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded });
-    const child1 = await detector(variant, sinRed, { parent, element: first });
-    const child2 = await detector(variant, sinRed, { parent, element: second });
-    assert.equal(parent.buttons.length + child1.buttons.length + child2.buttons.length, 1);
-    assert.ok(child1.button);
-    embedded.shift();
-    parent.window.frames[0] = parent.window.frames[1];
-    delete parent.window.frames[1];
-    parent.window.frames.length = 1;
-    parent.changed();
-    await new Promise((resolve) => setImmediate(resolve));
-    assert.equal(parent.buttons.length, 0);
-    assert.equal(child2.buttons.length, 1);
+for (const variant of ['chromium', 'firefox']) {
+  for (const kind of ['userSites', 'managedSites']) {
+    test(`${variant}: PDF de fábrica con principal ${kind} y retirada del permiso`, async () => {
+      const parent = await detector(variant, sinRed, { ...paginaConPDF, defer: true,
+        location: { href: 'https://portal.organismo.es/expediente', pathname: '/expediente' },
+        options: { [kind]: ['portal.organismo.es'], grantedOrigins: ['https://portal.organismo.es/*'] }
+      });
+      const child = await detector(variant, sinRed, { parent });
+      assert.ok(child.button);
+      child.background.grantedOrigins.clear();
+      await vm.runInContext('refreshTrustedSites()', child.background.context);
+      await child.background.settle();
+      assert.equal(child.buttons.length, 0);
+    });
+  }
+  test(`${variant}: frameId reutilizado no hereda el dueño de otro documento`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF });
+    const first = await detector(variant, sinRed, { parent });
+    const second = await detector(variant, sinRed, { parent });
+    assert.ok(first.button);
+    first.background.frames.find((frame) => frame.frameId === first.frameId).documentId = 'nuevo-documento';
+    first.background.navigation();
+    await first.background.settle();
+    assert.equal(count(parent, first, second), 1);
+    assert.ok(second.button);
   });
-
-  test(`${variant}: agrupa también dos iframe con PDF sin extensión`, async () => {
-    const first = pdfElement('iframe', '/descarga', '');
-    const second = pdfElement('iframe', '/descarga', '');
-    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [first, second] });
-    const location = { href: 'https://sede.dipgra.es/descarga', pathname: '/descarga' };
-    const child1 = await detector(variant, sinRed, { parent, element: first, location });
-    const child2 = await detector(variant, sinRed, { parent, element: second, location });
-    assert.equal(parent.buttons.length + child1.buttons.length + child2.buttons.length, 1);
+  test(`${variant}: comprueba principal real aunque el puerto conserve una URL anterior`, async () => {
+    const h = await detector(variant, sinRed);
+    h.background.frames[0].url = 'https://ajeno.example/';
+    await h.heartbeat();
+    assert.equal(h.buttons.length, 0);
+    assert.ok(h.background.debugLogs.includes('pdfTopPageNotTrusted'));
   });
+}
 
-  test(`${variant}: un visor de plugin puede no aparecer en window.frames`, async () => {
-    const element = pdfElement('embed');
-    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [element] });
-    const child = await detector(variant, sinRed, { parent, element });
-    parent.window.frames.length = 0;
-    parent.changed();
-    await new Promise((resolve) => setImmediate(resolve));
-    assert.equal(parent.buttons.length + child.buttons.length, 1);
+for (const variant of ['chromium', 'firefox']) {
+  test(`${variant}: entre HTML gana el menos profundo aunque se registre después`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF,
+      embedded: [pdfElement('embed')], defer: true });
+    const wrapper = await detector(variant, sinRed, { ...paginaConPDF, parent,
+      embedded: [pdfElement('object')] });
+    assert.ok(wrapper.button);
+    await parent.start();
+    assert.equal(count(parent, wrapper), 1);
+    assert.ok(parent.button);
+    await parent.heartbeat();
+    assert.ok(parent.button);
+  });
+  test(`${variant}: entre PDF directos gana el menos profundo aunque llegue después`, async () => {
+    const parent = await detector(variant, sinRed, { defer: true });
+    const child = await detector(variant, sinRed, { parent });
     assert.ok(child.button);
+    await parent.start();
+    assert.equal(count(parent, child), 1);
+    assert.ok(parent.button);
   });
+}
 
+for (const variant of ['chromium', 'firefox']) {
+  test(`${variant}: si el PDF no puede crear controles, cede el respaldo al HTML`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [pdfElement('embed')] });
+    const child = await detector(variant, sinRed, { parent, noBody: true });
+    assert.equal(count(parent, child), 1);
+    assert.ok(parent.button);
+  });
+}
+
+for (const variant of ['chromium', 'firefox']) {
+  test(`${variant}: desconectar el puerto del dueño cede al respaldo sin pagehide`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF, embedded: [pdfElement('embed')] });
+    const child = await detector(variant, sinRed, { parent });
+    assert.ok(child.button);
+    await child.disconnect();
+    assert.equal(count(parent, child), 1);
+    assert.ok(parent.button);
+  });
 }

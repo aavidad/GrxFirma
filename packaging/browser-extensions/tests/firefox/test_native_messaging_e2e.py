@@ -79,12 +79,14 @@ class FirefoxLaunchTests(unittest.TestCase):
 
 class PrivilegedNavigationTests(unittest.TestCase):
     def new_client(self, fail_execute: bool = False) -> tuple[e2e.WebDriverClient, list]:
-        client = e2e.WebDriverClient(
-            Path("/usr/bin/geckodriver"),
-            Path("/tmp/geckodriver.log"),
-            firefox=None,
-            headed=False,
-        )
+        # Estas pruebas simulan todas las peticiones; no necesitan un socket.
+        with mock.patch.object(e2e, "free_tcp_port", return_value=43210):
+            client = e2e.WebDriverClient(
+                Path("/usr/bin/geckodriver"),
+                Path("/tmp/geckodriver.log"),
+                firefox=None,
+                headed=False,
+            )
         calls: list[tuple[str, str, object | None]] = []
 
         def request(method: str, suffix: str, payload: object | None = None) -> None:

@@ -454,7 +454,18 @@ function isDynamicSiteURL(parsed, sites) {
     return [...sites].some((site) => grxfirmaTrustedSites.matches(parsed.href, site));
 }
 function isPDFPortalURL(parsed) {
-    return isFactoryPortalURL(parsed) || isDynamicSiteURL(parsed, dynamicPDFSites);
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password &&
+        (parsed.port === '' || parsed.port === '443') &&
+        (isFactoryPortalURL(parsed) || isDynamicSiteURL(parsed, dynamicPDFSites));
+}
+function trustedPDFURL(raw) {
+    try { return isPDFPortalURL(new URL(raw)); } catch (_) { return false; }
+}
+function trustedPDFTop(sender) {
+    return trustedPDFURL(sender && sender.tab && sender.tab.url);
+}
+function logUntrustedPDFTop() {
+    console.debug(grxfirmaExt.i18n.message('pdfTopPageNotTrusted'));
 }
 function isIdentityPortalURL(parsed) {
     return isFactoryPortalURL(parsed) || isDynamicSiteURL(parsed, dynamicIdentitySites);
@@ -488,8 +499,130 @@ async function reconcileTrustedSites() {
     if (desired.length) await grxfirmaExt.scripting.registerContentScripts(desired);
     dynamicPDFSites = pdfSites;
     dynamicIdentitySites = identitySites;
+    for (const state of pdfTabs.values()) schedulePDFOwners(state);
     return { userSites, managedSites };
 }
+// Una elección por pestaña y URL normalizada. Los puertos pertenecen a los
+// documentos de la extensión: al destruir un marco se retira su candidatura.
+// No se usan postMessage ni profundidades/orígenes declarados por la página.
+const pdfTabs = new Map();
+let pdfRegistrationOrder = 0;
+function normalizedPDFURL(raw) {
+    try {
+        const url = new URL(raw);
+        url.hash = '';
+        return url.href;
+    } catch (_) { return ''; }
+}
+function publishPDFOwners(state, winners) {
+    const changes = [];
+    for (const record of state.records.values()) {
+        const urls = [...winners].filter(([, owner]) => owner === record).map(([url]) => url).sort();
+        if (JSON.stringify(urls) !== JSON.stringify(record.owned)) changes.push({ record, urls });
+    }
+    // Retirar antes de conceder evita conservar controles en el dueño anterior.
+    for (const { record } of changes) {
+        if (record.owned.length) {
+            try { record.port.postMessage({ action: 'owners', urls: [] }); } catch (_) { }
+        }
+        record.owned = [];
+    }
+    for (const { record, urls } of changes) {
+        try {
+            record.port.postMessage({ action: 'owners', urls });
+            record.owned = urls;
+        } catch (_) { state.records.delete(record.port); }
+    }
+}
+async function electPDFOwners(state) {
+    await trustedSitesRefresh;
+    const frames = await grxfirmaExt.webNavigation.getAllFrames({ tabId: state.tabId });
+    const byID = new Map((frames || []).map((frame) => [frame.frameId, frame]));
+    const top = byID.get(0);
+    const winners = new Map();
+    if (!top || !trustedPDFURL(top.url)) {
+        if (!state.topBlocked) logUntrustedPDFTop();
+        state.topBlocked = true;
+        publishPDFOwners(state, winners);
+        return;
+    }
+    state.topBlocked = false;
+    function depth(frame) {
+        const seen = new Set();
+        let value = 0;
+        while (frame && frame.frameId !== 0) {
+            if (seen.has(frame.frameId)) return Infinity;
+            seen.add(frame.frameId);
+            frame = byID.get(frame.parentFrameId);
+            value++;
+        }
+        return frame ? value : Infinity;
+    }
+    for (const record of state.records.values()) {
+        const frame = byID.get(record.sender.frameId);
+        // Una navegación puede reutilizar frameId. No heredar candidaturas
+        // del documento anterior mientras se cierra su puerto.
+        if (!frame || normalizedPDFURL(frame.url) !== normalizedPDFURL(record.sender.url) ||
+            (frame.documentId && record.sender.documentId && frame.documentId !== record.sender.documentId) ||
+            !trustedPDFURL(frame.url)) continue;
+        record.depth = depth(frame);
+        if (!Number.isFinite(record.depth)) continue;
+        for (const [url, order] of record.urls) {
+            if (!trustedPDFURL(url)) continue;
+            const previous = winners.get(url);
+            // Preferir el propio PDF conserva la descarga con su sesión y
+            // origen. El HTML es respaldo si el visor no admite scripts.
+            if (!previous || (record.direct && !previous.direct) ||
+                (record.direct === previous.direct && (record.depth < previous.depth ||
+                (record.depth === previous.depth && order < previous.urls.get(url))))) winners.set(url, record);
+        }
+    }
+    publishPDFOwners(state, winners);
+}
+function schedulePDFOwners(state) {
+    state.pending = state.pending.catch(() => {}).then(() => electPDFOwners(state))
+        .catch(() => publishPDFOwners(state, new Map()));
+}
+grxfirmaExt.runtime.onConnect.addListener((port) => {
+    if (port.name !== 'grxfirma-pdf-owners') return;
+    const sender = port.sender;
+    const tabId = sender && sender.tab && sender.tab.id;
+    if (!sender || sender.id !== grxfirmaExt.runtime.id || !Number.isInteger(tabId) ||
+        !Number.isInteger(sender.frameId) || !trustedPDFURL(sender.url)) {
+        port.disconnect();
+        return;
+    }
+    let state = pdfTabs.get(tabId);
+    if (!state) {
+        state = { tabId, records: new Map(), pending: Promise.resolve(), topBlocked: false };
+        pdfTabs.set(tabId, state);
+    }
+    const record = { port, sender, urls: new Map(), owned: [] };
+    state.records.set(port, record);
+    port.onMessage.addListener((message) => {
+        if (!state.records.has(port) || !message || message.action !== 'candidates' ||
+            !Array.isArray(message.urls) || message.urls.length > 256) return;
+        const urls = new Map();
+        for (const raw of message.urls) {
+            if (typeof raw !== 'string' || raw.length > 16384) continue;
+            const url = normalizedPDFURL(raw);
+            if (trustedPDFURL(url)) urls.set(url, record.urls.get(url) ?? ++pdfRegistrationOrder);
+        }
+        record.urls = urls;
+        record.direct = message.direct === true && urls.size === 1 && urls.has(normalizedPDFURL(sender.url));
+        schedulePDFOwners(state);
+    });
+    port.onDisconnect.addListener(() => {
+        state.records.delete(port);
+        if (state.records.size) schedulePDFOwners(state);
+        else if (pdfTabs.get(tabId) === state) pdfTabs.delete(tabId);
+    });
+});
+grxfirmaExt.webNavigation.onCommitted.addListener(({ tabId }) => {
+    const state = pdfTabs.get(tabId);
+    if (state) schedulePDFOwners(state);
+});
+
 let trustedSitesRefresh = Promise.resolve();
 function refreshTrustedSites() {
     trustedSitesRefresh = trustedSitesRefresh.catch(() => {}).then(reconcileTrustedSites);
@@ -528,8 +661,17 @@ function authorizeRuntimeMessage(request, sender) {
         };
     }
 
-    if ((action === 'openSigner' && isPDFPortalURL(parsed)) ||
-        (action === 'proveIdentity' && isIdentityPortalURL(parsed))) {
+    if (action === 'openSigner' && isPDFPortalURL(parsed)) {
+        if (!trustedPDFTop(sender)) {
+            logUntrustedPDFTop();
+            return { allowed: false, reason: 'pdf_top_page_not_trusted', origin: '' };
+        }
+        if (request.pdfUrl !== undefined && !trustedPDFURL(request.pdfUrl)) {
+            return { allowed: false, reason: 'pdf_url_not_trusted', origin: '' };
+        }
+        return { allowed: true, kind: 'portal', origin: parsed.origin };
+    }
+    if (action === 'proveIdentity' && isIdentityPortalURL(parsed)) {
         return { allowed: true, kind: 'portal', origin: parsed.origin };
     }
 
