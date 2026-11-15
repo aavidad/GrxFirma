@@ -3,7 +3,6 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
-using System.Globalization;
 using GrxFirma.WinUI.Controls;
 using GrxFirma.WinUI.Core.Operations;
 using GrxFirma.WinUI.Services;
@@ -44,7 +43,11 @@ public sealed partial class SettingsPage
         UnsafeRefresh.Content = Localizer.Text("excepciones.pantalla.actualizar");
         var client = ((App)Application.Current).UnsafeExceptions;
         UnsafeRefresh.IsEnabled = client is not null;
-        UnsafeMessage.Text = Localizer.Text("excepciones.pantalla.cargando");
+        // «Consultando las excepciones…» solo sale si la consulta tarda: la
+        // región viva lo anunciaba con la lista ya cargada (recorrido G).
+        var loading = Localizer.Text("excepciones.pantalla.cargando");
+        using var slow = new CancellationTokenSource();
+        _ = ShowUnsafeLoadingLaterAsync(loading, slow.Token);
         try
         {
             if (client is null) { UnsafeMessage.Text = Localizer.Text("excepciones.canal_no_local"); return; }
@@ -70,12 +73,27 @@ public sealed partial class SettingsPage
                 : _unsafeRows.FirstOrDefault(row => string.Equals(row.Id, changedId, StringComparison.Ordinal));
             // La región viva confirma el cambio: «Evaluar firmas SHA-1 antiguas: Desactivado».
             UnsafeMessage.Text = changed is null ? string.Empty
-                : Localizer.Format("{0}: {1}", changed.Title.Text, changed.Status.Text);
+                : Localizer.LabelValue(changed.Title.Text, changed.Status.Text);
             if (changed is not null) KeepUnsafeFocus(changed);
         }
         catch (OperationCanceledException) { }
         catch { UnsafeMessage.Text = Localizer.Text("excepciones.pantalla.error"); }
+        finally
+        {
+            slow.Cancel();
+            // Una consulta cancelada no deja el aviso de carga puesto.
+            if (string.Equals(UnsafeMessage.Text, loading, StringComparison.Ordinal)) UnsafeMessage.Text = string.Empty;
+        }
     }
+
+    private async Task ShowUnsafeLoadingLaterAsync(string loading, CancellationToken token)
+    {
+        try { await Task.Delay(UnsafeLoadingDelay, token); }
+        catch (OperationCanceledException) { return; }
+        if (!token.IsCancellationRequested && _isLoaded) UnsafeMessage.Text = loading;
+    }
+
+    private static readonly TimeSpan UnsafeLoadingDelay = TimeSpan.FromMilliseconds(600);
 
     private UnsafeRow CreateUnsafeRow(UnsafeExceptionsClient client, string id)
     {
@@ -131,16 +149,16 @@ public sealed partial class SettingsPage
         row.Item = item;
         var setting = UnsafeExceptionDialog.CatalogText(item.SettingKey);
         row.Title.Text = setting;
+        // Mismo formato que Qt: el del idioma de la interfaz, con el año en
+        // cuatro cifras (lote 39h). Antes salía con el formato «g» de Windows.
         row.Status.Text = item.StatusKey == "excepciones.pantalla.activada_fecha"
-            ? Localizer.Fill(item.StatusKey, ("date", item.LastAcceptance!.AcceptedAt.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)))
+            ? Localizer.Fill(item.StatusKey, ("date", UnsafeExceptionText.DateText(item.LastAcceptance!.AcceptedAt,
+                Localizer.Text("format.datetime_minutes"), TimeZoneInfo.Local)))
             : Localizer.Text(item.StatusKey);
-        var organization = UnsafeExceptionDialog.CatalogText(item.OrganizationKey);
-        var readOnly = item.Fixed || !item.Activable;
-        row.Policy.Text = !readOnly ? string.Empty
-            : item.PolicyUnreadable ? Localizer.Text("excepciones.pantalla.directiva_ilegible")
-            : Localizer.Text("excepciones.pantalla.solo_lectura") +
-                (item.Enabled || organization.Length == 0 ? string.Empty : Environment.NewLine + organization);
-        row.Policy.Visibility = readOnly ? Visibility.Visible : Visibility.Collapsed;
+        // Una sola nota y sin repetir el estado: «solo lectura» si la
+        // organización lo activa, su texto si lo prohíbe.
+        row.Policy.Text = UnsafeExceptionDialog.CatalogText(UnsafeExceptionText.PolicyNoteKey(item));
+        row.Policy.Visibility = row.Policy.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         row.Change.Content = Localizer.Text(item.Enabled ? "excepciones.pantalla.desactivar" : "excepciones.pantalla.activar");
         row.Change.Visibility = item.Enabled || (item.Activable && !item.Fixed) ? Visibility.Visible : Visibility.Collapsed;
         row.Change.IsEnabled = !item.Fixed && (item.Enabled || item.Activable);

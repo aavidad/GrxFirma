@@ -23,6 +23,33 @@ internal static class UnsafeExceptionDialog
     internal static string CatalogText(string key) =>
         !string.IsNullOrWhiteSpace(key) && Localizer.Has(key) ? Localizer.Text(key) : string.Empty;
 
+    // Un apartado: título en seminegrita con nivel de encabezado 3 (el caso es
+    // el 2) y su texto debajo, cada uno en su propio TextBlock.
+    private static StackPanel HelpPanel(UnsafeExceptionState item)
+    {
+        var panel = new StackPanel { Spacing = 16 };
+        var sections = UnsafeExceptionText.HelpSections(CatalogText(item.HelpKey),
+            CatalogText("excepciones.pantalla.ayuda_organizacion"), UnsafeExceptionText.OrganizationDecides(item));
+        foreach (var section in sections)
+        {
+            var block = new StackPanel { Spacing = 4 };
+            if (section.Title.Length > 0)
+            {
+                var title = new TextBlock
+                {
+                    Text = section.Title,
+                    TextWrapping = TextWrapping.Wrap,
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                };
+                AutomationProperties.SetHeadingLevel(title, AutomationHeadingLevel.Level3);
+                block.Children.Add(title);
+            }
+            block.Children.Add(new TextBlock { Text = section.Body, TextWrapping = TextWrapping.Wrap });
+            panel.Children.Add(block);
+        }
+        return panel;
+    }
+
     public static async Task<bool> ShowAsync(UnsafeExceptionState item, XamlRoot root,
         ElementTheme theme, bool helpOnly = false, CancellationToken cancellationToken = default)
     {
@@ -41,12 +68,27 @@ internal static class UnsafeExceptionDialog
         heading.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold;
         AutomationProperties.SetHeadingLevel(heading, AutomationHeadingLevel.Level2);
         body.Children.Add(heading);
-        var risk = Prose(helpOnly ? item.HelpKey : item.RiskKey);
+        var risk = Prose(item.RiskKey);
         body.Children.Add(risk);
+        // La ayuda larga se lee por apartados, cada uno con su título como
+        // encabezado: el lector de pantalla salta de uno a otro con la tecla H
+        // del modo de examen. Si lo decide la organización, no explica cómo
+        // activar ni deshacer: dice quién lo decide (lote 39h).
+        var help = HelpPanel(item);
+        body.Children.Add(help);
         var organization = Prose(item.OrganizationKey);
-        organization.Visibility = !helpOnly && !item.Activable && organization.Text.Length > 0
-            ? Visibility.Visible : Visibility.Collapsed;
         body.Children.Add(organization);
+        // Con la ayuda abierta, el texto de la organización ya va en su
+        // apartado y no se repite debajo.
+        void ShowHelp(bool visible)
+        {
+            help.Visibility = visible && help.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            risk.Visibility = visible && help.Children.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
+            if (visible && help.Children.Count == 0) risk.Text = CatalogText(item.HelpKey);
+            organization.Visibility = !visible && !item.Activable && organization.Text.Length > 0
+                ? Visibility.Visible : Visibility.Collapsed;
+        }
+        ShowHelp(helpOnly);
         var acceptance = new CheckBox
         {
             Content = Prose(item.AcceptanceKey),
@@ -75,7 +117,9 @@ internal static class UnsafeExceptionDialog
             TabIndex = 0,
         };
         AutomationProperties.SetName(scroll, heading.Text);
-        AutomationProperties.SetHelpText(scroll, risk.Text);
+        // Con la ayuda abierta el texto de ayuda queda vacío: antes era la
+        // ayuda entera, que el lector leía como un solo bloque.
+        AutomationProperties.SetHelpText(scroll, helpOnly ? string.Empty : risk.Text);
         var dialog = new ContentDialog
         {
             XamlRoot = root,
@@ -97,17 +141,17 @@ internal static class UnsafeExceptionDialog
         acceptance.Unchecked += (_, _) => { model.Accepted = false; dialog.IsPrimaryButtonEnabled = false; };
         if (!helpOnly)
         {
-            var help = new Button { Content = Localizer.Text("excepciones.mas_informacion"), MinHeight = 44 };
-            help.Click += (_, _) =>
+            var more = new Button { Content = Localizer.Text("excepciones.mas_informacion"), MinHeight = 44 };
+            more.Click += (_, _) =>
             {
-                risk.Text = CatalogText(item.HelpKey);
-                AutomationProperties.SetHelpText(scroll, risk.Text);
+                ShowHelp(true);
+                AutomationProperties.SetHelpText(scroll, string.Empty);
                 // El botón desaparece: el foco pasa al texto, que ya es la ayuda.
                 scroll.Focus(FocusState.Keyboard);
-                help.Visibility = Visibility.Collapsed;
-                risk.StartBringIntoView();
+                more.Visibility = Visibility.Collapsed;
+                help.StartBringIntoView();
             };
-            body.Children.Insert(2, help);
+            body.Children.Insert(3, more);
         }
         dialog.Opened += (_, _) =>
         {

@@ -6,6 +6,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "UnsafeText.js" as UnsafeText
 
 GroupBox {
     id: panel
@@ -18,6 +19,10 @@ GroupBox {
     property bool busy: false
     property bool loaded: false
     property string message: ""
+    // Caso que se acaba de activar o desactivar: al llegar la lista nueva se
+    // confirma en la región viva («Evaluar firmas SHA-1 antiguas: Desactivado»)
+    // y el foco vuelve a su fila, como en WinUI.
+    property string changedId: ""
     signal acceptanceRequested(var item)
     signal helpRequested(var item)
     implicitWidth: 320
@@ -43,15 +48,38 @@ GroupBox {
     }
     function change(item) {
         if (busy || item.fixed || !localIpc) return
-        if (item.enabled) { busy = true; bridge.disableUnsafeException(item.id) }
+        if (item.enabled) { busy = true; changedId = item.id; bridge.disableUnsafeException(item.id) }
         else acceptanceRequested(item)
+    }
+    // Tras activar desde el aviso abierto en este apartado.
+    function confirmChange(id) {
+        if (!localIpc) return
+        changedId = id || ""
+        if (busy) return
+        busy = true
+        bridge.loadUnsafeExceptions()
+    }
+    function announce(text) {
+        if (text !== "" && typeof statusLine.Accessible.announce === "function") statusLine.Accessible.announce(text)
+    }
+    function focusRow(id) {
+        for (let i = 0; i < rows.count; i++) {
+            const row = rows.itemAt(i)
+            if (!row || row.modelData.id !== id) continue
+            const target = row.changeButton.visible && row.changeButton.enabled ? row.changeButton : row.helpButton
+            target.forceActiveFocus(Qt.OtherFocusReason)
+            return
+        }
     }
     function stateText(item) {
         if (item.policy_unreadable) return t("excepciones.pantalla.directiva_ilegible")
         if (item.fixed) return t(item.enabled ? "excepciones.pantalla.fijada_activa" : "excepciones.pantalla.fijada_inactiva")
         if (!item.enabled) return t("excepciones.pantalla.desactivada")
         const receipt = item.last_acceptance
-        if (receipt && receipt.accepted_at) return t("excepciones.pantalla.activada_fecha").replace("{date}", new Date(receipt.accepted_at).toLocaleString(Qt.locale(localeName), Locale.ShortFormat))
+        // Mismo formato que WinUI, con el año en cuatro cifras y según el
+        // idioma de la interfaz (lote 39h).
+        const date = receipt ? UnsafeText.dateText(receipt.accepted_at, t("format.datetime_minutes")) : ""
+        if (date !== "") return t("excepciones.pantalla.activada_fecha").replace("{date}", date)
         return t("excepciones.pantalla.activada")
     }
     Connections {
@@ -60,8 +88,21 @@ GroupBox {
             if (action !== "unsafe_exceptions_list" && action !== "unsafe_exceptions_set") return
             panel.busy = false
             panel.loaded = ok
+            const changed = panel.changedId
+            panel.changedId = ""
             panel.message = ok ? "" : panel.t("excepciones.pantalla.error")
             if (ok) panel.items = data
+            if (ok && changed !== "") {
+                for (let i = 0; i < panel.items.length; i++) {
+                    const item = panel.items[i]
+                    if (item.id !== changed) continue
+                    panel.message = panel.t("winui.selector.etiqueta_valor")
+                        .replace("{label}", panel.t("excepciones." + item.id + ".ajuste"))
+                        .replace("{value}", panel.stateText(item))
+                    Qt.callLater(panel.focusRow, changed)
+                }
+            }
+            panel.announce(panel.message)
         }
     }
     ColumnLayout {
@@ -82,6 +123,8 @@ GroupBox {
             onClicked: panel.load()
         }
         Text {
+            id: statusLine
+            objectName: "unsafeStatus"
             Layout.fillWidth: true
             visible: panel.busy || panel.message !== ""
             text: panel.busy ? panel.t("excepciones.pantalla.cargando") : panel.message
@@ -92,10 +135,14 @@ GroupBox {
             Accessible.role: Accessible.AlertMessage
         }
         Repeater {
+            id: rows
             model: panel.items
             delegate: ColumnLayout {
                 id: row
                 required property var modelData
+                readonly property string policyNote: UnsafeText.policyNoteKey(modelData)
+                property alias changeButton: changeButton
+                property alias helpButton: helpButton
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
                 spacing: 8
@@ -117,11 +164,13 @@ GroupBox {
                     color: panel.theme.textColor
                     wrapMode: Text.WordWrap
                 }
+                // Una sola nota: «solo lectura» si la organización lo activa,
+                // su texto si lo prohíbe; nunca las dos (lote 39h).
                 Text {
+                    objectName: "unsafePolicy-" + row.modelData.id
                     Layout.fillWidth: true
-                    visible: row.modelData.fixed || row.modelData.activable === false
-                    text: row.modelData.policy_unreadable ? panel.t("excepciones.pantalla.directiva_ilegible")
-                        : panel.t("excepciones.pantalla.solo_lectura") + (row.modelData.enabled ? "" : "\n" + panel.t("excepciones." + row.modelData.id + ".organizacion"))
+                    visible: row.policyNote !== ""
+                    text: row.policyNote === "" ? "" : panel.t(row.policyNote)
                     textFormat: Text.PlainText
                     font.pixelSize: Typography.control
                     color: panel.theme.textColor
@@ -131,6 +180,7 @@ GroupBox {
                     Layout.fillWidth: true
                     spacing: 12
                     ThemedButton {
+                        id: changeButton
                         Layout.fillWidth: true
                         Layout.minimumHeight: 44
                         objectName: "unsafeChange-" + row.modelData.id
@@ -141,6 +191,8 @@ GroupBox {
                         onClicked: panel.change(row.modelData)
                     }
                     ThemedButton {
+                        id: helpButton
+                        objectName: "unsafeHelp-" + row.modelData.id
                         Layout.fillWidth: true
                         Layout.minimumHeight: 44
                         text: panel.t("excepciones.mas_informacion")

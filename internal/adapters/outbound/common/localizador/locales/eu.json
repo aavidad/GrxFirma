@@ -684,7 +684,7 @@
   "Documento ya firmado": "Dokumentua lehendik sinatuta",
   "Documento(s)": "Dokumentua(k)",
   "Documento: ": "Dokumentua: ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "Sinatutako dokumentuak (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "Sinatutako dokumentuak (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "Jatorrizko dokumentuak",
   "Dominio": "Domeinua",
   "Dominio añadido: %1": "Domeinua gehitu da: %1",
@@ -5292,6 +5292,7 @@
   ,"verificacion.detalle.firmante": "Sinatzailea"
   ,"verificacion.detalle.algoritmo": "Sinadura-algoritmoa (OID)"
   ,"verificacion.detalle.algoritmo_antiguo": "Algoritmo zaharra"
+  ,"verificacion.detalle.signing_certificate": "Sinadurari lotutako sinatzailearen ziurtagiria (signingCertificate atributua)"
   ,"verificacion.detalle.integridad_documento": "Dokumentuaren osotasuna"
   ,"verificacion.detalle.codificacion_cms": "Sinaduraren kodeketa (CMS)"
   ,"verificacion.detalle.byterange": "Sinatutako byteak (ByteRange)"
@@ -5312,6 +5313,7 @@
   ,"verificacion.detalle.valor.embedded": "sinadura dokumentuan sartuta"
   ,"verificacion.detalle.valor.ok": "egiaztatuta"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "ez dago"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "ezin da egiaztatu jatorrizko dokumenturik gabe"
   ,"verificacion.detalle.valor.ber": "BER (DER bihurtu da egiaztatzeko)"
   ,"winui.comun.proteger": "Babestu"
@@ -7202,6 +7204,7 @@
   "excepciones.pantalla.fijada_activa": "Erakundeak aktibatua",
   "excepciones.pantalla.fijada_inactiva": "Erakundeak desaktibatua",
   "excepciones.pantalla.solo_lectura": "Erakundeak finkatzen du ezarpen hau. Zure administratzaileak bakarrik alda dezake.",
+  "excepciones.pantalla.ayuda_organizacion": "Nork erabakitzen du: ordenagailu honetan erakundeak finkatzen du ezarpen hau; beraz, ezin duzu GrxFirman aktibatu edo desaktibatu. Aldatu behar bada, jo ordenagailuaren administratzailearengana.",
   "excepciones.pantalla.activar": "Aktibatu",
   "excepciones.pantalla.desactivar": "Desaktibatu",
   "excepciones.pantalla.actualizar": "Eguneratu zerrenda",

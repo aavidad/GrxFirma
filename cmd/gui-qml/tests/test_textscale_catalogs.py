@@ -49,7 +49,9 @@ class TextAccessibility(unittest.TestCase):
         self.assertIn('category: "General"', settings)
         self.assertIn("property int textScalePercent: 100", settings)
         self.assertIn('target: Typography; property: "textScalePercent"', settings)
-        self.assertIn("appSettings.textScalePercent = Typography.percentages[index]", MAIN)
+        # Lote 39h: el valor elegido se aplica cuando la lista ya se ha cerrado.
+        self.assertIn("pendingPercent = Typography.percentages[index]", MAIN)
+        self.assertIn("appSettings.textScalePercent = percent", MAIN)
         self.assertIn("appSettings.sync()", MAIN)
 
     def test_portal_layer_uses_heading_contrast_controls_and_hides_status(self):

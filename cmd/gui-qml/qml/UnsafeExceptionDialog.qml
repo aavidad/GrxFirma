@@ -6,6 +6,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "UnsafeText.js" as UnsafeText
 
 ThemedDialog {
     id: dialog
@@ -24,6 +25,13 @@ ThemedDialog {
     // bloqueo que se puede repetir (retryId del motor o reenvío del formulario).
     readonly property bool blocked: item.operationPending === true
     readonly property bool continues: blocked && (!!item.retryId || item.resend === true)
+    // La ayuda larga se lee por apartados, cada uno con su título como
+    // encabezado. Si lo decide la organización, no explica cómo activar ni
+    // deshacer: dice quién lo decide y a quién preguntar (lote 39h).
+    readonly property var helpSections: showingHelp
+        ? UnsafeText.helpSections(caseText("ayuda"), appText("excepciones.pantalla.ayuda_organizacion"),
+                                  UnsafeText.organizationDecides(item))
+        : []
     signal activated(var item)
     signal activationFailed()
     signal cancelled(var item)
@@ -67,6 +75,11 @@ ThemedDialog {
         if (top < flick.contentY) flick.contentY = Math.max(0, top)
         else if (bottom > flick.contentY + flick.height)
             flick.contentY = Math.min(Math.max(0, flick.contentHeight - flick.height), bottom - flick.height)
+    }
+    function focusFirstSection() {
+        const first = helpRepeater.count > 0 ? helpRepeater.itemAt(0) : null
+        if (first) (first.sectionHeading.visible ? first.sectionHeading : first.sectionBody).forceActiveFocus(Qt.OtherFocusReason)
+        else caseBody.forceActiveFocus(Qt.OtherFocusReason)
     }
     onOpened: contentItem.enter()
     onClosed: {
@@ -147,6 +160,8 @@ ThemedDialog {
                         Layout.fillWidth: true
                         Layout.leftMargin: 4
                         Layout.rightMargin: 4
+                        // Sin apartados (catálogo antiguo), la ayuda entera.
+                        visible: !dialog.showingHelp || helpRepeater.count === 0
                         text: dialog.caseText(dialog.showingHelp ? "ayuda" : "riesgo")
                         textFormat: Text.PlainText
                         font.pixelSize: Typography.control
@@ -154,8 +169,8 @@ ThemedDialog {
                         wrapMode: Text.WordWrap
                         Accessible.role: Accessible.StaticText
                         Accessible.name: text
-                        Accessible.focusable: dialog.showingHelp
-                        activeFocusOnTab: dialog.showingHelp
+                        Accessible.focusable: dialog.showingHelp && visible
+                        activeFocusOnTab: dialog.showingHelp && visible
                         onActiveFocusChanged: if (activeFocus) dialog.revealFocused(caseBody)
                         Rectangle {
                             anchors.fill: parent
@@ -165,6 +180,67 @@ ThemedDialog {
                             border.width: 2
                             border.color: dialog.theme.focusColor ? dialog.theme.focusColor : dialog.theme.textColor
                             visible: caseBody.activeFocus
+                        }
+                    }
+                    Repeater {
+                        id: helpRepeater
+                        model: dialog.helpSections
+                        delegate: ColumnLayout {
+                            id: section
+                            required property var modelData
+                            required property int index
+                            property alias sectionHeading: sectionTitle
+                            property alias sectionBody: sectionText
+                            objectName: "unsafeHelpSection-" + index
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 4
+                            Layout.rightMargin: 4
+                            spacing: 4
+                            // Cada apartado es una parada de Tab: el lector
+                            // dice el título como encabezado y luego su texto.
+                            Text {
+                                id: sectionTitle
+                                objectName: "unsafeHelpTitle-" + section.index
+                                Layout.fillWidth: true
+                                visible: text !== ""
+                                text: section.modelData.title
+                                textFormat: Text.PlainText
+                                font.pixelSize: Typography.control
+                                font.bold: true
+                                color: dialog.theme.textColor
+                                wrapMode: Text.WordWrap
+                                activeFocusOnTab: visible
+                                onActiveFocusChanged: if (activeFocus) dialog.revealFocused(section)
+                                Accessible.role: Accessible.Heading
+                                Accessible.name: text
+                                Accessible.description: section.modelData.body
+                                Accessible.focusable: visible
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.margins: -4
+                                    color: "transparent"
+                                    radius: 4
+                                    border.width: 2
+                                    border.color: dialog.theme.focusColor ? dialog.theme.focusColor : dialog.theme.textColor
+                                    visible: sectionTitle.activeFocus
+                                }
+                            }
+                            Text {
+                                id: sectionText
+                                objectName: "unsafeHelpBody-" + section.index
+                                Layout.fillWidth: true
+                                text: section.modelData.body
+                                textFormat: Text.PlainText
+                                font.pixelSize: Typography.control
+                                color: dialog.theme.textColor
+                                wrapMode: Text.WordWrap
+                                lineHeight: 1.15
+                                Accessible.role: Accessible.StaticText
+                                Accessible.name: text
+                                // Un apartado sin título se lee con Tab igual.
+                                activeFocusOnTab: !sectionTitle.visible
+                                Accessible.focusable: !sectionTitle.visible
+                            }
                         }
                     }
                     Text {
@@ -218,16 +294,20 @@ ThemedDialog {
                     onClicked: dialog.close()
                 }
                 ThemedButton {
+                    objectName: "unsafeMore"
                     Layout.fillWidth: true
                     Layout.minimumHeight: 44
                     visible: !dialog.helpOnly
-                    text: dialog.appText(dialog.showingHelp ? "excepciones.pantalla.volver" : "excepciones.mas_informacion")
+                    // Sin casilla (lo decide la organización) no hay aceptación a
+                    // la que volver: el botón dice solo «Volver» (lote 39h).
+                    text: dialog.appText(!dialog.showingHelp ? "excepciones.mas_informacion"
+                        : dialog.activable ? "excepciones.pantalla.volver" : "Volver")
                     enabled: !dialog.busy
-                    // Al abrir la ayuda, el foco va a su texto para leerlo y
-                    // desplazarlo; al volver, se queda en este botón.
+                    // Al abrir la ayuda, el foco va a su primer apartado para
+                    // leerlo y desplazarlo; al volver, se queda en este botón.
                     onClicked: {
                         dialog.showingHelp = !dialog.showingHelp
-                        if (dialog.showingHelp) caseBody.forceActiveFocus(Qt.OtherFocusReason)
+                        if (dialog.showingHelp) Qt.callLater(dialog.focusFirstSection)
                     }
                 }
                 // Acción principal, rellena con el color primario del tema; los

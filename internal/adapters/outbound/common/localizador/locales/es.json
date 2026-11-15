@@ -315,7 +315,7 @@
   "Arrastra aquí uno o varios ficheros o pulsa para seleccionarlos": "Arrastra aquí uno o varios ficheros o pulsa para seleccionarlos",
   "Arrastra o selecciona documentos": "Arrastre aquí sus documentos o elíjalos",
   "Arrastra o selecciona un PDF": "Arrastre aquí un PDF o elíjalo",
-  "Arrastra un archivo firmado para verificar": "Arrastra un archivo firmado para verificar",
+  "Arrastra un archivo firmado para verificar": "Arrastre un archivo firmado para verificar",
   "Artefacto a verificar": "Artefacto a verificar",
   "Artefacto de huella esperado: ": "Artefacto de huella esperado: ",
   "Artefacto esperado": "Artefacto esperado",
@@ -684,7 +684,7 @@
   "Documento ya firmado": "Documento ya firmado",
   "Documento(s)": "Documento(s)",
   "Documento: ": "Documento: ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "Documentos firmados (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "Documentos originales",
   "Dominio": "Dominio",
   "Dominio añadido: %1": "Dominio añadido: %1",
@@ -1087,8 +1087,8 @@
   "La solicitud de firma ya está en curso": "La solicitud de firma ya está en curso",
   "La solicitud ya está preparada para procesarse": "La solicitud ya está preparada para procesarse",
   "La validacion se centrara en la integridad y confianza del artefacto firmado final.": "La validacion se centrara en la integridad y confianza del artefacto firmado final.",
-  "La validación actual parece correcta. Si necesitas más detalle, puedes exportar el informe.": "La validación actual parece correcta. Si necesitas más detalle, puedes exportar el informe.",
-  "La validación ha encontrado problemas. Revisa el motivo y comprueba si falta el original o necesitas ayuda.": "La validación ha encontrado problemas. Revisa el motivo y comprueba si falta el original o necesitas ayuda.",
+  "La validación actual parece correcta. Si necesitas más detalle, puedes exportar el informe.": "La validación actual parece correcta. Si necesita más detalle, puede exportar el informe.",
+  "La validación ha encontrado problemas. Revisa el motivo y comprueba si falta el original o necesitas ayuda.": "La validación ha encontrado problemas. Revise el motivo y compruebe si falta el original o necesita ayuda.",
   "La validación ha fallado": "La validación ha fallado",
   "La validación ha fallado o tiene incidencias: %1": "La validación ha fallado o tiene incidencias: %1",
   "La validación tiene incidencias. Revisa la razón mostrada y decide si necesitas el original, otro certificado o soporte.": "La validación tiene incidencias. Revisa la razón mostrada y decide si necesitas el original, otro certificado o soporte.",
@@ -1394,7 +1394,7 @@
   "Previsualización": "Previsualización",
   "Primer documento": "Primer documento",
   "Primera página": "Primera página",
-  "Primero selecciona el fichero firmado que quieres validar.": "Primero selecciona el fichero firmado que quieres validar.",
+  "Primero selecciona el fichero firmado que quieres validar.": "Primero seleccione el fichero firmado que quiere validar.",
   "Principal: %1. %2 certificado(s) adicional(es): %3": "Principal: %1. %2 certificado(s) adicional(es): %3",
   "Principal: %1. Ningún certificado adicional seleccionado.": "Principal: %1. Ningún certificado adicional seleccionado.",
   "Problema conocido: %1": "Problema conocido: %1",
@@ -1594,12 +1594,12 @@
   "Seguridad y Dominios": "Seguridad y Dominios",
   "Selecciona al menos un destinatario de protección.": "Selecciona al menos un destinatario de protección.",
   "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Selecciona al menos un firmante adicional para la cofirma múltiple.",
-  "Selecciona el fichero firmado antes de reintentar la validación.": "Selecciona el fichero firmado antes de reintentar la validación.",
-  "Selecciona el fichero firmado que quieres validar.": "Selecciona el fichero firmado que quieres validar.",
+  "Selecciona el fichero firmado antes de reintentar la validación.": "Seleccione el fichero firmado antes de reintentar la validación.",
+  "Selecciona el fichero firmado que quieres validar.": "Seleccione el fichero firmado que quiere validar.",
   "Selecciona exactamente un destinatario de protección.": "Selecciona exactamente un destinatario de protección.",
   "Selecciona la operación que aparecerá elegida al preparar una firma nueva.": "Selecciona la operación que aparecerá elegida al preparar una firma nueva.",
   "Selecciona primero el certificado principal.": "Selecciona primero el certificado principal.",
-  "Selecciona primero el fichero que quieres validar.": "Selecciona primero el fichero que quieres validar.",
+  "Selecciona primero el fichero que quieres validar.": "Seleccione primero el fichero que quiere validar.",
   "Selecciona primero un artefacto firmado o indica una ruta local.": "Selecciona primero un artefacto firmado o indica una ruta local.",
   "Selecciona primero un certificado.": "Selecciona primero un certificado.",
   "Selecciona primero un fichero, una carpeta o una ruta local para preparar la operación.": "Selecciona primero un fichero, una carpeta o una ruta local para preparar la operación.",
@@ -2801,23 +2801,23 @@
   ,"verify.forced_trust.label.certificado_componente": "Certificado de servidor usado para firmar"
   ,"verify.forced_trust.label.revocacion_no_comprobable": "Revocación que no se pudo comprobar"
   ,"verify.forced_trust.label.algoritmo_sha1": "Firmas con SHA-1"
-  ,"verify.forced_trust.notice.ca_desconocida": "Este equipo no conoce la autoridad que emitió el certificado, así que GrxFirma no puede saber si es de confianza. Acéptala solo si sabes de quién es y te fías de ella, por ejemplo una autoridad española que tu sistema no trae. Desde ahora, en este equipo, las firmas con certificados de esa autoridad saldrán válidas, siempre con un aviso."
-  ,"verify.forced_trust.notice.clave_rsa_corta": "La clave de este certificado es RSA de menos de 2048 bits. Hoy ese tamaño no se considera seguro: alguien con medios podría falsificar firmas con ella. Acéptalo solo si el documento es antiguo y sabes de dónde viene. Desde ahora, en este equipo, las firmas de este certificado saldrán válidas, siempre con un aviso."
-  ,"verify.forced_trust.notice.certificado_componente": "Este certificado es de servidor (de componente) y no está pensado para firmar documentos, aunque algunas sedes lo usan así. Acéptalo solo si sabes qué organismo firma con él. Desde ahora, en este equipo, las firmas de este certificado saldrán válidas, siempre con un aviso."
-  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma no ha podido comprobar si el certificado está anulado (revocado), por ejemplo porque no hay conexión. Si lo aceptas, en este equipo saldrán válidas todas las firmas cuya revocación no se pueda comprobar, también las de otros certificados, siempre con un aviso. Un certificado que esté anulado de verdad seguirá saliendo no válido cuando se pueda comprobar."
-  ,"verify.forced_trust.notice.algoritmo_sha1": "La firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Si lo aceptas, en este equipo saldrán válidas todas las firmas cuyo único problema sea SHA-1, siempre con un aviso. MD5 y los algoritmos que GrxFirma no conoce se siguen rechazando."
-  ,"verify.forced_trust.applied.ca_desconocida": "Se da por válida porque lo aceptaste en la configuración: autoridad de certificación que este equipo no conoce."
-  ,"verify.forced_trust.applied.clave_rsa_corta": "Se da por válida porque lo aceptaste en la configuración: clave RSA de menos de 2048 bits."
-  ,"verify.forced_trust.applied.certificado_componente": "Se da por válida porque lo aceptaste en la configuración: certificado de servidor usado para firmar."
-  ,"verify.forced_trust.applied.revocacion_no_comprobable": "Se da por válida porque lo aceptaste en la configuración: revocación que no se pudo comprobar."
-  ,"verify.forced_trust.applied.algoritmo_sha1": "Se da por válida porque lo aceptaste en la configuración: firma con SHA-1."
-  ,"verify.forced_trust.hint": "Si confías en esta firma, puedes aceptarla en la configuración de este equipo."
-  ,"verify.forced_trust.forbidden": "La política de este equipo no permite aceptar estas firmas a mano. Si las necesitas, habla con quien administra el equipo."
+  ,"verify.forced_trust.notice.ca_desconocida": "Este equipo no conoce la autoridad que emitió el certificado, así que GrxFirma no puede saber si es de confianza. Acéptela solo si sabe de quién es y se fía de ella, por ejemplo una autoridad española que su sistema no trae. Desde ahora, en este equipo, las firmas con certificados de esa autoridad saldrán válidas, siempre con un aviso."
+  ,"verify.forced_trust.notice.clave_rsa_corta": "La clave de este certificado es RSA de menos de 2048 bits. Hoy ese tamaño no se considera seguro: alguien con medios podría falsificar firmas con ella. Acéptelo solo si el documento es antiguo y sabe de dónde viene. Desde ahora, en este equipo, las firmas de este certificado saldrán válidas, siempre con un aviso."
+  ,"verify.forced_trust.notice.certificado_componente": "Este certificado es de servidor (de componente) y no está pensado para firmar documentos, aunque algunas sedes lo usan así. Acéptelo solo si sabe qué organismo firma con él. Desde ahora, en este equipo, las firmas de este certificado saldrán válidas, siempre con un aviso."
+  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma no ha podido comprobar si el certificado está anulado (revocado), por ejemplo porque no hay conexión. Si lo acepta, en este equipo saldrán válidas todas las firmas cuya revocación no se pueda comprobar, también las de otros certificados, siempre con un aviso. Un certificado que esté anulado de verdad seguirá saliendo no válido cuando se pueda comprobar."
+  ,"verify.forced_trust.notice.algoritmo_sha1": "La firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Si lo acepta, en este equipo saldrán válidas todas las firmas cuyo único problema sea SHA-1, siempre con un aviso. MD5 y los algoritmos que GrxFirma no conoce se siguen rechazando."
+  ,"verify.forced_trust.applied.ca_desconocida": "Se da por válida porque lo aceptó en la configuración: autoridad de certificación que este equipo no conoce."
+  ,"verify.forced_trust.applied.clave_rsa_corta": "Se da por válida porque lo aceptó en la configuración: clave RSA de menos de 2048 bits."
+  ,"verify.forced_trust.applied.certificado_componente": "Se da por válida porque lo aceptó en la configuración: certificado de servidor usado para firmar."
+  ,"verify.forced_trust.applied.revocacion_no_comprobable": "Se da por válida porque lo aceptó en la configuración: revocación que no se pudo comprobar."
+  ,"verify.forced_trust.applied.algoritmo_sha1": "Se da por válida porque lo aceptó en la configuración: firma con SHA-1."
+  ,"verify.forced_trust.hint": "Si confía en esta firma, puede aceptarla en la configuración de este equipo."
+  ,"verify.forced_trust.forbidden": "La política de este equipo no permite aceptar estas firmas a mano. Si las necesita, hable con quien administra el equipo."
   ,"verify.forced_trust.error.unknown_type": "Ese caso no existe. Usa ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1."
   ,"verify.forced_trust.error.fingerprint": "La huella tiene que ser la SHA-256 del certificado, en hexadecimal (64 caracteres)."
   ,"verify.forced_trust.error.global_type": "Este caso se acepta para todas las firmas y no lleva huella."
   ,"verify.forced_trust.error.unavailable": "Esta opción solo está en la línea de órdenes y en la aplicación de escritorio."
-  ,"verify.forced_trust.error.not_offered": "Solo se puede aceptar lo que GrxFirma acaba de mostrar al verificar una firma. Vuelve a verificarla."
+  ,"verify.forced_trust.error.not_offered": "Solo se puede aceptar lo que GrxFirma acaba de mostrar al verificar una firma. Vuelva a verificarla."
   ,"verify.forced_trust.cli.hint_command": "Para aceptarlo en este equipo después de leer el aviso:"
   ,"verify.forced_trust.cli.list_empty": "No has aceptado nada en este equipo."
   ,"verify.forced_trust.cli.type": "Caso"
@@ -2846,14 +2846,14 @@
   ,"cli.web_signing.invalid": "Valor no válido. Use grxfirma, autofirma o preguntar."
   ,"verify.forced_trust.ui.accept_button": "Aceptar en este equipo"
   ,"verify.forced_trust.ui.dialog_title": "¿Aceptar esta firma en este equipo?"
-  ,"verify.forced_trust.ui.dialog_intro": "Lee lo que vas a aceptar. Podrás quitarlo cuando quieras en Configuración."
+  ,"verify.forced_trust.ui.dialog_intro": "Lea lo que va a aceptar. Podrá quitarlo cuando quiera en Configuración."
   ,"verify.forced_trust.ui.confirm": "Aceptar en este equipo"
   ,"verify.forced_trust.ui.all_signatures": "Afecta a todas las firmas"
-  ,"verify.forced_trust.ui.outcome": "Válida porque la aceptaste en este equipo"
+  ,"verify.forced_trust.ui.outcome": "Válida porque la aceptó en este equipo"
   ,"verify.forced_trust.ui.saved": "Aceptado. Se vuelve a verificar el documento."
   ,"verify.forced_trust.ui.settings_title": "Firmas aceptadas en este equipo"
-  ,"verify.forced_trust.ui.settings_help": "Casos que aceptaste al verificar firmas. Mientras estén aquí, esas firmas salen válidas con un aviso."
-  ,"verify.forced_trust.ui.settings_empty": "No has aceptado nada en este equipo."
+  ,"verify.forced_trust.ui.settings_help": "Casos que aceptó al verificar firmas. Mientras estén aquí, esas firmas salen válidas con un aviso."
+  ,"verify.forced_trust.ui.settings_empty": "No ha aceptado nada en este equipo."
   ,"verify.forced_trust.ui.remove": "Quitar"
   ,"verify.forced_trust.ui.remove_accessible": "Quitar %1"
   ,"verify.forced_trust.ui.removed": "Quitado. Esas firmas vuelven a salir no válidas."
@@ -2889,7 +2889,7 @@
   ,"portal.seal.width": "Ancho (%)"
   ,"portal.seal.height": "Alto (%)"
   ,"portal.seal.rotation": "Giro (°)",
-  "Hay una versión nueva de GrxFirma (%1). Tienes la %2.": "Hay una versión nueva de GrxFirma (%1). Tienes la %2.",
+  "Hay una versión nueva de GrxFirma (%1). Tienes la %2.": "Hay una versión nueva de GrxFirma (%1). Tiene instalada la %2.",
   "Además, el motor local no responde; instalar la versión nueva puede resolverlo.": "Además, el motor local no responde; instalar la versión nueva puede resolverlo.",
   "Descargar e instalar": "Descargar e instalar",
   "Ver novedades": "Ver novedades",
@@ -5292,6 +5292,7 @@
   ,"verificacion.detalle.firmante": "Firmante"
   ,"verificacion.detalle.algoritmo": "Algoritmo de firma (OID)"
   ,"verificacion.detalle.algoritmo_antiguo": "Algoritmo antiguo"
+  ,"verificacion.detalle.signing_certificate": "Certificado del firmante atado a la firma (atributo signingCertificate)"
   ,"verificacion.detalle.integridad_documento": "Integridad del documento"
   ,"verificacion.detalle.codificacion_cms": "Codificación de la firma (CMS)"
   ,"verificacion.detalle.byterange": "Bytes firmados (ByteRange)"
@@ -5312,6 +5313,7 @@
   ,"verificacion.detalle.valor.embedded": "firma incluida en el documento"
   ,"verificacion.detalle.valor.ok": "comprobadas"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "no consta"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "no se puede comprobar sin el documento original"
   ,"verificacion.detalle.valor.ber": "BER (se ha pasado a DER para verificarla)"
   ,"winui.comun.proteger": "Proteger"
@@ -6214,7 +6216,7 @@
   ,"winui.ventana.huellas": "Huellas"
   ,"winui.comun.facturae_y_face": "Facturae, FACe y Veri*Factu"
   ,"winui.comun.acerca_de": "Acerca de"
-  ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "Hay una versión nueva de GrxFirma (%1). Tienes la %2."
+  ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "Hay una versión nueva de GrxFirma (%1). Tiene instalada la %2."
   ,"winui.ventana.ademas_el_motor_local_no_responde": "Además, el motor local no responde; instalar la versión nueva puede resolverlo."
   ,"winui.contrasena.el_limite_debe_estar_entre_1_y": "El límite debe estar entre 1 y {maximum} caracteres."
   ,"winui.contrasena.el_texto_visible_del_dialogo_no_es": "El texto visible del diálogo no es válido."
@@ -7202,6 +7204,7 @@
   "excepciones.pantalla.fijada_activa": "Activado por la organización",
   "excepciones.pantalla.fijada_inactiva": "Desactivado por la organización",
   "excepciones.pantalla.solo_lectura": "La organización fija este ajuste. Solo su administrador puede cambiarlo.",
+  "excepciones.pantalla.ayuda_organizacion": "Quién lo decide: en este equipo, este ajuste lo fija la organización, así que no puede activarlo ni desactivarlo en GrxFirma. Si necesita cambiarlo, consulte al administrador del equipo.",
   "excepciones.pantalla.activar": "Activar",
   "excepciones.pantalla.desactivar": "Desactivar",
   "excepciones.pantalla.actualizar": "Actualizar lista",

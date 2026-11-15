@@ -48,11 +48,12 @@ class DialogFocus(unittest.TestCase):
         self.assertIn("DispatcherQueuePriority.Low", opened)
         self.assertIn("scroll.Focus(FocusState.Keyboard)", opened)
         self.assertNotIn("acceptance.Focus", opened)
-        self.assertNotIn("help.Focus", self.code)
+        self.assertNotIn("more.Focus", self.code)
 
     def test_more_information_hands_focus_to_the_help_text(self):
-        click = block_after(self.code, "help.Click += (_, _) =>")
-        self.assertLess(click.index("scroll.Focus("), click.index("help.Visibility = Visibility.Collapsed"))
+        # Lote 39h: el botón se llama «more»; «help» es el panel de apartados.
+        click = block_after(self.code, "more.Click += (_, _) =>")
+        self.assertLess(click.index("scroll.Focus("), click.index("more.Visibility = Visibility.Collapsed"))
 
     def test_enter_on_checkbox_does_not_activate_and_escape_cancels(self):
         self.assertIn("DefaultButton = ContentDialogButton.None", self.code)

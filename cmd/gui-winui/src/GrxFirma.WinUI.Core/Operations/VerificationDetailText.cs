@@ -104,6 +104,24 @@ public static partial class VerificationDetailText
             : localizer.TranslateVisibleText(text);
     }
 
+    /// <summary>
+    /// Resumen de una evidencia. «algoritmo_antiguo=sha1» pasa a «SHA-1»: el
+    /// rótulo ya lo da el tipo, como en el informe del motor. Lo demás queda
+    /// tal cual (lote 39h: antes salía la clave técnica en Detalles).
+    /// </summary>
+    public static string EvidenceSummary(string? summary) => EvidenceSummary(CatalogLocalizer.Shared, summary);
+
+    public static string EvidenceSummary(CatalogLocalizer localizer, string? summary)
+    {
+        ArgumentNullException.ThrowIfNull(localizer);
+        var text = (summary ?? string.Empty).Trim();
+        var cut = text.IndexOf('=');
+        if (cut <= 0 || text.AsSpan(0, cut).IndexOfAny(' ', '\t') >= 0 ||
+            !Known(localizer, DetailPrefix + text[..cut], out _))
+            return localizer.TranslateVisibleText(text);
+        return Value(localizer, text[(cut + 1)..]);
+    }
+
     private static string Value(CatalogLocalizer localizer, string value)
     {
         var revision = RevisionUntil().Match(value);

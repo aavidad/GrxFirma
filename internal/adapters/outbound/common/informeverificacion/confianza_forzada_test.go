@@ -22,7 +22,7 @@ func TestHTML_ConfianzaForzadaSiempreConAviso(t *testing.T) {
 	res = res.MarcarConfianzaForzada(domain.ObstaculoConfianza{Tipo: domain.ConfianzaCADesconocida, Huella: strings.Repeat("a", 64)})
 	res = res.MarcarConfianzaForzada(domain.ObstaculoConfianza{Tipo: domain.ConfianzaAlgoritmoSHA1})
 	for idioma, esperados := range map[string][]string{
-		"es": {"FIRMA VÁLIDA CON ADVERTENCIAS", "Se da por válida porque lo aceptaste en la configuración: autoridad de certificación que este equipo no conoce.", "Se da por válida porque lo aceptaste en la configuración: firma con SHA-1."},
+		"es": {"FIRMA VÁLIDA CON ADVERTENCIAS", "Se da por válida porque lo aceptó en la configuración: autoridad de certificación que este equipo no conoce.", "Se da por válida porque lo aceptó en la configuración: firma con SHA-1."},
 		"en": {"Treated as valid because you accepted it in the settings: signature using SHA-1."},
 	} {
 		out, err := HTML(Datos{NombreDocumento: "f.csig", Contenido: []byte("x"), Resultado: res, Fecha: time.Now(), Idioma: idioma})

@@ -684,7 +684,7 @@
   "Documento ya firmado": "Document ja signat",
   "Documento(s)": "Document(s)",
   "Documento: ": "Document: ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "Documents signats (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "Documents signats (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "Documents originals",
   "Dominio": "Domini",
   "Dominio añadido: %1": "Domini afegit: %1",
@@ -2801,23 +2801,23 @@
   ,"verify.forced_trust.label.certificado_componente": "Certificat de servidor usat per a firmar"
   ,"verify.forced_trust.label.revocacion_no_comprobable": "Revocació que no s'ha pogut comprovar"
   ,"verify.forced_trust.label.algoritmo_sha1": "Firmes amb SHA-1"
-  ,"verify.forced_trust.notice.ca_desconocida": "Este equip no coneix l'autoritat que va emetre el certificat, així que GrxFirma no pot saber si és de confiança. Accepta-la només si saps de qui és i te'n fies, per exemple una autoritat espanyola que el teu sistema no inclou. A partir d'ara, en este equip, les firmes amb certificats d'eixa autoritat eixiran vàlides, sempre amb un avís."
-  ,"verify.forced_trust.notice.clave_rsa_corta": "La clau d'este certificat és RSA de menys de 2048 bits. Hui eixa grandària no es considera segura: algú amb mitjans podria falsificar firmes amb ella. Accepta-ho només si el document és antic i saps d'on ve. A partir d'ara, en este equip, les firmes d'este certificat eixiran vàlides, sempre amb un avís."
-  ,"verify.forced_trust.notice.certificado_componente": "Este certificat és de servidor (de component) i no està pensat per a firmar documents, encara que algunes seus l'usen així. Accepta-ho només si saps quin organisme firma amb ell. A partir d'ara, en este equip, les firmes d'este certificat eixiran vàlides, sempre amb un avís."
-  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma no ha pogut comprovar si el certificat està anul·lat (revocat), per exemple perquè no hi ha connexió. Si ho acceptes, en este equip eixiran vàlides totes les firmes la revocació de les quals no es puga comprovar, també les d'altres certificats, sempre amb un avís. Un certificat que estiga anul·lat de veritat continuarà eixint no vàlid quan es puga comprovar."
-  ,"verify.forced_trust.notice.algoritmo_sha1": "La firma usa SHA-1, un algorisme antic que hui no es considera segur. Si ho acceptes, en este equip eixiran vàlides totes les firmes que només tinguen el problema de SHA-1, sempre amb un avís. MD5 i els algorismes que GrxFirma no coneix es continuen rebutjant."
-  ,"verify.forced_trust.applied.ca_desconocida": "Es dona per vàlida perquè ho vas acceptar en la configuració: autoritat de certificació que este equip no coneix."
-  ,"verify.forced_trust.applied.clave_rsa_corta": "Es dona per vàlida perquè ho vas acceptar en la configuració: clau RSA de menys de 2048 bits."
-  ,"verify.forced_trust.applied.certificado_componente": "Es dona per vàlida perquè ho vas acceptar en la configuració: certificat de servidor usat per a firmar."
-  ,"verify.forced_trust.applied.revocacion_no_comprobable": "Es dona per vàlida perquè ho vas acceptar en la configuració: revocació que no s'ha pogut comprovar."
-  ,"verify.forced_trust.applied.algoritmo_sha1": "Es dona per vàlida perquè ho vas acceptar en la configuració: firma amb SHA-1."
-  ,"verify.forced_trust.hint": "Si confies en esta firma, la pots acceptar en la configuració d'este equip."
-  ,"verify.forced_trust.forbidden": "La política d'este equip no permet acceptar estes firmes a mà. Si les necessites, parla amb qui administra l'equip."
+  ,"verify.forced_trust.notice.ca_desconocida": "Este equip no coneix l'autoritat que va emetre el certificat, així que GrxFirma no pot saber si és de confiança. Accepteu-la només si sabeu de qui és i vos en fieu, per exemple una autoritat espanyola que el vostre sistema no inclou. A partir d'ara, en este equip, les firmes amb certificats d'eixa autoritat eixiran vàlides, sempre amb un avís."
+  ,"verify.forced_trust.notice.clave_rsa_corta": "La clau d'este certificat és RSA de menys de 2048 bits. Hui eixa grandària no es considera segura: algú amb mitjans podria falsificar firmes amb ella. Accepteu-ho només si el document és antic i sabeu d'on ve. A partir d'ara, en este equip, les firmes d'este certificat eixiran vàlides, sempre amb un avís."
+  ,"verify.forced_trust.notice.certificado_componente": "Este certificat és de servidor (de component) i no està pensat per a firmar documents, encara que algunes seus l'usen així. Accepteu-ho només si sabeu quin organisme firma amb ell. A partir d'ara, en este equip, les firmes d'este certificat eixiran vàlides, sempre amb un avís."
+  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma no ha pogut comprovar si el certificat està anul·lat (revocat), per exemple perquè no hi ha connexió. Si ho accepteu, en este equip eixiran vàlides totes les firmes la revocació de les quals no es puga comprovar, també les d'altres certificats, sempre amb un avís. Un certificat que estiga anul·lat de veritat continuarà eixint no vàlid quan es puga comprovar."
+  ,"verify.forced_trust.notice.algoritmo_sha1": "La firma usa SHA-1, un algorisme antic que hui no es considera segur. Si ho accepteu, en este equip eixiran vàlides totes les firmes que només tinguen el problema de SHA-1, sempre amb un avís. MD5 i els algorismes que GrxFirma no coneix es continuen rebutjant."
+  ,"verify.forced_trust.applied.ca_desconocida": "Es dona per vàlida perquè ho vau acceptar en la configuració: autoritat de certificació que este equip no coneix."
+  ,"verify.forced_trust.applied.clave_rsa_corta": "Es dona per vàlida perquè ho vau acceptar en la configuració: clau RSA de menys de 2048 bits."
+  ,"verify.forced_trust.applied.certificado_componente": "Es dona per vàlida perquè ho vau acceptar en la configuració: certificat de servidor usat per a firmar."
+  ,"verify.forced_trust.applied.revocacion_no_comprobable": "Es dona per vàlida perquè ho vau acceptar en la configuració: revocació que no s'ha pogut comprovar."
+  ,"verify.forced_trust.applied.algoritmo_sha1": "Es dona per vàlida perquè ho vau acceptar en la configuració: firma amb SHA-1."
+  ,"verify.forced_trust.hint": "Si confieu en esta firma, la podeu acceptar en la configuració d'este equip."
+  ,"verify.forced_trust.forbidden": "La política d'este equip no permet acceptar estes firmes a mà. Si les necessiteu, parleu amb qui administra l'equip."
   ,"verify.forced_trust.error.unknown_type": "Eixe cas no existix. Usa ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1."
   ,"verify.forced_trust.error.fingerprint": "L'empremta ha de ser la SHA-256 del certificat, en hexadecimal (64 caràcters)."
   ,"verify.forced_trust.error.global_type": "Este cas s'accepta per a totes les firmes i no porta empremta."
   ,"verify.forced_trust.error.unavailable": "Esta opció només és en la línia d'ordres i en l'aplicació d'escriptori."
-  ,"verify.forced_trust.error.not_offered": "Només es pot acceptar el que GrxFirma acaba de mostrar en verificar una firma. Torna-la a verificar."
+  ,"verify.forced_trust.error.not_offered": "Només es pot acceptar el que GrxFirma acaba de mostrar en verificar una firma. Torneu-la a verificar."
   ,"verify.forced_trust.cli.hint_command": "Per a acceptar-ho en este equip després de llegir l'avís:"
   ,"verify.forced_trust.cli.list_empty": "No has acceptat res en este equip."
   ,"verify.forced_trust.cli.type": "Cas"
@@ -2846,14 +2846,14 @@
   ,"cli.web_signing.invalid": "Valor no vàlid. Utilitzeu grxfirma, autofirma o preguntar."
   ,"verify.forced_trust.ui.accept_button": "Acceptar en este equip"
   ,"verify.forced_trust.ui.dialog_title": "Acceptar esta firma en este equip?"
-  ,"verify.forced_trust.ui.dialog_intro": "Llig el que acceptaràs. Ho podràs llevar quan vulgues en Configuració."
+  ,"verify.forced_trust.ui.dialog_intro": "Llegiu el que acceptareu. Ho podreu llevar quan vulgueu en Configuració."
   ,"verify.forced_trust.ui.confirm": "Acceptar en este equip"
   ,"verify.forced_trust.ui.all_signatures": "Afecta totes les firmes"
-  ,"verify.forced_trust.ui.outcome": "Vàlida perquè la vas acceptar en este equip"
+  ,"verify.forced_trust.ui.outcome": "Vàlida perquè la vau acceptar en este equip"
   ,"verify.forced_trust.ui.saved": "Acceptat. Es torna a verificar el document."
   ,"verify.forced_trust.ui.settings_title": "Firmes acceptades en este equip"
-  ,"verify.forced_trust.ui.settings_help": "Casos que vas acceptar en verificar firmes. Mentre estiguen ací, estes firmes ixen vàlides amb un avís."
-  ,"verify.forced_trust.ui.settings_empty": "No has acceptat res en este equip."
+  ,"verify.forced_trust.ui.settings_help": "Casos que vau acceptar en verificar firmes. Mentre estiguen ací, estes firmes ixen vàlides amb un avís."
+  ,"verify.forced_trust.ui.settings_empty": "No heu acceptat res en este equip."
   ,"verify.forced_trust.ui.remove": "Llevar"
   ,"verify.forced_trust.ui.remove_accessible": "Llevar %1"
   ,"verify.forced_trust.ui.removed": "Llevat. Estes firmes tornen a eixir no vàlides."
@@ -5292,6 +5292,7 @@
   ,"verificacion.detalle.firmante": "Signant"
   ,"verificacion.detalle.algoritmo": "Algorisme de signatura (OID)"
   ,"verificacion.detalle.algoritmo_antiguo": "Algorisme antic"
+  ,"verificacion.detalle.signing_certificate": "Certificat del signant lligat a la signatura (atribut signingCertificate)"
   ,"verificacion.detalle.integridad_documento": "Integritat del document"
   ,"verificacion.detalle.codificacion_cms": "Codificació de la signatura (CMS)"
   ,"verificacion.detalle.byterange": "Bytes signats (ByteRange)"
@@ -5312,6 +5313,7 @@
   ,"verificacion.detalle.valor.embedded": "signatura inclosa en el document"
   ,"verificacion.detalle.valor.ok": "comprovades"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "no hi consta"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "no es pot comprovar sense el document original"
   ,"verificacion.detalle.valor.ber": "BER (s'ha passat a DER per a verificar-la)"
   ,"winui.comun.proteger": "Protegir"
@@ -7202,6 +7204,7 @@
   "excepciones.pantalla.fijada_activa": "Activat per l'organització",
   "excepciones.pantalla.fijada_inactiva": "Desactivat per l'organització",
   "excepciones.pantalla.solo_lectura": "L'organització fixa este ajust. Només el vostre administrador el pot canviar.",
+  "excepciones.pantalla.ayuda_organizacion": "Qui ho decidix: en este equip, este ajust el fixa l'organització, així que no el podeu activar ni desactivar en GrxFirma. Si cal canviar-lo, consulteu l'administrador de l'equip.",
   "excepciones.pantalla.activar": "Activa",
   "excepciones.pantalla.desactivar": "Desactiva",
   "excepciones.pantalla.actualizar": "Actualitza la llista",

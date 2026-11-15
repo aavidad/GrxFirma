@@ -42,6 +42,7 @@
     <file>qml/VeriFactuResponse.js</file>
     <file>qml/VerificationSigners.js</file>
     <file>qml/UnsafeResume.js</file>
+    <file>qml/UnsafeText.js</file>
     <file>assets/grxfirma-logo-pluma-pequeno-96.png</file>
     <file>assets/grxfirma-logo-pluma-256.png</file>
     <file>assets/logo_firma_grxfirma_final.png</file>
