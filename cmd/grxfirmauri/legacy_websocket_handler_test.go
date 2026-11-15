@@ -1891,7 +1891,7 @@ func TestSanitizeLegacyFilename_NeutralizaDatosDelPortal(t *testing.T) {
 }
 
 func TestLegacyWebSocketHandler_SaveBloqueaExtensionesEjecutables(t *testing.T) {
-	dir := t.TempDir()
+	dir := carpetaGuardadoWeb(t)
 	for _, nombre := range []string{"factura.exe", "FIRMA.LNK", "x.ps1.", "a.hta", "doc.pdf.bat"} {
 		destino := filepath.Join(dir, nombre)
 		handler := &legacyWebSocketHandler{

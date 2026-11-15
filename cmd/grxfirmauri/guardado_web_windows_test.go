@@ -16,7 +16,7 @@ import (
 
 // A-09: tras guardar desde la web queda la marca Zone.Identifier con zona 3.
 func TestGuardadoWeb_MarcaZoneIdentifierWindows(t *testing.T) {
-	destino := filepath.Join(t.TempDir(), "doc.pdf")
+	destino := filepath.Join(carpetaGuardadoWeb(t), "doc.pdf")
 	if resp := guardarDesdeWeb(t, destino, nil); resp != "SAVE_OK" {
 		t.Fatalf("handleSave() = %q", resp)
 	}

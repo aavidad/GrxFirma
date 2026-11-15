@@ -32,6 +32,21 @@ func setTestUserHome(t *testing.T, home string) {
 	t.Setenv("TEMP", tempDir)
 }
 
+// carpetaGuardadoWeb aísla el perfil y devuelve una carpeta donde guardar que
+// queda fuera de sus datos de aplicación. En Windows t.TempDir() cae bajo
+// %LOCALAPPDATA%\Temp del usuario real, y portalpaths protege con razón todo
+// %USERPROFILE%\AppData, como ~/.config, ~/.local y ~/.cache en Linux.
+func carpetaGuardadoWeb(t *testing.T) string {
+	t.Helper()
+	home := t.TempDir()
+	setTestUserHome(t, home)
+	dir := filepath.Join(home, "Documentos")
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	return dir
+}
+
 func sameTestPath(left, right string) bool {
 	left = filepath.Clean(left)
 	right = filepath.Clean(right)
