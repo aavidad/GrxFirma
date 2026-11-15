@@ -22,14 +22,19 @@
 - [Puertos y adaptadores](PORTS_AND_ADAPTERS.md)
 - [Identidad reforzada](IDENTIDAD_REFORZADA_V1.md)
 - [Firma remota CSC (prototipo)](FIRMA_REMOTA_CSC.md)
+- [Catálogos y validación ENI](ENI_CATALOGOS_VALIDACION.md)
+- [Banco de pruebas de FIRe](FIRE_BANCO_PRUEBAS.md)
+- [Interoperabilidad local con material sintético](../test/conformance/README.md)
 - [Verificación autónoma v1](VERIFICACION_AUTONOMA_V1.md)
 - [Estado del dictamen v2](DICTAMEN_V2_ESTADO.md)
 - [Extensibilidad](EXTENSIBILIDAD_Y_UTILIDADES_INTEGRADAS.md)
 - [Geometría del sello visible](GEOMETRIA_SELLO_GIRADO.md)
 - [Ayuda contextual de las opciones técnicas](AYUDA_CONTEXTUAL.md)
 - [Dependencias y licencias](INVENTARIO_DEPENDENCIAS_LICENCIAS.md)
+- [Expediente de dependencias por versión](dependencias/README.md) (la versión actual es la [0.0.127](dependencias/0.0.127/README.md))
 - [Construcción y publicación](RELEASE.md)
 - [Firma de distribuciones](RELEASE_SIGNING.md)
+- [Distribución: certificados, SignPath, tiendas de extensiones y Android](distribucion/README.md)
 
 ## Seguridad y privacidad
 

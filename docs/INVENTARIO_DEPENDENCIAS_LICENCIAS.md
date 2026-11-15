@@ -131,13 +131,24 @@ Los riesgos que hay que controlar antes de una venta pública son:
 
 ## Qué falta para cerrar este bloque
 
-- acreditar las 38 licencias Qt/NuGet pendientes en el expediente inicial y
-  revisar los textos que Syft identifica solo por hash;
+Ya está hecho en el [expediente 0.0.127](dependencias/0.0.127/README.md): la
+clasificación generada por identidad y versión, el procedimiento reproducible
+sin red, la revisión local de govulncheck y OSV para Go y npm, la revisión de la
+excepción de `deepmerge` y la plantilla para la próxima versión.
+
+Sigue pendiente:
+
+- acreditar las 38 licencias Qt/NuGet de la lista inicial y revisar los textos
+  que Syft identifica solo por hash;
 - adjuntar la SBOM y los avisos de los artefactos publicados por plataforma,
-  incluidos el kit Qt, los SDK y las herramientas del sistema efectivas;
-- completar escaneos Maven/NuGet y Grype con bases locales actuales;
-- asignar responsables y obtener la aceptación de Alberto; conservar las
-  siguientes revisiones por versión sin sobrescribir la inicial.
+  incluidos el kit Qt, los SDK y las herramientas del sistema efectivas. El
+  expediente se hizo sobre las fuentes y no examina ningún binario publicado;
+- escanear Maven y NuGet con OSV (faltan sus bases sin conexión) y repetir
+  Grype con una base de menos de cinco días;
+- decidir qué se hace con `GO-2026-5932` (`x/crypto/openpgp`): el análisis local
+  no encuentra uso alcanzable y `go.mod` no se ha tocado;
+- asignar responsables y obtener la aceptación de Alberto. La próxima revisión se
+  abre en su propia carpeta, sin sobrescribir la inicial.
 
 ---
 

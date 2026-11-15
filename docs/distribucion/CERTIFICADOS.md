@@ -333,6 +333,10 @@ notarización), Firefox (AMO) y la clave OpenPGP de las sumas. La lista completa
 y sus nombres están en [RELEASE_SIGNING.md](../RELEASE_SIGNING.md#secretos-de-github).
 Si falta alguna, la release se para en el primer job y la nombra.
 
+macOS está parado desde el 14/11/2026 y su paquete falla en la integración
+continua, pero el flujo oficial sigue exigiendo esas credenciales y ese paquete
+([RELEASE_SIGNING.md](../RELEASE_SIGNING.md)).
+
 ### D.2. Lanzarla
 
 1. Prepara la versión con `scripts/nueva-version.sh` y completa

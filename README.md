@@ -34,27 +34,32 @@ Las capturas usan el certificado de pruebas público de la FNMT o uno sintético
 ## Plataformas
 
 - Windows 10 (1809) o posterior, x64: interfaz WinUI 3 e interfaz Qt como
-  alternativa; instalador NSIS por usuario.
-- Linux: interfaz Qt, paquete `.deb` y archivo `tar.gz`.
-- Android 8.0 (API 26) o posterior: aplicación nativa en Kotlin.
+  alternativa; instalador NSIS por usuario. Se publica.
+- Linux: interfaz Qt, paquete `.deb` y archivo `tar.gz`. Se publica.
+- Android 8.0 (API 26) o posterior: aplicación nativa en Kotlin. No hay
+  paquete público. La receta de F-Droid está en `packaging/fdroid` y apunta a
+  la versión 0.0.127 ([distribución Android](docs/distribucion/ANDROID.md)).
 - macOS e iOS: no hay versiones publicadas. No dispongo de un Mac ni de un
   iPhone para compilarlas y probarlas. Si quieres que existan, préstame o
   regálame uno y me pongo con ello 😄 (avidad@dipgra.es). Hay trabajo hecho,
-  pero sin probar ni terminar (estimación aproximada):
-  - macOS: falta un 25 %. El motor, el acceso al llavero y el paquete `.pkg`
-    ya compilan en la integración continua; falta probarlo en un Mac real,
-    corregir lo que salga y firmarlo y notarizarlo con Apple.
-  - iOS: falta un 65 %. Hay una aplicación básica de firma y verificación con
-    extensión para compartir; falta ponerla al nivel de la de Android
-    (lotes, DNIe por NFC, sello visible, preferencias…), probarla en un
-    iPhone y publicarla en la App Store.
+  pero sin probar ni terminar:
+  - macOS: desde el 14/11/2026 no la sigo desarrollando por ahora. El motor y
+    el acceso al llavero existen, pero el paquete `.pkg` falla hoy en la
+    integración continua, nunca se ha probado en un Mac real ni se ha firmado
+    o notarizado con Apple.
+  - iOS: hay una aplicación básica de firma y verificación con extensión para
+    compartir, que la integración continua no compila. Falta ponerla al nivel
+    de la de Android (lotes, DNIe por NFC, sello visible, preferencias),
+    probarla en un iPhone y publicarla en la App Store.
 
 ## Funciones principales
 
 - Firma y verificación CAdES, XAdES, PAdES (con sello visible), XMLdSig, ODF,
   OOXML, FacturaE y ASiC-XAdES.
 - Cofirma guiada de PAdES, ODF y OOXML, y firma por lotes.
-- Certificados del almacén del sistema, ficheros P12/PFX y tarjetas PKCS#11.
+- Certificados del almacén del sistema y ficheros P12/PFX. Las tarjetas
+  PKCS#11 son un soporte experimental que no se ofrece en producción
+  ([límites](docs/LIMITES_Y_EXCLUSIONES.md)).
 - Huellas (hash) de ficheros y carpetas, y protección de documentos con CMS.
 - Integración con portales mediante `afirma://` y extensiones de navegador
   (Native Messaging).
