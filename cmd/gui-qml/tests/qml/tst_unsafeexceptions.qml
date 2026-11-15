@@ -21,7 +21,7 @@ TestCase {
         property var calls: []
         signal unsafeExceptionsFinished(string action, bool ok, var data)
         function loadUnsafeExceptions() { calls.push({action: "list"}) }
-        function activateUnsafeException(id, version, retry) { calls.push({action: "activate", id: id, version: version, retry: retry}) }
+        function activateUnsafeException(id, version, origin, retry) { calls.push({action: "activate", id: id, version: version, origin: origin, retry: retry}) }
         function disableUnsafeException(id) { calls.push({action: "disable", id: id}) }
     }
     Component { id: factory; UnsafeExceptionDialog { theme: tests.theme; bridge: fake; translate: function(key) { return key } } }
@@ -42,7 +42,9 @@ TestCase {
         dialog.activate()
         compare(fake.calls.length, 1)
         compare(fake.calls[0].version, "2026-11-15.1")
-        compare(fake.calls[0].retry, "token")
+        // Desde Configuración no hay operación detenida: sin reintento.
+        compare(fake.calls[0].origin, "ajustes")
+        compare(fake.calls[0].retry, "")
         verify(!button.enabled)
         fake.unsafeExceptionsFinished("unsafe_exceptions_activate", false, {})
         verify(!box.checked)
@@ -151,10 +153,88 @@ TestCase {
         verify(dialog.width <= tests.width)
         verify(dialog.height <= tests.height)
         const cancel = findChild(dialog, "unsafeCancel")
-        tryVerify(function() { return cancel.activeFocus })
+        tryVerify(function() { return findChild(dialog, "unsafeHeading").activeFocus })
         const position = cancel.mapToItem(tests, 0, 0)
         verify(position.y >= 0 && position.y + cancel.height <= tests.height)
         keyClick(Qt.Key_Escape)
         tryCompare(dialog, "visible", false)
+    }
+    // Lote 39f: el recibo sabe si se aceptó en el aviso o en Configuración, y
+    // el reintento solo viaja con el aviso de una operación detenida.
+    function test_activation_sends_origin_and_retry_only_from_a_block() {
+        const blocked = entry(true); blocked.operationPending = true
+        dialog.present(blocked, false)
+        findChild(dialog, "unsafeAcceptance").checked = true
+        dialog.activate()
+        compare(fake.calls[0].origin, "aviso")
+        compare(fake.calls[0].retry, "token")
+    }
+    // Lote 39f: el foco empieza en el nombre del caso, no en «Más información»
+    // ni en la casilla, también al abrir la ayuda sola.
+    function test_initial_focus_is_the_heading() {
+        for (const help of [false, true]) {
+            const value = entry(true); value.operationPending = !help
+            dialog.present(value, help)
+            const heading = findChild(dialog, "unsafeHeading")
+            tryVerify(function() { return heading.activeFocus })
+            compare(heading.Accessible.role, Accessible.Heading)
+            compare(heading.Accessible.name, "excepciones.cms_cbc.ajuste")
+            dialog.close()
+            tryCompare(dialog, "visible", false)
+        }
+    }
+    // Con teclado: Tab llega a la casilla, Espacio la marca, Intro no la
+    // cambia ni activa, Tab llega a los botones y Mayús+Tab vuelve atrás.
+    function test_keyboard_marks_activates_and_goes_back() {
+        dialog.present(entry(true), false)
+        const heading = findChild(dialog, "unsafeHeading")
+        const box = findChild(dialog, "unsafeAcceptance")
+        const cancel = findChild(dialog, "unsafeCancel")
+        const activate = findChild(dialog, "unsafeActivate")
+        tryVerify(function() { return heading.activeFocus })
+        keyClick(Qt.Key_Tab)
+        tryVerify(function() { return box.activeFocus })
+        keyClick(Qt.Key_Return)
+        keyClick(Qt.Key_Enter)
+        verify(!box.checked)
+        compare(fake.calls.length, 0)
+        keyClick(Qt.Key_Space)
+        verify(box.checked)
+        keyClick(Qt.Key_Return)
+        verify(box.checked)
+        compare(fake.calls.length, 0)
+        keyClick(Qt.Key_Backtab, Qt.ShiftModifier)
+        tryVerify(function() { return heading.activeFocus })
+        keyClick(Qt.Key_Tab)
+        tryVerify(function() { return box.activeFocus })
+        keyClick(Qt.Key_Tab)
+        tryVerify(function() { return cancel.activeFocus })
+        keyClick(Qt.Key_Tab)
+        keyClick(Qt.Key_Tab)
+        tryVerify(function() { return activate.activeFocus })
+        keyClick(Qt.Key_Space)
+        compare(fake.calls.length, 1)
+        compare(fake.calls[0].action, "activate")
+    }
+    function test_keyboard_cancel_and_escape_cancel() {
+        dialog.present(entry(true), false)
+        const box = findChild(dialog, "unsafeAcceptance")
+        tryVerify(function() { return findChild(dialog, "unsafeHeading").activeFocus })
+        keyClick(Qt.Key_Tab)
+        tryVerify(function() { return box.activeFocus })
+        keyClick(Qt.Key_Space)
+        keyClick(Qt.Key_Escape)
+        tryCompare(dialog, "visible", false)
+        tryCompare(cancelled, "count", 1)
+        compare(fake.calls.length, 0)
+        dialog.present(entry(true), false)
+        tryVerify(function() { return findChild(dialog, "unsafeHeading").activeFocus })
+        keyClick(Qt.Key_Tab)
+        keyClick(Qt.Key_Tab)
+        tryVerify(function() { return findChild(dialog, "unsafeCancel").activeFocus })
+        keyClick(Qt.Key_Space)
+        tryCompare(dialog, "visible", false)
+        tryCompare(cancelled, "count", 2)
+        compare(fake.calls.length, 0)
     }
 }

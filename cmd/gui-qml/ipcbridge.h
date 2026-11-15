@@ -40,7 +40,10 @@ class IpcBridge : public QObject {
 
 public:
   Q_INVOKABLE void loadUnsafeExceptions();
+  // origin: «aviso» si la persona acepta en el aviso de una operación
+  // detenida, «ajustes» si lo hace en el apartado Seguridad.
   Q_INVOKABLE void activateUnsafeException(const QString &id, const QString &version,
+                                           const QString &origin,
                                            const QString &retryId = QString());
   Q_INVOKABLE void disableUnsafeException(const QString &id);
   Q_INVOKABLE void retryUnsafeOperation(const QString &retryId);

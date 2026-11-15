@@ -52,7 +52,10 @@ ThemedDialog {
         if (!canActivate) return
         busy = true
         message = ""
-        bridge.activateUnsafeException(item.id, item.acceptance_version, item.retryId || "")
+        // El recibo guarda dónde se aceptó: en el aviso de una operación
+        // detenida o en el apartado Seguridad. Solo un bloqueo lleva reintento.
+        bridge.activateUnsafeException(item.id, item.acceptance_version, blocked ? "aviso" : "ajustes",
+                                       blocked ? (item.retryId || "") : "")
     }
     onOpened: contentItem.enter()
     onClosed: {
@@ -79,7 +82,9 @@ ThemedDialog {
     }
     contentItem: ModalLayer {
         color: dialog.theme.cardColor
-        initialFocusItem: dialog.activable && !dialog.showingHelp ? acceptance : cancel
+        // El foco empieza en el nombre del caso, como en Android: el lector
+        // lo lee primero y Tab sigue hacia la casilla y los botones.
+        initialFocusItem: heading
         onEscapePressed: if (!dialog.busy) dialog.close()
         ColumnLayout {
             anchors.fill: parent
@@ -97,24 +102,57 @@ ThemedDialog {
                     width: parent.width
                     spacing: 16
                     Text {
+                        id: heading
+                        objectName: "unsafeHeading"
                         Layout.fillWidth: true
+                        Layout.topMargin: 4
+                        Layout.leftMargin: 4
+                        Layout.rightMargin: 4
                         text: dialog.caseText("ajuste")
                         textFormat: Text.PlainText
                         font.pixelSize: Typography.size18
                         font.bold: true
                         color: dialog.theme.textColor
                         wrapMode: Text.WordWrap
+                        activeFocusOnTab: true
                         Accessible.role: Accessible.Heading
+                        Accessible.name: text
+                        Accessible.focusable: true
+                        // Foco de teclado visible también sobre el texto.
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            color: "transparent"
+                            radius: 4
+                            border.width: 2
+                            border.color: dialog.theme.focusColor ? dialog.theme.focusColor : dialog.theme.textColor
+                            visible: heading.activeFocus
+                        }
                     }
                     Text {
+                        id: caseBody
+                        objectName: "unsafeBody"
                         Layout.fillWidth: true
+                        Layout.leftMargin: 4
+                        Layout.rightMargin: 4
                         text: dialog.caseText(dialog.showingHelp ? "ayuda" : "riesgo")
                         textFormat: Text.PlainText
                         font.pixelSize: Typography.control
                         color: dialog.theme.textColor
                         wrapMode: Text.WordWrap
                         Accessible.role: Accessible.StaticText
+                        Accessible.name: text
+                        Accessible.focusable: dialog.showingHelp
                         activeFocusOnTab: dialog.showingHelp
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            color: "transparent"
+                            radius: 4
+                            border.width: 2
+                            border.color: dialog.theme.focusColor ? dialog.theme.focusColor : dialog.theme.textColor
+                            visible: caseBody.activeFocus
+                        }
                     }
                     Text {
                         Layout.fillWidth: true
@@ -134,6 +172,10 @@ ThemedDialog {
                         visible: dialog.activable && !dialog.showingHelp
                         enabled: !dialog.busy
                         text: dialog.caseText("aceptacion")
+                        // Intro no marca, no desmarca ni activa: solo Espacio
+                        // cambia la casilla y activar exige su botón.
+                        Keys.onReturnPressed: function(event) { event.accepted = true }
+                        Keys.onEnterPressed: function(event) { event.accepted = true }
                         Accessible.description: dialog.appText("excepciones.pantalla.version").replace("{version}", dialog.item.acceptance_version || "")
                     }
                     Text {
@@ -167,7 +209,12 @@ ThemedDialog {
                     visible: !dialog.helpOnly
                     text: dialog.appText(dialog.showingHelp ? "excepciones.pantalla.volver" : "excepciones.mas_informacion")
                     enabled: !dialog.busy
-                    onClicked: { dialog.showingHelp = !dialog.showingHelp; dialog.contentItem.enter() }
+                    // Al abrir la ayuda, el foco va a su texto para leerlo y
+                    // desplazarlo; al volver, se queda en este botón.
+                    onClicked: {
+                        dialog.showingHelp = !dialog.showingHelp
+                        if (dialog.showingHelp) caseBody.forceActiveFocus(Qt.OtherFocusReason)
+                    }
                 }
                 // Acción principal, rellena con el color primario del tema; los
                 // otros dos botones quedan como secundarios, con el relleno de
