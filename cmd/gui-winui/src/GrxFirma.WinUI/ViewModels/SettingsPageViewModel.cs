@@ -91,6 +91,7 @@ public sealed class SettingsPageViewModel
     private bool _canSave;
     private bool _canCancel;
     private bool _hasStatus;
+    private string _statusCommand = string.Empty;
     private int _operationInProgress;
     private InfoBarSeverity _statusSeverity =
         InfoBarSeverity.Informational;
@@ -710,6 +711,22 @@ public sealed class SettingsPageViewModel
         private set => SetProperty(ref _hasStatus, value);
     }
 
+    // Lote 39g: orden para arreglar unos ajustes sin permiso. Va aparte del
+    // mensaje para que se pueda seleccionar y copiar entera.
+    public string StatusCommand
+    {
+        get => _statusCommand;
+        private set
+        {
+            if (SetProperty(ref _statusCommand, value))
+            {
+                RaisePropertyChanged(nameof(HasStatusCommand));
+            }
+        }
+    }
+
+    public bool HasStatusCommand => !string.IsNullOrEmpty(_statusCommand);
+
     public InfoBarSeverity StatusSeverity
     {
         get => _statusSeverity;
@@ -768,6 +785,12 @@ public sealed class SettingsPageViewModel
                 operationCancellation.Token);
             if (!result.IsSuccess || result.Outcome != "success")
             {
+                if (ShowSettingsAccessFailure(
+                    "winui.ajustes.no_se_pudo_cargar",
+                    result.ErrorCode))
+                {
+                    return;
+                }
                 ShowStatus(
                     Localizer.Text("winui.ajustes.no_se_pudo_cargar"),
                     result.SafeUserMessage,
@@ -849,6 +872,12 @@ public sealed class SettingsPageViewModel
                 operationCancellation.Token);
             if (!result.IsSuccess || result.Outcome != "success")
             {
+                if (ShowSettingsAccessFailure(
+                    "winui.ajustes.no_se_pudo_guardar",
+                    result.ErrorCode))
+                {
+                    return;
+                }
                 ShowStatus(
                     Localizer.Text("winui.ajustes.no_se_pudo_guardar"),
                     result.SafeUserMessage,
@@ -1503,6 +1532,25 @@ public sealed class SettingsPageViewModel
         StatusTitle = title;
         StatusMessage = message;
         StatusSeverity = severity;
+        StatusCommand = string.Empty;
+    }
+
+    // Ajustes sin permiso o de otra cuenta: texto del catálogo de la interfaz
+    // y la orden aparte, sin abrir el diagnóstico de averías (lote 39g).
+    private bool ShowSettingsAccessFailure(string titleKey, string? errorCode)
+    {
+        var failure = SettingsAccessFailure.From(errorCode, Localizer.Text);
+        if (failure is null)
+        {
+            return false;
+        }
+
+        ShowStatus(
+            Localizer.Text(titleKey),
+            failure.Explanation,
+            InfoBarSeverity.Error);
+        StatusCommand = failure.Command;
+        return true;
     }
 
     private void ShowIncoherentResult(string message)

@@ -657,7 +657,24 @@
                     IsOpen="{x:Bind ViewModel.HasStatus, Mode=OneWay}"
                     Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                     Severity="{x:Bind ViewModel.StatusSeverity, Mode=OneWay}"
-                    Title="{x:Bind ViewModel.StatusTitle, Mode=OneWay}" />
+                    Title="{x:Bind ViewModel.StatusTitle, Mode=OneWay}">
+                    <!-- Lote 39g: la orden para arreglar unos ajustes sin permiso, entera y
+                         en un campo de solo lectura que se selecciona y copia con el teclado. -->
+                    <InfoBar.Content>
+                        <TextBox
+                            x:Name="StatusCommandBox"
+                            Margin="0,0,0,12"
+                            AutomationProperties.Name="{x:Bind ViewModel.StatusCommand, Mode=OneWay}"
+                            FontFamily="Consolas"
+                            GotFocus="OnStatusCommandGotFocus"
+                            IsReadOnly="True"
+                            IsSpellCheckEnabled="False"
+                            TabIndex="45"
+                            Text="{x:Bind ViewModel.StatusCommand, Mode=OneWay}"
+                            TextWrapping="Wrap"
+                            Visibility="{x:Bind ViewModel.HasStatusCommand, Mode=OneWay}" />
+                    </InfoBar.Content>
+                </InfoBar>
                 <!-- Lote 14: firmas aceptadas en este equipo. Quitar se aplica al momento,
                      sin pasar por «Guardar preferencias»; por eso va aparte, al final. -->
                 <Border x:Name="ForcedTrustCard" Style="{StaticResource AppCardStyle}">
@@ -696,7 +713,7 @@
                                             VerticalAlignment="Center"
                                             AutomationProperties.Name="{Binding RemoveAccessibleName}"
                                             Click="OnRemoveForcedTrustClick"
-                                            TabIndex="45"
+                                            TabIndex="46"
                                             Content="{Binding RemoveText}" />
                                     </Grid>
                                 </DataTemplate>

@@ -424,6 +424,11 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    // Lote 39g: al llegar con Tab o con el ratón, la orden queda seleccionada
+    // entera para copiarla con Ctrl+C.
+    private void OnStatusCommandGotFocus(object sender, RoutedEventArgs e) =>
+        StatusCommandBox.SelectAll();
+
     private async void OnDiagnosticRequested(
         OperationDiagnostic diagnostic)
     {
