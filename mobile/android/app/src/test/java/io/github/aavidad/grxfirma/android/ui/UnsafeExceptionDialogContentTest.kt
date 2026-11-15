@@ -10,6 +10,7 @@ import java.io.File
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -53,5 +54,49 @@ class UnsafeExceptionDialogContentTest {
         val intro = es.getString("android.inseguro.introduccion")
         assertFalse("la introducción nombra un botón que ya no aparece desde Preferencias", intro.contains("Activar y continuar"))
         assertTrue(intro.contains("Guardar") && intro.contains("Cancelar"))
+    }
+
+    /** Vuelta 2: «Activada» y la fecha decían lo mismo en dos líneas. */
+    @Test fun `an enabled case shows one status line with its date`() {
+        val on = item.copy(enabled = true, acceptedAt = "2026-11-15T17:06:00Z")
+        assertEquals("android.inseguro.aceptada_fecha", UnsafeExceptionsPanel.statusKey(on))
+        assertEquals("android.inseguro.activada", UnsafeExceptionsPanel.statusKey(on.copy(acceptedAt = "")))
+        assertEquals("android.inseguro.fijada_activa", UnsafeExceptionsPanel.statusKey(on.copy(fixed = true)))
+        assertEquals("android.inseguro.desactivada", UnsafeExceptionsPanel.statusKey(item))
+    }
+
+    /** Vuelta 2: al activar o desactivar solo se rehace la fila que cambia, y el foco no se pierde. */
+    @Test fun `only the changed case is rebuilt`() {
+        val cases = listOf(item, item.copy(id = "cms_cbc"))
+        assertEquals(setOf("sha1_leer"), UnsafeExceptionsPanel.changedIds(cases, listOf(cases[0].copy(enabled = true), cases[1])))
+        assertEquals(emptySet<String>(), UnsafeExceptionsPanel.changedIds(cases, cases))
+        assertNull(UnsafeExceptionsPanel.changedIds(null, cases))
+        assertNull(UnsafeExceptionsPanel.changedIds(cases, cases.reversed()))
+    }
+
+    /** Vuelta 2: la ayuda va por apartados, cada uno con su encabezado para TalkBack. */
+    @Test fun `help is split into sections with headings in every script`() {
+        val es = UnsafeExceptionDialog.helpSections("Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esto.\n\nAlternativa: pida otra copia.")
+        assertEquals(listOf("Qué hace este ajuste" to "Mientras está desactivado, GrxFirma detiene esto.", "Alternativa" to "Pida otra copia."), es)
+        assertEquals("Ce que fait ce réglage" to "Tant qu’il est désactivé.", UnsafeExceptionDialog.helpSections("Ce que fait ce réglage : tant qu’il est désactivé.").single())
+        assertEquals("此设置的作用" to "停用期间。", UnsafeExceptionDialog.helpSections("此设置的作用：停用期间。").single())
+        assertEquals("" to "Sin encabezado.", UnsafeExceptionDialog.helpSections("Sin encabezado.").single())
+        val catalogue = JSONObject(File(main, "assets/locales/es.json").readText())
+        assertEquals(7, UnsafeExceptionDialog.helpSections(catalogue.getString("excepciones.sha1_leer.ayuda")).count { it.first.isNotEmpty() })
+    }
+
+    /** Vuelta 2: la fecha dice lo mismo que en escritorio y la casilla no repite la responsabilidad. */
+    @Test fun `date and checkbox texts in every language`() {
+        val responsibility = listOf("responsab", "Verantwortung", "erantzukizun", "责任")
+        listOf("es", "en", "ca", "va", "gl", "eu", "fr", "de", "it", "pt", "zh").forEach { lang ->
+            val json = JSONObject(File(main, "assets/locales/$lang.json").readText())
+            val date = json.getString("android.inseguro.aceptada_fecha")
+            assertTrue("$lang: fecha sin {date}: $date", date.contains("{date}") && !date.contains("{fecha}"))
+            val box = json.getString("android.inseguro.aceptacion_casilla")
+            responsibility.forEach { assertFalse("$lang: la casilla repite la responsabilidad: $box", box.contains(it, ignoreCase = true)) }
+        }
+        val es = JSONObject(File(main, "assets/locales/es.json").readText())
+        assertEquals("Activado el {date}", es.getString("android.inseguro.aceptada_fecha"))
+        assertEquals("He leído el aviso y acepto el riesgo.", es.getString("android.inseguro.aceptacion_casilla"))
     }
 }

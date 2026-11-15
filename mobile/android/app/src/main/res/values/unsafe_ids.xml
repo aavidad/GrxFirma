@@ -17,4 +17,8 @@
     <item name="unsafeFooter" type="id" />
     <item name="unsafePreferences" type="id" />
     <item name="unsafeRefresh" type="id" />
+    <item name="unsafeTitle" type="id" />
+    <item name="unsafeHelpTitle" type="id" />
+    <item name="unsafeHelpClose" type="id" />
+    <item name="unsafeHelpScroll" type="id" />
 </resources>
