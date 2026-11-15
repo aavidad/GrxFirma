@@ -16,6 +16,24 @@
 #include <QUuid>
 #include <QtTest>
 
+namespace {
+// Al conectar, el puente pide su estado de arranque (local_tls_startup_status).
+// Las pruebas leen la siguiente petición que no sea ese aviso de arranque.
+QJsonObject nextRequest(QLocalSocket *peer) {
+  QElapsedTimer timer;
+  timer.start();
+  while (timer.elapsed() < 5000) {
+    while (peer->canReadLine()) {
+      const auto request = QJsonDocument::fromJson(peer->readLine()).object();
+      if (request.value("action").toString() != QStringLiteral("local_tls_startup_status"))
+        return request;
+    }
+    QTest::qWait(10);
+  }
+  return {};
+}
+} // namespace
+
 class IpcBridgeTransientSecretTest : public QObject {
   Q_OBJECT
 
@@ -52,8 +70,8 @@ void IpcBridgeTransientSecretTest::unsafeVersionedActivation() {
   peer->readAll();
   QSignalSpy finished(&bridge, &IpcBridge::unsafeExceptionsFinished);
   bridge.activateUnsafeException("cms_cbc", "2026-11-15.1", "fixture-token");
-  QTRY_VERIFY(peer->canReadLine());
-  const auto sent = QJsonDocument::fromJson(peer->readLine()).object();
+  const auto sent = nextRequest(peer);
+  QVERIFY(!sent.isEmpty());
   QCOMPARE(sent.value("action").toString(), QStringLiteral("unsafe_exceptions_activate"));
   const auto params = sent.value("params").toObject();
   QCOMPARE(params.value("acceptanceVersion").toString(), QStringLiteral("2026-11-15.1"));
@@ -83,8 +101,8 @@ void IpcBridgeTransientSecretTest::unsafeBlockAndRetryRouting() {
   QSignalSpy verified(&bridge, &IpcBridge::verificationFinished);
   QSignalSpy warnings(&bridge, &IpcBridge::unsafeOperationWarnings);
   bridge.verifyFile("/tmp/fixture.pdf");
-  QTRY_VERIFY(peer->canReadLine());
-  const auto sent = QJsonDocument::fromJson(peer->readLine()).object();
+  const auto sent = nextRequest(peer);
+  QVERIFY(!sent.isEmpty());
   const QJsonObject block{{"action", "verify"}, {"requestId", sent.value("requestId")},
       {"ok", false}, {"exceptionId", "cms_cbc"}, {"activable", false},
       {"acceptanceVersion", "2026-11-15.1"}, {"retryId", "fixture-token"},
@@ -94,8 +112,8 @@ void IpcBridgeTransientSecretTest::unsafeBlockAndRetryRouting() {
   QVERIFY(!blocked.at(0).at(0).toMap().value("activable").toBool());
   QCOMPARE(verified.count(), 1);
   bridge.retryUnsafeOperation("fixture-token");
-  QTRY_VERIFY(peer->canReadLine());
-  const auto retry = QJsonDocument::fromJson(peer->readLine()).object();
+  const auto retry = nextRequest(peer);
+  QVERIFY(!retry.isEmpty());
   QCOMPARE(retry.value("action").toString(), QStringLiteral("unsafe_operation_retry"));
   const QJsonObject reply{{"action", "unsafe_operation_retry"}, {"requestId", retry.value("requestId")},
       {"ok", true}, {"warnings", QJsonArray{"excepciones.cms_cbc.aviso"}},
