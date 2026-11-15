@@ -32,8 +32,9 @@ async function detector(variant, fetch, frame = {}) {
     documentId: `doc-${frameId}` };
   if (!frame.parent) background.frames.length = 0;
   background.frames.push(navigationFrame);
-  const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', url: location.href, frameId,
-    documentId: navigationFrame.documentId, tab: { id: 12, url: background.frames[0].url } };
+  const makeSender = () => ({ id: 'abcdefghijklmnopabcdefghijklmnop',
+    url: navigationFrame.url, frameId, documentId: navigationFrame.documentId,
+    tab: { id: 12, ...((frame.omitTopURL || frame.options?.omitTopURL) ? {} : { url: background.frames[0]?.url }) } });
   const document = {
     contentType: frame.contentType || 'application/pdf', title: 'documento', documentElement: {},
     querySelectorAll() { return frame.embedded || []; },
@@ -57,6 +58,22 @@ async function detector(variant, fetch, frame = {}) {
     },
     async dispatch(data, source) { for (const callback of events.get('message') || []) await callback({ data, source }); }
   };
+  window.parent = frame.parent?.window || window;
+  window.top = frame.parent?.window.top || window;
+  if (frame.crossOriginAncestor) {
+    const proxies = new WeakMap();
+    const ancestor = (target) => {
+      if (!proxies.has(target)) proxies.set(target, new Proxy(target, {
+        get(object, key) {
+          if (key !== 'parent' && key !== 'top') throw new Error('cross-origin access denied');
+          return ancestor(object[key]);
+        }
+      }));
+      return proxies.get(target);
+    };
+    window.parent = ancestor(frame.parent.window);
+    window.top = ancestor(frame.parent.window.top);
+  }
   const context = vm.createContext({
     document, window, URL, Blob, AbortController, clearTimeout, TextEncoder,
     setTimeout(callback, delay) {
@@ -69,8 +86,16 @@ async function detector(variant, fetch, frame = {}) {
     grxfirmaExt: {
       i18n: { message(key) { return key; } },
       runtime: {
-        connect() { const port = background.connectContent(sender); ports.push(port); return port; },
-        async sendMessage(message) { sent.push(message); return background.dispatchRuntimeMessage(message, sender); }
+        connect() {
+          const port = background.connectContent(makeSender());
+          if (frame.candidateOverrides) {
+            const post = port.postMessage;
+            port.postMessage = (message) => post({ ...message, ...frame.candidateOverrides });
+          }
+          ports.push(port);
+          return port;
+        },
+        async sendMessage(message) { sent.push(message); return background.dispatchRuntimeMessage(message, makeSender()); }
       }
     }
   });
@@ -284,8 +309,8 @@ for (const variant of ['chromium', 'firefox']) {
       assert.equal(parent.background.openedTabs.length, 0);
     });
   }
-  test(`${variant}: fallo de webNavigation cierra el acceso`, async () => {
-    const h = await detector(variant, sinRed, { options: { framesError: true } });
+  test(`${variant}: sin sender.tab.url no hay botón`, async () => {
+    const h = await detector(variant, sinRed, { omitTopURL: true });
     assert.equal(h.buttons.length, 0);
   });
   test(`${variant}: cambio de confianza de la principal retira el botón`, async () => {
@@ -367,10 +392,13 @@ for (const variant of ['chromium', 'firefox']) {
     assert.equal(count(parent, first, second), 1);
     assert.ok(second.button);
   });
-  test(`${variant}: comprueba principal real aunque el puerto conserve una URL anterior`, async () => {
-    const h = await detector(variant, sinRed);
-    h.background.frames[0].url = 'https://ajeno.example/';
-    await h.heartbeat();
+  test(`${variant}: principal nueva sin confianza no hereda el permiso del puerto anterior`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF, defer: true });
+    const h = await detector(variant, sinRed, { parent });
+    parent.background.frames[0].url = 'https://ajeno.example/';
+    h.background.navigation();
+    await h.background.settle();
+    await h.reconnect();
     assert.equal(h.buttons.length, 0);
     assert.ok(h.background.debugLogs.includes('pdfTopPageNotTrusted'));
   });
@@ -416,5 +444,41 @@ for (const variant of ['chromium', 'firefox']) {
     await child.disconnect();
     assert.equal(count(parent, child), 1);
     assert.ok(parent.button);
+  });
+}
+
+for (const variant of ['chromium', 'firefox']) {
+  test(`${variant}: contrato de manifiesto sin permisos nuevos ni webNavigation`, async () => {
+    const manifest = JSON.parse(await readFile(path.join(root, variant, 'manifest.json'), 'utf8'));
+    assert.deepEqual([...manifest.permissions].sort(), ['storage', 'nativeMessaging', 'scripting'].sort());
+    assert.ok(!JSON.stringify(manifest).includes('webNavigation'));
+  });
+  for (const depth of [0, -100, '0', Number.MAX_SAFE_INTEGER]) {
+    test(`${variant}: profundidad falsa ${depth} no concede confianza a la principal`, async () => {
+      const parent = await detector(variant, sinRed, { ...paginaConPDF, defer: true,
+        location: { href: 'https://ajeno.example/', pathname: '/' } });
+      const child = await detector(variant, sinRed, { parent, candidateOverrides: {
+        depth, direct: true, topURL: 'https://sede.dipgra.es/', tab: { url: 'https://sede.dipgra.es/' }
+      } });
+      assert.equal(count(parent, child), 0);
+      assert.ok(child.background.debugLogs.includes('pdfTopPageNotTrusted'));
+      assert.equal(child.background.openedTabs.length, 0);
+    });
+  }
+  test(`${variant}: sin URL principal del navegador, el iframe tampoco obtiene botón`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF, defer: true });
+    const child = await detector(variant, sinRed, { parent, omitTopURL: true,
+      candidateOverrides: { depth: 0, direct: true, topURL: parent.window.location.href } });
+    assert.equal(count(parent, child), 0);
+    assert.ok(child.background.debugLogs.includes('pdfTopPageNotTrusted'));
+  });
+  test(`${variant}: profundidad entre orígenes solo lee parent y top`, async () => {
+    const parent = await detector(variant, sinRed, { ...paginaConPDF, defer: true });
+    const wrapper = await detector(variant, sinRed, { ...paginaConPDF, parent,
+      embedded: [pdfElement('embed')], crossOriginAncestor: true,
+      location: { href: 'https://otro.savia.net/visor', pathname: '/visor' } });
+    assert.ok(wrapper.button);
+    const depths = vm.runInContext('[...pdfTabs.values()][0].records.values().next().value.depth', parent.background.context);
+    assert.equal(depths, 1);
   });
 }

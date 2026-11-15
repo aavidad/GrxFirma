@@ -71,6 +71,22 @@
         }
     }
 
+    function frameDepth() {
+        let frame = window;
+        let depth = 0;
+        const seen = new Set();
+        try {
+            // parent y top son accesibles entre orígenes; no se lee su URL.
+            while (frame !== window.top) {
+                if (seen.has(frame)) return null;
+                seen.add(frame);
+                frame = frame.parent;
+                depth++;
+            }
+            return depth;
+        } catch (_) { return null; }
+    }
+
     function refreshButtons(force = false) {
         candidates = isDirectPDF
             ? new Map([[absoluteURL(window.location.href), []]])
@@ -82,7 +98,7 @@
         // Crear o retirar controles también dispara el MutationObserver.
         if (ownerPort && (force || registration !== lastRegistration)) {
             lastRegistration = registration;
-            try { ownerPort.postMessage({ action: 'candidates', urls, direct: isDirectPDF }); }
+            try { ownerPort.postMessage({ action: 'candidates', urls, direct: isDirectPDF, depth: frameDepth() }); }
             catch (_) { renderOwners([]); }
         }
         for (const [url, controls] of buttons) {
@@ -122,7 +138,7 @@
     });
     window.addEventListener('pageshow', () => { stopped = false; connectOwner(); });
     // Recupera la coordinación tras suspender/reiniciar el service worker y
-    // revalida navegación y permisos aunque no cambie el DOM.
+    // revalida candidaturas y permisos aunque no cambie el DOM.
     setInterval(() => { connectOwner(); refreshButtons(true); }, 15000);
 
     function inferFileName(url, blob) {

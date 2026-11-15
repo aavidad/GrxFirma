@@ -44,8 +44,7 @@
   "permissions": [
     "storage",
     "nativeMessaging",
-    "scripting",
-    "webNavigation"
+    "scripting"
   ],
   "host_permissions": [
     "https://*.dipgra.es/*",

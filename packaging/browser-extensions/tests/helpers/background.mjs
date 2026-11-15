@@ -31,7 +31,7 @@ function storageArea() {
 export async function loadBackground(variant, options = {}) {
   const nativeMessageListeners = [];
   const connectListeners = [];
-  const navigationListeners = [];
+  const contentPorts = [];
   const debugLogs = [];
   const frames = options.frames || [{ frameId: 0, parentFrameId: -1, url: 'https://sede.dipgra.es/documento.pdf' }];
   const runtimeMessageListeners = [];
@@ -154,13 +154,6 @@ export async function loadBackground(variant, options = {}) {
           openedTabs.push(properties);
         }
       },
-      webNavigation: {
-        async getAllFrames() {
-          if (options.framesError) throw new Error('frames unavailable');
-          return frames.map((frame) => ({ ...frame }));
-        },
-        onCommitted: { addListener(listener) { navigationListeners.push(listener); } }
-      },
       permissions: {
         async contains({ origins }) { return origins.every((origin) => grantedOrigins.has(origin)); },
         onAdded: { addListener() {} }, onRemoved: { addListener() {} }
@@ -186,8 +179,17 @@ export async function loadBackground(variant, options = {}) {
 
   return {
     context, frames, debugLogs,
-    navigation() { for (const listener of navigationListeners) listener({ tabId: 12 }); },
+    // Simula la destrucción de documentos por el navegador. No es una API
+    // disponible para el fondo: solo provoca la desconexión de sus puertos.
+    navigation() {
+      for (const { sender, disconnect } of contentPorts) {
+        const frame = frames.find((item) => item.frameId === sender.frameId);
+        if (!frame || frame.url !== sender.url || frame.documentId !== sender.documentId ||
+            frames.find((item) => item.frameId === 0)?.url !== sender.tab?.url) disconnect();
+      }
+    },
     connectContent(sender) {
+      sender = { ...sender, tab: sender.tab && { ...sender.tab } };
       const clientMessages = [], serverMessages = [], clientDisconnect = [], serverDisconnect = [];
       let active = true;
       const disconnect = () => {
@@ -205,6 +207,7 @@ export async function loadBackground(variant, options = {}) {
         },
         disconnect
       });
+      contentPorts.push({ sender, disconnect });
       const client = endpoint(clientMessages, clientDisconnect, serverMessages);
       const server = endpoint(serverMessages, serverDisconnect, clientMessages);
       for (const listener of connectListeners) listener(server);

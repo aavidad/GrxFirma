@@ -429,7 +429,7 @@ const INTERNAL_RUNTIME_ACTIONS = new Set([
 ]);
 
 function senderDocumentURL(sender) {
-    for (const candidate of [sender && sender.url, sender && sender.origin, sender && sender.tab && sender.tab.url]) {
+    for (const candidate of [sender && sender.url, sender && sender.origin]) {
         if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
     }
     return '';
@@ -504,7 +504,8 @@ async function reconcileTrustedSites() {
 }
 // Una elección por pestaña y URL normalizada. Los puertos pertenecen a los
 // documentos de la extensión: al destruir un marco se retira su candidatura.
-// No se usan postMessage ni profundidades/orígenes declarados por la página.
+// La confianza usa solo metadatos del emisor aportados por el navegador.
+// La profundidad y el tipo declarados por contenido solo ordenan candidatos.
 const pdfTabs = new Map();
 let pdfRegistrationOrder = 0;
 function normalizedPDFURL(raw) {
@@ -536,37 +537,18 @@ function publishPDFOwners(state, winners) {
 }
 async function electPDFOwners(state) {
     await trustedSitesRefresh;
-    const frames = await grxfirmaExt.webNavigation.getAllFrames({ tabId: state.tabId });
-    const byID = new Map((frames || []).map((frame) => [frame.frameId, frame]));
-    const top = byID.get(0);
     const winners = new Map();
-    if (!top || !trustedPDFURL(top.url)) {
-        if (!state.topBlocked) logUntrustedPDFTop();
-        state.topBlocked = true;
+    // Sin URL principal (por ejemplo, sin permiso de host), no hay confianza.
+    // Nunca se sustituye por la URL del marco ni por datos de su mensaje.
+    const topBlocked = [...state.records.values()].some((record) => !trustedPDFTop(record.sender));
+    if (topBlocked && !state.topBlocked) logUntrustedPDFTop();
+    state.topBlocked = topBlocked;
+    if (topBlocked) {
         publishPDFOwners(state, winners);
         return;
     }
-    state.topBlocked = false;
-    function depth(frame) {
-        const seen = new Set();
-        let value = 0;
-        while (frame && frame.frameId !== 0) {
-            if (seen.has(frame.frameId)) return Infinity;
-            seen.add(frame.frameId);
-            frame = byID.get(frame.parentFrameId);
-            value++;
-        }
-        return frame ? value : Infinity;
-    }
     for (const record of state.records.values()) {
-        const frame = byID.get(record.sender.frameId);
-        // Una navegación puede reutilizar frameId. No heredar candidaturas
-        // del documento anterior mientras se cierra su puerto.
-        if (!frame || normalizedPDFURL(frame.url) !== normalizedPDFURL(record.sender.url) ||
-            (frame.documentId && record.sender.documentId && frame.documentId !== record.sender.documentId) ||
-            !trustedPDFURL(frame.url)) continue;
-        record.depth = depth(frame);
-        if (!Number.isFinite(record.depth)) continue;
+        if (!trustedPDFURL(senderDocumentURL(record.sender))) continue;
         for (const [url, order] of record.urls) {
             if (!trustedPDFURL(url)) continue;
             const previous = winners.get(url);
@@ -588,7 +570,7 @@ grxfirmaExt.runtime.onConnect.addListener((port) => {
     const sender = port.sender;
     const tabId = sender && sender.tab && sender.tab.id;
     if (!sender || sender.id !== grxfirmaExt.runtime.id || !Number.isInteger(tabId) ||
-        !Number.isInteger(sender.frameId) || !trustedPDFURL(sender.url)) {
+        !Number.isInteger(sender.frameId) || !trustedPDFURL(senderDocumentURL(sender))) {
         port.disconnect();
         return;
     }
@@ -597,7 +579,16 @@ grxfirmaExt.runtime.onConnect.addListener((port) => {
         state = { tabId, records: new Map(), pending: Promise.resolve(), topBlocked: false };
         pdfTabs.set(tabId, state);
     }
-    const record = { port, sender, urls: new Map(), owned: [] };
+    // Un frameId puede reutilizarse al navegar. Si hay documentId, distingue
+    // documentos; sin él, el puerto nuevo sustituye al anterior del marco.
+    for (const previous of state.records.values()) {
+        const sameDocument = previous.sender.documentId && sender.documentId &&
+            previous.sender.documentId === sender.documentId;
+        if (previous.sender.frameId !== sender.frameId || sameDocument) continue;
+        try { previous.port.postMessage({ action: 'owners', urls: [] }); } catch (_) { }
+        state.records.delete(previous.port);
+    }
+    const record = { port, sender, urls: new Map(), owned: [], depth: Infinity, direct: false };
     state.records.set(port, record);
     port.onMessage.addListener((message) => {
         if (!state.records.has(port) || !message || message.action !== 'candidates' ||
@@ -609,7 +600,9 @@ grxfirmaExt.runtime.onConnect.addListener((port) => {
             if (trustedPDFURL(url)) urls.set(url, record.urls.get(url) ?? ++pdfRegistrationOrder);
         }
         record.urls = urls;
-        record.direct = message.direct === true && urls.size === 1 && urls.has(normalizedPDFURL(sender.url));
+        // Estos datos no participan en ninguna comprobación de confianza.
+        record.depth = Number.isSafeInteger(message.depth) && message.depth >= 0 ? message.depth : Infinity;
+        record.direct = message.direct === true;
         schedulePDFOwners(state);
     });
     port.onDisconnect.addListener(() => {
@@ -618,11 +611,6 @@ grxfirmaExt.runtime.onConnect.addListener((port) => {
         else if (pdfTabs.get(tabId) === state) pdfTabs.delete(tabId);
     });
 });
-grxfirmaExt.webNavigation.onCommitted.addListener(({ tabId }) => {
-    const state = pdfTabs.get(tabId);
-    if (state) schedulePDFOwners(state);
-});
-
 let trustedSitesRefresh = Promise.resolve();
 function refreshTrustedSites() {
     trustedSitesRefresh = trustedSitesRefresh.catch(() => {}).then(reconcileTrustedSites);

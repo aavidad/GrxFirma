@@ -18,11 +18,12 @@ En Windows, el instalador de GrxFirma registra la ficha de tienda para Chrome y 
 - `storage`: conserva los sitios añadidos por el usuario y, durante unos minutos, un PDF precargado y su token de un solo uso en `storage.session`. `storage.managed` permite leer sitios fijados por la organización.
 - `nativeMessaging`: conecta con el host `io.github.aavidad.grxfirma` instalado por la aplicación. La extensión no firma sin GrxFirma.
 - `scripting`: registra de forma dinámica el detector de PDF en sitios nuevos después de obtener permiso; el puente de identidad no se registra allí.
-- `webNavigation`: consulta la página principal y la jerarquía de marcos para permitir el botón solo en pestañas de confianza y elegir un dueño por PDF. También retira controles al navegar. No añade acceso a nuevos sitios ni requiere `tabs`.
 - `host_permissions`: `https://*.dipgra.es/*` y `https://*.savia.net/*` son los portales de fábrica para el botón de PDF y la prueba de identidad. `https://127.0.0.1/*` da acceso al firmador local de GrxFirma.
 - `optional_host_permissions`: permite pedir acceso a un sitio HTTPS al añadirlo en «Sitios de confianza». La solicitud se hace con el gesto del usuario. Al quitar el sitio, la extensión retira el permiso y el detector. Los sitios añadidos por el usuario solo reciben el botón de PDF.
 
 Los sitios fijados por política de empresa se muestran como «Fijado por su organización» y no pueden borrarse desde la extensión. La organización también debe conceder el permiso de host: sin él, la extensión no registra scripts en ese sitio. La prueba de identidad solo está disponible en los dominios de fábrica y en los fijados por esa política. Chromium declara un esquema `managed_schema`; Firefox lee `storage.managed` de su política empresarial.
+
+Esta corrección no añade permisos: no usa `webNavigation` ni `tabs`. La principal debe ser de confianza según `sender.tab.url`, proporcionada por el navegador; si falta, se rechazan el botón y la apertura. También se comprueban el marco (`sender.url` o `sender.origin`) y la URL del PDF. La profundidad y el indicador de PDF directo, calculados por el contenido, solo ordenan candidatos autorizados. Los puertos retiran candidaturas al desaparecer documentos; el fondo revalida la confianza al abrir el firmador.
 
 ### Datos y prueba
 
@@ -61,11 +62,12 @@ On Windows, the GrxFirma installer registers the store listing for Chrome and Ed
 - `storage`: keeps user-added sites and, for a few minutes, a preloaded PDF and one-use token in `storage.session`. `storage.managed` supplies sites fixed by an organization.
 - `nativeMessaging`: connects to the `io.github.aavidad.grxfirma` host installed by the desktop application. The extension cannot sign without GrxFirma.
 - `scripting`: dynamically registers the PDF detector on new sites after permission is granted. It does not register the identity bridge there.
-- `webNavigation`: checks the top-level page and frame hierarchy so PDF buttons appear only in trusted tabs, with one owner per PDF. It also removes controls on navigation. It adds no host access and does not require `tabs`.
 - `host_permissions`: `https://*.dipgra.es/*` and `https://*.savia.net/*` are the built-in portals for the PDF button and identity proof. `https://127.0.0.1/*` reaches GrxFirma's local signer.
 - `optional_host_permissions`: lets the user grant HTTPS access when adding a trusted site. The request follows a user gesture. Removing a site removes its permission and PDF detector. User-added sites get only the PDF button.
 
 Sites fixed by enterprise policy are marked as organization-managed and cannot be removed in the extension. The organization must also grant host permission; without it, the extension does not register scripts on that site. Identity proof remains limited to the built-in domains and enterprise-managed sites. Chromium declares a `managed_schema`; Firefox reads `storage.managed` from its enterprise policy.
+
+This correction adds no permissions: it uses neither `webNavigation` nor `tabs`. The top-level page must be trusted according to the browser-provided `sender.tab.url`; if it is absent, both the button and signer launch are denied. The frame (`sender.url` or `sender.origin`) and PDF URL must also be trusted. Content-calculated depth and direct-PDF status only rank authorized candidates. Ports withdraw candidates when documents disappear, and the background checks trust again on signer launch.
 
 ### Data and testing
 

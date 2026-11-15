@@ -115,10 +115,6 @@
         return call(api.tabs, "create", [createProperties]);
       }
     },
-    webNavigation: {
-      getAllFrames(details) { return call(api.webNavigation, "getAllFrames", [details]); },
-      onCommitted: api.webNavigation && api.webNavigation.onCommitted
-    },
     permissions: {
       contains(value) { return call(api.permissions, "contains", [value]); },
       request(value) { return call(api.permissions, "request", [value]); },

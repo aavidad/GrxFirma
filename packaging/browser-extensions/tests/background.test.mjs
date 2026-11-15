@@ -472,3 +472,57 @@ for (const variant of ['chromium', 'firefox']) {
     assert.deepEqual(owners[1], [url]);
   });
 }
+
+for (const variant of ['chromium', 'firefox']) {
+  test(`${variant}: marco sin URL ni origin no hereda confianza de la principal`, async () => {
+    const h = await loadBackground(variant);
+    const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', frameId: 1,
+      tab: { id: 12, url: 'https://sede.dipgra.es/' } };
+    const port = h.connectContent(sender);
+    assert.throws(() => port.postMessage({ action: 'candidates', urls: ['https://sede.dipgra.es/a.pdf'], depth: 0 }), /disconnected/);
+    assert.equal((await h.dispatchRuntimeMessage({ action: 'openSigner' }, sender)).success, false);
+    assert.equal(h.openedTabs.length, 0);
+  });
+  test(`${variant}: origin del marco sirve cuando el navegador omite sender.url`, async () => {
+    const h = await loadBackground(variant);
+    const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', origin: 'https://otro.savia.net',
+      frameId: 1, tab: { id: 12, url: 'https://sede.dipgra.es/' } };
+    const url = 'https://otro.savia.net/a.pdf';
+    let owners = [];
+    const port = h.connectContent(sender);
+    port.onMessage.addListener((message) => { owners = [...message.urls]; });
+    port.postMessage({ action: 'candidates', urls: [url], depth: 1, direct: true });
+    await h.settle();
+    assert.deepEqual(owners, [url]);
+    assert.equal((await h.dispatchRuntimeMessage({ action: 'openSigner', pdfUrl: url }, sender)).success, true);
+  });
+  for (const withDocumentID of [true, false]) {
+    test(`${variant}: puerto antiguo no recupera un frameId reutilizado, documentId=${withDocumentID}`, async () => {
+      const h = await loadBackground(variant);
+      const url = 'https://sede.dipgra.es/a.pdf';
+      const owners = [[], [], []];
+      function connect(frameId, documentId, index) {
+        const sender = { id: 'abcdefghijklmnopabcdefghijklmnop', frameId, url,
+          ...(withDocumentID ? { documentId } : {}), tab: { id: 12, url: 'https://sede.dipgra.es/' } };
+        const port = h.connectContent(sender);
+        port.onMessage.addListener((message) => { owners[index] = [...message.urls]; });
+        port.postMessage({ action: 'candidates', urls: [url], depth: 1, direct: true });
+        return port;
+      }
+      const old = connect(1, 'anterior', 0);
+      const other = connect(2, 'hermano', 1);
+      await h.settle();
+      assert.deepEqual(owners, [[url], [], []]);
+      connect(1, 'nuevo', 2);
+      await h.settle();
+      assert.deepEqual(owners, [[], [url], []]);
+      old.postMessage({ action: 'candidates', urls: [url], depth: 0, direct: true });
+      old.disconnect();
+      await h.settle();
+      assert.deepEqual(owners, [[], [url], []]);
+      other.disconnect();
+      await h.settle();
+      assert.deepEqual(owners, [[], [url], [url]]);
+    });
+  }
+}
