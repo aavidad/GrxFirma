@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. SPDX-License-Identifier: EUPL-1.2 -->
+<resources>
+    <item name="unsafeAcceptance" type="id" />
+    <item name="unsafeAcceptanceText" type="id" />
+    <item name="unsafeActivate" type="id" />
+    <item name="unsafeCancel" type="id" />
+    <item name="unsafeMore" type="id" />
+    <item name="unsafeHelpText" type="id" />
+    <item name="unsafeStatus" type="id" />
+    <item name="unsafePreferences" type="id" />
+    <item name="unsafeRefresh" type="id" />
+</resources>

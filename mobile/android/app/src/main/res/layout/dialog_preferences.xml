@@ -49,6 +49,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/prefFormatHelp"
+                android:contentDescription="@string/pref_default_format"
+                android:tooltipText="@string/pref_default_format"
                 style="@style/Widget.GrxFirma.HelpButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -105,6 +107,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/prefTsaEnabledHelp"
+                android:contentDescription="@string/pref_tsa_enabled"
+                android:tooltipText="@string/pref_tsa_enabled"
                 style="@style/Widget.GrxFirma.HelpButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp" />
@@ -138,6 +142,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/prefTsaUrlHelp"
+                android:contentDescription="@string/pref_tsa_url"
+                android:tooltipText="@string/pref_tsa_url"
                 style="@style/Widget.GrxFirma.HelpButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -187,6 +193,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/prefSealLanguageHelp"
+                android:contentDescription="@string/pref_seal_language"
+                android:tooltipText="@string/pref_seal_language"
                 style="@style/Widget.GrxFirma.HelpButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -234,11 +242,20 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/prefSessionTimeoutHelp"
+                android:contentDescription="@string/pref_certificate_timeout"
+                android:tooltipText="@string/pref_certificate_timeout"
                 style="@style/Widget.GrxFirma.HelpButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginTop="4dp" />
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@id/unsafePreferences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/prefRestore"

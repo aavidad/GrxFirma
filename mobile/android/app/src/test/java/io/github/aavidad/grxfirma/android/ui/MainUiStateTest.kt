@@ -14,6 +14,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MainUiStateTest {
+    @Test fun `unsafe consent prevents selection changes and overlapping operations`() {
+        val state = MainUiState(backend = CoreReadiness(true, "ready", ""), unsafePrompt = io.github.aavidad.grxfirma.android.core.UnsafeExceptionState("cms_cbc"))
+        assertFalse(state.canReplaceSelection)
+        assertFalse(state.canAcceptIncomingDocument)
+        assertFalse(state.canSign)
+        assertFalse(state.canVerify)
+        assertFalse(state.copy(unsafePrompt = null, unsafeSaving = true).canReplaceSelection)
+    }
+
     @Test
     fun `verification needs accredited certificate before success color`() {
         val base = UiText.Verification(

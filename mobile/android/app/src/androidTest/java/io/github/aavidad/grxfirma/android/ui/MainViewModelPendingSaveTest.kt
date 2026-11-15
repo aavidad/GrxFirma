@@ -78,7 +78,28 @@ class MainViewModelPendingSaveTest {
         assertFalse(viewModel.state.value.awaitingSave)
         assertArrayEquals(SIGNED_BYTES, repository.writes.single())
         assertArrayEquals(ByteArray(SIGNED_BYTES.size), core.output.bytes)
-        assertEquals(OperationResult.Success(UiText.Resource(R.string.result_saved)), viewModel.state.value.result)
+        // El formato y los avisos siguen visibles tras guardar; los bytes ya se han borrado.
+        assertEquals(OperationResult.Success(UiText.Resource(R.string.result_saved),
+            UiText.Resource(R.string.result_signed, listOf("PAdES", "SHA-256"))), viewModel.state.value.result)
+    }
+
+    @Test
+    fun successfulSaveKeepsUnsafeWarningsVisible() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val warning = "excepciones.rsa_corta.aviso"
+        val core = FakeCore(warnings = listOf(warning))
+        val viewModel = preparedViewModel(FakeRepository(), core, dispatcher)
+
+        viewModel.savePendingOutput(DESTINATION_URI)
+        advanceUntilIdle()
+
+        assertEquals(OperationResult.Success(UiText.Resource(R.string.result_saved), UiText.Lines(listOf(
+            UiText.Resource(R.string.result_signed, listOf("PAdES", "SHA-256")),
+            UiText.Resource(R.string.verification_warning, listOf(UiText.Engine(warning))),
+        ))), viewModel.state.value.result)
+        assertFalse(viewModel.state.value.awaitingSave)
+        assertArrayEquals(ByteArray(SIGNED_BYTES.size), core.output.bytes)
     }
 
     @Test
@@ -250,7 +271,7 @@ class MainViewModelPendingSaveTest {
         }
     }
 
-    private class FakeCore : CoreBridge {
+    private class FakeCore(warnings: List<String> = emptyList()) : CoreBridge {
         override val readiness = CoreReadiness(true, "ready", "Disponible")
         var automaticVerificationFails = false
         var signedVerificationCalls = 0
@@ -259,7 +280,7 @@ class MainViewModelPendingSaveTest {
         var usedOriginalForSignedOutput = false
         var signCalls = 0
         var clearSessionCalls = 0
-        val output = SignedOutput(SIGNED_BYTES.copyOf(), "firmado.pdf", "application/pdf", "PAdES", "SHA-256")
+        val output = SignedOutput(SIGNED_BYTES.copyOf(), "firmado.pdf", "application/pdf", "PAdES", "SHA-256", warnings)
 
         override fun selectCertificate(): CertificateSummary = certificate()
 
