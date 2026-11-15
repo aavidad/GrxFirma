@@ -45,7 +45,16 @@ public sealed partial class MainWindow : Window
             _app.FacturaeToolsEnabled);
         _app.FacturaeToolsEnabledChanged +=
             OnFacturaeToolsEnabledChanged;
+        Activated += OnWindowActivated;
         Closed += OnClosed;
+    }
+
+    // Si Windows no ofrece la señal de alto contraste (Windows 10 22H2), los
+    // pinceles de código se repintan al volver a la ventana.
+    private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
+    {
+        if (args.WindowActivationState != WindowActivationState.Deactivated)
+            ThemeBrushes.RefreshFromSystem();
     }
 
     internal void ShowInitialPage()
@@ -488,6 +497,7 @@ public sealed partial class MainWindow : Window
         _localization.Close();
         _app.FacturaeToolsEnabledChanged -=
             OnFacturaeToolsEnabledChanged;
+        Activated -= OnWindowActivated;
         Closed -= OnClosed;
     }
 
