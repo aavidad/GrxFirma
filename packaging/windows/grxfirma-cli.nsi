@@ -11,7 +11,7 @@ Unicode True
 !ifndef VERSION
   !define VERSION "dev"
 !endif
-!include "i18n/version.nsh"
+!include "i18n\version.nsh"
 !include "product-version.nsh"
 !insertmacro GrxFirmaProductVersion "${GRX_VERSION_PRODUCT_CLI}"
 

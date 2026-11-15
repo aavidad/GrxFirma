@@ -32,6 +32,13 @@ class InstallerI18nTests(unittest.TestCase):
                 self.assertIn(key, catalogs['es'], (path, key))
         subprocess.run(['python3', str(WINDOWS / 'i18n/generate.py'), '--check'], check=True)
 
+    def test_includes_use_windows_separator(self):
+        # makensis de Windows no encuentra "i18n/x.nsh"; la barra invertida vale en Windows y en Linux.
+        for path in list(WINDOWS.glob('*.nsi')) + list(WINDOWS.glob('*.nsh')):
+            for line in path.read_text(encoding='utf-8-sig').splitlines():
+                if line.strip().startswith('!include'):
+                    self.assertNotIn('/', line.split('"')[1] if '"' in line else line, (path.name, line))
+
     def test_no_spanish_prose_outside_catalogs(self):
         # Excepciones exactas: identidades y rutas históricas son contratos con
         # instalaciones anteriores. No autorizan frases nuevas ni prefijos amplios.
