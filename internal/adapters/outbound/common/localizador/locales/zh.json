@@ -272,7 +272,7 @@
   "Ajustes guardados": "设置已保存",
   "Ajustes guardados correctamente": "设置已成功保存",
   "Ajustes guardados.": "设置已保存。",
-  "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "停用引导式多重共签后，将恢复你之前的输出偏好。",
+  "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "停用引导式多重共签后，将恢复您之前的输出偏好。",
   "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "启动时，它会自动选择最后一个用于签名的证书。",
   "Algoritmo": "算法",
   "Algoritmo de huella por defecto": "默认哈希算法",
@@ -829,7 +829,7 @@
   "Estas preferencias se aplican al construir el payload de firma. Sirven para fijar un baseline más compatible o más permisivo según el entorno.": "这些首选项在构建签名负载时生效，可根据环境设定兼容性更强或更宽松的基线。",
   "Estas preferencias se aplican al preparar una firma nueva si no cambias manualmente la operación, el formato o la política de salida.": "这些首选项在准备新签名时生效，除非您手动更改操作、格式或输出策略。",
   "Estas preferencias solo se usan cuando el formato por defecto está en Auto. Permiten acercar el comportamiento de V2 a la lógica por tipo documental de AutoFirma 1.9.": "仅当默认格式为自动时才使用这些首选项。它们可使 V2 的行为更接近 AutoFirma 1.9 按文档类型处理的逻辑。",
-  "Este asistente puede resumir el contexto actual y orientarte antes de exportar una incidencia.": "此助手可以概括当前上下文，并在导出事件之前为你提供指引。",
+  "Este asistente puede resumir el contexto actual y orientarte antes de exportar una incidencia.": "此助手可以概括当前上下文，并在导出事件之前为您提供指引。",
   "Este asistente resume el contexto actual, sugiere los siguientes pasos y deja a mano el soporte técnico sin abrir un chat libre.": "此助手会总结当前上下文、建议下一步，并在不打开自由聊天的情况下让技术支持触手可及。",
   "Este destinatario compat usará contenedor json (.afp).": "此兼容接收者将使用 json 容器 (.afp)。",
   "Este destinatario compat usará sobre CMS interoperable.": "此兼容接收者将使用可互操作的 CMS 信封。",
@@ -1023,7 +1023,7 @@
   "Iniciando...": "正在启动...",
   "Iniciar servidor": "启动服务",
   "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "在 PDF 中插入图形戳记，表明其已进行数字签名。",
-  "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "将签名引擎安装为用户服务（非系统服务），\n以便自动启动并访问你的个人证书。",
+  "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "将签名引擎安装为用户服务（非系统服务），\n以便自动启动并访问您的个人证书。",
   "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "将签名引擎安装为您的用户（而非系统）\\n 的服务，以便它自动启动并可以访问您的个人证书。",
   "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "安装本地 HTTPS 证书信任以在没有浏览器提示的情况下打开 REST Web 控制台。",
   "Instalar confianza TLS local": "安装本地 TLS 信任",
@@ -1060,7 +1060,7 @@
   "La confirmación de la clave no coincide.": "密钥确认不一致。",
   "La consola usa este token para endpoints protegidos como firma, verificación, ajustes o diagnóstico.": "控制台使用此令牌访问受保护的端点，如签名、验证、设置或诊断。",
   "La exportación JSON de verificación estará disponible tras ejecutar una verificación rápida o una autoverificación posterior a la firma.": "执行快速验证或签名后的自动验证之后，才可导出验证 JSON。",
-  "La firma cargada desde navegador solo podra guardarse en disco porque has indicado una ruta de salida explicita.": "由于你指定了明确的输出路径，从浏览器加载的签名只能保存到磁盘。",
+  "La firma cargada desde navegador solo podra guardarse en disco porque has indicado una ruta de salida explicita.": "由于您指定了明确的输出路径，从浏览器加载的签名只能保存到磁盘。",
   "La firma ha fallado": "签名失败",
   "La firma se guardara en la ruta de salida indicada y, si activas base64, tambien volvera al navegador.": "签名将保存到指定的输出路径；如果启用 base64，也会返回给浏览器。",
   "La firma visible solo se aplica a PAdES (PDF).": "可见签名仅适用于 PAdES (PDF)。",
@@ -1317,7 +1317,7 @@
   "Parece un problema de conexión o de un servicio externo.": "这似乎是连接问题或外部服务的问题。",
   "Parece un problema interno de la aplicación en este equipo.": "这似乎是此设备上应用程序的内部问题。",
   "Parece un problema local de la aplicación o del motor de firma.": "似乎是应用或签名引擎的本地问题。",
-  "Parece un problema que no depende solo de tu equipo.": "这似乎不是只取决于你当前设备的问题。",
+  "Parece un problema que no depende solo de tu equipo.": "这似乎不是只取决于您当前设备的问题。",
   "Parece un problema que puedes revisar desde este equipo.": "这似乎是一个可以在此设备上检查的问题。",
   "Pareja de validación PDF/original detectada.": "已检测到 PDF/原件验证对。",
   "Pareja de validación XML/original detectada.": "已检测到 XML/原件验证对。",
@@ -1401,7 +1401,7 @@
   "Procesando firma...": "正在处理签名...",
   "Procesando solicitud...": "正在处理请求……",
   "Protección completada correctamente.": "保护已成功完成。",
-  "Protege un fichero para uno o varios destinatarios. También puedes protegerlo y firmarlo con el certificado seleccionado.": "为一个或多个收件人保护文件。你也可以使用所选证书对其进行保护并签名。",
+  "Protege un fichero para uno o varios destinatarios. También puedes protegerlo y firmarlo con el certificado seleccionado.": "为一个或多个收件人保护文件。您也可以使用所选证书对其进行保护并签名。",
   "Proteger": "保护",
   "Proteger / Desproteger": "保护 / 解除保护",
   "Proteger y firmar": "保护并签名",
@@ -1414,9 +1414,9 @@
   "Proxy del sistema": "系统代理",
   "Proxy manual con credenciales protegidas": "带受保护凭据的手动代理",
   "Proxy obligatorio para esta conexión": "此连接必须使用代理",
-  "Puedes arrastrar documentos al área superior o indicar una ruta local sin subir el fichero al navegador.": "你可以将文档拖到上方区域，或填写本地路径，而无需把文件上传到浏览器。",
+  "Puedes arrastrar documentos al área superior o indicar una ruta local sin subir el fichero al navegador.": "您可以将文档拖到上方区域，或填写本地路径，而无需把文件上传到浏览器。",
   "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "您可以拖动并调整印章大小。后端将收到安全且已归一化的坐标。",
-  "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "你现在可以启动操作，也可以在签名前继续调整可见印章、配置文件或元数据。",
+  "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "您现在可以启动操作，也可以在签名前继续调整可见印章、配置文件或元数据。",
   "Puedes pedir al backend que seleccione automáticamente el certificado más adecuado según los filtros visibles.": "您可以让后端根据可见的筛选条件自动选择最合适的证书。",
   "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "您可以使用 PNG/JPG 作为图章背景。如果保留文本，它将作为水印绘制在其上。",
   "Puerto:": "端口：",
@@ -1449,7 +1449,7 @@
   "Qué está pasando: %1": "当前情况：%1",
   "Qué hacer ahora: %1": "现在该怎么做：%1",
   "Qué incluirá la incidencia": "事件将包含的内容",
-  "Qué puede hacer por ti ahora": "现在能为你做什么",
+  "Qué puede hacer por ti ahora": "现在能为您做什么",
   "RED Y SEGURIDAD": "网络与安全",
   "REST local": "本地 REST",
   "REST: ": "REST：",
@@ -1502,8 +1502,8 @@
   "Resultado rápido": "快速结果",
   "Resultado visible": "可见结果",
   "Resultados del lote": "批次结果",
-  "Resume el contexto actual para soporte sin obligarte a revisar el log técnico completo.": "在不强迫你查看完整技术日志的情况下，为支持人员总结当前上下文。",
-  "Resume qué querías hacer y en qué paso te has quedado.": "简要说明你想做什么，以及停在了哪一步。",
+  "Resume el contexto actual para soporte sin obligarte a revisar el log técnico completo.": "在不强迫您查看完整技术日志的情况下，为支持人员总结当前上下文。",
+  "Resume qué querías hacer y en qué paso te has quedado.": "简要说明您想做什么，以及停在了哪一步。",
   "Resumen amigable": "简要摘要",
   "Resumen amigable: %1": "简要摘要：%1",
   "Resumen de incidencia": "事件摘要",
@@ -1673,8 +1673,8 @@
   "Si activas el modo residente, al cerrar la ventana se ocultará a la bandeja y la sesión seguirá viva.": "如果启用常驻模式，关闭窗口时将隐藏到托盘，会话保持有效。",
   "Si el fallo depende de un servicio externo, documenta la incidencia y reintenta más tarde.": "如果故障依赖外部服务，请记录该事件并稍后重试。",
   "Si el formato y la operacion aprovechan un original de referencia, se usara automaticamente cuando este disponible.": "如果格式和操作可利用参考原件，则在可用时将自动使用。",
-  "Si estás en modo experto, añade detalles técnicos útiles para soporte.": "如果你处于专家模式，请补充对支持有帮助的技术细节。",
-  "Si hace falta, importa tu certificado o abre el gestor de certificados.": "如有需要，请导入你的证书或打开证书管理器。",
+  "Si estás en modo experto, añade detalles técnicos útiles para soporte.": "如果您处于专家模式，请补充对支持有帮助的技术细节。",
+  "Si hace falta, importa tu certificado o abre el gestor de certificados.": "如有需要，请导入您的证书或打开证书管理器。",
   "Si hace falta, importa un P12 o abre el gestor de certificados.": "如有需要，请导入 P12 或打开证书管理器。",
   "Si indicas una ruta local, el firmador usará el backend sobre ese fichero sin necesidad de subirlo al navegador.": "如果指定本地路径，签名器将通过后端直接处理该文件，无需上传到浏览器。",
   "Si no eliges un formato manualmente, esta preferencia se usará al preparar la firma.": "如果您不手动选择格式，准备签名时将使用此首选项。",
@@ -1756,7 +1756,7 @@
   "TEMA VISUAL": "视觉主题",
   "TRAZA DE LA OPERACIÓN": "操作跟踪",
   "TRAZA DEL SISTEMA (redactada)": "系统跟踪（已脱敏）",
-  "Te deja en la validación lista para seleccionar el fichero.": "让你回到验证页面，可直接选择文件。",
+  "Te deja en la validación lista para seleccionar el fichero.": "让您回到验证页面，可直接选择文件。",
   "Te lleva a la pestaña de firma.": "前往签名选项卡。",
   "Te lleva a la pestaña de validación.": "前往验证选项卡。",
   "Te lleva a la validación para revisar el problema.": "前往验证页面查看该问题。",
@@ -1777,7 +1777,7 @@
   "Todas las páginas": "所有页面",
   "Todas las páginas por defecto en firma visible": "可见签名默认应用于所有页面",
   "Todavía no está claro dónde está el problema.": "目前还不清楚问题出在哪里。",
-  "Todavía no está claro si depende de tu equipo o de un servicio externo.": "目前尚不清楚这是取决于你的设备还是外部服务。",
+  "Todavía no está claro si depende de tu equipo o de un servicio externo.": "目前尚不清楚这是取决于您的设备还是外部服务。",
   "Todavía no hay una razón de validación disponible. Ejecuta la validación para obtener contexto.": "暂无可用的验证原因。请执行验证以获取更多信息。",
   "Todavía no se ha lanzado la comprobación online.": "尚未启动在线检查。",
   "Todo listo para firmar con la configuración actual.": "当前配置已准备好进行签名。",
@@ -2059,13 +2059,13 @@
   "guidedAssistantReadyHelp": "guidedAssistantReadyHelp",
   "guidedAssistantTitle": "guidedAssistantTitle",
   "height": "height",
-  "help.certs.body": "右侧面板显示可用证书。你可以查看其详细信息、检查有效性，并根据流程将其用于签名或身份验证。如果未显示任何证书，可以仅在当前会话中使用 P12/PFX，或明确将其导入系统或浏览器证书库。",
+  "help.certs.body": "右侧面板显示可用证书。您可以查看其详细信息、检查有效性，并根据流程将其用于签名或身份验证。如果未显示任何证书，可以仅在当前会话中使用 P12/PFX，或明确将其导入系统或浏览器证书库。",
   "help.certs.title": "证书",
-  "help.more.body": "对于高级操作，你还可以使用本地网页控制台和 GrxFirma 命令行。",
+  "help.more.body": "对于高级操作，您还可以使用本地网页控制台和 GrxFirma 命令行。",
   "help.more.title": "更多信息",
-  "help.security.body": "始终检查请求签名或证书的网站。不要确认任何你未预期的操作。仅在必要时使用常驻模式和网页兼容模式。",
+  "help.security.body": "始终检查请求签名或证书的网站。不要确认任何您未预期的操作。仅在必要时使用常驻模式和网页兼容模式。",
   "help.security.title": "安全",
-  "help.sign.body": "使用“签名”选项卡可以签署单个文件、多个文件或整个文件夹。对于 PAdES 格式的 PDF，可以启用可见签章、旋转、二维码、元数据以及指定页面或全部页面。你可以保持选择器打开或从容调整签章位置：已连接通道允许最长 30 分钟无操作。",
+  "help.sign.body": "使用“签名”选项卡可以签署单个文件、多个文件或整个文件夹。对于 PAdES 格式的 PDF，可以启用可见签章、旋转、二维码、元数据以及指定页面或全部页面。您可以保持选择器打开或从容调整签章位置：已连接通道允许最长 30 分钟无操作。",
   "help.sign.title": "签署文档",
   "help.subtitle": "应用程序快速使用指南。",
   "help.title": "GrxFirma 帮助",
@@ -2817,7 +2817,7 @@
   ,"verify.forced_trust.error.unavailable": "此选项仅在命令行和桌面应用中提供。"
   ,"verify.forced_trust.error.not_offered": "只能接受 GrxFirma 刚才在验证签名时显示的内容。请重新验证。"
   ,"verify.forced_trust.cli.hint_command": "阅读警告后，在此计算机上接受："
-  ,"verify.forced_trust.cli.list_empty": "你尚未在此计算机上接受任何内容。"
+  ,"verify.forced_trust.cli.list_empty": "您尚未在此计算机上接受任何内容。"
   ,"verify.forced_trust.cli.type": "情况"
   ,"verify.forced_trust.cli.subject": "证书"
   ,"verify.forced_trust.cli.fingerprint": "SHA-256 指纹"
@@ -2837,7 +2837,7 @@
   ,"verify.forced_trust.cli.accepted": "已接受。可用 -quitar-confianza-aceptada 移除。"
   ,"verify.forced_trust.cli.not_found": "没有与该情况和指纹对应的已接受项。"
   ,"verify.forced_trust.cli.removed": "已移除。这些签名将再次显示为无效。"
-  ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    即使 GrxFirma 不认为有效、你仍在此计算机上接受的签名：未知 CA、短 RSA 密钥、服务器证书、未检查的吊销状态或 SHA-1。\n    -aceptar-confianza -entrada <签名> [-tipo-confianza <情况>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <情况> [-huella <sha256>]"
+  ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    即使 GrxFirma 不认为有效、您仍在此计算机上接受的签名：未知 CA、短 RSA 密钥、服务器证书、未检查的吊销状态或 SHA-1。\n    -aceptar-confianza -entrada <签名> [-tipo-confianza <情况>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <情况> [-huella <sha256>]"
   ,"cli.help.web_signing_program": "  -web-signing-program | -set-web-signing-program <grxfirma|autofirma|preguntar>\n    打开网站所请求签名（afirma:// 链接）的程序。选择 \"preguntar\" 时，GrxFirma 在每次签名时询问；需要已安装 AutoFirma。如由计算机策略设定，则无法更改。"
   ,"cli.web_signing.autofirma_at": "AutoFirma 安装位置：%s"
   ,"cli.web_signing.autofirma_missing": "此电脑未安装 AutoFirma；只能选择 GrxFirma。"
@@ -4046,29 +4046,29 @@
   ,"Se reforzó la lectura de PDF cifrados o dañados para evitar cierres inesperados.": "强化了对加密或损坏 PDF 的读取，避免应用意外关闭。"
   ,"Próxima versión (sin publicar)": "下一版本（未发布）"
   ,"Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.": "从网页签名（afirma://）时，证书选择器不再显示“记住此选择”。该复选框原本没有任何作用：从网页签名时，GrxFirma 每次都会询问证书，与以前相同。"
-  ,"Al verificar, ahora se puede aceptar en su equipo una firma que GrxFirma no da por válida solo por uno de estos motivos: la autoridad del certificado no es conocida, la clave RSA tiene menos de 2048 bits, es un certificado de servidor, no se pudo comprobar la revocación o la firma usa SHA-1. En la aplicación de escritorio aparece el botón «Aceptar en este equipo», que muestra un aviso antes de guardar nada; en la línea de órdenes, -aceptar-confianza. Desde entonces esas firmas salen válidas con el aviso «Se da por válida porque lo aceptó en la configuración». Lo aceptado se quita en Configuración o con -quitar-confianza-aceptada. Las webs no pueden aceptar nada por usted, y un administrador puede impedirlo con la política prohibir_confianza_forzada.": "验证时，现在可以在你的计算机上接受 GrxFirma 仅因以下某一原因而不视为有效的签名：证书颁发机构未知、RSA 密钥短于 2048 位、属于服务器证书、无法检查吊销状态，或签名使用 SHA-1。桌面应用会显示“在此计算机上接受”按钮，在保存任何内容之前先显示警告；在命令行中使用 -aceptar-confianza。此后这些签名会显示为有效，并附带警告“视为有效，因为你已在设置中接受”。已接受的内容可在“设置”中或使用 -quitar-confianza-aceptada 移除。网站无法替你接受任何内容，管理员可以通过 prohibir_confianza_forzada 策略禁止此功能。"
-  ,"Sin conexión a internet, algunas firmas que antes salían válidas ahora salen «no concluyente», porque GrxFirma no puede comprobar si el certificado está revocado. Puede aceptar ese caso en su equipo como se explica en el punto anterior.": "没有互联网连接时，一些以前显示有效的签名现在会显示为“无法确定”，因为 GrxFirma 无法检查证书是否已被吊销。你可以按上一条的说明在你的计算机上接受这种情况。"
-  ,"Los registros Veri*Factu firmados con SHA-1 se comprueban: si no han cambiado, el aviso dice que la firma usa SHA-1 en lugar de decir que no es del tipo que exige la AEAT. Si acepta SHA-1 en su equipo, salen válidos con un aviso.": "使用 SHA-1 签名的 Veri*Factu 记录现在会被检查：如果记录未被修改，提示会说明签名使用 SHA-1，而不再说签名不是 AEAT 要求的类型。如果你在计算机上接受 SHA-1，这些记录会显示为有效并附带警告。"
-  ,"Si la CRL que publica la autoridad no cubre el certificado firmante, la firma longeva (LT) se sigue creando con esa CRL y GrxFirma le avisa al firmar. Al verificarla, la revocación sale como no comprobada.": "如果颁发机构发布的 CRL 不覆盖签名证书，长期签名 (LT) 仍会使用该 CRL 创建，GrxFirma 会在签名时提醒你。验证时，吊销状态会显示为未检查。"
+  ,"Al verificar, ahora se puede aceptar en su equipo una firma que GrxFirma no da por válida solo por uno de estos motivos: la autoridad del certificado no es conocida, la clave RSA tiene menos de 2048 bits, es un certificado de servidor, no se pudo comprobar la revocación o la firma usa SHA-1. En la aplicación de escritorio aparece el botón «Aceptar en este equipo», que muestra un aviso antes de guardar nada; en la línea de órdenes, -aceptar-confianza. Desde entonces esas firmas salen válidas con el aviso «Se da por válida porque lo aceptó en la configuración». Lo aceptado se quita en Configuración o con -quitar-confianza-aceptada. Las webs no pueden aceptar nada por usted, y un administrador puede impedirlo con la política prohibir_confianza_forzada.": "验证时，现在可以在您的计算机上接受 GrxFirma 仅因以下某一原因而不视为有效的签名：证书颁发机构未知、RSA 密钥短于 2048 位、属于服务器证书、无法检查吊销状态，或签名使用 SHA-1。桌面应用会显示“在此计算机上接受”按钮，在保存任何内容之前先显示警告；在命令行中使用 -aceptar-confianza。此后这些签名会显示为有效，并附带警告“视为有效，因为您已在设置中接受”。已接受的内容可在“设置”中或使用 -quitar-confianza-aceptada 移除。网站无法替您接受任何内容，管理员可以通过 prohibir_confianza_forzada 策略禁止此功能。"
+  ,"Sin conexión a internet, algunas firmas que antes salían válidas ahora salen «no concluyente», porque GrxFirma no puede comprobar si el certificado está revocado. Puede aceptar ese caso en su equipo como se explica en el punto anterior.": "没有互联网连接时，一些以前显示有效的签名现在会显示为“无法确定”，因为 GrxFirma 无法检查证书是否已被吊销。您可以按上一条的说明在您的计算机上接受这种情况。"
+  ,"Los registros Veri*Factu firmados con SHA-1 se comprueban: si no han cambiado, el aviso dice que la firma usa SHA-1 en lugar de decir que no es del tipo que exige la AEAT. Si acepta SHA-1 en su equipo, salen válidos con un aviso.": "使用 SHA-1 签名的 Veri*Factu 记录现在会被检查：如果记录未被修改，提示会说明签名使用 SHA-1，而不再说签名不是 AEAT 要求的类型。如果您在计算机上接受 SHA-1，这些记录会显示为有效并附带警告。"
+  ,"Si la CRL que publica la autoridad no cubre el certificado firmante, la firma longeva (LT) se sigue creando con esa CRL y GrxFirma le avisa al firmar. Al verificarla, la revocación sale como no comprobada.": "如果颁发机构发布的 CRL 不覆盖签名证书，长期签名 (LT) 仍会使用该 CRL 创建，GrxFirma 会在签名时提醒您。验证时，吊销状态会显示为未检查。"
   ,"GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva prohibir_cifrado_cms_heredado. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.": "GrxFirma 重新支持打开使用 DES 或 3DES 等旧算法加密的文件（CMS 信封）。打开时会提示该加密已不再被视为安全；管理员可通过 prohibir_cifrado_cms_heredado 策略禁止此行为。该提示也会显示在应用程序、命令行和 REST 控制台中。"
   ,"Los archivos .afp que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.": "此版本保护的 .afp 文件也可以用旧版 GrxFirma 打开。如明确要求，仍可使用较新的格式。"
   ,"Al firmar desde una web (afirma://), la ventana de aprobación dice qué web lo pide, qué documentos se firman y a qué servidores irá la firma. Avisa también si la web usa un sistema antiguo que no identifica la sesión, si algún servidor usa una conexión sin cifrar (http) o si el servidor de la web puede pedir varias firmas con una sola confirmación. «Confiar esta vez» vale durante cinco minutos, y si un portal abre varias peticiones a la vez se pregunta una sola vez. El lote que pide una web pasa por el selector de certificado, y el servidor de la web solo puede redirigir a otro servidor autorizado, nunca de https a http.": "从网站签名 (afirma://) 时，批准窗口会显示是哪个网站发起的请求、要签署哪些文档以及签名会发送到哪些服务器。如果网站使用不识别会话的旧系统、某个服务器使用未加密的连接 (http)，或者网站的服务器可以凭一次确认要求多个签名，窗口也会提醒你。“这次信任”在五分钟内有效；如果某个门户同时发起多个请求，只会询问一次。网站请求的批量签名会经过证书选择器，网站的服务器只能重定向到另一个已授权的服务器，且绝不能从 https 转到 http。"
-  ,"Cuando una web pide guardar un fichero, los tipos habituales (PDF, XML, firmas, ZIP o texto) se guardan como siempre. Para los demás, GrxFirma pide confirmación y, si el tipo puede llevar macros o código que se ejecuta al abrirlo (por ejemplo .docm, .xlsm, .iso o .chm), se lo advierte. Los ejecutables (.exe, .bat, .js…) siguen sin guardarse. En Windows, lo guardado queda marcado como descargado de internet.": "网站请求保存文件时，常见类型（PDF、XML、签名、ZIP 或文本）照常保存。对于其他类型，GrxFirma 会请求确认；如果该类型可能带有打开时就会运行的宏或代码（例如 .docm、.xlsm、.iso 或 .chm），还会提醒你。可执行文件（.exe、.bat、.js…）仍然不会保存。在 Windows 上，保存的文件会被标记为从互联网下载。"
-  ,"Al cofirmar o contrafirmar una firma CAdES que no lleva dentro el documento, la aplicación de escritorio pregunta antes. Puede elegir el documento original, y GrxFirma comprueba que es el que firmaron los demás, o bien firmar de todos modos o cancelar; la respuesta vale solo para ese intento. En Android, la firma pide el original con «Añadir el documento original» y el lote pide confirmación antes de cofirmar sin ver los documentos. La línea de órdenes firma como antes, con un aviso. Si aporta el original, también se pueden cofirmar firmas antiguas hechas solo con SHA-1.": "对不包含文档本身的 CAdES 签名进行联签或副署时，桌面应用会先询问你。你可以选择原始文档，GrxFirma 会检查它是否就是其他人签署的那份；也可以仍然签名，或者取消。这个回答只对本次尝试有效。在 Android 上，签名会通过“添加原始文档”要求提供原件；批量签名在不查看文档就联签之前会请求确认。命令行照旧签名，并给出提醒。如果你提供原件，也可以联签仅使用 SHA-1 的旧签名。"
+  ,"Cuando una web pide guardar un fichero, los tipos habituales (PDF, XML, firmas, ZIP o texto) se guardan como siempre. Para los demás, GrxFirma pide confirmación y, si el tipo puede llevar macros o código que se ejecuta al abrirlo (por ejemplo .docm, .xlsm, .iso o .chm), se lo advierte. Los ejecutables (.exe, .bat, .js…) siguen sin guardarse. En Windows, lo guardado queda marcado como descargado de internet.": "网站请求保存文件时，常见类型（PDF、XML、签名、ZIP 或文本）照常保存。对于其他类型，GrxFirma 会请求确认；如果该类型可能带有打开时就会运行的宏或代码（例如 .docm、.xlsm、.iso 或 .chm），还会提醒您。可执行文件（.exe、.bat、.js…）仍然不会保存。在 Windows 上，保存的文件会被标记为从互联网下载。"
+  ,"Al cofirmar o contrafirmar una firma CAdES que no lleva dentro el documento, la aplicación de escritorio pregunta antes. Puede elegir el documento original, y GrxFirma comprueba que es el que firmaron los demás, o bien firmar de todos modos o cancelar; la respuesta vale solo para ese intento. En Android, la firma pide el original con «Añadir el documento original» y el lote pide confirmación antes de cofirmar sin ver los documentos. La línea de órdenes firma como antes, con un aviso. Si aporta el original, también se pueden cofirmar firmas antiguas hechas solo con SHA-1.": "对不包含文档本身的 CAdES 签名进行联签或副署时，桌面应用会先询问您。您可以选择原始文档，GrxFirma 会检查它是否就是其他人签署的那份；也可以仍然签名，或者取消。这个回答只对本次尝试有效。在 Android 上，签名会通过“添加原始文档”要求提供原件；批量签名在不查看文档就联签之前会请求确认。命令行照旧签名，并给出提醒。如果您提供原件，也可以联签仅使用 SHA-1 的旧签名。"
   ,"Después de firmar, la aplicación de escritorio, Android, la línea de órdenes y la consola REST muestran los avisos de la firma, como el de haber cofirmado sin el documento original. En un lote, cada documento enseña los suyos.": "签名后，桌面应用、Android、命令行和 REST 控制台都会显示该签名的提醒，例如在没有原始文档的情况下进行了联签。在批量签名中，每个文档显示各自的提醒。"
   ,"Ahora se pueden verificar firmas que antes daban error: CAdES separadas sin el documento (se comprueba el resto y se pide el original para el contenido), CMS en codificación BER, XAdES-T con el sello de tiempo en XML, PDF firmados con los formatos antiguos adbe.x509.rsa_sha1 y adbe.pkcs7.sha1, FacturaE 3.0, 3.1 y 3.2, documentos ENI con firma XAdES y firmas XML de versiones anteriores de GrxFirma, que salen como compatibilidad histórica con un aviso. Si una XAdES apunta a documentos de fuera del fichero, esa parte queda sin comprobar, porque GrxFirma no descarga nada.": "以前会报错的签名现在可以验证了：不含文档的分离式 CAdES（会检查其余部分，并要求提供原件以检查内容）、BER 编码的 CMS、带 XML 时间戳的 XAdES-T、使用旧格式 adbe.x509.rsa_sha1 和 adbe.pkcs7.sha1 签名的 PDF、FacturaE 3.0、3.1 和 3.2、带 XAdES 签名的 ENI 文档，以及旧版 GrxFirma 生成的 XML 签名（显示为历史兼容，并附提醒）。如果 XAdES 签名指向文件之外的文档，这部分不会检查，因为 GrxFirma 不会下载任何内容。"
-  ,"Las firmas con SHA-1 se tratan igual en todos los formatos (XAdES, CAdES, PAdES, Office, OpenDocument y FacturaE): si no han cambiado, salen íntegras pero no válidas, con un aviso que da el algoritmo como motivo. El informe HTML para imprimir lo dice igual y sale entero en su idioma.": "所有格式（XAdES、CAdES、PAdES、Office、OpenDocument 和 FacturaE）中的 SHA-1 签名现在处理方式相同：如果没有被改动，会显示为完整但无效，并附带提醒，说明原因在于算法。可打印的 HTML 报告也这样说明，并且完全以你的语言显示。"
+  ,"Las firmas con SHA-1 se tratan igual en todos los formatos (XAdES, CAdES, PAdES, Office, OpenDocument y FacturaE): si no han cambiado, salen íntegras pero no válidas, con un aviso que da el algoritmo como motivo. El informe HTML para imprimir lo dice igual y sale entero en su idioma.": "所有格式（XAdES、CAdES、PAdES、Office、OpenDocument 和 FacturaE）中的 SHA-1 签名现在处理方式相同：如果没有被改动，会显示为完整但无效，并附带提醒，说明原因在于算法。可打印的 HTML 报告也这样说明，并且完全以您的语言显示。"
   ,"La verificación es más estricta. Una firma XML, de Office o de OpenDocument que cubre solo una parte del documento ya no sale como completa, y se dice qué queda fuera; los metadatos que Office y el ENI dejan fuera de la firma por norma aparecen en un aviso. Un PDF con una firma que GrxFirma no sabe comprobar ya no sale válido. Si un sello de tiempo no se puede comprobar, su fecha aparece como «fecha que declara un sello de tiempo que no se ha podido comprobar» y no salva un certificado caducado.": "验证更加严格。只覆盖文档一部分的 XML、Office 或 OpenDocument 签名不再显示为完整，并会说明哪些部分未被覆盖；Office 和 ENI 按规范排除在签名之外的元数据会出现在提醒中。如果 PDF 中有 GrxFirma 无法检查的签名，该 PDF 不再显示为有效。如果时间戳无法验证，其时间会显示为“时间戳声明的时间（无法验证该时间戳）”，并且不能挽救已过期的证书。"
   ,"Al crear un documento ENI a partir de una firma, GrxFirma comprueba que la firma corresponde al documento y rechaza la que no corresponde. Si corresponde pero usa SHA-1, el documento se crea con un aviso; un administrador puede impedirlo poniendo la directiva permitir_sha1_legacy en «Deshabilitada».": "根据签名创建 ENI 文档时，GrxFirma 会检查签名是否与文档对应，不对应的会被拒绝。如果对应但使用 SHA-1，文档会在附带提醒的情况下创建；管理员可以将策略 permitir_sha1_legacy 设为“已禁用”来阻止这种情况。"
-  ,"Archivos cifrados: un sobre CMS dirigido también a destinatarios de un tipo que GrxFirma no admite se abre con su certificado y un aviso. Al desproteger, GrxFirma limpia el nombre que puso el remitente: si la extensión no es de un documento, el fichero se guarda como .bin y, al abrirlo, se abre su carpeta en lugar del fichero. La clave del perfil de protección «alto» pasa al almacén de secretos del sistema la primera vez que se usa. Si el equipo no tiene ese almacén, el perfil alto sigue funcionando con la clave guardada en un fichero de este equipo, y GrxFirma le avisa al abrir un archivo protegido con esa clave.": "加密文件：如果 CMS 信封同时发给了 GrxFirma 不支持的类型的收件人，现在会用你的证书打开，并附带提醒。解除保护时，GrxFirma 会清理发件人设置的文件名：如果扩展名不属于文档，文件会保存为 .bin，打开时会打开其所在文件夹而不是文件本身。“高”保护配置的密钥会在第一次使用时移入系统的密钥存储。如果计算机没有这种存储，“高”配置仍可使用，密钥保存在这台计算机上的一个文件中，打开用该密钥保护的文件时，GrxFirma 会提醒你。"
-  ,"Firma con certificado remoto (CSC): el cuadro del PIN dice a qué servicio se envían el PIN y el código, y la línea de órdenes también lo dice. La firma remota solo funciona desde la aplicación que arrancó el motor de firma. Si arranca el motor a mano con --server sin --ipc-client-pid, funciona con un aviso y firma con los certificados del equipo, pero sin firma remota. Si el prestador no indica cuándo caduca el acceso, caduca a las 24 horas.": "使用远程证书签名 (CSC)：PIN 对话框会显示 PIN 和验证码发送到哪个服务，命令行也会显示。远程签名只能在启动签名引擎的那个应用中使用。如果你手动用 --server 且不带 --ipc-client-pid 启动引擎，它会带着提醒运行，并能用本机证书签名，但不能进行远程签名。如果服务提供方没有说明访问何时过期，访问会在 24 小时后过期。"
+  ,"Archivos cifrados: un sobre CMS dirigido también a destinatarios de un tipo que GrxFirma no admite se abre con su certificado y un aviso. Al desproteger, GrxFirma limpia el nombre que puso el remitente: si la extensión no es de un documento, el fichero se guarda como .bin y, al abrirlo, se abre su carpeta en lugar del fichero. La clave del perfil de protección «alto» pasa al almacén de secretos del sistema la primera vez que se usa. Si el equipo no tiene ese almacén, el perfil alto sigue funcionando con la clave guardada en un fichero de este equipo, y GrxFirma le avisa al abrir un archivo protegido con esa clave.": "加密文件：如果 CMS 信封同时发给了 GrxFirma 不支持的类型的收件人，现在会用您的证书打开，并附带提醒。解除保护时，GrxFirma 会清理发件人设置的文件名：如果扩展名不属于文档，文件会保存为 .bin，打开时会打开其所在文件夹而不是文件本身。“高”保护配置的密钥会在第一次使用时移入系统的密钥存储。如果计算机没有这种存储，“高”配置仍可使用，密钥保存在这台计算机上的一个文件中，打开用该密钥保护的文件时，GrxFirma 会提醒您。"
+  ,"Firma con certificado remoto (CSC): el cuadro del PIN dice a qué servicio se envían el PIN y el código, y la línea de órdenes también lo dice. La firma remota solo funciona desde la aplicación que arrancó el motor de firma. Si arranca el motor a mano con --server sin --ipc-client-pid, funciona con un aviso y firma con los certificados del equipo, pero sin firma remota. Si el prestador no indica cuándo caduca el acceso, caduca a las 24 horas.": "使用远程证书签名 (CSC)：PIN 对话框会显示 PIN 和验证码发送到哪个服务，命令行也会显示。远程签名只能在启动签名引擎的那个应用中使用。如果您手动用 --server 且不带 --ipc-client-pid 启动引擎，它会带着提醒运行，并能用本机证书签名，但不能进行远程签名。如果服务提供方没有说明访问何时过期，访问会在 24 小时后过期。"
   ,"Línea de órdenes: al verificar, el programa termina con el código 2 si la firma no es válida, con 0 si es válida y con 1 si no se pudo comprobar. Las preguntas de sí o no salen en el idioma elegido y aceptan su respuesta, por ejemplo «o» en francés, «j» en alemán o «b» en euskera. Si el fichero de salida es un enlace simbólico, la orden falla en vez de escribir en el destino del enlace.": "命令行：验证时，如果签名无效，程序以代码 2 退出；有效时以 0 退出；无法检查时以 1 退出。是/否问题会以所选语言显示，并接受该语言的回答，例如法语的“o”、德语的“j”或巴斯克语的“b”。如果输出文件是符号链接，命令会失败，而不会写入链接指向的目标。"
   ,"Consola REST: el firmador web pide el token de acceso (Bearer), igual que la consola, y ninguno de los dos muestra ya los campos de ruta de fichero, que el servidor no aceptaba. El inicio de sesión con certificado rechaza las peticiones que llegan de otras webs. El certificado local del servidor se renueva solo antes de caducar, y las respuestas de firma llevan los avisos.": "REST 控制台：网页签名器现在和控制台一样要求输入访问令牌 (Bearer)，两者都不再显示服务器本来就不接受的文件路径字段。证书登录会拒绝来自其他网站的请求。服务器的本地证书会在过期前自动续期，签名响应中也会包含提醒。"
   ,"Para administradores: la directiva nueva firma_remota_csc_servicios_permitidos limita los prestadores de firma remota a los que se puede conectar. Las webs ya no pueden usar una autoridad de sellado de tiempo (TSA) de la red interna salvo que figure en la directiva nueva tsa_permitidas; en la consola REST, si la lista existe, solo valen las que figuran en ella. Las dos están en la plantilla ADMX. aprobacion_automatica_nativehost vale ya solo para la extensión oficial. Un ajuste mal escrito en la política de máquina solo anula ese ajuste y, si es de los que limitan (REST, WebSocket o confianza al primer uso), lo deja desactivado. Si el fichero de política existe pero no se puede leer, se desactivan REST, WebSocket y la firma remota.": "管理员须知：新策略 firma_remota_csc_servicios_permitidos 用于限制可以连接的远程签名服务提供方。网站不能再使用内部网络中的时间戳服务 (TSA)，除非它列在新策略 tsa_permitidas 中；在 REST 控制台中，如果该列表存在，只允许列表中的服务。这两项策略都已加入 ADMX 模板。aprobacion_automatica_nativehost 现在只对官方扩展生效。机器策略中写错的设置只会让该项失效；如果它属于限制类设置（REST、WebSocket 或首次使用即信任），则会被关闭。如果策略文件存在但无法读取，REST、WebSocket 和远程签名都会被关闭。"
-  ,"Al instalar en Windows o en Linux, GrxFirma avisa de que los enlaces afirma:// se abrirán con GrxFirma en lugar de AutoFirma, salvo que en Configuración elija AutoFirma. En Linux, al desinstalar vuelve el programa que abría esos enlaces antes, si no lo ha cambiado usted. En macOS, el desinstalador quita del llavero el certificado local de GrxFirma.": "在 Windows 或 Linux 上安装时，GrxFirma 会提醒：afirma:// 链接将由 GrxFirma 而不是 AutoFirma 打开，除非你在“设置”中选择 AutoFirma。在 Linux 上卸载时，如果你没有自行更改，之前打开这些链接的程序会恢复。在 macOS 上，卸载程序会从钥匙串中删除 GrxFirma 的本地证书。"
+  ,"Al instalar en Windows o en Linux, GrxFirma avisa de que los enlaces afirma:// se abrirán con GrxFirma en lugar de AutoFirma, salvo que en Configuración elija AutoFirma. En Linux, al desinstalar vuelve el programa que abría esos enlaces antes, si no lo ha cambiado usted. En macOS, el desinstalador quita del llavero el certificado local de GrxFirma.": "在 Windows 或 Linux 上安装时，GrxFirma 会提醒：afirma:// 链接将由 GrxFirma 而不是 AutoFirma 打开，除非您在“设置”中选择 AutoFirma。在 Linux 上卸载时，如果您没有自行更改，之前打开这些链接的程序会恢复。在 macOS 上，卸载程序会从钥匙串中删除 GrxFirma 的本地证书。"
   ,"Si tiene AutoFirma instalado, en Configuración, «Programa para firmar en las webs», elige con qué programa firmar cuando una web lo pide: GrxFirma, AutoFirma o «Preguntar cada vez». Con esta última, GrxFirma le pregunta en cada firma y puede recordar su respuesta. El instalador pregunta lo mismo si encuentra AutoFirma, y la instalación silenciosa mantiene lo que había. Los administradores pueden fijarlo con /AFIRMA= en Windows, --afirma-handler= en Linux o la directiva manejador_afirma. GrxFirma encuentra ahora AutoFirma aunque se instalara solo para su usuario o con otro nombre de lanzador; antes, en esos casos, el ajuste decía que AutoFirma no estaba instalado.": "如果您安装了 AutoFirma，可以在“设置”的“在网站上签名使用的程序”中选择网站要求签名时使用哪个程序：GrxFirma、AutoFirma 或“每次询问”。选择最后一项时，GrxFirma 会在每次签名时询问您，并可记住您的回答。安装程序在找到 AutoFirma 时也会这样询问，静默安装则保留原有设置。管理员可以在 Windows 上用 /AFIRMA=、在 Linux 上用 --afirma-handler= 或通过 manejador_afirma 策略来固定该设置。现在即使 AutoFirma 只为您的用户安装或使用了其他启动器名称，GrxFirma 也能找到它；以前在这些情况下，该设置会显示 AutoFirma 未安装。"
   ,"Más seguridad: la aplicación de escritorio Qt muestra como texto, sin interpretar marcado, los nombres de documentos, certificados y servidores, y el motor de firma que arranca se cierra con ella aunque la aplicación termine de forma inesperada. En Android, un documento dañado ya no cierra la aplicación: sale un error. La línea de órdenes, la consola REST y la extensión guardan ahora el registro de auditoría, que conserva 90 días.": "更安全：Qt 桌面应用会把文档、证书和服务器的名称作为纯文本显示，不解析标记；它启动的签名引擎会随应用一起关闭，即使应用意外终止也是如此。在 Android 上，损坏的文档不再导致应用关闭，而是显示错误。命令行、REST 控制台和扩展现在都会保存审计日志，保留 90 天。"
-  ,"En Android, al seleccionar un documento se ven los primeros caracteres de su huella SHA-256. Si la app de la que viene lo cambia antes de firmar, GrxFirma no lo firma y le pide que lo vuelva a seleccionar. En un lote, el fichero que ha cambiado sale como no firmado y el resto se firma.": "在 Android 上，选择文档时会显示其 SHA-256 指纹的前几个字符。如果文档来源的应用在签名前更改了它，GrxFirma 不会签名，并会请你重新选择。在批量签名中，已更改的文件显示为未签名，其余文件照常签名。"
+  ,"En Android, al seleccionar un documento se ven los primeros caracteres de su huella SHA-256. Si la app de la que viene lo cambia antes de firmar, GrxFirma no lo firma y le pide que lo vuelva a seleccionar. En un lote, el fichero que ha cambiado sale como no firmado y el resto se firma.": "在 Android 上，选择文档时会显示其 SHA-256 指纹的前几个字符。如果文档来源的应用在签名前更改了它，GrxFirma 不会签名，并会请您重新选择。在批量签名中，已更改的文件显示为未签名，其余文件照常签名。"
   ,"Si el nombre de un certificado o de su emisor lleva caracteres invisibles que cambian cómo se lee, como los que invierten el orden del texto, la aplicación de escritorio y la línea de órdenes los muestran como «?».": "如果证书或其颁发者的名称中含有会改变阅读方式的不可见字符（例如反转文字方向的字符），桌面应用和命令行会将其显示为“?”。"
   ,"Histórico: nombre anterior AutoFirmaV2, versiones 2.0.x": "历史：原名 AutoFirmaV2，2.0.x 版本"
   ,"Contenido de firma": "签名内容"
@@ -4950,7 +4950,7 @@
   ,"validacion.proxy.puerto": "代理端口必须介于 1 和 65535 之间。"
   ,"Toda la aplicación aparece en el idioma elegido: se han traducido más de mil textos que seguían en español o en inglés en los diez idiomas disponibles.": "整个应用程序以所选语言显示：一千多条仍为西班牙语或英语的文本已翻译成全部十种可用语言。"
   ,"Windows: al cambiar de idioma en Configuración cambian también los textos fijos de todas las pantallas.": "Windows：在设置中切换语言时，所有界面上的固定文本也会随之切换。"
-  ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma le lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "如果某个字段有错误，它会以红色标出并在下方显示原因；签名或保存时，GrxFirma 会带你到该字段。诊断和助手提供“更正”按钮，可直接跳转。适用于 Windows 和 Linux。"
+  ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma le lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "如果某个字段有错误，它会以红色标出并在下方显示原因；签名或保存时，GrxFirma 会带您到该字段。诊断和助手提供“更正”按钮，可直接跳转。适用于 Windows 和 Linux。"
   ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "CSV 图例：每个问题都有单独的提示（缺少代码、URL 无效……），地址也可以不带 https:// 输入。"
   ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows：现在接受 http:// 地址的时间戳服务器（例如 FNMT 的服务器），与 Linux 和 AutoFirma Java 一致。",
   "eni.validacion.dir3": "请输入一个或多个 DIR3 代码（一个大写字母和八位数字），以逗号分隔。示例：L01180877。",
@@ -5071,7 +5071,7 @@
   ,"verifactu.qr_technical": "查看技术响应"
   ,"verifactu.qr_technical_hide": "隐藏技术响应"
   ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu：按 AEAT 要求的格式为开票程序提供的开票记录签名，并检查已签名的记录：链式哈希、签名和结构。GrxFirma 不生成、不保存也不发送记录。"
-  ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pide, la coteja con el servicio público de la AEAT.": "Veri*Factu：读取发票税务二维码的 URL 并显示其数据；仅在你要求时，才通过 AEAT 公共服务进行核对。"
+  ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pide, la coteja con el servicio público de la AEAT.": "Veri*Factu：读取发票税务二维码的 URL 并显示其数据；仅在您要求时，才通过 AEAT 公共服务进行核对。"
   ,"Sello visible: con «Dibujar área» marca su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "可见印章：使用“绘制区域”，在页面上拖动即可设定其位置和大小，与 AutoFirma 相同。也可用键盘操作。适用于 Windows 和 Linux，以及门户网站打开的编辑器。"
   ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android：联合签名和反签名、带时间戳的签名配置、签名后自动验证、可导出报告的详细验证、带独立选择器的十一种语言，以及“关于”页面。"
   ,"csc.help": "CSC 远程签名（原型，默认关闭）：\n  在 config.json 中设置 \"firma_remota_csc\": true 或通过组织策略启用，组织策略始终优先。\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-listar-credenciales\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-credencial <id> -entrada doc.pdf -salida firmado.pdf -formato pades\n  -csc-url <url>            服务商签名服务的 https 地址\n  -csc-client-id <id>       服务商提供的客户端标识（不含密钥）\n  -csc-credencial <id>      用于签名的远程证书\n  -csc-listar-credenciales  列出账户中的远程证书\n  授权在浏览器中完成，且与服务位于同一主机；PIN 或 OTP 验证码从标准输入读取。只有文档摘要会离开本机。"
@@ -7219,10 +7219,10 @@
   "excepciones.pantalla.directiva_ilegible": "无法读取组织的策略。该例外将保持锁定。请联系您的管理员。"
   ,"Las opciones inseguras vienen desactivadas para todo el mundo, también al actualizar desde una versión anterior. Si una operación necesita una de ellas, GrxFirma la detiene, explica el riesgo y ofrece una ayuda más larga con la alternativa y la forma de deshacerlo.": "不安全的选项现在对所有人默认关闭，从旧版本升级后也是如此。如果某项操作需要其中某个选项，GrxFirma 会停止该操作并说明风险，同时提供更详细的帮助，介绍替代做法以及如何撤销。"
   ,"Sin el ajuste correspondiente ya no se puede, por ejemplo, firmar en portales antiguos que usan el intercambio DES de AutoFirma 1.x (aunque vayan por HTTPS), crear sobres CMS para destinatarios que solo abren el formato antiguo, firmar con SHA-1 o con claves RSA de menos de 2048 bits, pedir sellos de tiempo por HTTP, enviar el usuario y la contraseña a un proxy por HTTP ni hacer la firma trifásica por HTTP.": "如果没有开启相应设置，例如以下操作将无法再进行：在使用 AutoFirma 1.x DES 交换的旧门户上签名（即使通过 HTTPS）、为只能打开旧格式的收件人创建 CMS 信封、使用 SHA-1 或短于 2048 位的 RSA 密钥签名、通过 HTTP 请求时间戳、通过 HTTP 向代理发送用户名和密码，以及通过 HTTP 进行三阶段签名。"
-  ,"También hace falta el ajuste para abrir o comprobar material antiguo, como los sobres CMS cifrados con DES, 3DES o AES-CBC, las firmas SHA-1 y las firmas XML con la canonicalización antigua. Sin él, esas firmas quedan sin evaluar y no salen válidas, aunque las hubiera aceptado en su equipo con la 0.0.126.": "打开或检查旧材料同样需要开启该设置，例如使用 DES、3DES 或 AES-CBC 加密的 CMS 信封、SHA-1 签名，以及采用旧规范化方式的 XML 签名。未开启时，这些签名不会被评估，也不会显示为有效，即使你曾在 0.0.126 版本中于本机接受过它们。"
+  ,"También hace falta el ajuste para abrir o comprobar material antiguo, como los sobres CMS cifrados con DES, 3DES o AES-CBC, las firmas SHA-1 y las firmas XML con la canonicalización antigua. Sin él, esas firmas quedan sin evaluar y no salen válidas, aunque las hubiera aceptado en su equipo con la 0.0.126.": "打开或检查旧材料同样需要开启该设置，例如使用 DES、3DES 或 AES-CBC 加密的 CMS 信封、SHA-1 签名，以及采用旧规范化方式的 XML 签名。未开启时，这些签名不会被评估，也不会显示为有效，即使您曾在 0.0.126 版本中于本机接受过它们。"
   ,"Lo mismo ocurre al cofirmar o contrafirmar sin el documento original y al guardar en un fichero la clave del perfil de protección «alto» cuando el equipo no tiene almacén de secretos. En Linux, sin ajuste, GrxFirma no instala por su cuenta el certificado local al abrir un enlace de firma ni guarda su clave en un fichero si falta ese almacén; la instalación desde el instalador o desde la línea de órdenes sigue disponible.": "在没有原始文档的情况下进行联签或副署，以及在计算机没有机密存储时把“高”保护配置的密钥保存到文件中，也同样需要开启该设置。在 Linux 上，未开启该设置时，GrxFirma 不会在打开签名链接时自行安装本地证书，也不会在缺少该存储时把证书密钥保存到文件中；仍可通过安装程序或命令行进行安装。"
-  ,"Para activar una opción, marque la casilla del aviso y pulse «Activar y continuar», o hágalo en Configuración (Preferencias en Android), en el apartado de seguridad. La activa bajo su responsabilidad. Una web no puede activarla por usted, y si su organización la prohíbe, no se puede activar.": "要开启某个选项，请在提示中勾选复选框并点击“启用并继续”，或者在“设置”（Android 上为“偏好设置”）的安全部分中开启。开启的后果由你自行承担。网站无法替你开启；如果你的组织禁止该选项，则无法开启。"
-  ,"Cada uso de una opción activada muestra un aviso en el resultado. Se desactiva en el mismo apartado. Si cambia el texto que aceptó, la opción vuelve a quedar desactivada hasta que acepte el nuevo.": "每次使用已开启的选项时，结果中都会显示提示。可在同一部分将其关闭。如果你接受过的文本发生变化，该选项会重新关闭，直到你接受新的文本。"
+  ,"Para activar una opción, marque la casilla del aviso y pulse «Activar y continuar», o hágalo en Configuración (Preferencias en Android), en el apartado de seguridad. La activa bajo su responsabilidad. Una web no puede activarla por usted, y si su organización la prohíbe, no se puede activar.": "要开启某个选项，请在提示中勾选复选框并点击“启用并继续”，或者在“设置”（Android 上为“偏好设置”）的安全部分中开启。开启的后果由您自行承担。网站无法替您开启；如果您的组织禁止该选项，则无法开启。"
+  ,"Cada uso de una opción activada muestra un aviso en el resultado. Se desactiva en el mismo apartado. Si cambia el texto que aceptó, la opción vuelve a quedar desactivada hasta que acepte el nuevo.": "每次使用已开启的选项时，结果中都会显示提示。可在同一部分将其关闭。如果您接受过的文本发生变化，该选项会重新关闭，直到您接受新的文本。"
   ,"Para administradores: la directiva de máquina puede prohibir o fijar cada caso y manda sobre la elección de la persona; si la directiva no se puede leer, el caso queda bloqueado. En la línea de órdenes, grxfirma -activar-excepcion ID muestra el riesgo y pide confirmación (en un uso automatizado, con -acepto-el-aviso), y grxfirma -desactivar-excepcion ID la desactiva. Los identificadores y las directivas están en docs/seguridad/EXCEPCIONES_INSEGURAS.md, y la plantilla ADMX incluye las nuevas.": "管理员须知：机器策略可以禁止或固定每一种情况，并且优先于用户的选择；如果策略无法读取，该情况会被阻止。在命令行中，grxfirma -activar-excepcion ID 会显示风险并请求确认（自动化使用时加上 -acepto-el-aviso），grxfirma -desactivar-excepcion ID 则将其关闭。各项标识符和策略见 docs/seguridad/EXCEPCIONES_INSEGURAS.md，ADMX 模板也已包含新增策略。"
   ,"Los sobres CMS cifrados nuevos protegen la clave con RSA-OAEP y SHA-256, también al firmar y cifrar. Puede que AutoFirma no los abra. Si un destinatario solo abre el formato antiguo, hay que activar su ajuste y pedir ese formato, por ejemplo con -opcion cms_key_transport=pkcs1v15 en la línea de órdenes.": "新建的加密 CMS 信封使用 RSA-OAEP 和 SHA-256 保护密钥，签名并加密时也是如此。AutoFirma 可能无法打开这些信封。如果某个收件人只能打开旧格式，需要开启对应设置并请求使用该格式，例如在命令行中使用 -opcion cms_key_transport=pkcs1v15。"
   ,"Extensión del navegador 1.2.0: sale un solo botón «Firmar PDF» por documento, también cuando el PDF va dentro de varias páginas anidadas. La extensión no pide permisos nuevos.": "浏览器扩展 1.2.0：每个文档只显示一个“签署 PDF”按钮，即使 PDF 位于多层嵌套页面中也是如此。该扩展没有申请任何新权限。"

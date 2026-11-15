@@ -58,11 +58,11 @@
   "identity.local.selector.no_expiry": "caducitat no disponible",
   "identity.local.selector.use": "Utilitza el certificat",
   "identity.local.selector.cancel": "Cancel·la",
-  "approval.question.sign": "Vols signar amb el certificat «%s»?",
-  "approval.question.cosign": "Vols afegir la teua signatura (cosignatura) amb el certificat «%s»?",
-  "approval.question.countersign": "Vols contrasignar amb el certificat «%s»?",
-  "approval.question.batch": "Vols signar %d documents amb el certificat «%s»?",
-  "approval.question.batch_unknown": "Vols signar un lot de documents amb el certificat «%s»?",
+  "approval.question.sign": "Voleu signar amb el certificat «%s»?",
+  "approval.question.cosign": "Voleu afegir la vostra signatura (cosignatura) amb el certificat «%s»?",
+  "approval.question.countersign": "Voleu contrasignar amb el certificat «%s»?",
+  "approval.question.batch": "Voleu signar %d documents amb el certificat «%s»?",
+  "approval.question.batch_unknown": "Voleu signar un lot de documents amb el certificat «%s»?",
   "approval.certificate.unknown": "sense nom",
   "approval.requester.origin": "Web que ho demana: %s",
   "approval.requester.application": "Aplicació que ho demana: %s",
@@ -72,14 +72,14 @@
   "approval.documents.more": "%s i %d més",
   "approval.format": "Format de signatura: %s",
   "approval.destinations": "Servidors que rebran el document o la signatura: %s",
-  "approval.origin.unverifiable": "GrxFirma no pot comprovar quina web ha demanat esta signatura. Els servidors de la llista els ha triat eixa web. Continua només si els reconeixes.",
-  "approval.session.unidentified": "Esta web usa un sistema antic que no identifica la sessió amb GrxFirma. Continua només si acabes de començar tu esta signatura en la web.",
+  "approval.origin.unverifiable": "GrxFirma no pot comprovar quina web ha demanat esta signatura. Els servidors de la llista els ha triat eixa web. Continueu només si els reconeixeu.",
+  "approval.session.unidentified": "Esta web usa un sistema antic que no identifica la sessió amb GrxFirma. Continueu només si acabeu de començar vós esta signatura en la web.",
   "approval.triphase.server_multiple": "El servidor de la web prepara esta firma i pot demanar-ne més d'una amb esta sola confirmació.",
-  "approval.destination.unencrypted": "Algun servidor de la llista usa una connexió sense xifrar (http): el que s'envie es pot llegir pel camí. Continua només si és un servidor de la teua organització.",
+  "approval.destination.unencrypted": "Algun servidor de la llista usa una connexió sense xifrar (http): el que s'envie es pot llegir pel camí. Continueu només si és un servidor de la vostra organització.",
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
-  "approval.save.extension": "La web demana guardar un fitxer %s en %s. Les firmes i els documents solen ser .pdf, .xml, .csig o .xsig. Guarda'l només si saps què és. Vols guardar-lo?",
-  "approval.save.extension.risky": "La web demana guardar un fitxer %s en %s. Este tipus de fitxer pot portar macros o codi que s'executa en obrir-lo. Guarda'l només si esperaves rebre'l d'esta web. Vols guardar-lo?",
+  "approval.save.extension": "La web demana guardar un fitxer %s en %s. Les firmes i els documents solen ser .pdf, .xml, .csig o .xsig. Guardeu-lo només si sabeu què és. Voleu guardar-lo?",
+  "approval.save.extension.risky": "La web demana guardar un fitxer %s en %s. Este tipus de fitxer pot portar macros o codi que s'executa en obrir-lo. Guardeu-lo només si esperàveu rebre'l d'esta web. Voleu guardar-lo?",
   "approval.save.title": "Confirmar el guardat",
   "cli.error.no_operation": "no s’ha indicat cap operació CLI",
   "cli.error.p12_secret_input": "no s’ha pogut llegir la contrasenya PKCS#12",
@@ -2811,33 +2811,33 @@
   ,"verify.forced_trust.applied.algoritmo_sha1": "Es dona per vàlida perquè ho vau acceptar en la configuració: firma amb SHA-1."
   ,"verify.forced_trust.hint": "Si confieu en esta firma, la podeu acceptar en la configuració d'este equip."
   ,"verify.forced_trust.forbidden": "La política d'este equip no permet acceptar estes firmes a mà. Si les necessiteu, parleu amb qui administra l'equip."
-  ,"verify.forced_trust.error.unknown_type": "Eixe cas no existix. Usa ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1."
+  ,"verify.forced_trust.error.unknown_type": "Eixe cas no existix. Useu ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1."
   ,"verify.forced_trust.error.fingerprint": "L'empremta ha de ser la SHA-256 del certificat, en hexadecimal (64 caràcters)."
   ,"verify.forced_trust.error.global_type": "Este cas s'accepta per a totes les firmes i no porta empremta."
   ,"verify.forced_trust.error.unavailable": "Esta opció només és en la línia d'ordres i en l'aplicació d'escriptori."
   ,"verify.forced_trust.error.not_offered": "Només es pot acceptar el que GrxFirma acaba de mostrar en verificar una firma. Torneu-la a verificar."
   ,"verify.forced_trust.cli.hint_command": "Per a acceptar-ho en este equip després de llegir l'avís:"
-  ,"verify.forced_trust.cli.list_empty": "No has acceptat res en este equip."
+  ,"verify.forced_trust.cli.list_empty": "No heu acceptat res en este equip."
   ,"verify.forced_trust.cli.type": "Cas"
   ,"verify.forced_trust.cli.subject": "Certificat"
   ,"verify.forced_trust.cli.fingerprint": "Empremta SHA-256"
   ,"verify.forced_trust.cli.accepted_at": "Acceptat el"
   ,"verify.forced_trust.cli.nothing_to_accept": "No hi ha res a acceptar: la firma ja és vàlida o té un altre problema que no es pot acceptar."
-  ,"verify.forced_trust.cli.error.missing_input": "Indica la firma amb -entrada o el cas amb -tipo-confianza."
-  ,"verify.forced_trust.cli.error.needs_confirmation": "Sense terminal no es pot demanar confirmació. Llig l'avís i afig -acepto-el-aviso per a acceptar-ho."
-  ,"verify.forced_trust.cli.confirm": "L'acceptes en este equip? [s/N]: "
+  ,"verify.forced_trust.cli.error.missing_input": "Indiqueu la firma amb -entrada o el cas amb -tipo-confianza."
+  ,"verify.forced_trust.cli.error.needs_confirmation": "Sense terminal no es pot demanar confirmació. Llegiu l'avís i afegiu -acepto-el-aviso per a acceptar-ho."
+  ,"verify.forced_trust.cli.confirm": "L'accepteu en este equip? [s/N]: "
   ,"cli.confirm.yes_answers": "s,sí,si"
   ,"cli.confirm.cancelled": "Operació cancel·lada."
   ,"cli.autoselection.empty": "No hi ha cap autoselecció guardada."
   ,"cli.autoselection.clear.summary": "S'eliminaran les autoseleccions guardades.\nPersistent: %d\nSessió: %d\n"
   ,"cli.autoselection.clear.confirm": "Vols continuar? [s/N]: "
-  ,"cli.domains.import.confirm": "No hi ha dominis de confiança. Vols importar els dominis públics inicials? [s/N]: "
+  ,"cli.domains.import.confirm": "No hi ha dominis de confiança. Voleu importar els dominis públics inicials? [s/N]: "
   ,"cli.domains.import.done": "S'han importat %d dominis públics inicials."
   ,"verify.forced_trust.cli.cancelled": "No s'ha acceptat res."
-  ,"verify.forced_trust.cli.accepted": "Acceptat. El pots llevar amb -quitar-confianza-aceptada."
+  ,"verify.forced_trust.cli.accepted": "Acceptat. El podeu llevar amb -quitar-confianza-aceptada."
   ,"verify.forced_trust.cli.not_found": "No hi havia res acceptat amb eixe cas i eixa empremta."
   ,"verify.forced_trust.cli.removed": "Llevat. Estes firmes tornen a eixir no vàlides."
-  ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    Firmes que acceptes en este equip encara que GrxFirma no les done per vàlides: CA desconeguda, clau RSA curta, certificat de servidor, revocació sense comprovar o SHA-1.\n    -aceptar-confianza -entrada <firma> [-tipo-confianza <cas>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <cas> [-huella <sha256>]"
+  ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    Firmes que accepteu en este equip encara que GrxFirma no les done per vàlides: CA desconeguda, clau RSA curta, certificat de servidor, revocació sense comprovar o SHA-1.\n    -aceptar-confianza -entrada <firma> [-tipo-confianza <cas>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <cas> [-huella <sha256>]"
   ,"cli.help.web_signing_program": "  -ver-programa-firma-web | -elegir-programa-firma-web <grxfirma|autofirma|preguntar>\n    Programa que obri les signatures que demanen els webs (enllaços afirma://). Amb «preguntar», GrxFirma pregunta en cada signatura; cal tindre AutoFirma instal·lat. Si ho fixa la política de l'equip, no es pot canviar."
   ,"cli.web_signing.autofirma_at": "AutoFirma instal·lat en: %s"
   ,"cli.web_signing.autofirma_missing": "AutoFirma no està instal·lat en este equip; només es pot triar GrxFirma."
@@ -4066,7 +4066,7 @@
   ,"Consola REST: el firmador web pide el token de acceso (Bearer), igual que la consola, y ninguno de los dos muestra ya los campos de ruta de fichero, que el servidor no aceptaba. El inicio de sesión con certificado rechaza las peticiones que llegan de otras webs. El certificado local del servidor se renueva solo antes de caducar, y las respuestas de firma llevan los avisos.": "Consola REST: el firmador web demana el testimoni d’accés (Bearer), igual que la consola, i cap dels dos no mostra ja els camps de ruta de fitxer, que el servidor no acceptava. L’inici de sessió amb certificat rebutja les peticions que arriben d’altres webs. El certificat local del servidor es renova a soles abans de caducar, i les respostes de firma porten els avisos."
   ,"Para administradores: la directiva nueva firma_remota_csc_servicios_permitidos limita los prestadores de firma remota a los que se puede conectar. Las webs ya no pueden usar una autoridad de sellado de tiempo (TSA) de la red interna salvo que figure en la directiva nueva tsa_permitidas; en la consola REST, si la lista existe, solo valen las que figuran en ella. Las dos están en la plantilla ADMX. aprobacion_automatica_nativehost vale ya solo para la extensión oficial. Un ajuste mal escrito en la política de máquina solo anula ese ajuste y, si es de los que limitan (REST, WebSocket o confianza al primer uso), lo deja desactivado. Si el fichero de política existe pero no se puede leer, se desactivan REST, WebSocket y la firma remota.": "Per als administradors: la directiva nova firma_remota_csc_servicios_permitidos limita els prestadors de firma remota als quals es pot connectar. Les webs ja no poden usar una autoritat de segellat de temps (TSA) de la xarxa interna llevat que figure en la directiva nova tsa_permitidas; en la consola REST, si la llista existix, només valen les que hi figuren. Les dos estan en la plantilla ADMX. aprobacion_automatica_nativehost ja només val per a l’extensió oficial. Un ajust mal escrit en la política de màquina només anul·la eixe ajust i, si és dels que limiten (REST, WebSocket o confiança en el primer ús), el deixa desactivat. Si el fitxer de política existix però no es pot llegir, es desactiven REST, WebSocket i la firma remota."
   ,"Al instalar en Windows o en Linux, GrxFirma avisa de que los enlaces afirma:// se abrirán con GrxFirma en lugar de AutoFirma, salvo que en Configuración elija AutoFirma. En Linux, al desinstalar vuelve el programa que abría esos enlaces antes, si no lo ha cambiado usted. En macOS, el desinstalador quita del llavero el certificado local de GrxFirma.": "En instal·lar en Windows o en Linux, GrxFirma avisa que els enllaços afirma:// s’obriran amb GrxFirma en lloc d’AutoFirma, llevat que en Configuració trieu AutoFirma. En Linux, en desinstal·lar torna el programa que obria eixos enllaços abans, si no l’heu canviat vosaltres. En macOS, el desinstal·lador lleva del clauer el certificat local de GrxFirma."
-  ,"Si tiene AutoFirma instalado, en Configuración, «Programa para firmar en las webs», elige con qué programa firmar cuando una web lo pide: GrxFirma, AutoFirma o «Preguntar cada vez». Con esta última, GrxFirma le pregunta en cada firma y puede recordar su respuesta. El instalador pregunta lo mismo si encuentra AutoFirma, y la instalación silenciosa mantiene lo que había. Los administradores pueden fijarlo con /AFIRMA= en Windows, --afirma-handler= en Linux o la directiva manejador_afirma. GrxFirma encuentra ahora AutoFirma aunque se instalara solo para su usuario o con otro nombre de lanzador; antes, en esos casos, el ajuste decía que AutoFirma no estaba instalado.": "Si tens AutoFirma instal·lat, en Configuració, «Programa per a signar en els webs», tries amb quin programa signar quan un web ho demana: GrxFirma, AutoFirma o «Preguntar cada vegada». Amb esta última, GrxFirma et pregunta en cada signatura i pot recordar la teua resposta. L'instal·lador pregunta el mateix si troba AutoFirma, i la instal·lació silenciosa manté el que hi havia. Els administradors ho poden fixar amb /AFIRMA= en Windows, --afirma-handler= en Linux o la directiva manejador_afirma. Ara GrxFirma troba AutoFirma encara que s'haja instal·lat només per al teu usuari o amb un altre nom de llançador; abans, en estos casos, l'ajust deia que AutoFirma no estava instal·lat."
+  ,"Si tiene AutoFirma instalado, en Configuración, «Programa para firmar en las webs», elige con qué programa firmar cuando una web lo pide: GrxFirma, AutoFirma o «Preguntar cada vez». Con esta última, GrxFirma le pregunta en cada firma y puede recordar su respuesta. El instalador pregunta lo mismo si encuentra AutoFirma, y la instalación silenciosa mantiene lo que había. Los administradores pueden fijarlo con /AFIRMA= en Windows, --afirma-handler= en Linux o la directiva manejador_afirma. GrxFirma encuentra ahora AutoFirma aunque se instalara solo para su usuario o con otro nombre de lanzador; antes, en esos casos, el ajuste decía que AutoFirma no estaba instalado.": "Si teniu AutoFirma instal·lat, en Configuració, «Programa per a signar en els webs», trieu amb quin programa signar quan un web ho demana: GrxFirma, AutoFirma o «Preguntar cada vegada». Amb esta última, GrxFirma vos pregunta en cada signatura i pot recordar la vostra resposta. L'instal·lador pregunta el mateix si troba AutoFirma, i la instal·lació silenciosa manté el que hi havia. Els administradors ho poden fixar amb /AFIRMA= en Windows, --afirma-handler= en Linux o la directiva manejador_afirma. Ara GrxFirma troba AutoFirma encara que s'haja instal·lat només per al vostre usuari o amb un altre nom de llançador; abans, en estos casos, l'ajust deia que AutoFirma no estava instal·lat."
   ,"Más seguridad: la aplicación de escritorio Qt muestra como texto, sin interpretar marcado, los nombres de documentos, certificados y servidores, y el motor de firma que arranca se cierra con ella aunque la aplicación termine de forma inesperada. En Android, un documento dañado ya no cierra la aplicación: sale un error. La línea de órdenes, la consola REST y la extensión guardan ahora el registro de auditoría, que conserva 90 días.": "Més seguretat: l’aplicació d’escriptori Qt mostra com a text, sense interpretar marques, els noms de documents, certificats i servidors, i el motor de firma que arranca es tanca amb ella encara que l’aplicació acabe de manera inesperada. En Android, un document danyat ja no tanca l’aplicació: ix un error. La línia d’ordes, la consola REST i l’extensió ara guarden el registre d’auditoria, que conserva 90 dies."
   ,"En Android, al seleccionar un documento se ven los primeros caracteres de su huella SHA-256. Si la app de la que viene lo cambia antes de firmar, GrxFirma no lo firma y le pide que lo vuelva a seleccionar. En un lote, el fichero que ha cambiado sale como no firmado y el resto se firma.": "En Android, en seleccionar un document es veuen els primers caràcters de la seua empremta SHA-256. Si l’aplicació d’on ve el canvia abans de firmar, GrxFirma no el firma i vos demana que el torneu a seleccionar. En un lot, el fitxer que ha canviat ix com a no firmat i la resta es firma."
   ,"Si el nombre de un certificado o de su emisor lleva caracteres invisibles que cambian cómo se lee, como los que invierten el orden del texto, la aplicación de escritorio y la línea de órdenes los muestran como «?».": "Si el nom d’un certificat o del seu emissor porta caràcters invisibles que canvien com es llig, com els que inverteixen l’orde del text, l’aplicació d’escriptori i la línia d’ordes els mostren com a «?»."

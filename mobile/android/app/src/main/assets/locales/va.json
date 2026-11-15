@@ -82,7 +82,7 @@
   "el certificado firmante no está destinado a firmar documentos": "El certificat amb què es va firmar no servix per a firmar documents (pot ser, per exemple, el d’un servidor web). La firma no es considera vàlida.",
   "verify.forced_trust.hint": "Si confieu en esta firma, la podeu acceptar en la configuració d'este equip.",
   "verify.forced_trust.forbidden": "La política d'este equip no permet acceptar estes firmes a mà. Si les necessiteu, parleu amb qui administra l'equip.",
-  "verify.forced_trust.error.unknown_type": "Eixe cas no existix. Usa ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1.",
+  "verify.forced_trust.error.unknown_type": "Eixe cas no existix. Useu ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1.",
   "verify.forced_trust.error.fingerprint": "L'empremta ha de ser la SHA-256 del certificat, en hexadecimal (64 caràcters).",
   "verify.forced_trust.error.global_type": "Este cas s'accepta per a totes les firmes i no porta empremta.",
   "cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "El certificat depén d’una arrel de confiança del sistema. Això no garantix que siga un certificat qualificat.",
