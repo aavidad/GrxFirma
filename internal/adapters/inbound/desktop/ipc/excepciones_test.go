@@ -21,7 +21,7 @@ func TestUnsafeExceptionsIPCListSetAndPolicyBlock(t *testing.T) {
 	if !list.OK || len(list.Data.([]excepciones.State)) != 26 {
 		t.Fatalf("list: %+v", list)
 	}
-	changed := call("unsafe_exceptions_activate", `{"id":"tsa_http","accepted":true,"acceptanceVersion":"2026-11-15.1"}`)
+	changed := call("unsafe_exceptions_activate", `{"id":"tsa_http","accepted":true,"acceptanceVersion":"2026-11-15.2"}`)
 	if !changed.OK || excepciones.Check("tsa_http") != nil {
 		t.Fatalf("set: %+v", changed)
 	}
@@ -32,7 +32,7 @@ func TestUnsafeExceptionsIPCListSetAndPolicyBlock(t *testing.T) {
 		t.Fatal("id desconocido aceptado")
 	}
 	machinepolicy.SetForTest(t, "permitir_tsa_http", false)
-	blocked := call("unsafe_exceptions_activate", `{"id":"tsa_http","accepted":true,"acceptanceVersion":"2026-11-15.1"}`)
+	blocked := call("unsafe_exceptions_activate", `{"id":"tsa_http","accepted":true,"acceptanceVersion":"2026-11-15.2"}`)
 	if blocked.OK || blocked.ExceptionID != "tsa_http" || blocked.BlockKey != "excepciones.tsa_http.bloqueo" || blocked.ErrorCode != "unsafe_exception_blocked" || blocked.SettingKey == "" {
 		t.Fatalf("bloqueo sin contrato: %+v", blocked)
 	}

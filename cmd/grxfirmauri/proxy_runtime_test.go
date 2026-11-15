@@ -9,8 +9,12 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -22,6 +26,69 @@ type proxySecretLoaderMock struct {
 	material ports.ProxySecretMaterial
 	err      error
 	status   ports.ProxySecretStoreStatus
+}
+
+func TestProxyRuntimeCredencialesHTTPDecisionPorPeticion(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_proxy_http")
+	enabled, typ, host, port, secretID := true, "manual", "proxy.example", 3128, "secret-1"
+	loader := func(context.Context, string) (ports.DocumentoConfiguracionUsuario, error) {
+		return docWithProxy(ports.ConfiguracionUsuarioProxy{Enabled: &enabled, Type: &typ, Host: &host, Port: &port, SecretID: &secretID, ExcludedURLs: []string{"https://intra.example"}}), nil
+	}
+	secrets := &proxySecretLoaderMock{status: ports.ProxySecretStoreStatus{Available: true}, material: ports.ProxySecretMaterial{Username: "usuario", Password: []byte("secreto")}}
+	transport := construirTransporteHTTPCompartidoConDependencias(t.TempDir(), loader, secrets)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://servicio.example/documento", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	excepciones.SetForTest(t, "proxy_http", false)
+	bypassReq, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://intra.example/documento", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if proxy, err := transport.Proxy(bypassReq); err != nil || proxy != nil || len(warnings.Claves()) != 0 {
+		t.Fatalf("el bypass no debe pedir excepción ni avisar: proxy=%v err=%v warnings=%v", proxy, err, warnings.Claves())
+	}
+	if proxy, err := transport.Proxy(req); err == nil || proxy != nil {
+		t.Fatalf("sin ajuste se enviaría autenticación HTTP: proxy=%v err=%v", proxy, err)
+	}
+	excepciones.SetForTest(t, "proxy_http", true)
+	if proxy, err := transport.Proxy(req); err != nil || proxy == nil || proxy.User == nil {
+		t.Fatalf("con ajuste no se usa proxy: proxy=%v err=%v", proxy, err)
+	}
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("proxy_http")) {
+		t.Fatalf("falta aviso en la operación: %v", warnings.Claves())
+	}
+	machinepolicy.SetForTest(t, "permitir_proxy_http", false)
+	if proxy, err := transport.Proxy(req); err == nil || proxy != nil {
+		t.Fatalf("directiva prohibitiva permitió el proxy: proxy=%v err=%v", proxy, err)
+	}
+	machinepolicy.ErrorForTest(t, "permitir_proxy_http", errors.New("ilegible"))
+	if proxy, err := transport.Proxy(req); err == nil || proxy != nil {
+		t.Fatalf("directiva ilegible permitió el proxy: proxy=%v err=%v", proxy, err)
+	}
+}
+
+func TestProxyRuntimeEntornoConCredencialesHTTPRequiereAjuste(t *testing.T) {
+	t.Setenv("HTTPS_PROXY", "http://usuario:secreto@proxy.example:3128")
+	machinepolicy.UnsetForTest(t, "permitir_proxy_http")
+	transport := construirTransporteHTTPCompartidoConDependencias(t.TempDir(), nil, nil)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://servicio.example/documento", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	excepciones.SetForTest(t, "proxy_http", false)
+	if proxy, err := transport.Proxy(req); err == nil || proxy != nil {
+		t.Fatalf("el proxy de entorno sin ajuste no fue bloqueado: proxy=%v err=%v", proxy, err)
+	}
+	excepciones.SetForTest(t, "proxy_http", true)
+	if proxy, err := transport.Proxy(req); err != nil || proxy == nil || proxy.User == nil {
+		t.Fatalf("el proxy de entorno autorizado no se usó: proxy=%v err=%v", proxy, err)
+	}
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("proxy_http")) {
+		t.Fatalf("falta aviso del proxy de entorno: %v", warnings.Claves())
+	}
 }
 
 func (m *proxySecretLoaderMock) Store(context.Context, string, ports.ProxySecretMaterial) (ports.ProxySecretDescriptor, error) {
@@ -55,8 +122,15 @@ func docWithProxy(proxy ports.ConfiguracionUsuarioProxy) ports.DocumentoConfigur
 	return ports.DocumentoConfiguracionUsuario{Proxy: proxy}
 }
 
+func permitirProxyHTTPRuntime(t *testing.T) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_proxy_http")
+	excepciones.SetForTest(t, "proxy_http", true)
+}
+
 func TestConstruirClienteTrifasicoConDependencias_ManualConSecreto(t *testing.T) {
-	t.Parallel()
+	permitirProxyHTTPRuntime(t)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
 
 	enabled := true
 	typ := "manual"
@@ -88,7 +162,7 @@ func TestConstruirClienteTrifasicoConDependencias_ManualConSecreto(t *testing.T)
 	if client == nil || client.Transport == nil {
 		t.Fatalf("client/transport inesperado: %#v", client)
 	}
-	req, err := http.NewRequest(http.MethodGet, "https://portal.ejemplo/servlet", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://portal.ejemplo/servlet", nil)
 	if err != nil {
 		t.Fatalf("NewRequest: %v", err)
 	}
@@ -116,10 +190,14 @@ func TestConstruirClienteTrifasicoConDependencias_ManualConSecreto(t *testing.T)
 	if len(secrets.calls) != 1 || secrets.calls[0] != "secret-1" {
 		t.Fatalf("calls inesperadas: %#v", secrets.calls)
 	}
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("proxy_http")) {
+		t.Fatalf("falta aviso del proxy en la operación: %v", warnings.Claves())
+	}
 }
 
 func TestConstruirTransporteHTTPCompartidoConDependencias_UsaProxySeguro(t *testing.T) {
-	t.Parallel()
+	permitirProxyHTTPRuntime(t)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
 
 	enabled := true
 	typ := "manual"
@@ -148,7 +226,7 @@ func TestConstruirTransporteHTTPCompartidoConDependencias_UsaProxySeguro(t *test
 	}
 
 	transport := construirTransporteHTTPCompartidoConDependencias("/tmp/config", loader, secrets)
-	req, err := http.NewRequest(http.MethodGet, "https://portal.ejemplo/servlet", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://portal.ejemplo/servlet", nil)
 	if err != nil {
 		t.Fatalf("NewRequest: %v", err)
 	}
@@ -158,6 +236,9 @@ func TestConstruirTransporteHTTPCompartidoConDependencias_UsaProxySeguro(t *test
 	}
 	if proxyURL == nil || proxyURL.Host != "proxy.local:3128" {
 		t.Fatalf("proxy URL inesperada: %#v", proxyURL)
+	}
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("proxy_http")) {
+		t.Fatalf("falta aviso del proxy en la operación: %v", warnings.Claves())
 	}
 }
 
@@ -552,7 +633,8 @@ func TestFormatRuntimeProxyDiagnostic(t *testing.T) {
 }
 
 func TestConstruirClienteTrifasicoConDependencias_E2EUsaProxySeguro(t *testing.T) {
-	t.Parallel()
+	permitirProxyHTTPRuntime(t)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
 
 	var (
 		proxySeen bool
@@ -604,7 +686,7 @@ func TestConstruirClienteTrifasicoConDependencias_E2EUsaProxySeguro(t *testing.T
 	}
 
 	client := construirClienteTrifasicoConDependencias("/tmp/config", loader, secrets)
-	req, err := http.NewRequest(http.MethodGet, "http://servicio.ejemplo.local/rt", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://servicio.ejemplo.local/rt", nil)
 	if err != nil {
 		t.Fatalf("NewRequest: %v", err)
 	}
@@ -613,6 +695,9 @@ func TestConstruirClienteTrifasicoConDependencias_E2EUsaProxySeguro(t *testing.T
 		t.Fatalf("client.Do() error = %v", err)
 	}
 	_ = resp.Body.Close()
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("proxy_http")) {
+		t.Fatalf("falta aviso del proxy en la operación: %v", warnings.Claves())
+	}
 
 	if !proxySeen {
 		t.Fatal("se esperaba trafico HTTP real por el proxy seguro")

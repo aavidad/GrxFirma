@@ -6,6 +6,7 @@ import (
 	"grxfirma/internal/security/excepciones"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -39,6 +40,49 @@ func TestExceptionConsentAndHelpCatalogues(t *testing.T) {
 			}
 			if !strings.Contains(cat[e.BlockKey], "grxfirma -activar-excepcion "+e.ID) {
 				t.Errorf("bloqueo sin orden exacta: %s/%s", lang, e.ID)
+			}
+		}
+	}
+}
+
+func TestExceptionAcceptanceIsReadyForPeople(t *testing.T) {
+	forbidden := []string{"settings.json", "config.json", "policy.json", "tokens.json", "trusted-domains", "excepciones_inseguras", "permitir_", "%APPDATA%", "~/.config", "cuando esté disponible", "cuando la sección esté disponible", "when available", "once available"}
+	acronyms := regexp.MustCompile(`(?i)\b(?:AES(?:-(?:CBC|GCM))?|RSA|SHA-(?:1|256|384|512)|DES|CMS|PDF|TSA|HTTPS?|PKCS)\b`)
+	for _, lang := range []string{"es", "en", "ca", "de", "eu", "fr", "gl", "it", "pt", "va", "zh"} {
+		raw, err := os.ReadFile(filepath.Join("locales", lang+".json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		mobile, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "..", "mobile", "android", "app", "src", "main", "assets", "locales", lang+".json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var cat, android map[string]string
+		json.Unmarshal(raw, &cat)
+		json.Unmarshal(mobile, &android)
+		for _, e := range excepciones.Catalog() {
+			text := cat[e.AcceptanceKey]
+			if lang != "en" && (!strings.HasPrefix(text, "Puedo activarlo bajo mi responsabilidad. Sé que ") || !strings.HasSuffix(text, ". Se puede volver a desactivar en Preferencias, Seguridad.")) {
+				t.Errorf("patrón incorrecto: %s/%s", lang, e.ID)
+			}
+			if lang == "en" && (!strings.HasPrefix(text, "I can enable this at my own risk. I understand that ") || !strings.HasSuffix(text, ". I can turn it off again in Preferences, Security.")) {
+				t.Errorf("aceptación inglesa incompleta: %s", e.ID)
+			}
+			for _, key := range []string{e.AcceptanceKey, e.HelpKey} {
+				value := cat[key]
+				if android[key] != value {
+					t.Errorf("Android difiere: %s/%s", lang, key)
+				}
+				for _, token := range forbidden {
+					if strings.Contains(strings.ToLower(value), strings.ToLower(token)) {
+						t.Errorf("texto interno/desfasado %q: %s/%s", token, lang, key)
+					}
+				}
+				for _, word := range acronyms.FindAllString(value, -1) {
+					if word != strings.ToUpper(word) {
+						t.Errorf("sigla deformada %q: %s/%s", word, lang, key)
+					}
+				}
 			}
 		}
 	}

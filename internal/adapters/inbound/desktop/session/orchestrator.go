@@ -21,6 +21,7 @@ import (
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/originvalidator"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/triphase"
+	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -563,6 +564,16 @@ func (o *Orchestrator) ejecutarSimple(ctx context.Context, solicitud afirmauri.S
 			}
 			if err := o.validarOrigenes(ctx, afirmauri.Solicitud{Origenes: origenes}); err != nil {
 				return fmt.Errorf("validación de origen del manifiesto recuperado fallida: %w", err)
+			}
+			// Este manifiesto XML se firma localmente sin pasar por
+			// Executor.Execute. Una tsaURL cedida al motor exige la misma
+			// decisión de transporte antes de entregar el trabajo.
+			for key, value := range cmd.Options {
+				if strings.EqualFold(strings.TrimSpace(key), "tsaURL") && strings.TrimSpace(value) != "" {
+					if err := tsaclient.RequireTransport(ctx, value); err != nil {
+						return err
+					}
+				}
 			}
 			if o.signer == nil {
 				return errors.New("el motor de firma no está configurado")

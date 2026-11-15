@@ -30,6 +30,46 @@ import (
 	"grxfirma/internal/testsupport/tsatest"
 )
 
+type runtimeProxyRoundTrip func(*http.Request) (*http.Response, error)
+
+func (f runtimeProxyRoundTrip) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+
+func TestTSAConProxyCredencialesHTTPAvisosEnMismoContextoSinSocket(t *testing.T) {
+	for _, id := range []string{"tsa_http", "proxy_http"} {
+		e, _ := excepciones.Find(id)
+		machinepolicy.UnsetForTest(t, e.PolicyKey)
+		excepciones.SetForTest(t, id, true)
+	}
+	enabled, typ, host, port, secretID := true, "manual", "proxy.example", 3128, "secret-1"
+	loader := func(context.Context, string) (ports.DocumentoConfiguracionUsuario, error) {
+		return docWithProxy(ports.ConfiguracionUsuarioProxy{Enabled: &enabled, Type: &typ, Host: &host, Port: &port, SecretID: &secretID}), nil
+	}
+	secrets := &proxySecretLoaderMock{status: ports.ProxySecretStoreStatus{Available: true}, material: ports.ProxySecretMaterial{Username: "usuario", Password: []byte("secreto")}}
+	transport := construirTransporteHTTPCompartidoConDependencias(t.TempDir(), loader, secrets)
+	responder := tsatest.NewResponder(t)
+	client := &http.Client{Transport: runtimeProxyRoundTrip(func(req *http.Request) (*http.Response, error) {
+		proxyURL, err := transport.Proxy(req)
+		if err != nil || proxyURL == nil || proxyURL.User == nil {
+			t.Errorf("petición TSA perdió proxy: %v, %v", proxyURL, err)
+			return nil, err
+		}
+		recorder := httptest.NewRecorder()
+		responder.ServeHTTP(recorder, req)
+		return recorder.Result(), nil
+	})}
+	tsa := construirTSAClienteRuntime("http://tsa.example.invalid/tsr", client)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	hash := crypto.SHA256.New().Sum(nil)
+	if _, err := tsa.RequestTimestamp(ctx, hash, crypto.SHA256); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"tsa_http", "proxy_http"} {
+		if !slices.Contains(warnings.Claves(), excepciones.Warning(id)) {
+			t.Fatalf("falta aviso %s en la misma operación: %v", id, warnings.Claves())
+		}
+	}
+}
+
 func TestConstruirTSAClienteRuntime_ReutilizaClienteCompartido(t *testing.T) {
 	t.Parallel()
 
