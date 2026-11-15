@@ -61,7 +61,7 @@
         },
         {
           "if": {"properties": {"action": {"const": "unsafe_exceptions_activate"}}, "required": ["action"]},
-          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["id", "accepted", "acceptanceVersion"], "properties": {"id": {"type": "string", "minLength": 1}, "accepted": {"const": true}, "acceptanceVersion": {"const": "2026-11-15.2"}, "retryId": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["id", "accepted", "acceptanceVersion"], "properties": {"id": {"type": "string", "minLength": 1}, "accepted": {"const": true}, "acceptanceVersion": {"const": "2026-11-15.3"}, "retryId": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
         },
         {
           "if": {"properties": {"action": {"const": "unsafe_operation_retry"}}, "required": ["action"]},
@@ -444,7 +444,7 @@
         "acceptance_key": {"type": "string"},
         "help_key": {"type": "string"},
         "organization_key": {"type": "string"},
-        "acceptance_version": {"const": "2026-11-15.2"},
+        "acceptance_version": {"const": "2026-11-15.3"},
         "activable": {"type": "boolean"},
         "config_unavailable": {"type": "boolean"}
       },
@@ -477,7 +477,7 @@
         "acceptance_key": {"type": "string"},
         "help_key": {"type": "string"},
         "organization_key": {"type": "string"},
-        "acceptance_version": {"const": "2026-11-15.2"},
+        "acceptance_version": {"const": "2026-11-15.3"},
         "activable": {"type": "boolean"},
         "enabled": {"type": "boolean"},
         "fixed": {"type": "boolean"},

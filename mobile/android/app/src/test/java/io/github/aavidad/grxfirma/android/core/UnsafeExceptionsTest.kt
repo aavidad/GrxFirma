@@ -100,11 +100,11 @@ class UnsafeExceptionsTest {
             """"blockKey":"excepciones.sha1_leer.bloqueo","settingKey":"excepciones.sha1_leer.ajuste",""" +
             """"titleKey":"excepciones.sha1_leer.titulo","riskKey":"excepciones.sha1_leer.riesgo",""" +
             """"acceptanceKey":"excepciones.sha1_leer.aceptacion","helpKey":"excepciones.sha1_leer.ayuda",""" +
-            """"organizationKey":"excepciones.sha1_leer.organizacion","acceptanceVersion":"2026-11-15.2"}"""
+            """"organizationKey":"excepciones.sha1_leer.organizacion","acceptanceVersion":"2026-11-15.3"}"""
         val parsed = UnsafeExceptions.block(RuntimeException(fromGo))!!
         assertEquals("sha1_leer", parsed.id)
         assertTrue(parsed.activable)
-        assertEquals("2026-11-15.2", parsed.acceptanceVersion)
+        assertEquals("2026-11-15.3", parsed.acceptanceVersion)
         // Un nombre de certificado con la marca antigua no es un bloqueo.
         assertNull(UnsafeExceptions.block(RuntimeException("CN=Ana [sha1_leer; excepciones.sha1_leer.bloqueo]")))
     }

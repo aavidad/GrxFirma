@@ -19,7 +19,7 @@ import (
 	"grxfirma/internal/ports"
 )
 
-const AcceptanceVersion = "2026-11-15.2"
+const AcceptanceVersion = "2026-11-15.3"
 const AcceptanceField = settingsfile.AcceptanceField
 const acceptanceOrigin = "aceptado desde el aviso"
 

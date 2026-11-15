@@ -162,7 +162,7 @@ func TestUnsafeActivationRequiresVerifiedFrontendAndPreservesSettings(t *testing
 	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
 	dir := t.TempDir()
 	m := &Manejador{ConfigDir: dir, Settings: usersettings.New(dir), Loc: localizador.Para("es")}
-	raw := json.RawMessage(`{"id":"tsa_http","accepted":true,"acceptanceVersion":"2026-11-15.2","source":"gui"}`)
+	raw := json.RawMessage(`{"id":"tsa_http","accepted":true,"acceptanceVersion":"2026-11-15.3","source":"gui"}`)
 	if m.despachar(context.Background(), peticion{Action: "unsafe_exceptions_activate", Params: raw}).OK {
 		t.Fatal("frontend no vinculado activa")
 	}

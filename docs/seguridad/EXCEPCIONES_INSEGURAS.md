@@ -28,7 +28,7 @@ Un `true` aislado en `config.json` o `settings.json` **no activa** una excepció
     "cms_cbc": {
       "id": "cms_cbc",
       "accepted_at": "<fecha UTC emitida tras aceptar el aviso>",
-      "text_version": "2026-11-15.2",
+      "text_version": "2026-11-15.3",
       "origin": "aceptado desde el aviso",
       "channel": "cli"
     }
@@ -98,9 +98,9 @@ La fachada móvil expone `UnsafeExceptionsJSON()` y `SetUnsafeExceptionJSON(requ
 
 ### Recibos y activación local
 
-El núcleo conserva `AcceptanceVersion = "2026-11-15.2"`. Una aceptación local guarda `origin` con el valor exacto «aceptado desde el aviso», `accepted_at` en UTC distinto de cero, `channel` (`cli`, `desktop` o `android`; `protocol_dialog` se conserva solo para leer recibos históricos) y `text_version`. El recibo se lee por sus nombres exactos, sin alias con otras mayúsculas. Si cambia la versión del texto, el ajuste de usuario deja de activarse hasta que se lea y acepte el texto nuevo. La directiva de máquina prevalece también después de una aceptación local.
+El núcleo conserva `AcceptanceVersion = "2026-11-15.3"`. La versión `2026-11-15.3` sustituye a la `.2` porque cambian los textos que se aceptan: `proxy_http` cubre también SOCKS5 y lo dice, la ruta para desactivar es «el apartado Seguridad» en todas las plataformas y los nueve idiomas que eran copia del castellano tienen traducción propia. Quien aceptó con la `.2` vuelve a ver el aviso una vez. Una aceptación local guarda `origin` con el valor exacto «aceptado desde el aviso», `accepted_at` en UTC distinto de cero, `channel` (`cli`, `desktop` o `android`; `protocol_dialog` se conserva solo para leer recibos históricos) y `text_version`. El recibo se lee por sus nombres exactos, sin alias con otras mayúsculas. Si cambia la versión del texto, el ajuste de usuario deja de activarse hasta que se lea y acepte el texto nuevo. La directiva de máquina prevalece también después de una aceptación local.
 
-`unsafe_exceptions_activate` recibe `{"id":"cms_cbc","accepted":true,"acceptanceVersion":"2026-11-15.2"}`. Puede incluir `retryId` cuando el núcleo haya ofrecido un reintento seguro. `unsafe_operation_retry` recibe `{"retryId":"..."}` y solo reintenta una operación local pendiente y vigente. El núcleo valida el identificador, la versión, la aceptación y la directiva antes de activar. La interfaz presenta el riesgo antes de aceptar y permite cancelar la operación.
+`unsafe_exceptions_activate` recibe `{"id":"cms_cbc","accepted":true,"acceptanceVersion":"2026-11-15.3"}`. Puede incluir `retryId` cuando el núcleo haya ofrecido un reintento seguro. `unsafe_operation_retry` recibe `{"retryId":"..."}` y solo reintenta una operación local pendiente y vigente. El núcleo valida el identificador, la versión, la aceptación y la directiva antes de activar. La interfaz presenta el riesgo antes de aceptar y permite cancelar la operación.
 
 La lista y los bloqueos exponen `title_key`, `risk_key`, `acceptance_key`, `help_key` y `organization_key`, además de `activable`. Cuando `activable` es falso por una directiva, la interfaz muestra el texto de organización y remite al administrador.
 
@@ -534,7 +534,7 @@ El diálogo propio de afirma:// no tiene todavía una operación de activación 
 
 Las claves `excepciones.<id>.bloqueo` explican la operación, el riesgo y el nombre del ajuste en Preferencias, Seguridad. La persona puede aceptar el aviso en GrxFirma cuando la interfaz ofrezca esa acción, o abrir esa sección. Android, escritorio y los portales reciben el mismo texto sin instrucciones de terminal. Si la organización lo prohíbe o su directiva es ilegible, el bloqueo remite al administrador y no ofrece activación.
 
-La CLI añade `excepciones.cli.como_activar`, sustituyendo `{id}` por el identificador. La orden es `grxfirma -activar-excepcion <id>` con confirmación interactiva; para automatizarla se necesita `-acepto-el-aviso`. El texto de aceptación y su versión `2026-11-15.2` no cambian.
+La CLI añade `excepciones.cli.como_activar`, sustituyendo `{id}` por el identificador. La orden es `grxfirma -activar-excepcion <id>` con confirmación interactiva; para automatizarla se necesita `-acepto-el-aviso`. El texto de aceptación y su versión `2026-11-15.3` no cambian.
 
 La barrera de rutas compara la identidad de cada antecesor existente con las carpetas protegidas mediante `os.SameFile`. Así se comprueban también los alias por mayúsculas y las uniones de compatibilidad de Windows. Las pruebas específicas de esos sistemas deben ejecutarse allí; compilarlas en Linux no acredita ese resultado.
 
