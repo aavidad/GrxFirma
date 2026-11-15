@@ -19,6 +19,7 @@ import (
 	fynetest "fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/widget"
 
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/domain"
 	"grxfirma/presentation/desktop/certpicker"
 )
@@ -56,6 +57,8 @@ func credentialButton(object fyne.CanvasObject, label string) *widget.Button {
 }
 
 func TestFyneCredentialActionsAvailableWithEmptyAndSingleCatalog(t *testing.T) {
+	// El driver de prueba de Fyne hace de escritorio.
+	t.Cleanup(escritorio.SustituirDetector(func() bool { return true }))
 	t.Setenv("LANG", "es_ES.UTF-8")
 	certpicker.SetConfigDir(t.TempDir())
 	for _, count := range []int{0, 1} {

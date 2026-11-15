@@ -23,6 +23,9 @@ import (
 // sinEscritorio sustituye el detector común durante la prueba.
 func sinEscritorio(t *testing.T) {
 	t.Helper()
+	previo := comprobarEscritorioUI
+	comprobarEscritorioUI = escritorio.Comprobar
+	t.Cleanup(func() { comprobarEscritorioUI = previo })
 	t.Cleanup(escritorio.SustituirDetector(func() bool { return false }))
 }
 

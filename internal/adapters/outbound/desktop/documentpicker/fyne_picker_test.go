@@ -18,6 +18,7 @@ import (
 	"fyne.io/fyne/v2/storage"
 	fynetest "fyne.io/fyne/v2/test"
 
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/ports"
 )
 
@@ -33,6 +34,8 @@ func (w *signalingParentWindow) Show() {
 }
 
 func TestFyneResolverReusesVisibleParentWindow(t *testing.T) {
+	// El driver de prueba de Fyne hace de escritorio.
+	t.Cleanup(escritorio.SustituirDetector(func() bool { return true }))
 	a := fynetest.NewApp()
 	t.Cleanup(a.Quit)
 

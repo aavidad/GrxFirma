@@ -11,7 +11,6 @@ import "grxfirma/internal/adapters/outbound/desktop/escritorio"
 
 // comprobarEscritorioUI decide si esta compilación con ventanas puede abrir
 // un diálogo. Sin escritorio visible devuelve el error tipado de escritorio y
-// la operación sale denegada: nadie podría responder.
-func comprobarEscritorioUI(dialogo string) error {
-	return escritorio.Comprobar(dialogo)
-}
+// la operación sale denegada: nadie podría responder. Las pruebas que
+// simulan los diálogos lo sustituyen.
+var comprobarEscritorioUI = escritorio.Comprobar

@@ -10,4 +10,4 @@ package main
 // comprobarEscritorioUI no exige escritorio en la compilación sin ventanas:
 // allí no se abre ningún diálogo Fyne ni Win32 propio. Los de wintaskdialog
 // hacen su propia comprobación.
-func comprobarEscritorioUI(string) error { return nil }
+var comprobarEscritorioUI = func(string) error { return nil }

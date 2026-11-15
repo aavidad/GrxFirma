@@ -17,6 +17,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	fynetest "fyne.io/fyne/v2/test"
 
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/domain"
 	"grxfirma/presentation/desktop/certpicker"
 )
@@ -45,6 +46,8 @@ func contieneTexto(object fyne.CanvasObject, texto string) bool {
 // A-11: con acciones de credenciales (afirma://) la selección es siempre
 // explícita y no se guarda, así que el selector no ofrece "Recordar".
 func TestFyneSelector_SinRecordarConAccionesDeCredenciales(t *testing.T) {
+	// El driver de prueba de Fyne hace de escritorio.
+	t.Cleanup(escritorio.SustituirDetector(func() bool { return true }))
 	t.Setenv("LANG", "es_ES.UTF-8")
 	certpicker.SetConfigDir(t.TempDir())
 	for _, conAcciones := range []bool{false, true} {
