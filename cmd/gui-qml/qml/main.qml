@@ -6163,8 +6163,10 @@ Window {
                 readOnly: true
                 wrapMode: TextEdit.Wrap
                 textFormat: TextEdit.MarkdownText
+                // Cada frase de NOVEDADES.md es una clave del catálogo (lote 37):
+                // se pinta en el idioma de la interfaz, como en WinUI.
                 text: releaseNotesDialog.notesText !== ""
-                      ? releaseNotesDialog.notesText
+                      ? CatalogText.releaseNotes(releaseNotesDialog.notesText, window.tr)
                       : tr("Novedades no disponibles en esta instalación.")
                 Accessible.name: tr("Novedades instaladas")
             }
