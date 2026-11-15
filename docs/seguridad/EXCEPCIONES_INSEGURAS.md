@@ -110,7 +110,7 @@ La lista y los bloqueos exponen `title_key`, `risk_key`, `acceptance_key`, `help
 
 ## Ayudas para las personas
 
-Cada ayuda explica qué se ha detenido, el riesgo y cómo continuar o desactivar la excepción desde Preferencias, Seguridad. Estos son los textos completos del catálogo español. El catálogo inglés tiene traducción propia; los otros nueve idiomas muestran temporalmente el castellano para estas claves.
+Cada ayuda explica qué se ha detenido, el riesgo y cómo continuar o desactivar la excepción desde el apartado Seguridad. Estos son los textos completos del catálogo español. El catálogo inglés tiene traducción propia; los otros nueve idiomas muestran temporalmente el castellano para estas claves.
 
 ### `afp_aad_ambigua`
 
@@ -124,7 +124,7 @@ Alternativa: Pida una copia nueva o guarde de nuevo el contenido en el formato .
 
 Qué cambia: al activar «Abrir archivos AFP v1 con metadatos ambiguos», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Abrir archivos AFP v1 con metadatos ambiguos» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Abrir archivos AFP v1 con metadatos ambiguos» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -140,7 +140,7 @@ Alternativa: Habilite el almacén de secretos del sistema antes de crear la iden
 
 Qué cambia: al activar «Crear claves de protección alta en fichero», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Crear claves de protección alta en fichero» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Crear claves de protección alta en fichero» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -156,7 +156,7 @@ Alternativa: Active el almacén de secretos para que GrxFirma migre la clave cua
 
 Qué cambia: al activar «Usar claves de protección alta guardadas en fichero», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Usar claves de protección alta guardadas en fichero» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Usar claves de protección alta guardadas en fichero» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -172,7 +172,7 @@ Alternativa: Mantenga la confirmación de cada firma para revisar documento y so
 
 Qué cambia: al activar «Firmar sin confirmación desde la extensión», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Firmar sin confirmación desde la extensión» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Firmar sin confirmación desde la extensión» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -188,7 +188,7 @@ Alternativa: Habilite el almacén de secretos del sistema para guardar la clave 
 
 Qué cambia: al activar «Guardar la clave de la CA local en fichero», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Guardar la clave de la CA local en fichero» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Guardar la clave de la CA local en fichero» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -204,7 +204,7 @@ Alternativa: Instale la autoridad de forma expresa con el instalador o la orden 
 
 Qué cambia: al activar «Instalar automáticamente la CA local», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Instalar automáticamente la CA local» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Instalar automáticamente la CA local» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -220,7 +220,7 @@ Alternativa: Pida una copia protegida con un cifrado actual que oculte patrones 
 
 Qué cambia: al activar «Leer CMS AES-ECB de AutoFirma 1.9», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Leer CMS AES-ECB de AutoFirma 1.9» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Leer CMS AES-ECB de AutoFirma 1.9» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -236,7 +236,7 @@ Alternativa: Pida una copia cifrada con un modo que compruebe también la integr
 
 Qué cambia: al activar «Leer sobres CMS con AES-CBC», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Leer sobres CMS con AES-CBC» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Leer sobres CMS con AES-CBC» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -252,7 +252,7 @@ Alternativa: Pida que vuelvan a cifrar el documento con un formato actual y una 
 
 Qué cambia: al activar «Leer sobres CMS con cifrados antiguos», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Leer sobres CMS con cifrados antiguos» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Leer sobres CMS con cifrados antiguos» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -268,7 +268,7 @@ Alternativa: Use el transporte RSA-OAEP con SHA-256 que GrxFirma elige por defec
 
 Qué cambia: al activar «Crear CMS con transporte RSA antiguo», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Crear CMS con transporte RSA antiguo» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Crear CMS con transporte RSA antiguo» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -284,7 +284,7 @@ Alternativa: Pida al remitente un nuevo sobre con RSA-OAEP y SHA-256.
 
 Qué cambia: al activar «Leer CMS con transporte RSA antiguo», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Leer CMS con transporte RSA antiguo» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Leer CMS con transporte RSA antiguo» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -300,7 +300,7 @@ Alternativa: Aporte el documento original para que GrxFirma compruebe que corres
 
 Qué cambia: al activar «Cofirmar o contrafirmar sin el original», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Cofirmar o contrafirmar sin el original» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Cofirmar o contrafirmar sin el original» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -316,7 +316,7 @@ Alternativa: Pida al portal un intercambio actual que no use DES.
 
 Qué cambia: al activar «Usar DES en intercambios AutoFirma 1.x», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Usar DES en intercambios AutoFirma 1.x» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Usar DES en intercambios AutoFirma 1.x» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -332,7 +332,7 @@ Alternativa: Use la extensión oficial en una instalación de producción.
 
 Qué cambia: al activar «Aceptar extensión de desarrollo en el host nativo», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Aceptar extensión de desarrollo en el host nativo» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Aceptar extensión de desarrollo en el host nativo» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -348,7 +348,7 @@ Alternativa: Use un portal que envíe su origen y autorícelo de forma normal.
 
 Qué cambia: al activar «Aceptar WebSocket sin origen», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Aceptar WebSocket sin origen» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Aceptar WebSocket sin origen» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -364,7 +364,7 @@ Alternativa: Pida una copia reprotegida con cifrado actual antes de firmarla.
 
 Qué cambia: al activar «Firmar PDF con cifrado antiguo», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Firmar PDF con cifrado antiguo» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Firmar PDF con cifrado antiguo» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -380,7 +380,7 @@ Alternativa: Use un certificado del almacén del sistema o un controlador ya adm
 
 Qué cambia: al activar «Usar controladores PKCS#11 experimentales», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Usar controladores PKCS#11 experimentales» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Usar controladores PKCS#11 experimentales» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -396,7 +396,7 @@ Alternativa: Use un proxy HTTPS o uno que no pida credenciales.
 
 Qué cambia: al activar «Enviar credenciales a un proxy sin cifrar», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Enviar credenciales a un proxy sin cifrar» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Enviar credenciales a un proxy sin cifrar» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -412,7 +412,7 @@ Alternativa: Use un certificado con clave RSA de al menos 2048 bits.
 
 Qué cambia: al activar «Firmar con RSA menor de 2048 bits», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Firmar con RSA menor de 2048 bits» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Firmar con RSA menor de 2048 bits» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -428,7 +428,7 @@ Alternativa: Elija el archivo o la carpeta personalmente en el diálogo de GrxFi
 
 Qué cambia: al activar «Aceptar rutas locales pedidas por una web», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Aceptar rutas locales pedidas por una web» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Aceptar rutas locales pedidas por una web» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -444,7 +444,7 @@ Alternativa: Pida una firma nueva con SHA-256 o superior y aporte el documento o
 
 Qué cambia: al activar «Conservar firmas SHA-1 en ENI o cofirmas», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Conservar firmas SHA-1 en ENI o cofirmas» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Conservar firmas SHA-1 en ENI o cofirmas» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -460,7 +460,7 @@ Alternativa: Pida a la sede que admita SHA-256 o superior.
 
 Qué cambia: al activar «Crear firmas SHA-1», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Crear firmas SHA-1» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Crear firmas SHA-1» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -476,7 +476,7 @@ Alternativa: Pida una copia firmada de nuevo con SHA-256 o superior si necesita 
 
 Qué cambia: al activar «Evaluar firmas SHA-1 antiguas», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Evaluar firmas SHA-1 antiguas» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Evaluar firmas SHA-1 antiguas» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -492,7 +492,7 @@ Alternativa: Pida al portal una dirección HTTPS para la firma en varias fases.
 
 Qué cambia: al activar «Hacer firma trifásica por HTTP», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Hacer firma trifásica por HTTP» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Hacer firma trifásica por HTTP» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -508,7 +508,7 @@ Alternativa: Configure la dirección HTTPS del servicio de sellado de tiempo.
 
 Qué cambia: al activar «Consultar una TSA por HTTP», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Consultar una TSA por HTTP» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Consultar una TSA por HTTP» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
@@ -524,15 +524,15 @@ Alternativa: Pida una nueva firma XML que declare el método de normalización a
 
 Qué cambia: al activar «Evaluar XML con canonicalización histórica», GrxFirma permite esta operación. Cada uso muestra un aviso en el resultado.
 
-Cómo deshacerlo: desactive «Evaluar XML con canonicalización histórica» en Preferencias, Seguridad.
+Cómo deshacerlo: desactive «Evaluar XML con canonicalización histórica» en el apartado Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
 
-El diálogo propio de afirma:// no tiene todavía una operación de activación implementada. Se ha retirado su emisor de autoridad sin llamadores. Hasta conectar ese diálogo mediante IPC local, la activación se hace en Preferencias, Seguridad; ningún parámetro del protocolo puede crear una autoridad local.
+El diálogo propio de afirma:// no tiene todavía una operación de activación implementada. Se ha retirado su emisor de autoridad sin llamadores. Hasta conectar ese diálogo mediante IPC local, la activación se hace en el apartado Seguridad; ningún parámetro del protocolo puede crear una autoridad local.
 
 ### Texto de bloqueo por canal (vuelta 6)
 
-Las claves `excepciones.<id>.bloqueo` explican la operación, el riesgo y el nombre del ajuste en Preferencias, Seguridad. La persona puede aceptar el aviso en GrxFirma cuando la interfaz ofrezca esa acción, o abrir esa sección. Android, escritorio y los portales reciben el mismo texto sin instrucciones de terminal. Si la organización lo prohíbe o su directiva es ilegible, el bloqueo remite al administrador y no ofrece activación.
+Las claves `excepciones.<id>.bloqueo` explican la operación, el riesgo y el nombre del ajuste en el apartado Seguridad. La persona puede aceptar el aviso en GrxFirma cuando la interfaz ofrezca esa acción, o abrir esa sección. Android, escritorio y los portales reciben el mismo texto sin instrucciones de terminal. Si la organización lo prohíbe o su directiva es ilegible, el bloqueo remite al administrador y no ofrece activación.
 
 La CLI añade `excepciones.cli.como_activar`, sustituyendo `{id}` por el identificador. La orden es `grxfirma -activar-excepcion <id>` con confirmación interactiva; para automatizarla se necesita `-acepto-el-aviso`. El texto de aceptación y su versión `2026-11-15.3` no cambian.
 

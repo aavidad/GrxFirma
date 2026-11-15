@@ -828,6 +828,10 @@
   "excepciones.sha1_leer.aviso"
  ],
  "gl": [
+  "excepciones.cancelar",
+  "excepciones.pantalla.activar",
+  "excepciones.pantalla.desactivar",
+  "excepciones.pantalla.desactivada",
   "afirma.elegir.cancelar",
   "cli.web_signing.autofirma_at",
   "portalpaths.carpeta_propia.detalle",
