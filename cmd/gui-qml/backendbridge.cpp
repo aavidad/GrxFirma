@@ -1267,7 +1267,8 @@ void BackendBridge::verifyFileWithOriginal(const QString &inputPath,
   });
 }
 
-void BackendBridge::loadProtectionRecipients() {
+void BackendBridge::loadProtectionRecipients(bool userRequested) {
+  Q_UNUSED(userRequested);
   emit backendLogReceived(bt(QStringLiteral("🛡️ Cargando destinatarios de protección...")));
   auto req =
       BackendBridgeMakeReq(m_addr, m_token, "/protection/recipients", m_useTLS);

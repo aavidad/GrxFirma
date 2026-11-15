@@ -386,6 +386,12 @@ func (s *Servidor) servirConexion(ctx context.Context, conn net.Conn) {
 
 		if requiereEstadoInterfaz(p.Action) {
 			requestCtx = conEstadoInterfaz(requestCtx, s.estadoInterfaz(requestCtx, conn))
+		} else {
+			// El resto de acciones lo calcula solo si emiten un bloqueo.
+			estadoCtx := requestCtx
+			requestCtx = conEstadoInterfazPerezoso(requestCtx, func() string {
+				return s.estadoInterfaz(estadoCtx, conn)
+			})
 		}
 		var resp respuesta
 		if isLocalTokenSettingsAction(p.Action) {

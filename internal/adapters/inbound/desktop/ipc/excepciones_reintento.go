@@ -70,6 +70,13 @@ func (m *Manejador) prepareUnsafeRetry(ctx context.Context, p peticion) *unsafeR
 	if ctx.Value(unsafeRetryFilesKey{}) != nil {
 		return nil
 	}
+	// Solo verificar y firmar guardan reintento; las demás acciones no
+	// calculan aquí el estado de la interfaz (lote 39l, cálculo perezoso).
+	switch strings.ToLower(strings.TrimSpace(p.Action)) {
+	case "verify", "sign":
+	default:
+		return nil
+	}
 	if !esInterfazVerificada(ctx) || unsafeRetryOwner(ctx) == "" || len(p.Params) > 64<<10 {
 		return nil
 	}

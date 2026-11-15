@@ -76,6 +76,12 @@ Window {
             // salía un aviso abajo que tapaba la fila.
             if (step === "notice_activated") { unsafePanel.confirmChange(item.id); return }
             unsafePanel.load()
+            // Crear la clave propia en fichero puede pedir dos permisos
+            // (crear y leer): tras cada uno se vuelve a intentar (lote 39l).
+            if (step === "notice_resend" && item.operationAction === "protection_recipients") {
+                backend.loadProtectionRecipients(true)
+                return
+            }
             if (step === "retry") backend.retryUnsafeOperation(item.retryId)
             else if (step === "resend") window.resendUnsafeOperation(item)
             else {
@@ -905,6 +911,9 @@ Window {
     property var batchSigningWarnings: []
     property string sessionLastDocumentPath: ""
     property var protectionRecipients: []
+    // Sin almacén de secretos no se crea la clave propia hasta que la persona
+    // lo pide (lote 39l).
+    property bool protectOwnIdentityUnavailable: false
     property var protectSelectedRecipientIds: []
     property string protectInputPath: ""
     property string protectOutputPath: ""
@@ -9107,7 +9116,12 @@ Window {
             publicCertificateResultText.text = message
             publicCertificateResultDialog.open()
         }
+        function onProtectionOwnIdentityUnavailable(exceptionId) {
+            window.protectOwnIdentityUnavailable = true
+            window.statusMessage = tr("proteccion.identidad_propia.sin_almacen.estado")
+        }
         function onProtectionRecipientsLoaded(recipients) {
+            window.protectOwnIdentityUnavailable = false
             window.protectionRecipients = recipients || []
             window.pruneProtectionSelection()
             window.statusMessage = tr("Destinatarios de protección cargados")
@@ -14682,6 +14696,48 @@ Window {
                                                     font.bold: true
                                                 }
                                                 HelpButton { nameTemplate: tr("ayuda.boton_nombre"); controlLabel: tr("Destinatarios de protección"); helpText: tr("ayuda.proteger.destinatarios") }
+                                            }
+                                            Rectangle {
+                                                Layout.fillWidth: true
+                                                visible: window.protectOwnIdentityUnavailable
+                                                radius: 8
+                                                color: "transparent"
+                                                border.color: currentTheme.secondaryTextColor
+                                                border.width: 1
+                                                implicitHeight: ownIdentityNotice.implicitHeight + 20
+                                                Accessible.role: Accessible.Grouping
+                                                Accessible.name: tr("proteccion.identidad_propia.sin_almacen.titulo")
+
+                                                ColumnLayout {
+                                                    id: ownIdentityNotice
+                                                    anchors.fill: parent
+                                                    anchors.margins: 10
+                                                    spacing: 6
+                                                    Text {
+                                                        Layout.fillWidth: true
+                                                        Layout.minimumWidth: 0
+                                                        wrapMode: Text.WordWrap
+                                                        textFormat: Text.PlainText
+                                                        font.pixelSize: Typography.control
+                                                        font.bold: true
+                                                        color: currentTheme.textColor
+                                                        text: tr("proteccion.identidad_propia.sin_almacen.titulo")
+                                                    }
+                                                    Text {
+                                                        Layout.fillWidth: true
+                                                        Layout.minimumWidth: 0
+                                                        wrapMode: Text.WordWrap
+                                                        textFormat: Text.PlainText
+                                                        font.pixelSize: Typography.control
+                                                        color: currentTheme.secondaryTextColor
+                                                        text: tr("proteccion.identidad_propia.sin_almacen.texto")
+                                                    }
+                                                    ThemedButton {
+                                                        text: tr("proteccion.identidad_propia.sin_almacen.boton")
+                                                        enabled: isIpcMode
+                                                        onClicked: backend.loadProtectionRecipients(true)
+                                                    }
+                                                }
                                             }
                                             ThemedButton {
                                                 text: tr("Añadir destinatario público…")

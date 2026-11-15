@@ -1665,7 +1665,8 @@ void IpcBridge::removeForcedTrust(const QString &type,
                {QStringLiteral("fingerprint"), fingerprint}});
 }
 
-void IpcBridge::loadProtectionRecipients() {
+void IpcBridge::loadProtectionRecipients(bool userRequested) {
+  m_protectionRecipientsUserRequest = userRequested;
   emit backendLogReceived(
       it(QStringLiteral("🛡️ Solicitando destinatarios de protección IPC")));
   sendRequest("protection_recipients", QVariantMap());
@@ -2179,6 +2180,15 @@ void IpcBridge::onReadyRead() {
       action = m_unsafeRetryRequests.take(requestId);
       if (action.isEmpty()) continue; // stale or unsolicited retry
     }
+    // Lote 39l: al entrar en Cifrar los destinatarios se cargan solos. Si eso
+    // choca con un bloqueo (crear la clave propia sin almacén de secretos),
+    // no se abre el aviso de seguridad ni se marca un fallo: la sección lo
+    // explica y el aviso sale cuando la persona pide crear la clave.
+    bool quietRecipientsBlock = false;
+    if (action == QStringLiteral("protection_recipients")) {
+      quietRecipientsBlock = unsafeBlocked && !m_protectionRecipientsUserRequest;
+      m_protectionRecipientsUserRequest = false;
+    }
     const auto unsafeRequest = m_unsafeRequests.find(requestId);
     if (unsafeRequest != m_unsafeRequests.end()) {
       const QString expected = unsafeRequest.value();
@@ -2189,7 +2199,8 @@ void IpcBridge::onReadyRead() {
       }
     }
     if (action.startsWith(QStringLiteral("unsafe_exceptions_"))) continue;
-    if (!ok && matchesPendingRequest && !obj.value("requestId").toString().isEmpty() &&
+    if (!ok && matchesPendingRequest && !quietRecipientsBlock &&
+        !obj.value("requestId").toString().isEmpty() &&
         !obj.value("exceptionId").toString().isEmpty()) {
       QVariantMap block = obj.value("exception").toObject().toVariantMap();
       block.insert("id", obj.value("exceptionId").toString());
@@ -2422,6 +2433,10 @@ void IpcBridge::onReadyRead() {
       } else if (action == "unprotect") {
         setStatus(errMsg);
         emit unprotectionFinished(false, errMsg, QVariantMap());
+      } else if (action == "protection_recipients" && unsafeBlocked) {
+        // Un bloqueo al cargar destinatarios no es una avería (lote 39l).
+        setStatus(it(QStringLiteral("proteccion.identidad_propia.sin_almacen.estado")));
+        emit protectionOwnIdentityUnavailable(obj.value("exceptionId").toString());
       } else if (action == "save_settings") {
         emit settingsSaved(false, errMsg);
       } else if (action == "proxy_secret_store" ||

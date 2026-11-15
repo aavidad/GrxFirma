@@ -67,7 +67,7 @@ public:
   Q_INVOKABLE void verifyFile(const QString &inputPath);
   Q_INVOKABLE void verifyFileWithOriginal(const QString &inputPath,
                                           const QString &originalPath);
-  Q_INVOKABLE void loadProtectionRecipients();
+  Q_INVOKABLE void loadProtectionRecipients(bool userRequested = false);
   Q_INVOKABLE void importProtectionRecipient(const QString &path);
   Q_INVOKABLE void removeProtectionRecipient(const QString &id);
   Q_INVOKABLE void requestSmartcardStatus();
@@ -175,6 +175,7 @@ signals:
                             QVariantList results);
   void verificationFinished(bool success, QString message, QVariantMap details);
   void protectionRecipientsLoaded(QVariantList recipients);
+  void protectionOwnIdentityUnavailable(const QString &exceptionId);
   void protectionRecipientChanged(bool ok, QString message);
   void smartcardStatusReceived(bool ok, QVariantList readers, QString message);
   void sealPreviewReceived(QString requestId, bool ok, QString image,
