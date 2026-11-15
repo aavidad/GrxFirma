@@ -239,6 +239,16 @@
     "excepciones.xml_c14n_antigua.organizacion",
     "excepciones.xml_c14n_antigua.riesgo",
     "excepciones.xml_c14n_antigua.titulo",
-    "factura.revision.incidencias.aviso"
+    "factura.revision.incidencias.aviso",
+    "proteccion.cms.saed.certificado_invalido",
+    "proteccion.cms.saed.certificado_no_encontrado",
+    "proteccion.cms.saed.clave_cifrado_error",
+    "proteccion.cms.saed.destinatario_invalido",
+    "proteccion.cms.saed.destinatarios_existentes",
+    "proteccion.cms.saed.destinatarios_invalidos",
+    "proteccion.cms.saed.estructura_invalida",
+    "proteccion.cms.saed.rsa_no_admitido",
+    "proteccion.cms.saed.sobre_invalido",
+    "proteccion.cms.saed.version_invalida"
   ]
 }

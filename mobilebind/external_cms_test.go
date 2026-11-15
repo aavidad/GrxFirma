@@ -7,10 +7,12 @@ package mobilebind
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
+	"io"
 	"testing"
 
 	cryptobinpkcs7 "github.com/deatil/go-cryptobin/pkcs7"
@@ -22,7 +24,7 @@ import (
 
 func TestProtectAndSignWithExternalSigner(t *testing.T) {
 	machinepolicy.UnsetForTest(t, "permitir_cms_rsa_v15_crear")
-	excepciones.SetForTest(t, "cms_rsa_v15_crear", true)
+	excepciones.SetForTest(t, "cms_rsa_v15_crear", false)
 	facade := newAndroidFacadeForTest(t)
 	recipientP12, recipient := encipheringPKCS12(t, "destino")
 	cardID, card := installSimulatedDNIe(t, facade)
@@ -46,6 +48,7 @@ func TestProtectAndSignWithExternalSigner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	assertMobileSignedEnvelopeOAEP256(t, protected.ContentBase64)
 	p7, err := cryptobinpkcs7.Parse(content)
 	if err != nil {
 		t.Fatal(err)
@@ -54,7 +57,7 @@ func TestProtectAndSignWithExternalSigner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := p7.Decrypt(cert, privateKey.(*rsa.PrivateKey)); err != nil {
+	if err := p7.Decrypt(cert, mobileCMSOAEPRecipient{privateKey.(*rsa.PrivateKey)}); err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(p7.Content, original) {
@@ -93,4 +96,13 @@ func TestExternalCMSKeySignOnlyAcceptsExternalSigner(t *testing.T) {
 	if !adapter.OID().Equal(cryptobinpkcs7.KeySignWithRSASHA256.OID()) {
 		t.Fatal("el OID de firma debe ser el de RSA con SHA-256")
 	}
+}
+
+// El lector genérico de la biblioteca presupone v1.5. Esta prueba usa el
+// contrato crypto.Decrypter para comprobar el nuevo transporte OAEP seguro.
+type mobileCMSOAEPRecipient struct{ key *rsa.PrivateKey }
+
+func (r mobileCMSOAEPRecipient) Public() crypto.PublicKey { return &r.key.PublicKey }
+func (r mobileCMSOAEPRecipient) Decrypt(random io.Reader, ciphertext []byte, _ crypto.DecrypterOpts) ([]byte, error) {
+	return rsa.DecryptOAEP(sha256.New(), random, r.key, ciphertext, nil)
 }

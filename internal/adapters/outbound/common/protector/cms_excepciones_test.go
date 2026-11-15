@@ -18,6 +18,7 @@ import (
 	cryptobinpkcs7 "github.com/deatil/go-cryptobin/pkcs7"
 	cryptobinx509 "github.com/deatil/go-cryptobin/x509"
 
+	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
@@ -221,9 +222,7 @@ func TestCMSOAEP256ConDestinatarioOAEPAntiguoConservaAmbos(t *testing.T) {
 }
 
 func TestCMSSignedEnvelopedLeerPKCS1v15ExigeAjuste(t *testing.T) {
-	rootKey, root := newCMSRootCA(t, "CA de prueba")
-	signerKey, signer := newCMSSignedLeaf(t, rootKey, root, time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
-	protected, key, _ := newCMSTrustEnvelope(t, signerKey, signer, root)
+	protected, key, root, _ := legacySAEDFixture(t, cryptobinpkcs7.AES256GCM)
 	for _, caso := range []struct {
 		nombre  string
 		usuario bool
@@ -256,43 +255,56 @@ func TestCMSSignedEnvelopedLeerPKCS1v15ExigeAjuste(t *testing.T) {
 	}
 }
 
+func TestCMSSignedEnvelopedCrearPKCS1v15ExigeAjuste(t *testing.T) {
+	private, cert := newCMSRSAIdentity(t, x509.KeyUsageKeyEncipherment|x509.KeyUsageDigitalSignature)
+	doc, err := domain.NewDocument("signed.bin", []byte("contenido firmado"), "application/octet-stream")
+	if err != nil {
+		t.Fatal(err)
+	}
+	recipient := newCMSRecipient(t, "dest", cert)
+	signer := &commonsigner.LocalSigningKey{ID: "firmante", Signer: private, Certificate: cert}
+	job := domain.ProtectionJob{Document: doc, Profile: domain.ProtectionProfileCompat, Options: map[string]string{
+		"container": "signedandenvelopeddata", "cms_key_transport": "pkcs1v15",
+	}}
+	for _, caso := range []struct {
+		nombre  string
+		usuario bool
+		maquina string
+	}{
+		{"sin ajuste", false, "ausente"},
+		{"ajuste de usuario", true, "ausente"},
+		{"prohibido por máquina", true, "prohibido"},
+		{"directiva ilegible", true, "ilegible"},
+	} {
+		t.Run(caso.nombre, func(t *testing.T) {
+			excepciones.SetForTest(t, "cms_rsa_v15_crear", caso.usuario)
+			switch caso.maquina {
+			case "ausente":
+				machinepolicy.UnsetForTest(t, "permitir_cms_rsa_v15_crear")
+			case "prohibido":
+				machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_crear", false)
+			case "ilegible":
+				machinepolicy.ErrorForTest(t, "permitir_cms_rsa_v15_crear", errors.New("fixture ilegible"))
+			}
+			ctx, warnings := domain.ConAvisosOperacion(context.Background())
+			out, err := NuevoCMSSignedEnvelopedProtector().ProtectAndSign(ctx, job, []domain.ProtectionRecipient{recipient}, signer)
+			if caso.nombre != "ajuste de usuario" {
+				comprobarBloqueoCMS(t, err, "cms_rsa_v15_crear")
+				return
+			}
+			if err != nil || !slices.Contains(warnings.Claves(), excepciones.Warning("cms_rsa_v15_crear")) {
+				t.Fatalf("SAED PKCS1v15 autorizado: %v, warnings=%v", err, warnings.Claves())
+			}
+			if got := inspectCMSAlgorithms(t, out.Document.Content).keyEncryption[0]; !got.Equal(oidCMSRSAPKCS1v15) {
+				t.Fatalf("transporte esperado PKCS1v15: %v", got)
+			}
+		})
+	}
+}
+
 func TestCMSSignedEnvelopedCBCExigeAjusteYRespetaProhibicion(t *testing.T) {
-	rootKey, root := newCMSRootCA(t, "CA CBC de prueba")
-	signerKey, signer := newCMSSignedLeaf(t, rootKey, root, time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
-	compatSigner, err := cryptobinx509.ParseCertificate(signer.Raw)
-	if err != nil {
-		t.Fatal(err)
-	}
-	compatRoot, err := cryptobinx509.ParseCertificate(root.Raw)
-	if err != nil {
-		t.Fatal(err)
-	}
-	content := []byte("contenido firmado y cifrado con CBC")
-	saed, err := cryptobinpkcs7.NewSignedAndEnvelopedData(content, cryptobinpkcs7.AES256CBC)
-	if err != nil {
-		t.Fatal(err)
-	}
-	saed.SetDigestAlgorithm(cryptobinpkcs7.OidDigestAlgorithmSHA256)
-	if err := saed.AddSigner(compatSigner, signerKey); err != nil {
-		t.Fatal(err)
-	}
-	saed.AddCertificate(compatRoot)
-	if err := saed.AddRecipient(compatSigner); err != nil {
-		t.Fatal(err)
-	}
-	blob, err := saed.Finish()
-	if err != nil {
-		t.Fatal(err)
-	}
-	protected, err := domain.NewDocument("signed-cbc.p7m", blob, domain.MIMETypeProtectedCMS)
-	if err != nil {
-		t.Fatal(err)
-	}
-	privateDER, err := x509.MarshalPKCS8PrivateKey(signerKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	keys := []domain.ProtectionKeyMaterial{{RecipientID: "cbc", RSAOAEP256PrivateKeyPKCS8: privateDER, CertificateDER: signer.Raw}}
+	protected, key, root, content := legacySAEDFixture(t, cryptobinpkcs7.AES256CBC)
+	keys := []domain.ProtectionKeyMaterial{key}
 	for _, caso := range []struct {
 		nombre  string
 		usuario bool
@@ -333,6 +345,46 @@ func TestCMSSignedEnvelopedCBCExigeAjusteYRespetaProhibicion(t *testing.T) {
 			}
 		})
 	}
+}
+
+func legacySAEDFixture(t *testing.T, cipher cryptobinpkcs7.Cipher) (domain.Document, domain.ProtectionKeyMaterial, *x509.Certificate, []byte) {
+	t.Helper()
+	rootKey, root := newCMSRootCA(t, "CA CBC de prueba")
+	signerKey, signer := newCMSSignedLeaf(t, rootKey, root, time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
+	compatSigner, err := cryptobinx509.ParseCertificate(signer.Raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	compatRoot, err := cryptobinx509.ParseCertificate(root.Raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := []byte("contenido firmado y cifrado")
+	saed, err := cryptobinpkcs7.NewSignedAndEnvelopedData(content, cipher)
+	if err != nil {
+		t.Fatal(err)
+	}
+	saed.SetDigestAlgorithm(cryptobinpkcs7.OidDigestAlgorithmSHA256)
+	if err := saed.AddSigner(compatSigner, signerKey); err != nil {
+		t.Fatal(err)
+	}
+	saed.AddCertificate(compatRoot)
+	if err := saed.AddRecipient(compatSigner); err != nil {
+		t.Fatal(err)
+	}
+	blob, err := saed.Finish()
+	if err != nil {
+		t.Fatal(err)
+	}
+	protected, err := domain.NewDocument("signed-cbc.p7m", blob, domain.MIMETypeProtectedCMS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	privateDER, err := x509.MarshalPKCS8PrivateKey(signerKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return protected, domain.ProtectionKeyMaterial{RecipientID: "cbc", RSAOAEP256PrivateKeyPKCS8: privateDER, CertificateDER: signer.Raw}, root, content
 }
 
 func TestCMSReaderRespetaDirectorioDeAjustesDeLaOperacion(t *testing.T) {

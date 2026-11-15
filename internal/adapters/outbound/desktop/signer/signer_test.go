@@ -459,6 +459,7 @@ func TestMotorFirmaGo_XAdEST_UsaTSACuandoSeSolicitaBaselineConTSA(t *testing.T) 
 }
 
 func TestMotorFirmaGo_XAdEST_UsaTsaURLDeOptionsSinTSAInyectada(t *testing.T) {
+	permitirTSAHTTPPrueba(t)
 	tsaResponder := tsatest.NewResponder(t)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -483,10 +484,12 @@ func TestMotorFirmaGo_XAdEST_UsaTsaURLDeOptionsSinTSAInyectada(t *testing.T) {
 		},
 	}
 
-	resultado, err := motor.Sign(context.Background(), job, clave)
+	ctx, avisosOperacion := domain.ConAvisosOperacion(context.Background())
+	resultado, err := motor.Sign(ctx, job, clave)
 	if err != nil {
 		t.Fatalf("Sign devolvio error inesperado: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 	if !strings.Contains(string(resultado.Data), "<xades:SignatureTimeStamp>") {
 		t.Fatal("tsaURL en options debe permitir XAdES-T sin TSA global")
 	}

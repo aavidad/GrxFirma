@@ -1937,6 +1937,7 @@ func (k digestKeyStub) SignDigest(digest []byte, _ crypto.Hash) ([]byte, error) 
 // CAdEStri con serverUrl por WebSocket: firma trifásica real contra el
 // servidor de la web (como Java), con selector y confirmación del usuario.
 func TestLegacyWebSocketHandler_FormatoTriUsaServidorTrifasico(t *testing.T) {
+	_, certDER := generarMaterialCertificadoRSA(t, "Firmante trifásica de prueba")
 	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		switch r.Form.Get("op") {
@@ -1956,7 +1957,7 @@ func TestLegacyWebSocketHandler_FormatoTriUsaServidorTrifasico(t *testing.T) {
 		signUC:   executor,
 		catalogo: certificateCatalogStub{certs: []domain.CertificateRef{cert}},
 		selector: certSelectorStub{result: certpicker.ResultadoSeleccion{Certificado: cert}},
-		keys:     keyProviderStub{key: digestKeyStub{signingKeyStub{id: "c1", chain: [][]byte{[]byte("cert-der")}}}},
+		keys:     keyProviderStub{key: digestKeyStub{signingKeyStub{id: "c1", chain: [][]byte{certDER.Raw}}}},
 		retrieve: triphase.New(srv.Client()).ConValidadorDestino(func(context.Context, string) error { return nil }),
 		approval: aprobacion,
 	}

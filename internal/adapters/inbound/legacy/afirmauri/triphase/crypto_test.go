@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -243,12 +244,15 @@ func TestLegacyDESDesactivadoPorDefecto(t *testing.T) {
 
 // El mensaje debe decirle al operador como reactivarlo, no fallar en opaco.
 func TestLegacyDESDesactivadoExplicaComoReactivarlo(t *testing.T) {
+	machinepolicy.UnsetForTest(t, machinepolicy.PermitirDESLegacy)
+	excepciones.SetForTest(t, "des_intercambio", false)
 	_, err := cifrarAES128CBC([]byte("datos"), "abc")
 	if err == nil {
 		t.Fatal("se esperaba error")
 	}
-	if !strings.Contains(err.Error(), machinepolicy.PermitirDESLegacy) {
-		t.Fatalf("el error debe nombrar la política que lo reactiva, y fue: %v", err)
+	if !strings.Contains(err.Error(), "[des_intercambio; excepciones.des_intercambio.bloqueo]") ||
+		!strings.Contains(err.Error(), "grxfirma -activar-excepcion des_intercambio") {
+		t.Fatalf("el error debe dar la orden de activación local y el identificador: %v", err)
 	}
 }
 

@@ -25,7 +25,6 @@ import (
 )
 
 func TestCMSProtector_SignedAndEnvelopedDistingueIntegridadVigenciaYConfianza(t *testing.T) {
-	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", true)
 	rootKey, root := newCMSRootCA(t, "Root confiable")
 	signerKey, signer := newCMSSignedLeaf(t, rootKey, root, time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
 	_, otherRoot := newCMSRootCA(t, "Root ajena")
@@ -150,7 +149,6 @@ func TestCMSProtector_LegacyV1ExigeConfianzaAdemasDeOptIn(t *testing.T) {
 
 func newCMSTrustEnvelope(t *testing.T, signerKey *rsa.PrivateKey, signer, root *x509.Certificate, clocks ...ports.Clock) (domain.Document, domain.ProtectionKeyMaterial, []byte) {
 	t.Helper()
-	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_crear", true)
 	plaintext := []byte("contenido SignedAndEnvelopedData con confianza explícita")
 	document, err := domain.NewDocument("trust.txt", plaintext, "text/plain")
 	if err != nil {

@@ -39,7 +39,7 @@ func TestPrepareStartupLocalTLSTrustReportsOnlyChanges(t *testing.T) {
 	if err := prepareStartupLocalTLSTrust(context.Background(), t.TempDir(), &first); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(first.String(), "Firefox") || getStartupTLSTrustNotice() == "" {
+	if !strings.Contains(first.String(), "Firefox") || !strings.Contains(first.String(), tl("excepciones.ca_instalacion_automatica.aviso")) || getStartupTLSTrustNotice() == "" {
 		t.Fatalf("first launch did not explain Firefox restart: %q", first.String())
 	}
 	setStartupTLSTrustNotice("")

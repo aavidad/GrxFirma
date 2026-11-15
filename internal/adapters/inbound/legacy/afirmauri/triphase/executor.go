@@ -289,6 +289,9 @@ func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, 
 	if err := session.Validate(); err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("sesion invalida: %w", err)
 	}
+	if err := ctx.Err(); err != nil {
+		return domain.SignatureResult{}, err
+	}
 	if session.SessionKey != "" {
 		if _, err := decodificarClaveAES128(session.SessionKey); err != nil {
 			if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, session.RetrieveEndpoint, session.UploadEndpoint); err != nil {

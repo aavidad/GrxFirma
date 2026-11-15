@@ -495,3 +495,7 @@ Qué cambia: al activar «Evaluar XML con canonicalización histórica», GrxFir
 Cómo deshacerlo: desactive «Evaluar XML con canonicalización histórica» en Preferencias, Seguridad cuando la sección esté disponible; hoy puede cambiar su valor a false en settings.json (en la misma carpeta que config.json) si la aceptó desde un aviso. config.json solo decide si este identificador no figura en settings.json.
 
 Bloqueo de la organización: si el equipo lo prohíbe, el ajuste de usuario no lo habilita. Consulte al administrador.
+
+## Vuelta 2: firmar y cifrar con transporte seguro
+
+«Firmar y cifrar», incluido Android, conserva el formato SignedAndEnvelopedData y usa por defecto RSA-OAEP con SHA-256 para proteger la clave del contenido, AES-256-GCM para el contenido y SHA-256 para la firma. No exige activar `cms_rsa_v15_crear`. La compatibilidad PKCS#1 v1.5 requiere tanto `cms_key_transport=pkcs1v15` como el ajuste expreso ya documentado. El lector propio reconoce OAEP con sus parámetros y conserva las comprobaciones de integridad, vigencia y confianza. No se ha añadido descifrado mediante dispositivos de claves no exportables; sigue usando el material PKCS#8 que admitía antes.

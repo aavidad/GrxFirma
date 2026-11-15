@@ -125,7 +125,7 @@ func TestCreateENIDocumentCAdESSHA1LoCierraLaPolitica(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, false)
 	facade := newAndroidFacadeForTest(t)
 	cms := cadesSHA1Movil(t, []byte("acta de 2012"), false)
-	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, peticionENISHA1(cms))); err == nil || err.Error() != mobileErrorSHA1Prohibido {
+	if _, err := facade.CreateENIDocumentJSON(mustJSON(t, peticionENISHA1(cms))); !isSHA1PolicyBlock(err) {
 		t.Fatalf("con SHA-1 prohibido por política el ENI se rechaza: %v", err)
 	}
 }
@@ -147,7 +147,7 @@ func TestComprobarOriginalCofirmaSHA1(t *testing.T) {
 		t.Fatalf("un original ajeno sigue sin corresponder: %v", err)
 	}
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, false)
-	if _, err := comprobarOriginalCofirma(csig, original, false); err == nil || err.Error() != mobileErrorSHA1Prohibido {
+	if _, err := comprobarOriginalCofirma(csig, original, false); !isSHA1PolicyBlock(err) {
 		t.Fatalf("con SHA-1 prohibido por política se rechaza: %v", err)
 	}
 }
@@ -181,4 +181,10 @@ func TestSignJSONCofirmaCAdESExplicitaSHA1ConOriginal(t *testing.T) {
 			t.Fatalf("%s: todos los firmantes deben cubrir el original: %v", paso, err)
 		}
 	}
+}
+
+// La política prohíbe el caso de conservación, no un fallo criptográfico.
+func isSHA1PolicyBlock(err error) bool {
+	var b *excepciones.Block
+	return errors.As(err, &b) && b.ID == "sha1_conservar" && b.BlockKey == "excepciones.sha1_conservar.bloqueo" && !b.Activable && b.OrganizationKey != ""
 }

@@ -7167,5 +7167,15 @@
   "excepciones.cli.cancelada": "The exception was not enabled.",
   "excepciones.cli.activada": "Exception %s is now enabled on this device. Every use will show a warning.",
   "excepciones.cli.ayuda": "Usage: grxfirma -activar-excepcion IDENTIFIER. Read the risk and confirm the prompt. For an automated command, add -acepto-el-aviso.",
-  "excepciones.cli.id_requerido": "Provide one identifier with -activar-excepcion, without combining it with -operacion."
+  "excepciones.cli.id_requerido": "Provide one identifier with -activar-excepcion, without combining it with -operacion.",
+  "proteccion.cms.saed.destinatarios_invalidos": "The recipients or content key in the signed and encrypted envelope are invalid.",
+  "proteccion.cms.saed.certificado_invalido": "The recipient certificate in the signed and encrypted envelope is invalid.",
+  "proteccion.cms.saed.rsa_no_admitido": "The recipient needs an RSA key between 2048 and 8192 bits.",
+  "proteccion.cms.saed.clave_cifrado_error": "The content key could not be encrypted for the recipient.",
+  "proteccion.cms.saed.sobre_invalido": "The signed and encrypted envelope is invalid.",
+  "proteccion.cms.saed.estructura_invalida": "The structure of the signed and encrypted envelope is invalid.",
+  "proteccion.cms.saed.version_invalida": "The version of the signed and encrypted envelope is invalid.",
+  "proteccion.cms.saed.destinatarios_existentes": "Secure key transport cannot be added to an envelope that already has recipients.",
+  "proteccion.cms.saed.destinatario_invalido": "One recipient in the signed and encrypted envelope is invalid.",
+  "proteccion.cms.saed.certificado_no_encontrado": "The certificate is not among the recipients of the signed and encrypted envelope."
 }

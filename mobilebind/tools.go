@@ -14,6 +14,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/protector"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 // Mensajes cerrados de las herramientas. La UI Android los traduce por
@@ -194,12 +195,13 @@ type protectRequest struct {
 }
 
 type protectResponse struct {
-	Name           string `json:"name"`
-	MIMEType       string `json:"mime_type"`
-	ContentBase64  string `json:"content_base64"`
-	Container      string `json:"container"`
-	RecipientCount int    `json:"recipient_count"`
-	CertificateID  string `json:"certificate_id,omitempty"`
+	Warnings       []string `json:"warnings,omitempty"`
+	Name           string   `json:"name"`
+	MIMEType       string   `json:"mime_type"`
+	ContentBase64  string   `json:"content_base64"`
+	Container      string   `json:"container"`
+	RecipientCount int      `json:"recipient_count"`
+	CertificateID  string   `json:"certificate_id,omitempty"`
 }
 
 type unprotectRequest struct {
@@ -209,9 +211,10 @@ type unprotectRequest struct {
 }
 
 type unprotectResponse struct {
-	Name          string `json:"name"`
-	MIMEType      string `json:"mime_type"`
-	ContentBase64 string `json:"content_base64"`
+	Warnings      []string `json:"warnings,omitempty"`
+	Name          string   `json:"name"`
+	MIMEType      string   `json:"mime_type"`
+	ContentBase64 string   `json:"content_base64"`
 }
 
 // ProtectJSON cifra un fichero con los contenedores CMS del escritorio:
@@ -275,6 +278,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 	}
 	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
+	ctx, notices := domain.ConAvisosOperacion(ctx)
 	options := map[string]string{"container": container}
 	var protected domain.ProtectedPayload
 	certificateID := ""
@@ -291,6 +295,10 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 			protector.NuevoCMSSignedEnvelopedProtector(), nativeExplicitApproval{}, nil, nil)
 		result, err := useCase.Execute(ctx, cmd)
 		if err != nil {
+			var blocked *excepciones.Block
+			if errors.As(err, &blocked) {
+				return "", err
+			}
 			return "", safeOperationError("proteccion")
 		}
 		protected = result.Protected
@@ -306,6 +314,10 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 			nativeExplicitApproval{}, nil, nil)
 		result, err := useCase.Execute(ctx, cmd)
 		if err != nil {
+			var blocked *excepciones.Block
+			if errors.As(err, &blocked) {
+				return "", err
+			}
 			return "", safeOperationError("proteccion")
 		}
 		protected = result.Protected
@@ -316,6 +328,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 		return "", newFacadeError("el resultado de proteccion tiene un tamano no permitido")
 	}
 	return marshal(protectResponse{
+		Warnings:       notices.Claves(),
 		Name:           sanitizeOutputText(protected.Document.Name, 200),
 		MIMEType:       sanitizeOutputText(protected.Document.MIMEType, 160),
 		ContentBase64:  base64.StdEncoding.EncodeToString(data),
@@ -358,10 +371,15 @@ func (f *Facade) UnprotectJSON(payload string, secret []byte) (out string, err e
 	}
 	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
+	ctx, notices := domain.ConAvisosOperacion(ctx)
 	useCase := application.NuevoUnprotectDocumentUseCase(mobileSessionDecryptionKeys{f.session},
 		protector.NuevoAdaptiveProtector(), nil, nil)
 	result, err := useCase.Execute(ctx, application.UnprotectCommand{ProtectedDocument: doc, SymmetricKey: key})
 	if err != nil {
+		var blocked *excepciones.Block
+		if errors.As(err, &blocked) {
+			return "", err
+		}
 		return "", newFacadeError(mobileUnprotectFailedMessage)
 	}
 	data := result.Unprotected.Document.Content
@@ -370,6 +388,7 @@ func (f *Facade) UnprotectJSON(payload string, secret []byte) (out string, err e
 		return "", newFacadeError("el resultado de desproteccion tiene un tamano no permitido")
 	}
 	return marshal(unprotectResponse{
+		Warnings:      domain.UnirAvisos(result.Unprotected.Avisos, notices.Claves()...),
 		Name:          sanitizeOutputText(result.Unprotected.Document.Name, 200),
 		MIMEType:      sanitizeOutputText(result.Unprotected.Document.MIMEType, 160),
 		ContentBase64: base64.StdEncoding.EncodeToString(data),

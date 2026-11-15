@@ -8,9 +8,17 @@ package mobilebind
 import (
 	"bytes"
 	"context"
+	"crypto"
 	"encoding/json"
 	"errors"
+	"grxfirma/internal/adapters/outbound/common/tsaclient"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
+	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -144,6 +152,8 @@ func TestDiagnosticsHasNoPersonalData(t *testing.T) {
 }
 
 func TestTimestampProbeAgainstLocalTSA(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+	excepciones.SetForTest(t, "tsa_http", true)
 	server := httptest.NewServer(tsatest.NewResponder(t))
 	defer server.Close()
 	facade := newAndroidFacadeForTest(t)
@@ -153,7 +163,7 @@ func TestTimestampProbeAgainstLocalTSA(t *testing.T) {
 	}
 	var response timestampProbeResponse
 	decodeResponse(t, raw, &response)
-	if response.Status != "ok" || response.HTTPS || response.TSATime == "" {
+	if response.Status != "ok" || response.HTTPS || response.TSATime == "" || !slices.Contains(response.Warnings, excepciones.Warning("tsa_http")) {
 		t.Fatalf("prueba TSA: %+v", response)
 	}
 	if response.SkewSeconds < -5 || response.SkewSeconds > 5 {
@@ -305,5 +315,63 @@ func TestContractDeclaresThirdWaveServices(t *testing.T) {
 	}
 	if contract.Verification.Revocation != "embedded_evidence_only" {
 		t.Fatal("la verificación de firmas sigue sin consultar la revocación en línea")
+	}
+}
+
+type mobileProbeTransport func(*http.Request) (*http.Response, error)
+
+func (t mobileProbeTransport) RoundTrip(r *http.Request) (*http.Response, error) { return t(r) }
+
+// Recorre el cliente real de sellado y su política sin abrir sockets. La
+// configuración privada de Android debe llegar al punto que decide HTTP.
+func TestTimestampProbeHTTPUsesPrivateSettingsAndWarning(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+	f := newAndroidFacadeForTest(t)
+	responder := tsatest.NewResponder(t)
+	requests := 0
+	client := tsaclient.New("http://tsa.example.test/tsr")
+	client.HTTPClient = &http.Client{Transport: mobileProbeTransport(func(r *http.Request) (*http.Response, error) {
+		requests++
+		w := httptest.NewRecorder()
+		responder.ServeHTTP(w, r)
+		return w.Result(), nil
+	})}
+	f.timestampProbe = func(ctx context.Context, _ string, hash []byte) ([]byte, error) {
+		return client.RequestTimestamp(ctx, hash, crypto.SHA256)
+	}
+	req := mustJSON(t, timestampProbeRequest{URL: client.URL})
+	if _, err := f.ProbeTimestampAuthorityJSON(req); err == nil {
+		t.Fatal("HTTP se permitió sin ajuste")
+	} else {
+		var blocked *excepciones.Block
+		if !errors.As(err, &blocked) || blocked.ID != "tsa_http" {
+			t.Fatalf("bloqueo sin ID: %v", err)
+		}
+	}
+	if requests != 0 {
+		t.Fatal("HTTP salió antes del ajuste")
+	}
+	if err := os.WriteFile(filepath.Join(f.configDir, "settings.json"), []byte(`{"excepciones_inseguras":{"tsa_http":true}}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	raw, err := f.ProbeTimestampAuthorityJSON(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var result timestampProbeResponse
+	decodeResponse(t, raw, &result)
+	if result.Status != "ok" || result.TSATime == "" || !slices.Contains(result.Warnings, excepciones.Warning("tsa_http")) || requests != 1 {
+		t.Fatalf("prueba permitida: %+v, peticiones=%d", result, requests)
+	}
+	machinepolicy.SetForTest(t, "permitir_tsa_http", false)
+	if _, err = f.ProbeTimestampAuthorityJSON(req); err == nil {
+		t.Fatal("el usuario elude la máquina")
+	}
+	if requests != 1 {
+		t.Fatal("HTTP salió pese a la prohibición")
+	}
+	machinepolicy.ErrorForTest(t, "permitir_tsa_http", errors.New("ilegible"))
+	if _, err = f.ProbeTimestampAuthorityJSON(req); err == nil || requests != 1 {
+		t.Fatal("política ilegible no cierra")
 	}
 }

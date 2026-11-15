@@ -479,5 +479,15 @@
   "excepciones.cli.cancelada": "No se ha activado la excepción.",
   "excepciones.cli.activada": "Se ha activado la excepción %s en este equipo. Cada uso mostrará un aviso.",
   "excepciones.cli.ayuda": "Uso: grxfirma -activar-excepcion IDENTIFICADOR. Lea el riesgo y confirme la pregunta. En una orden automatizada, añada -acepto-el-aviso.",
-  "excepciones.cli.id_requerido": "Indique un solo identificador con -activar-excepcion, sin combinarlo con -operacion."
+  "excepciones.cli.id_requerido": "Indique un solo identificador con -activar-excepcion, sin combinarlo con -operacion.",
+  "proteccion.cms.saed.destinatarios_invalidos": "Los destinatarios o la clave de contenido del sobre firmado y cifrado no son válidos.",
+  "proteccion.cms.saed.certificado_invalido": "El certificado del destinatario del sobre firmado y cifrado no es válido.",
+  "proteccion.cms.saed.rsa_no_admitido": "El destinatario necesita una clave RSA de entre 2048 y 8192 bits.",
+  "proteccion.cms.saed.clave_cifrado_error": "No se pudo cifrar la clave del contenido para el destinatario.",
+  "proteccion.cms.saed.sobre_invalido": "El sobre firmado y cifrado no es válido.",
+  "proteccion.cms.saed.estructura_invalida": "La estructura del sobre firmado y cifrado no es válida.",
+  "proteccion.cms.saed.version_invalida": "La versión del sobre firmado y cifrado no es válida.",
+  "proteccion.cms.saed.destinatarios_existentes": "No se puede añadir el transporte seguro a un sobre que ya tiene destinatarios.",
+  "proteccion.cms.saed.destinatario_invalido": "Uno de los destinatarios del sobre firmado y cifrado no es válido.",
+  "proteccion.cms.saed.certificado_no_encontrado": "El certificado no figura entre los destinatarios del sobre firmado y cifrado."
 }

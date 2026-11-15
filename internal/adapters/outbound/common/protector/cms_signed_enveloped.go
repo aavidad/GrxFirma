@@ -87,17 +87,21 @@ func (p *CMSSignedEnvelopedProtector) ProtectAndSign(ctx context.Context, job do
 	if err := validateCMSSigningIdentity(local.Certificate, local.Signer.Public()); err != nil {
 		return domain.ProtectedPayload{}, err
 	}
-	// Esta modalidad heredada de la biblioteca solo cifra la CEK con RSA
-	// PKCS#1 v1.5; su producción requiere el mismo ajuste que EnvelopedData.
-	if err := excepciones.Require(ctx, "cms_rsa_v15_crear"); err != nil {
-		return domain.ProtectedPayload{}, err
+	legacyTransport := normalizeProtectionContainerToken(job.Options["cms_key_transport"]) == "pkcs1v15"
+	if legacyTransport {
+		if err := excepciones.Require(ctx, "cms_rsa_v15_crear"); err != nil {
+			return domain.ProtectedPayload{}, err
+		}
 	}
 
 	signerCert, err := cryptobinx509.ParseCertificate(local.Certificate.Raw)
 	if err != nil {
 		return domain.ProtectedPayload{}, fmt.Errorf("certificado del firmante no valido para CMS firmado: %w", err)
 	}
-	cipher := cryptobinpkcs7.AES256GCM
+	var cipher cryptobinpkcs7.Cipher = cryptobinpkcs7.AES256GCM
+	captured := &cmsCipherConCEK{Cipher: cipher}
+	defer func() { zeroBytes(captured.cek) }()
+	cipher = captured
 	saed, err := cryptobinpkcs7.NewSignedAndEnvelopedData(job.Document.Content, cipher)
 	if err != nil {
 		return domain.ProtectedPayload{}, fmt.Errorf("creando estructura SignedAndEnvelopedData: %w", err)
@@ -118,6 +122,7 @@ func (p *CMSSignedEnvelopedProtector) ProtectAndSign(ctx context.Context, job do
 	}
 
 	recipientCount := 0
+	var oaepRecipients []*stdx509.Certificate
 	for _, recipient := range recipients {
 		recipientCert, err := parseCMSRecipientCertificate(recipient, job.Profile)
 		if err != nil {
@@ -127,8 +132,12 @@ func (p *CMSSignedEnvelopedProtector) ProtectAndSign(ctx context.Context, job do
 		if err != nil {
 			return domain.ProtectedPayload{}, fmt.Errorf("certificado del destinatario '%s' no valido para CMS firmado: %w", recipient.ID, err)
 		}
-		if err := saed.AddRecipient(cert); err != nil {
-			return domain.ProtectedPayload{}, fmt.Errorf("anadiendo destinatario '%s' a SignedAndEnvelopedData: %w", recipient.ID, err)
+		if legacyTransport {
+			if err := saed.AddRecipient(cert); err != nil {
+				return domain.ProtectedPayload{}, fmt.Errorf("anadiendo destinatario '%s' a SignedAndEnvelopedData: %w", recipient.ID, err)
+			}
+		} else {
+			oaepRecipients = append(oaepRecipients, recipientCert)
 		}
 		recipientCount++
 	}
@@ -136,6 +145,12 @@ func (p *CMSSignedEnvelopedProtector) ProtectAndSign(ctx context.Context, job do
 	blob, err := saed.Finish()
 	if err != nil {
 		return domain.ProtectedPayload{}, fmt.Errorf("finalizando SignedAndEnvelopedData: %w", err)
+	}
+	if !legacyTransport {
+		blob, err = insertarDestinatariosSAED(blob, captured.cek, oaepRecipients)
+		if err != nil {
+			return domain.ProtectedPayload{}, err
+		}
 	}
 	protectedDoc, err := domain.NewDocument(protectedSignedCMSFileName(job.Document.Name), blob, domain.MIMETypeProtectedCMS)
 	if err != nil {
@@ -203,7 +218,14 @@ func decryptSignedEnvelopedCMS(ctx context.Context, protected domain.Document, k
 		if err != nil {
 			continue
 		}
-		if err := p7.Decrypt(cert, priv); err != nil {
+		oaep, err := transporteSAEDParaCertificado(protected.Content, stdCert)
+		if err != nil {
+			continue
+		}
+		decrypter := &cmsSAEDDecrypter{private: priv, oaep: oaep}
+		decryptErr := p7.Decrypt(cert, decrypter)
+		zeroBytes(decrypter.cek)
+		if decryptErr != nil {
 			continue
 		}
 		// Verify() sin truststore comprueba exclusivamente la integridad

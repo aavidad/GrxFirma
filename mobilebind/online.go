@@ -28,6 +28,8 @@ import (
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/adapters/outbound/common/updatecheck"
+	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 // Servicios de la tercera oleada: detalle y validación en línea del
@@ -250,12 +252,13 @@ type timestampProbeRequest struct {
 }
 
 type timestampProbeResponse struct {
-	Status        string `json:"status"`
-	HTTPS         bool   `json:"https"`
-	TSATime       string `json:"tsa_time,omitempty"`
-	LocalTime     string `json:"local_time"`
-	SkewSeconds   int64  `json:"skew_seconds"`
-	ElapsedMillis int64  `json:"elapsed_ms"`
+	Warnings      []string `json:"warnings,omitempty"`
+	Status        string   `json:"status"`
+	HTTPS         bool     `json:"https"`
+	TSATime       string   `json:"tsa_time,omitempty"`
+	LocalTime     string   `json:"local_time"`
+	SkewSeconds   int64    `json:"skew_seconds"`
+	ElapsedMillis int64    `json:"elapsed_ms"`
 }
 
 // ProbeTimestampAuthorityJSON pide un sello de tiempo de prueba sobre un
@@ -286,14 +289,20 @@ func (f *Facade) ProbeTimestampAuthorityJSON(payload string) (out string, err er
 			return tsaclient.New(endpoint).RequestTimestamp(ctx, hash, crypto.SHA256)
 		}
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), timestampProbeTimeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), timestampProbeTimeout)
+	ctx, notices := domain.ConAvisosOperacion(ctx)
 	defer cancel()
 	started := f.now()
 	token, err := probe(ctx, req.URL, digest)
 	finished := f.now()
 	response.LocalTime = finished.UTC().Format(time.RFC3339)
 	response.ElapsedMillis = finished.Sub(started).Milliseconds()
+	response.Warnings = notices.Claves()
 	if err != nil {
+		var blocked *excepciones.Block
+		if errors.As(err, &blocked) {
+			return "", err
+		}
 		response.Status = timestampProbeFailure(ctx, err)
 		return marshal(response)
 	}

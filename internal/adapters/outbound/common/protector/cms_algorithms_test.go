@@ -103,8 +103,6 @@ func TestCMSProtector_EmiteAlgoritmosDERReales(t *testing.T) {
 		t.Fatalf("EncryptedData no debe contener transporte de clave: %v", encryptedAlgorithms.keyEncryption)
 	}
 
-	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_crear", true)
-	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", true)
 	signed, err := NuevoCMSSignedEnvelopedProtector().ProtectAndSign(
 		context.Background(),
 		domain.ProtectionJob{
@@ -125,7 +123,10 @@ func TestCMSProtector_EmiteAlgoritmosDERReales(t *testing.T) {
 	signedAlgorithms := inspectCMSAlgorithms(t, signed.Document.Content)
 	requireCMSOID(t, "SignedAndEnvelopedData content type", signedAlgorithms.contentType, oidCMSSignedEnvelopedData)
 	requireCMSOID(t, "SignedAndEnvelopedData content cipher", signedAlgorithms.contentEncryption, oidTestAES256GCM)
-	requireCMSOID(t, "SignedAndEnvelopedData key transport", signedAlgorithms.keyEncryption[0], oidTestRSAEncryption)
+	requireCMSOID(t, "SignedAndEnvelopedData key transport", signedAlgorithms.keyEncryption[0], oidTestRSAESOAEP)
+	if oaep, err := transporteSAEDParaCertificado(signed.Document.Content, cert); err != nil || !oaep {
+		t.Fatalf("SignedAndEnvelopedData debe declarar OAEP-SHA-256 y MGF1-SHA-256: %v", err)
+	}
 	requireCMSOID(t, "SignedAndEnvelopedData digest", signedAlgorithms.digest[0], oidTestSHA256)
 	requireCMSOID(t, "SignedAndEnvelopedData signature", signedAlgorithms.signature[0], oidTestSHA256WithRSA)
 

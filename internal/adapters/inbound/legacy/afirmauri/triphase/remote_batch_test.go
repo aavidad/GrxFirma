@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -191,7 +192,8 @@ func (m *mockLegacyBatchPreKey) SignPreData(preData []byte, algorithm string, op
 }
 
 func TestExecuteLegacyRemote_ReplicaFlujoBatchV1(t *testing.T) {
-	t.Parallel()
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 
 	rawBatch := []byte(`{"format":"CAdES","algorithm":"SHA256withRSA","singlesigns":[{"id":"doc-1","datareference":"token-remoto"}]}`)
 	preHashB64 := base64.StdEncoding.EncodeToString([]byte("digest-batch"))
@@ -289,7 +291,7 @@ func TestExecuteLegacyRemote_ReplicaFlujoBatchV1(t *testing.T) {
 
 	executor := New(srv.Client())
 	batch := NewBatch(executor)
-	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{
+	ctx := ContextWithSigningKey(operationCtx, &mockLegacyBatchKey{
 		chain: [][]byte{[]byte("cert-der-hoja"), []byte("cert-der-ca")},
 	})
 
@@ -311,10 +313,12 @@ func TestExecuteLegacyRemote_ReplicaFlujoBatchV1(t *testing.T) {
 	if !waitVisto || !preVisto || !postVisto || !uploadVisto {
 		t.Fatalf("flujo batch remoto incompleto: wait=%v pre=%v post=%v upload=%v", waitVisto, preVisto, postVisto, uploadVisto)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestExecuteLegacyRemoteResult_WebSocketDirectoNoExigeSesionDeIntercambio(t *testing.T) {
-	t.Parallel()
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 
 	rawBatch := []byte(`<?xml version="1.0" encoding="UTF-8"?><signbatch stoponerror="true" algorithm="SHA512withRSA"><singlesign Id="doc-1"><datasource>token-remoto</datasource><format>XAdES</format><suboperation>sign</suboperation></singlesign></signbatch>`)
 	postResult := []byte(`<?xml version="1.0" encoding="UTF-8"?><signs><signresult id="doc-1" result="DONE_AND_SAVED"/></signs>`)
@@ -345,7 +349,7 @@ func TestExecuteLegacyRemoteResult_WebSocketDirectoNoExigeSesionDeIntercambio(t 
 
 	executor := New(srv.Client())
 	batch := NewBatch(executor)
-	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{
+	ctx := ContextWithSigningKey(operationCtx, &mockLegacyBatchKey{
 		chain: [][]byte{[]byte("cert-der-hoja")},
 	})
 
@@ -383,6 +387,7 @@ func TestExecuteLegacyRemoteResult_WebSocketDirectoNoExigeSesionDeIntercambio(t 
 	if !bytes.Equal(decodedCert, validTriphaseTestCertificateDER()) {
 		t.Fatalf("cert devuelto inesperado: %q", string(decodedCert))
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestSignLegacyBatchTriphase_NormalizaIDComoV1(t *testing.T) {
@@ -483,7 +488,8 @@ func TestShouldFallbackLegacyBatchFormStatus_Admite414(t *testing.T) {
 // Reproduce el presignador de JCyL: rechaza con un 400 genérico la query en
 // POST y el relleno Base64 escapado, y solo acepta el cuerpo en crudo.
 func TestLegacyBatchPostURL_ServidorEstiloJCyLAceptaCuerpoCrudo(t *testing.T) {
-	t.Parallel()
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 
 	const valor = "PD94bWw-_=="
 	peticiones := 0
@@ -505,7 +511,7 @@ func TestLegacyBatchPostURL_ServidorEstiloJCyLAceptaCuerpoCrudo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	body, err := executor.legacyBatchPostURL(context.Background(), u)
+	body, err := executor.legacyBatchPostURL(operationCtx, u)
 	if err != nil {
 		t.Fatalf("legacyBatchPostURL: %v", err)
 	}
@@ -515,10 +521,12 @@ func TestLegacyBatchPostURL_ServidorEstiloJCyLAceptaCuerpoCrudo(t *testing.T) {
 	if peticiones != 2 {
 		t.Fatalf("peticiones=%d, want 2 (query y cuerpo crudo)", peticiones)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestLegacyBatchPostPrepared_ReintentaFormBodyAnteErrorDeProtocoloEnQuery(t *testing.T) {
-	t.Parallel()
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 
 	var (
 		queryVisto bool
@@ -558,7 +566,7 @@ func TestLegacyBatchPostPrepared_ReintentaFormBodyAnteErrorDeProtocoloEnQuery(t 
 
 	executor := New(srv.Client())
 	body, err := executor.legacyBatchPostPrepared(
-		context.Background(),
+		operationCtx,
 		srv.URL+"/presign?json=%7B%22ok%22%3Atrue%7D",
 		srv.URL+"/presign",
 		"json=%7B%22ok%22%3Atrue%7D",
@@ -575,6 +583,7 @@ func TestLegacyBatchPostPrepared_ReintentaFormBodyAnteErrorDeProtocoloEnQuery(t 
 	if got := strings.TrimSpace(string(body)); got != "OK-FORM" {
 		t.Fatalf("body=%q, want %q", got, "OK-FORM")
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestLegacyBatchPostPrepared_ReintentaAnteConexionCerrada(t *testing.T) {
@@ -693,7 +702,10 @@ func TestMergeLegacyPresignResults_LimpiaCamposLegacyComoV1(t *testing.T) {
 }
 
 func TestExecuteLegacyRemote_ConClaveSesionCifraRespuestaLegacy(t *testing.T) {
+	permitirHTTPTrifasica(t)
+
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
+	operationCtx, warnings := domain.ConAvisosOperacion(context.Background())
 
 	rawBatch := []byte(`{"format":"CAdES","algorithm":"SHA256withRSA","singlesigns":[{"id":"doc-1","datareference":"token-remoto"}]}`)
 	preHashB64 := base64.StdEncoding.EncodeToString([]byte("digest-batch"))
@@ -734,7 +746,7 @@ func TestExecuteLegacyRemote_ConClaveSesionCifraRespuestaLegacy(t *testing.T) {
 
 	executor := New(srv.Client())
 	batch := NewBatch(executor)
-	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{
+	ctx := ContextWithSigningKey(operationCtx, &mockLegacyBatchKey{
 		chain: [][]byte{[]byte("cert-der-hoja")},
 	})
 
@@ -755,10 +767,16 @@ func TestExecuteLegacyRemote_ConClaveSesionCifraRespuestaLegacy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ExecuteLegacyRemote con clave de sesión: %v", err)
 	}
+	for _, id := range []string{"des_intercambio", "trifasica_http"} {
+		if !slices.Contains(warnings.Claves(), excepciones.Warning(id)) {
+			t.Fatalf("falta aviso %s en resultado: %v", id, warnings.Claves())
+		}
+	}
 }
 
 func TestExecuteLegacyRemote_UploadFallbackLegacyCuandoJavaStyleDevuelveNoOK(t *testing.T) {
-	t.Parallel()
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 
 	rawBatch := []byte(`{"format":"CAdES","algorithm":"SHA256withRSA","singlesigns":[{"id":"doc-1","datareference":"token-remoto"}]}`)
 	preHashB64 := base64.StdEncoding.EncodeToString([]byte("digest-batch"))
@@ -821,7 +839,7 @@ func TestExecuteLegacyRemote_UploadFallbackLegacyCuandoJavaStyleDevuelveNoOK(t *
 
 	executor := New(srv.Client())
 	batch := NewBatch(executor)
-	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{
+	ctx := ContextWithSigningKey(operationCtx, &mockLegacyBatchKey{
 		chain: [][]byte{[]byte("cert-der-hoja")},
 	})
 
@@ -851,9 +869,13 @@ func TestExecuteLegacyRemote_UploadFallbackLegacyCuandoJavaStyleDevuelveNoOK(t *
 	if !vioLegacyAlias {
 		t.Fatal("no se ejecuto el fallback legacy con parametros originales")
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestExecuteLegacyRemote_PriorizaUploadJavaPorQuerySinKey(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
 
 	rawBatch := []byte(`{"format":"CAdES","algorithm":"SHA256withRSA","singlesigns":[{"id":"doc-1","datareference":"token-remoto"}]}`)
@@ -910,7 +932,7 @@ func TestExecuteLegacyRemote_PriorizaUploadJavaPorQuerySinKey(t *testing.T) {
 
 	executor := New(srv.Client())
 	batch := NewBatch(executor)
-	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{
+	ctx := ContextWithSigningKey(operationCtx, &mockLegacyBatchKey{
 		chain: [][]byte{[]byte("cert-der-hoja")},
 	})
 
@@ -936,9 +958,13 @@ func TestExecuteLegacyRemote_PriorizaUploadJavaPorQuerySinKey(t *testing.T) {
 	if queryURL == nil || queryURL.RawQuery == "" {
 		t.Fatal("el upload no se realizó por query string")
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestExecuteLegacyRemote_MantieneWaitPeriodicoMientrasProcesa(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	rawBatch := []byte(`{"format":"CAdES","algorithm":"SHA256withRSA","singlesigns":[{"id":"doc-1","datareference":"token-remoto"}]}`)
 	preHashB64 := base64.StdEncoding.EncodeToString([]byte("digest-batch"))
 
@@ -981,7 +1007,7 @@ func TestExecuteLegacyRemote_MantieneWaitPeriodicoMientrasProcesa(t *testing.T) 
 
 	executor := New(srv.Client())
 	batch := NewBatch(executor)
-	ctx := ContextWithSigningKey(context.Background(), &mockLegacyBatchKey{
+	ctx := ContextWithSigningKey(operationCtx, &mockLegacyBatchKey{
 		chain: [][]byte{[]byte("cert-der-hoja")},
 	})
 
@@ -1003,4 +1029,5 @@ func TestExecuteLegacyRemote_MantieneWaitPeriodicoMientrasProcesa(t *testing.T) 
 	if waitCount < 2 {
 		t.Fatalf("waitCount = %d, want >= 2", waitCount)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
