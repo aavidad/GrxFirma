@@ -62,12 +62,31 @@ class UnsafeExceptionsContract(unittest.TestCase):
         winui = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI/ViewModels/SignPageViewModel.cs").read_text()
         self.assertIn("if (!check.IsSuccess && check.UnsafeException is not null)", winui)
 
+    def test_sign_block_card_is_not_a_failure(self):
+        """Lote 39a, vuelta 2: una firma bloqueada por seguridad se pinta como
+        bloqueo (título del aviso, motivo del catálogo), sin «Error:», sin el
+        consejo de avería ni «Reintentar firma»."""
+        source = (QML / "main.qml").read_text()
+        blocked = source.split("function onUnsafeExceptionBlocked(block)", 1)[1].split("unsafeDialog.present", 1)[0]
+        self.assertIn("UnsafeResume.isSigning(block.operationAction)) window.signBlockedPending = true", blocked)
+        finished = source.split("function onSigningFinished(success, message, outPath)", 1)[1].split("function onBatchSigningFinished", 1)[0]
+        self.assertIn("const blocked = !success && window.signBlockedPending", finished)
+        self.assertIn("window.statusMessage = blocked ? window.singleLineText(message) :", finished)
+        self.assertIn('(blocked ? "blocked" : "error")', finished)
+        announcement = source.split("function signResultAnnouncement()", 1)[1]
+        self.assertLess(announcement.index('signResultKind === "blocked"'), announcement.index("No se pudo firmar el documento"))
+        retry = source.split("id: retrySignedResultButton", 1)[1][:200]
+        self.assertIn('visible: window.signResultKind === "error"', retry)
+        advice = source.index('text: tr("Comprueba que el documento siga disponible')
+        self.assertIn('visible: window.signResultKind === "error"', source[advice - 400:advice])
+        self.assertIn('tr("excepciones.pantalla.titulo")', source.split("id: signResultHeading", 1)[1][:600])
+
     def test_block_is_not_a_failure_report_and_activation_continues(self):
         """Lote 39a: un bloqueo no abre el asistente ni guarda incidencia, la
         verificación bloqueada no sale «No válida», «Activar y continuar»
         continúa y el aviso común se suma sin repetirse."""
         source = (QML / "main.qml").read_text()
-        for kind, guard in (("sign-failure", "} else if (!success && !unsafeDialog.visible) {"),
+        for kind, guard in (("sign-failure", "} else if (!success && !blocked && !unsafeDialog.visible) {"),
                             ("protect-failure", "} else if (!success && !unsafeDialog.visible) {"),
                             ("unprotect-failure", "} else if (!success && !unsafeDialog.visible) {")):
             report = source.index('window.persistIncidentReport("%s"' % kind)

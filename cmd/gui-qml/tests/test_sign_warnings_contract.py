@@ -90,6 +90,8 @@ class SignWarningsContract(unittest.TestCase):
         js = "const catalog = " + (LOCALES / "en.json").read_text(encoding="utf-8") + ";\n"
         js += "function tr(key) { return catalog[key] !== undefined ? catalog[key] : key; }\n"
         js += "const window = { tr: tr };\n"
+        library = (QT / "qml/CatalogText.js").read_text(encoding="utf-8").replace(".pragma library", "")
+        js += library + "\nconst CatalogText = { warningTexts: warningTexts };\n"
         js += qml_function(MAIN, "visibleSigningWarnings").strip() + "\n"
         js += r"""
 const assert = require('assert');
@@ -97,6 +99,8 @@ const shown = visibleSigningWarnings(["firma.lt.crl_no_aplicable.aviso", "clave.
   "<img src=http://x>", "firma.lt.crl_no_aplicable.aviso", 7, null]);
 assert.deepStrictEqual(shown, [catalog["firma.lt.crl_no_aplicable.aviso"]]);
 assert.ok(shown[0].startsWith("The revocation list"), shown[0]);
+assert.deepStrictEqual(visibleSigningWarnings({length: 1, 0: "firma.lt.crl_no_aplicable.aviso"}),
+  [catalog["firma.lt.crl_no_aplicable.aviso"]]);
 assert.deepStrictEqual(visibleSigningWarnings(undefined), []);
 assert.deepStrictEqual(visibleSigningWarnings("firma.lt.crl_no_aplicable.aviso"), []);
 """

@@ -43,6 +43,7 @@ private slots:
   void unsafeActivationOriginIsClosed();
   void unsafeBlockAndRetryRouting();
   void unsafeBlockUsesInterfaceLanguageAndNoDiagnostic();
+  void unsafeSignBlockThenWarningsAfterActivation();
   void unsafeDisconnectedNeverDeferred();
   void disconnectedProtectIsNotDeferred();
   void disconnectedUnprotectIsNotDeferred();
@@ -159,6 +160,55 @@ void IpcBridgeTransientSecretTest::unsafeBlockAndRetryRouting() {
   QTRY_COMPARE(verified.count(), 2);
   QVERIFY(verified.at(1).at(0).toBool());
   QCOMPARE(warnings.last().at(0).toStringList(), QStringList{"excepciones.cms_cbc.aviso"});
+}
+
+// Lote 39a, vuelta 2: una firma con RSA corta. Sin el ajuste, el bloqueo
+// llega antes que el fin de la firma (la tarjeta lo pinta como bloqueo, no
+// como avería). Tras activar, la firma reenviada trae el aviso de uso, que
+// sale por la señal del aviso común y por lastSigningWarnings.
+void IpcBridgeTransientSecretTest::unsafeSignBlockThenWarningsAfterActivation() {
+  IpcBridge bridge;
+  QLocalServer server;
+  auto *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  peer->readAll();
+  QList<QString> order;
+  connect(&bridge, &IpcBridge::unsafeExceptionBlocked, &bridge,
+          [&order](const QVariantMap &) { order << QStringLiteral("blocked"); });
+  connect(&bridge, &IpcBridge::signingFinished, &bridge,
+          [&order](bool ok, const QString &, const QString &) {
+            order << (ok ? QStringLiteral("signed") : QStringLiteral("failed"));
+          });
+  QSignalSpy blocked(&bridge, &IpcBridge::unsafeExceptionBlocked);
+  QSignalSpy warnings(&bridge, &IpcBridge::unsafeOperationWarnings);
+  bridge.signFileAdvanced("/tmp/fixture.pdf", "/tmp/fixture_firmado.pdf", 0,
+                          QVariantMap{{"format", "pades"}});
+  const auto sent = nextRequest(peer);
+  QVERIFY(!sent.isEmpty());
+  const QJsonObject block{{"action", sent.value("action")}, {"requestId", sent.value("requestId")},
+      {"ok", false}, {"errorCode", "unsafe_exception_blocked"}, {"exceptionId", "rsa_corta"},
+      {"activable", true}, {"acceptanceVersion", "2026-11-15.3"},
+      {"error", QStringLiteral("blocked")},
+      {"exception", QJsonObject{{"id", "rsa_corta"}, {"block_key", "excepciones.rsa_corta.bloqueo"}}}};
+  peer->write(QJsonDocument(block).toJson(QJsonDocument::Compact) + '\n'); peer->flush();
+  QTRY_COMPARE(order.size(), 2);
+  QCOMPARE(order, (QList<QString>{QStringLiteral("blocked"), QStringLiteral("failed")}));
+  QCOMPARE(blocked.at(0).at(0).toMap().value("operationAction").toString(),
+           sent.value("action").toString());
+  QCOMPARE(warnings.count(), 0);
+  bridge.signFileAdvanced("/tmp/fixture.pdf", "/tmp/fixture_firmado.pdf", 0,
+                          QVariantMap{{"format", "pades"}});
+  const auto again = nextRequest(peer);
+  QVERIFY(!again.isEmpty());
+  const QJsonObject signedReply{{"action", again.value("action")}, {"requestId", again.value("requestId")},
+      {"ok", true}, {"warnings", QJsonArray{"excepciones.rsa_corta.aviso"}},
+      {"data", QJsonObject{{"OutputPath", "/tmp/fixture_firmado.pdf"}}}};
+  peer->write(QJsonDocument(signedReply).toJson(QJsonDocument::Compact) + '\n'); peer->flush();
+  QTRY_COMPARE(order.size(), 3);
+  QCOMPARE(order.last(), QStringLiteral("signed"));
+  QCOMPARE(warnings.count(), 1);
+  QCOMPARE(warnings.at(0).at(0).toStringList(), QStringList{"excepciones.rsa_corta.aviso"});
+  QCOMPARE(bridge.lastSigningWarnings(), QStringList{"excepciones.rsa_corta.aviso"});
 }
 
 // Lote 39a: el motor da el texto del bloqueo en el idioma del proceso. Qt lo
