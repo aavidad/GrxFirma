@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+# shellcheck disable=SC2016 # las órdenes van entre comillas simples para que bash -c reciba $1 sin expandir.
 
 # Verificación del instalador sin red ni dependencias adicionales.
 setup() {

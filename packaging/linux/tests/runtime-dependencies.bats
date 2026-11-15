@@ -267,6 +267,7 @@ EOF
   stage="${BATS_TEST_TMPDIR}/install-user-stage"
   mkdir -p "${stage}"
   # Ejecuta solo el bloque que prepara el stage de install-user.sh.
+  # shellcheck disable=SC2016 # el patrón de sed busca el texto literal ${STAGE_DIR}.
   run env ROOT_DIR="${root}" STAGE_DIR="${stage}" RAW_VERSION=test bash -euo pipefail -c \
     "$(sed -n '/Preparando stage local/,/chmod 755 "\${STAGE_DIR}\/check-runtime-dependencies.sh"/p' "${root}/packaging/linux/install-user.sh")"
   [ "$status" -eq 0 ]

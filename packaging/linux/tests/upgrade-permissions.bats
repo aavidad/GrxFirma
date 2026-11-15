@@ -3,6 +3,7 @@
 # Autoría: Alberto Avidad Fernández
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
+# shellcheck disable=SC2016 # las comillas simples comparan el texto literal del postinst, con sus ${...} sin expandir.
 
 # Al actualizar, dpkg no corrige los permisos de las carpetas que ya existían.
 # El postinst quita la escritura de grupo y de otros en las carpetas propias.

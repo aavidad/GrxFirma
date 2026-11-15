@@ -25,6 +25,18 @@ func usuarioDelProceso(t *testing.T) *windows.SID {
 	return tokenUser.User.Sid
 }
 
+// sidEnSDDL devuelve el SID tal como lo escribe Windows en un SDDL: con su
+// alias corto si lo tiene (por ejemplo, «LA» para el Administrador integrado,
+// que es el usuario de los ejecutores de CI) o con la forma S-1-5-… si no.
+func sidEnSDDL(t *testing.T, sid *windows.SID) string {
+	t.Helper()
+	sd, err := windows.SecurityDescriptorFromString("O:" + sid.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return strings.TrimPrefix(sd.String(), "O:")
+}
+
 func descriptor(t *testing.T, path string) *windows.SECURITY_DESCRIPTOR {
 	t.Helper()
 	sd, err := windows.GetNamedSecurityInfo(path, windows.SE_FILE_OBJECT,
@@ -73,7 +85,7 @@ func TestFicherosNuevosSonDelUsuarioConDACLPrivadaWindows(t *testing.T) {
 		if err != nil || control&windows.SE_DACL_PROTECTED == 0 {
 			t.Errorf("%s: DACL sin protección de herencia: %s", name, sd)
 		}
-		if !strings.Contains(sd.String(), ";;;"+user.String()+")") {
+		if !strings.Contains(sd.String(), ";;;"+sidEnSDDL(t, user)+")") {
 			t.Errorf("%s: la DACL no da acceso al usuario: %s", name, sd)
 		}
 	}
@@ -89,7 +101,7 @@ func TestProtectDirectoryDaAccesoHeredableAlUsuarioWindows(t *testing.T) {
 		t.Fatal(err)
 	}
 	sddl := descriptor(t, dir).String()
-	if !strings.Contains(sddl, "(A;OICI;FA;;;"+user.String()+")") {
+	if !strings.Contains(sddl, "(A;OICI;FA;;;"+sidEnSDDL(t, user)+")") {
 		t.Fatalf("la carpeta no da acceso heredable al usuario %s: %s", user, sddl)
 	}
 	for _, sid := range []string{"(A;OICI;FA;;;SY)", "(A;OICI;FA;;;BA)", "(A;OICI;FA;;;OW)"} {
