@@ -2015,6 +2015,7 @@
   "excepciones.sha1_leer.aviso"
  ],
  "pt": [
+  "excepciones.cancelar",
   "afirma.elegir.cancelar",
   " + base64",
   " certificado(s).",
