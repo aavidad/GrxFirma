@@ -138,10 +138,16 @@ además:
 
 ## Próximo paso recomendado
 
-1. cerrar las licencias pendientes y adjuntar avisos y SPDX de los artefactos;
-2. Alberto debe asignar propietario y decidir compromisos de soporte/triage;
-3. usar la [plantilla de próxima versión](dependencias/proxima/README.md) y
-   conservar el histórico de evidencias.
+Ya existen la clasificación por versión, el procedimiento sin red y la
+[plantilla de próxima versión](dependencias/proxima/README.md). Queda:
+
+1. cerrar las 38 licencias pendientes y adjuntar avisos y SPDX de los
+   artefactos publicados, que el expediente 0.0.127 no examinó;
+2. conseguir las bases locales de Maven y NuGet y una de Grype reciente, y
+   repetir esos escaneos;
+3. que Alberto asigne propietario y decida los compromisos de soporte y triage;
+4. abrir el expediente de la siguiente versión con la plantilla y conservar el
+   histórico de evidencias.
 
 
 ## Expediente por versión (revisión 14/11/2026)

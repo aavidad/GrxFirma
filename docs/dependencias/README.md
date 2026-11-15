@@ -13,7 +13,7 @@ una plantilla de cierre. La aceptación y los compromisos corresponden a Alberto
 ## Regenerar y comprobar sin red
 
 ```sh
-export GOCACHE=/tmp/codex-gocache-26 GOPROXY=off GOFLAGS=-mod=readonly
+export GOCACHE="$HOME/.cache/grxfirma-gocache" GOPROXY=off GOFLAGS=-mod=readonly
 python3 scripts/compliance/dependency_dossier.py --version 0.0.127 \
   --output /tmp/expediente-0.0.127.json
 python3 -m unittest discover -s scripts/compliance/tests -v

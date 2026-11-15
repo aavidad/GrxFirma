@@ -91,17 +91,26 @@ Capacidades presentes:
   en [../SECURITY.md](../SECURITY.md), que no fija plazos de respuesta ni una
   política LTS;
 - `SBOM` `SPDX JSON` de CI y release;
-- gates `govulncheck`, `grype` y OSV por ecosistema.
+- gates `govulncheck`, `grype` y OSV por ecosistema;
+- [expediente de la 0.0.127](dependencias/0.0.127/README.md) con la revisión
+  local de vulnerabilidades, el histórico inicial de correcciones (Go 1.26.11 y
+  los módulos `x/*` actualizados) y la excepción de `deepmerge` revisada, sin
+  prórroga. Hay una [plantilla](dependencias/proxima/README.md) para la
+  siguiente versión.
 
-Lineas de trabajo abiertas:
+Líneas de trabajo abiertas:
 
 - asignación formal de propietario para triage y aceptación de release;
 - plazos de respuesta (SLA) y matriz de soporte por versiones, que hoy no
   existen y que `SECURITY.md` tampoco promete;
+- aceptar o rechazar con fecha el aviso `GO-2026-5932` y confirmar antes del
+  14/02/2027 si sigue la excepción de `deepmerge`;
+- completar OSV para Maven y NuGet y Grype, que no se pudieron ejecutar el
+  14/11/2026;
 - enlazar desde `SECURITY.md` las auditorías internas y sus pruebas de
   regresión, si se decide publicarlas;
-- ampliar el histórico inicial del expediente 0.0.127 a incidencias y backports
-  de cada versión mantenida;
+- ampliar el histórico del expediente a incidencias y backports de cada versión
+  mantenida;
 - cierre del expediente proveedor `NIS2` / `CRA`.
 
 ---
