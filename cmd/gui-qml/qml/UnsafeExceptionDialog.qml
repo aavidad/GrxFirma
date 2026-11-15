@@ -19,6 +19,11 @@ ThemedDialog {
     property bool activationSucceeded: false
     readonly property bool activable: item.activable === true && !!item.acceptance_version
     readonly property bool canActivate: activable && acceptance.checked && !busy && !showingHelp
+    // Desde Configuración no hay operación detenida: el título no habla de un
+    // bloqueo y el botón solo activa. «Activar y continuar» se reserva para un
+    // bloqueo que se puede repetir (retryId del motor o reenvío del formulario).
+    readonly property bool blocked: item.operationPending === true
+    readonly property bool continues: blocked && (!!item.retryId || item.resend === true)
     signal activated(var item)
     signal activationFailed()
     signal cancelled(var item)
@@ -29,7 +34,7 @@ ThemedDialog {
     height: Math.min(parent.height - 32, body.implicitHeight + actions.implicitHeight + header.implicitHeight + 48)
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
-    title: appText(showingHelp ? "excepciones.mas_informacion" : item.operationPending === true ? "excepciones.pantalla.titulo" : "excepciones.pantalla.aceptar_titulo")
+    title: appText(showingHelp ? "excepciones.mas_informacion" : blocked ? "excepciones.pantalla.titulo" : "excepciones.pantalla.aceptar_titulo")
     accessibleDescription: caseText("riesgo")
     function appText(key) { return dialog.translate ? dialog.translate(key) : key }
     function caseText(suffix) { return item.id ? appText("excepciones." + item.id + "." + suffix) : "" }
@@ -164,13 +169,19 @@ ThemedDialog {
                     enabled: !dialog.busy
                     onClicked: { dialog.showingHelp = !dialog.showingHelp; dialog.contentItem.enter() }
                 }
+                // Acción principal, rellena con el color primario del tema; los
+                // otros dos botones quedan como secundarios, con el relleno de
+                // la tarjeta y su borde.
                 ThemedButton {
                     objectName: "unsafeActivate"
                     Layout.fillWidth: true
                     Layout.minimumHeight: 44
                     visible: dialog.activable && !dialog.showingHelp
                     enabled: dialog.canActivate
-                    text: dialog.appText("excepciones.activar_continuar")
+                    font.bold: true
+                    palette.button: dialog.theme.primaryColor || palette.highlight
+                    palette.buttonText: "white"
+                    text: dialog.appText(dialog.continues ? "excepciones.activar_continuar" : "excepciones.pantalla.activar")
                     onClicked: dialog.activate()
                 }
             }
