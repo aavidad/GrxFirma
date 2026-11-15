@@ -1,3 +1,3 @@
-Miglioramenti all’accessibilità.
-Le opzioni non sicure sono disattivate per impostazione predefinita e mostrano un avviso quando vengono attivate.
-Modifiche ai programmi di installazione.
+• Le opzioni non sicure sono disattivate, anche dopo un aggiornamento. Se un’operazione ne richiede una, l’avviso spiega il rischio e permette di attivarla sotto la tua responsabilità; si può fare anche in Preferenze. Ogni uso mostra un avviso.
+• Quando si firma e si cifra, la chiave è protetta con RSA-OAEP e SHA-256.
+• Accessibilità: nomi e intestazioni per TalkBack, aree di tocco più ampie, e la tastiera e le barre di sistema non coprono più il contenuto.

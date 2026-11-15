@@ -1,3 +1,3 @@
-Irisgarritasun-hobekuntzak.
-Aukera ez-seguruak lehenespenez desaktibatuta daude eta abisua erakusten dute aktibatzean.
-Doikuntzak instalatzaileetan.
+• Aukera ez-seguruak desaktibatuta daude, baita eguneratzean ere. Eragiketa batek bat behar badu, abisuak arriskua azaltzen du eta zure erantzukizunpean aktibatzen uzten du; Hobespenetan ere egin daiteke. Erabilera bakoitzean abisu bat agertzen da.
+• Sinatu eta zifratzean, gakoa RSA-OAEP eta SHA-256 bidez babesten da.
+• Irisgarritasuna: izenak eta goiburuak TalkBackerako, ukipen-eremu handiagoak, eta teklatuak eta sistemaren barrek ez dute jada edukia estaltzen.

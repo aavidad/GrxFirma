@@ -1,3 +1,3 @@
-Millores d’accessibilitat.
-Les opcions insegures estan desactivades per defecte i mostren un avís en activar-les.
-Ajustos als instal·ladors.
+• Les opcions insegures estan desactivades, també en actualitzar. Si una operació en necessita una, l’avís n’explica el risc i permet activar-la sota la vostra responsabilitat; també es pot fer a Preferències. Cada ús mostra un avís.
+• En signar i xifrar, la clau es protegeix amb RSA-OAEP i SHA-256.
+• Accessibilitat: noms i encapçalaments per a TalkBack, àrees tàctils més grans, i el teclat i les barres del sistema ja no tapen el contingut.
