@@ -28,7 +28,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
-class MainActivityTest {
+class MainActivityTest : AccessibilityTest() {
     private val productionCore: Boolean
         get() = BuildConfig.CORE_MODE == "production"
 

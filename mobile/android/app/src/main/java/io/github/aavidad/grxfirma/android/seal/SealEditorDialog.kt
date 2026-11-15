@@ -5,6 +5,8 @@
 
 package io.github.aavidad.grxfirma.android.seal
 
+import io.github.aavidad.grxfirma.android.ui.SafeWindowInsets
+
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
 import android.graphics.BitmapFactory
@@ -324,6 +326,7 @@ class SealEditorDialog(
                 }
                 actual.show()
                 actual.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
+                actual.window?.let(SafeWindowInsets::fullScreenDialog)
                 // Al abrir deben verse la página, su estado y las dos filas de botones enteras.
                 scroll.post { fitCanvasToDialog(scroll, column, listOf(instructions, previewStatus, pageLabel, navigation, controlsLabel, move, sizeAndRotation)) }
                 actual.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {

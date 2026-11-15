@@ -16,7 +16,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class SecurityConfigurationTest {
+class SecurityConfigurationTest : AccessibilityTest() {
     private val context: Context = ApplicationProvider.getApplicationContext()
 
     // La red solo la usa el motor para el sello de tiempo (TSA) que configure

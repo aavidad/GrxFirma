@@ -34,7 +34,10 @@ import android.text.method.LinkMovementMethod
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.google.android.material.button.MaterialButton
-import androidx.core.view.WindowCompat
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import io.github.aavidad.grxfirma.android.ui.SafeWindowInsets
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -312,7 +315,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         AppPreferences.applyTheme(this)
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, true)
         if (BuildConfig.CORE_MODE == "production") {
             window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
@@ -320,6 +322,16 @@ class MainActivity : AppCompatActivity() {
         sealPreferences = SealPreferences(this)
         sealSettings = sealPreferences.load()
         setContentView(binding.root)
+        SafeWindowInsets.main(window, binding.appBar, binding.contentScroll)
+        // Los calendarios de Material pueden abrirse a pantalla completa en teléfonos.
+        supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
+            override fun onFragmentStarted(fm: FragmentManager, f: Fragment) {
+                val dialogWindow = (f as? DialogFragment)?.dialog?.window ?: return
+                if (dialogWindow.attributes.height == WindowManager.LayoutParams.MATCH_PARENT) {
+                    SafeWindowInsets.fullScreenDialog(dialogWindow)
+                }
+            }
+        }, false)
         setSupportActionBar(binding.toolbar)
         with(binding) {
             ViewCompat.setAccessibilityHeading(documentSectionTitle, true)
@@ -1898,6 +1910,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
         dialog.show()
+        // El campo TSA puede abrir el IME: también deben quedar visibles las
+        // acciones fijas de Guardar/Cancelar, fuera del contenido desplazable.
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
     }
 
     /** Restaura preferencias y sello; los certificados y documentos no cambian. */

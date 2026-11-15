@@ -15,7 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
-class CoreProductionSigningTest {
+class CoreProductionSigningTest : AccessibilityTest() {
     @Test
     fun productionCoreSignsAndVerifiesPadesCadesAndXadesWithSyntheticCertificate() {
         assumeTrue("Solo se ejecuta contra el AAR productivo.", BuildConfig.CORE_MODE == "production")

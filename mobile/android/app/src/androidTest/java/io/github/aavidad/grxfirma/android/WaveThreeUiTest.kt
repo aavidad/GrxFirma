@@ -32,7 +32,7 @@ import org.junit.Test
  * verificable. Cada cambio de tema recrea la actividad, así que cada paso
  * consulta la actividad viva y no reutiliza vistas antiguas.
  */
-class WaveThreeUiTest {
+class WaveThreeUiTest : AccessibilityTest() {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
 
     @Before fun cleanPreferences() = AppPreferences(context).reset()

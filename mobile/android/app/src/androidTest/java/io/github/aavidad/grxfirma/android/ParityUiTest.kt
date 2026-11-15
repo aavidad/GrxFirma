@@ -28,7 +28,7 @@ import org.junit.Assert.assertFalse
 import org.hamcrest.Matchers.anything
 import org.junit.Test
 
-class ParityUiTest {
+class ParityUiTest : AccessibilityTest() {
     @After fun restoreSystemLanguage() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
