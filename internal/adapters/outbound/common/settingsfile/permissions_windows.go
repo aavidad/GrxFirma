@@ -48,3 +48,7 @@ func protectSettingsDirectory(dir *os.File) error {
 	return windows.SetSecurityInfo(windows.Handle(dir.Fd()), windows.SE_FILE_OBJECT,
 		windows.DACL_SECURITY_INFORMATION|windows.PROTECTED_DACL_SECURITY_INFORMATION, nil, nil, acl, nil)
 }
+
+// KeyNoPermission explica que los ajustes no se pueden abrir por permisos y
+// cómo devolvérselos al usuario en Windows.
+const KeyNoPermission = "error.settings_sin_permiso"

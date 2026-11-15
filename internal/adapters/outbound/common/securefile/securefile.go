@@ -210,18 +210,15 @@ func WriteFileAtomic(path string, data []byte, perm os.FileMode) (err error) {
 		return statErr
 	}
 	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, "."+filepath.Base(path)+".tmp-*")
+	tmp, err := createPrivateTemp(dir, "."+filepath.Base(path)+".tmp-", perm)
 	if err != nil {
-		return fmt.Errorf("securefile: create temporary file: %w", err)
+		return err
 	}
 	tmpPath := tmp.Name()
 	defer func() {
 		_ = tmp.Close()
 		_ = os.Remove(tmpPath)
 	}()
-	if err := tmp.Chmod(perm.Perm()); err != nil {
-		return fmt.Errorf("securefile: restrict temporary file: %w", err)
-	}
 	if _, err := tmp.Write(data); err != nil {
 		return fmt.Errorf("securefile: write temporary file: %w", err)
 	}

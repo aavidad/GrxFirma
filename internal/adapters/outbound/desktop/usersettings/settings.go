@@ -215,6 +215,10 @@ func (a *Almacen) cargarMapaLegacy(ctx context.Context) (map[string]any, error) 
 	if os.IsNotExist(err) {
 		return map[string]any{}, nil
 	}
+	if explained := settingsfile.ExplainAccess(err); explained != err {
+		// Sin prefijo técnico: la interfaz muestra el texto del catálogo.
+		return nil, explained
+	}
 	if err != nil {
 		return nil, fmt.Errorf("leyendo configuracion de usuario: %w", err)
 	}
@@ -255,13 +259,18 @@ func (a *Almacen) GuardarDocumento(ctx context.Context, doc ports.DocumentoConfi
 func (a *Almacen) guardarMapaEnRuta(ctx context.Context, ruta string, datos map[string]any) error {
 	directorio := filepath.Dir(ruta)
 	if err := os.MkdirAll(directorio, 0o700); err != nil {
+		if explained := settingsfile.ExplainAccess(err); explained != err {
+			return explained
+		}
 		return fmt.Errorf("creando directorio de configuracion: %w", err)
-	}
-	if err := protegerDirectorioConfiguracion(directorio); err != nil {
-		return fmt.Errorf("restringiendo directorio de configuracion: %w", err)
 	}
 
 	return settingsfile.WithLock(ctx, directorio, func() error {
+		// Dentro del cerrojo: WithLock ya comprobó que la carpeta es del
+		// usuario antes de que nadie cambie sus permisos.
+		if err := protegerDirectorioConfiguracion(directorio); err != nil {
+			return fmt.Errorf("restringiendo directorio de configuracion: %w", err)
+		}
 		// The caller may have loaded settings before another process disabled an
 		// exception. Read the reserved fields again under the shared lock.
 		current := map[string]json.RawMessage{}
