@@ -13,6 +13,7 @@ import Qt.labs.settings 1.1
 import "ThemeContrast.js" as Contrast
 import "VerificationSigners.js" as Signers
 import "UnsafeResume.js" as UnsafeResume
+import "CatalogText.js" as CatalogText
 
 Window {
     id: window
@@ -122,12 +123,16 @@ Window {
             Qt.callLater(function() { window.handleAutoVerificationFinished(false, window.tr("Verificación incompleta"), {}) })
     }
     property var unsafeNotice: []
+    property bool signBlockedPending: false
     Connections {
         target: typeof isIpcMode !== "undefined" && isIpcMode ? backend : null
         ignoreUnknownSignals: true
         function onUnsafeExceptionBlocked(block) {
             // A blocked operation never keeps a notice saying a previous one was allowed.
             window.resetUnsafeNotice()
+            // La firma detenida por seguridad no es una avería: su tarjeta lo
+            // dice así (lote 39a, vuelta 2). Llega antes que signingFinished.
+            if (UnsafeResume.isSigning(block.operationAction)) window.signBlockedPending = true
             const pending = Object.assign({}, block)
             pending.resend = window.unsafeOperationCanResend(pending)
             // La firma no se repite por el motor: su reintento no se activa.
@@ -4223,6 +4228,7 @@ Window {
         if (cosignOriginal !== "" && window.isCosignOrCountersign(String(payload.action || signAction)))
             payload.originalPath = cosignOriginal
         window.signingInProgress = true
+        window.signBlockedPending = false
         window.resetUnsafeNotice()
         window.statusMessage = tr("Procesando firma...")
         window.currentBatchResults = []
@@ -5573,16 +5579,7 @@ Window {
     // Avisos del motor (claves del catálogo) en el idioma de la persona. Una
     // clave que el catálogo no conoce no se enseña: nunca sale la clave cruda.
     function visibleSigningWarnings(keys) {
-        if (!Array.isArray(keys)) return []
-        let shown = []
-        for (let i = 0; i < keys.length && shown.length < 16; i++) {
-            const key = typeof keys[i] === "string" ? keys[i] : ""
-            if (!/^[a-z0-9_]+(\.[a-z0-9_]+)+$/.test(key)) continue
-            const text = window.tr(key)
-            if (text === key || text === "" || shown.indexOf(text) !== -1) continue
-            shown.push(text)
-        }
-        return shown
+        return CatalogText.warningTexts(keys, window.tr, 16)
     }
 
     function signResultAnnouncement() {
@@ -5595,10 +5592,24 @@ Window {
                 return result + ". " + signVerificationResultText()
             return result
         }
+        if (signResultKind === "blocked")
+            return tr("excepciones.pantalla.titulo") + ". " + signResultCause
         if (signResultKind === "error")
             return tr("No se pudo firmar el documento") + ". " + signResultCause + ". "
                     + tr("Comprueba que el documento siga disponible y que el certificado permita firmar; después vuelve a intentarlo.")
         return ""
+    }
+
+    // El motivo del bloqueo ya empieza por el título del aviso; la tarjeta lo
+    // lleva como encabezado y no lo repite.
+    function signBlockedCause(message) {
+        const text = String(message || "").trim()
+        const title = tr("excepciones.pantalla.titulo")
+        if (title !== "" && text.indexOf(title) === 0) {
+            const rest = text.substring(title.length).replace(/^[.:;,]?\s*/, "")
+            if (rest !== "") return rest
+        }
+        return text
     }
 
     function signVerificationResultText() {
@@ -6152,8 +6163,10 @@ Window {
                 readOnly: true
                 wrapMode: TextEdit.Wrap
                 textFormat: TextEdit.MarkdownText
+                // Cada frase de NOVEDADES.md es una clave del catálogo (lote 37):
+                // se pinta en el idioma de la interfaz, como en WinUI.
                 text: releaseNotesDialog.notesText !== ""
-                      ? releaseNotesDialog.notesText
+                      ? CatalogText.releaseNotes(releaseNotesDialog.notesText, window.tr)
                       : tr("Novedades no disponibles en esta instalación.")
                 Accessible.name: tr("Novedades instaladas")
             }
@@ -8885,15 +8898,19 @@ Window {
             // Updated via explicit Connections block above to ensure settingsLoaded respects lifecycle
         }
         function onSigningFinished(success, message, outPath) {
+            const blocked = !success && window.signBlockedPending
+            window.signBlockedPending = false
             window.signingInProgress = false
             window.resetCosignOriginalChoice()
             window.cscPendingSecrets = null
-            window.statusMessage = (success ? "✅ " : tr("Error: ")) + message
+            // Un bloqueo de seguridad no es un error: sin «Error:» ni barra roja.
+            window.statusMessage = blocked ? window.singleLineText(message) : ((success ? "✅ " : tr("Error: ")) + message)
             window.signResultGeneration++
             const resultGeneration = window.signResultGeneration
-            window.signResultKind = success ? "success" : "error"
+            window.signResultKind = success ? "success" : (blocked ? "blocked" : "error")
             window.signResultPath = success ? String(outPath || "") : ""
-            window.signResultCause = success ? "" : window.localizeVisibleDiagnosticText(message)
+            window.signResultCause = success ? "" : (blocked ? window.signBlockedCause(message)
+                                                            : window.localizeVisibleDiagnosticText(message))
             window.signResultWarnings = success ? window.visibleSigningWarnings(backend.lastSigningWarnings()) : []
             window.signResultVerificationPending = success && !!outPath
             if (success) {
@@ -8906,7 +8923,7 @@ Window {
                 window.currentOutputVerificationMessage = ""
                 window.currentOutputVerificationDetails = null
                 window.enqueueAutoVerification({ kind: "single", path: outPath })
-            } else if (!success && !unsafeDialog.visible) {
+            } else if (!success && !blocked && !unsafeDialog.visible) {
                 // Lo inseguro desactivado no es una avería: sin incidencia ni
                 // asistente encima del aviso de bloqueo (lote 39a).
                 window.clearOperationFailure()
@@ -8927,6 +8944,7 @@ Window {
             })
         }
         function onBatchSigningFinished(success, message, results) {
+            window.signBlockedPending = false
             window.signingInProgress = false
             window.resetCosignOriginalChoice()
             window.cscPendingSecrets = null
@@ -9858,8 +9876,10 @@ Window {
                                 Layout.fillWidth: true
                                 implicitHeight: signResultContent.implicitHeight + 36
                                 radius: 12
-                                color: window.signResultKind === "success" ? "#123d2a" : "#4a1d1d"
-                                border.color: window.signResultKind === "success" ? "#45d58a" : "#ff7777"
+                                color: window.signResultKind === "success" ? "#123d2a"
+                                       : (window.signResultKind === "blocked" ? "#4a3a0a" : "#4a1d1d")
+                                border.color: window.signResultKind === "success" ? "#45d58a"
+                                              : (window.signResultKind === "blocked" ? "#ffdb9b" : "#ff7777")
                                 border.width: 1
                                 Accessible.role: Accessible.Grouping
                                 Accessible.name: window.signResultAnnouncement()
@@ -9878,11 +9898,13 @@ Window {
                                             Layout.preferredWidth: 36
                                             Layout.preferredHeight: Typography.minimum(36)
                                             Accessible.role: Accessible.Graphic
-                                            Accessible.name: window.signResultKind === "success" ? tr("Firma completada correctamente") : tr("Error")
+                                            Accessible.name: window.signResultKind === "success" ? tr("Firma completada correctamente")
+                                                             : (window.signResultKind === "blocked" ? tr("excepciones.pantalla.titulo") : tr("Error"))
                                             onPaint: {
                                                 const ctx = getContext("2d")
                                                 ctx.clearRect(0, 0, width, height)
-                                                ctx.fillStyle = window.signResultKind === "success" ? "#36b878" : "#de5c5c"
+                                                ctx.fillStyle = window.signResultKind === "success" ? "#36b878"
+                                                                : (window.signResultKind === "blocked" ? "#b7791f" : "#de5c5c")
                                                 ctx.beginPath()
                                                 ctx.arc(18, 18, 17, 0, 2 * Math.PI)
                                                 ctx.fill()
@@ -9895,6 +9917,11 @@ Window {
                                                     ctx.moveTo(10, 18)
                                                     ctx.lineTo(16, 24)
                                                     ctx.lineTo(27, 12)
+                                                } else if (window.signResultKind === "blocked") {
+                                                    ctx.moveTo(18, 9)
+                                                    ctx.lineTo(18, 20)
+                                                    ctx.moveTo(18, 26)
+                                                    ctx.lineTo(18, 26.5)
                                                 } else {
                                                     ctx.moveTo(12, 12)
                                                     ctx.lineTo(24, 24)
@@ -9912,9 +9939,12 @@ Window {
                                             Layout.preferredWidth: 1
                                             id: signResultHeading
                                             Layout.fillWidth: true
+                                            textFormat: Text.PlainText
                                             text: window.signResultKind === "success"
                                                   ? tr("Documento firmado correctamente")
-                                                  : tr("No se pudo firmar el documento")
+                                                  : (window.signResultKind === "blocked"
+                                                     ? tr("excepciones.pantalla.titulo")
+                                                     : tr("No se pudo firmar el documento"))
                                             color: "#ffffff"
                                             font.pixelSize: Typography.size22
                                             font.bold: true
@@ -9965,7 +9995,7 @@ Window {
                                     }
                                     Text {
                                         Layout.minimumWidth: 0
-                                        visible: window.signResultKind === "error"
+                                        visible: window.signResultKind === "error" || window.signResultKind === "blocked"
                                         Layout.fillWidth: true
                                         textFormat: Text.PlainText
                                         text: window.signResultCause
