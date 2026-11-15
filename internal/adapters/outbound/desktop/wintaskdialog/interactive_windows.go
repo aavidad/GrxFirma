@@ -24,7 +24,12 @@ var (
 // no es visible: un diálogo se abriría donde nadie puede cerrarlo y la
 // operación esperaría para siempre. Si no se puede saber, se supone que sí,
 // para no ocultar un aviso a la persona.
-func Interactive() bool {
+func Interactive() bool { return interactive() }
+
+// interactive se puede sustituir en las pruebas.
+var interactive = escritorioVisible
+
+func escritorioVisible() bool {
 	station, _, _ := procProcessWindowStation.Call()
 	if station == 0 {
 		return true

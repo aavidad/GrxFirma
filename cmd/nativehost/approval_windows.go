@@ -22,6 +22,11 @@ const botonFirmarNativo int32 = 1001
 // muchas Administraciones bloquean y que los EDR señalan como sospechoso.
 // El botón por defecto es "Cancelar": un Enter accidental nunca firma.
 func solicitarAprobacionWindows(ctx context.Context, titulo, mensaje string) (bool, error) {
+	// Sin escritorio visible nadie puede confirmar: la firma no se aprueba y
+	// tampoco se abre el MessageBox de reserva, que esperaría para siempre.
+	if !wintaskdialog.Interactive() {
+		return false, wintaskdialog.ErrSinEscritorio
+	}
 	if wintaskdialog.Available() {
 		boton, _, err := wintaskdialog.Show(ctx, wintaskdialog.Spec{
 			Title:         titulo,

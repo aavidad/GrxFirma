@@ -12,6 +12,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"log/slog"
 	"runtime"
 	"strings"
 	"sync"
@@ -116,6 +117,13 @@ func ShowVerification(ctx context.Context, spec Spec) (int32, int32, bool, error
 	}
 	if len(spec.Buttons) == 0 || len(spec.Buttons) > maxButtons || len(spec.Radios) > maxRadios {
 		return 0, 0, false, errors.New("diálogo nativo sin acciones o con demasiadas opciones")
+	}
+	if !interactive() {
+		// Nadie podría responder: lo que se habría mostrado queda en el
+		// registro y quien llama sigue o falla con ErrSinEscritorio. Nunca
+		// se da por pulsado ningún botón.
+		slog.WarnContext(ctx, "dialogo_nativo_sin_escritorio", "titulo", spec.Title, "instruccion", spec.Instruction)
+		return 0, 0, false, ErrSinEscritorio
 	}
 	if !Available() {
 		return 0, 0, false, errors.New("TaskDialog no disponible: falta Common Controls v6 en el manifiesto")
