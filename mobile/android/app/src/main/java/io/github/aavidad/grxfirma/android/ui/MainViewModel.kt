@@ -5,6 +5,7 @@
 
 package io.github.aavidad.grxfirma.android.ui
 
+import io.github.aavidad.grxfirma.android.core.UnsafeAcceptanceOrigin
 import io.github.aavidad.grxfirma.android.core.UnsafeExceptions
 import io.github.aavidad.grxfirma.android.core.UnsafeExceptionState
 import io.github.aavidad.grxfirma.android.core.CoreContractException
@@ -1718,7 +1719,9 @@ class MainViewModel(
             var retry: (() -> Unit)? = null
             try {
                 val fresh = withContext(ioDispatcher) {
-                    core.activateUnsafeException(item, accepted)
+                    // Si la persona aceptó en el aviso de un bloqueo o en Preferencias.
+                    core.activateUnsafeException(item, accepted, if (snapshot.unsafePromptFromBlock)
+                        UnsafeAcceptanceOrigin.FROM_BLOCK else UnsafeAcceptanceOrigin.FROM_PREFERENCES)
                     core.unsafeExceptions()
                 }
                 // El núcleo vuelve a decidir la directiva y la versión al activar.

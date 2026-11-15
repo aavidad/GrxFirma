@@ -72,14 +72,17 @@ class UnsafeExceptionsTest {
 
     @Test fun `activation sends explicit acceptance and the exact displayed version`() {
         val item = UnsafeExceptions.parseState(state("tsa_http"))
-        val request = JSONObject(UnsafeExceptions.activationRequest(item, true))
-        assertEquals(3, request.length())
+        val request = JSONObject(UnsafeExceptions.activationRequest(item, true, UnsafeAcceptanceOrigin.FROM_PREFERENCES))
+        assertEquals(4, request.length())
         assertTrue(request.getBoolean("accepted"))
         assertEquals(item.id, request.getString("id"))
         assertEquals(item.acceptanceVersion, request.getString("acceptanceVersion"))
-        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item, false) }
-        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item.copy(activable = false), true) }
-        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item.copy(acceptanceVersion = ""), true) }
+        // Lote 39f: el recibo distingue Preferencias del aviso de un bloqueo.
+        assertEquals("ajustes", request.getString("origin"))
+        assertEquals("aviso", JSONObject(UnsafeExceptions.activationRequest(item, true, UnsafeAcceptanceOrigin.FROM_BLOCK)).getString("origin"))
+        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item, false, UnsafeAcceptanceOrigin.FROM_BLOCK) }
+        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item.copy(activable = false), true, UnsafeAcceptanceOrigin.FROM_BLOCK) }
+        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item.copy(acceptanceVersion = ""), true, UnsafeAcceptanceOrigin.FROM_BLOCK) }
         val disable = JSONObject(UnsafeExceptions.disableRequest(item.copy(enabled = true)))
         assertFalse(disable.getBoolean("enabled"))
         assertEquals(2, disable.length())

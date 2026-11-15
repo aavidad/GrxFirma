@@ -9,6 +9,7 @@ import android.net.FakeContentUri
 import android.net.Uri
 import io.github.aavidad.grxfirma.android.core.CoreBridge
 import io.github.aavidad.grxfirma.android.core.CoreReadiness
+import io.github.aavidad.grxfirma.android.core.UnsafeAcceptanceOrigin
 import io.github.aavidad.grxfirma.android.core.UnsafeExceptionBlockedException
 import io.github.aavidad.grxfirma.android.core.UnsafeExceptionState
 import io.github.aavidad.grxfirma.android.core.UnsafeExceptions
@@ -61,7 +62,8 @@ class MainViewModelUnsafeVerificationTest {
         private fun item(id: String) = UnsafeExceptionState(id, enabled = enabled && id == "sha1_leer",
             fixed = !activable, activable = activable, acceptanceVersion = "core.version.2")
         override fun unsafeExceptions() = UnsafeExceptions.ids.map(::item)
-        override fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean) { enabled = true }
+        val origins = mutableListOf<UnsafeAcceptanceOrigin>()
+        override fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean, origin: UnsafeAcceptanceOrigin) { origins += origin; enabled = true }
         override fun disableUnsafeException(item: UnsafeExceptionState): List<UnsafeExceptionState> {
             enabled = false
             return unsafeExceptions()
@@ -101,6 +103,7 @@ class MainViewModelUnsafeVerificationTest {
         assertEquals("excepciones.sha1_leer.titulo", UnsafeExceptionDialog.titleKey(state.unsafePrompt!!, state.unsafePromptFromBlock))
 
         vm.activateUnsafeException(true)
+        assertEquals("se aceptó en el aviso del bloqueo", listOf(UnsafeAcceptanceOrigin.FROM_BLOCK), core.origins)
         assertEquals("tras activar se verifica otra vez el mismo documento", 2, core.verifications)
         assertNull(vm.state.value.unsafePrompt)
         assertNotNull(vm.state.value.verification)
@@ -135,6 +138,7 @@ class MainViewModelUnsafeVerificationTest {
         val item = UnsafeExceptionState("sha1_leer", fixed = false, activable = true, acceptanceVersion = "core.version.2")
         vm.requestUnsafeActivation(item)
         vm.activateUnsafeException(true)
+        assertEquals("se aceptó en Preferencias", listOf(UnsafeAcceptanceOrigin.FROM_PREFERENCES), core.origins)
         val setting = mapOf("ajuste" to UiText.Engine("excepciones.sha1_leer.ajuste"))
         assertNull("el resultado viejo no queda debajo", vm.state.value.verification)
         assertEquals(OperationResult.Notice(UiText.Engine("android.inseguro.activada_resultado", setting)), vm.state.value.result)
