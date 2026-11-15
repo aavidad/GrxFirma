@@ -15,6 +15,9 @@ import (
 // Available siempre es false fuera de Windows.
 func Available() bool { return false }
 
+// Interactive siempre es false fuera de Windows.
+func Interactive() bool { return false }
+
 // Show no está disponible fuera de Windows.
 func Show(context.Context, Spec) (int32, int32, error) {
 	return 0, 0, errors.New("TaskDialog solo está disponible en Windows")
