@@ -16,6 +16,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/domain"
 )
 
@@ -37,6 +38,9 @@ type eleccionSello struct {
 // lo pide (visibleSignature=want), como AutoFirma Java.
 func (f *FyneSelector) ElegirPosicionSello(ctx context.Context) (string, string, error) {
 	if err := ctx.Err(); err != nil {
+		return "", "", err
+	}
+	if err := escritorio.Comprobar("posicion_sello"); err != nil {
 		return "", "", err
 	}
 	a := f.app

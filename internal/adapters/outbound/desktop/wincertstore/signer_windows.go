@@ -22,12 +22,16 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/windows"
+
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 )
 
 const (
 	hpHashval           = 0x00000002
 	ncryptPadPKCS1Flag  = 0x00000002
 	ncryptPadPSSFlag    = 0x00000008
+	ncryptSilentFlag    = 0x00000040
+	nteSilentContext    = 0x80090022
 	maximaLongitudFirma = 64 << 10
 	mascaraEstadoNCrypt = uintptr(1<<32 - 1)
 )
@@ -183,9 +187,17 @@ func adquirirClavePreferida(adquirir func(uint32) (claveWindowsAdquirida, error)
 	// CAPI para dispositivos que lo necesitan, pero elige CNG cuando existe.
 	// No se exporta/reimporta la clave ni se rebaja el algoritmo solicitado.
 	// https://learn.microsoft.com/windows/win32/api/wincrypt/nf-wincrypt-cryptacquirecertificateprivatekey
-	clave, err := adquirir(windows.CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG | windows.CRYPT_ACQUIRE_COMPARE_KEY_FLAG)
+	flags := uint32(windows.CRYPT_ACQUIRE_PREFER_NCRYPT_KEY_FLAG | windows.CRYPT_ACQUIRE_COMPARE_KEY_FLAG)
+	// Sin escritorio, el proveedor (tarjeta, TPM, clave con protección
+	// fuerte) no puede pedir el PIN ni la confirmación a nadie: se le pide
+	// que falle en vez de abrir su ventana. Una clave sin protección firma
+	// igual que antes.
+	if !escritorio.Hay() {
+		flags |= windows.CRYPT_ACQUIRE_SILENT_FLAG
+	}
+	clave, err := adquirir(flags)
 	if err != nil {
-		return claveWindowsAdquirida{}, err
+		return claveWindowsAdquirida{}, conErrorSinEscritorio(err)
 	}
 	if clave.manejador == 0 {
 		return claveWindowsAdquirida{}, errors.New("wincertstore: CryptoAPI devolvió un manejador de clave nulo")
@@ -227,6 +239,9 @@ func (f *firmanteWindows) firmarCNG(clave claveWindowsAdquirida, digest []byte, 
 		return nil, fmt.Errorf("wincertstore: clave CNG no soportada: %T", publica)
 	}
 
+	if !escritorio.Hay() {
+		flags |= ncryptSilentFlag
+	}
 	firma, err := ejecutarNCryptSignHash(clave.manejador, padding, digest, flags)
 	runtime.KeepAlive(algID)
 	runtime.KeepAlive(pkcs1)
@@ -371,7 +386,17 @@ func normalizarEstadoNCrypt(estado uintptr) uintptr {
 func errorEstadoNCrypt(operacion string, estado uintptr) error {
 	estado = normalizarEstadoNCrypt(estado)
 	errno := syscall.Errno(estado)
-	return fmt.Errorf("wincertstore: %s: estado 0x%08x: %w", operacion, estado, errno)
+	return conErrorSinEscritorio(fmt.Errorf("wincertstore: %s: estado 0x%08x: %w", operacion, estado, errno))
+}
+
+// conErrorSinEscritorio añade el error tipado de escritorio cuando el
+// proveedor rechazó la operación porque necesitaba una ventana
+// (NTE_SILENT_CONTEXT) y no hay escritorio: la causa la explica el catálogo.
+func conErrorSinEscritorio(err error) error {
+	if err == nil || !errors.Is(err, syscall.Errno(nteSilentContext)) || escritorio.Hay() {
+		return err
+	}
+	return errors.Join(&escritorio.Error{Dialogo: "clave_almacen_windows"}, err)
 }
 
 func errorLlamadaWindows(operacion string, err error) error {

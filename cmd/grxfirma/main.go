@@ -47,6 +47,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/common/logging"
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/adapters/outbound/desktop/pdfpreview"
 	"grxfirma/internal/adapters/outbound/desktop/proxysecretstore"
 	"grxfirma/internal/adapters/outbound/desktop/servicemanager"
@@ -67,6 +68,17 @@ const (
 	minRESTLifetime      = time.Second
 	maxRESTLifetime      = 240 * time.Minute
 )
+
+// escritorioParaDesktop impide abrir la aplicación de escritorio, Fyne o Qt,
+// sin un escritorio visible: la ventana quedaría donde nadie la ve y la orden
+// no terminaría. El motivo sale del catálogo.
+func escritorioParaDesktop(stderr io.Writer, t func(string, ...any) string) bool {
+	if err := escritorio.Comprobar("aplicacion_escritorio"); err != nil {
+		_, _ = fmt.Fprintln(stderr, t(escritorio.ClaveMensaje))
+		return false
+	}
+	return true
+}
 
 func main() {
 	// Cancelacion limpia al recibir Ctrl+C o SIGTERM.
@@ -166,6 +178,9 @@ func main() {
 		os.Exit(1)
 	}
 	if desktop.habilitado {
+		if !escritorioParaDesktop(os.Stderr, loc.T) {
+			os.Exit(1)
+		}
 		handled, code := maybeRunDesktopApp(ctx, os.Stderr, desktop.frontend, rutaP12, password, rutaCert, rutaClave)
 		if handled {
 			os.Exit(code)

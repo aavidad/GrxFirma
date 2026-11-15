@@ -213,6 +213,10 @@ func windowsGraphicsCallError(operation string, err error) error {
 }
 
 func platformGraphicsFailureDialog(message string) error {
+	// MessageBoxW es modal: sin escritorio esperaría a un clic imposible.
+	if err := comprobarEscritorioUI("aviso_grafico_nativo"); err != nil {
+		return err
+	}
 	title, err := windows.UTF16PtrFromString(tl(graphicsFailureTitleID))
 	if err != nil {
 		return err

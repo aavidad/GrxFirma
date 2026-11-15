@@ -21,6 +21,9 @@ import (
 const legacySavePickerConfirmsOverwrite = true
 
 func selectLegacySaveTargetPath(ctx context.Context, defaultPath string, exts string) (string, error) {
+	if err := comprobarEscritorioUI("selector_guardar"); err != nil {
+		return "", err
+	}
 	defaultPath = effectiveLegacySaveDefaultPath(defaultPath)
 	if nativeProtocolUIEnabled() {
 		return selectNativeWindowsSaveTarget(

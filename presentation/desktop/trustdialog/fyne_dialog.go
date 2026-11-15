@@ -15,6 +15,8 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 )
 
 type FyneTrustDialog struct {
@@ -26,6 +28,11 @@ func NewFyneTrustDialog(w fyne.Window) *FyneTrustDialog {
 }
 
 func (f *FyneTrustDialog) PedirDecision(ctx context.Context, origen string) (DecisionUnicaVez, error) {
+	// Sin escritorio la pregunta no llega a nadie: se rechaza el origen con el
+	// error tipado, nunca se confía por defecto.
+	if err := escritorio.Comprobar("confianza_origen"); err != nil {
+		return Rechazar, err
+	}
 	resultado := make(chan DecisionUnicaVez, 1)
 	msg := buildPromptMessage(origen)
 

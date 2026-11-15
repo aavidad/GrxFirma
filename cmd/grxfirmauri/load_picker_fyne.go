@@ -23,6 +23,9 @@ const (
 )
 
 func selectLegacyLoadPaths(ctx context.Context, initialPath string, exts string, multi bool) ([]string, error) {
+	if err := comprobarEscritorioUI("selector_cargar"); err != nil {
+		return nil, err
+	}
 	initialPath = strings.TrimSpace(initialPath)
 	if nativeProtocolUIEnabled() {
 		return selectNativeWindowsLoadPaths(

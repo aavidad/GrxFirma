@@ -60,6 +60,9 @@ func solicitarPasswordTemporalFyne(ctx context.Context) ([]byte, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
+	if err := comprobarEscritorioUI("contrasena_p12"); err != nil {
+		return nil, err
+	}
 	portalActionUI()
 	a, _ := currentProtocolUIContext()
 	if a == nil {
@@ -130,6 +133,10 @@ func solicitarPasswordTemporalFyne(ctx context.Context) ([]byte, error) {
 // mostrarAvisoCredencialTemporal mantiene visible el error antes del reintento.
 func mostrarAvisoCredencialTemporal(ctx context.Context, title, detail string) {
 	if ctx.Err() != nil {
+		return
+	}
+	if comprobarEscritorioUI("aviso_p12") != nil {
+		updateProtocolUI(title, detail)
 		return
 	}
 	if nativeProtocolUIEnabled() {

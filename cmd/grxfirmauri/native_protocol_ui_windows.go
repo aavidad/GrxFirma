@@ -1064,6 +1064,11 @@ func showNativeTaskDialog(
 	if err := ctx.Err(); err != nil {
 		return 0, 0, err
 	}
+	// Sin escritorio visible nadie puede pulsar un botón: no se abre nada y
+	// quien llama recibe el error, nunca un botón por defecto.
+	if err := comprobarEscritorioUI("tarea_nativa"); err != nil {
+		return 0, 0, err
+	}
 	if len(spec.Buttons) == 0 {
 		return 0, 0, errors.New("diálogo nativo sin acciones")
 	}
@@ -1430,6 +1435,9 @@ func runNativeFileDialog(
 	flags uint32,
 ) ([]string, error) {
 	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if err := comprobarEscritorioUI("selector_fichero_nativo"); err != nil {
 		return nil, err
 	}
 	if len(buffer) < 2 {

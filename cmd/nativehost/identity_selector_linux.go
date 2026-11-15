@@ -13,6 +13,7 @@ import (
 	"strconv"
 
 	"grxfirma/internal/adapters/inbound/common/aprobacion"
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 )
 
 // dialogosSelectorIdentidadLinux devuelve los selectores candidatos, en orden,
@@ -56,6 +57,9 @@ func seleccionarIndiceCertificadoSistema(
 	cancelar string,
 	opciones []string,
 ) (int, error) {
+	if err := escritorio.Comprobar("selector_identidad_nativehost"); err != nil {
+		return 0, err
+	}
 	for _, dialogo := range dialogosSelectorIdentidadLinux(titulo, prompt, usar, cancelar, opciones) {
 		salida, err := ejecutarSelectorSistema(ctx, dialogo.bin, dialogo.args...)
 		if err != nil {
