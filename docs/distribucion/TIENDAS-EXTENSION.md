@@ -45,7 +45,7 @@ mkdir /tmp/grxfirma-ext/ff && cd /tmp/grxfirma-ext/ff && unzip -q ../grxfirma-ex
 npx web-ext lint --source-dir .
 ```
 
-Hoy da 0 errores y un aviso sobre Firefox para Android, que se resuelve no marcando Android al subir (no admite mensajería nativa).
+En la última comprobación anotada daba 0 errores y un aviso sobre Firefox para Android, que se resuelve no marcando Android al subir (no admite mensajería nativa). No se ha repetido con el código actual: sin confirmar.
 
 ## 2. El ID de la extensión en Chrome y Edge
 
@@ -85,7 +85,7 @@ Coste: gratis.
 
 ## 4. Chrome Web Store
 
-Coste: 5 USD, pago único por cuenta.
+Coste: 5 USD, pago único por cuenta (importe sin confirmar; compruébalo en la consola antes de pagar).
 
 1. Entrar en https://chrome.google.com/webstore/devconsole con la cuenta de Google que será la propietaria. Pagar la cuota, aceptar el acuerdo y activar la verificación en dos pasos de la cuenta.
 2. En «Account», completar correo de contacto verificado y la declaración de comerciante (trader) que pide la UE. Para una publicación personal y gratuita, lo normal es «non-trader»; si se publica en nombre de un organismo, consultar antes quién figura como editor.

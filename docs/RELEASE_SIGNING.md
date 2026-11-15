@@ -11,6 +11,17 @@ timestamp, XPI Firefox firmado y canal gestionado Chrome/Edge sobre el candidato
 final. Por tanto, los artefactos técnicos actuales no deben anunciarse como
 release pública.
 
+Dos limitaciones conocidas a 15/11/2026:
+
+- macOS está parado desde el 14/11/2026 y su paquete `.pkg` falla en la
+  integración continua. El flujo oficial sigue exigiendo ese paquete firmado y
+  notarizado: el trabajo `publish` de `release.yml` depende de `verify-macos`.
+  Mientras el paquete falle, el flujo oficial no puede completarse tal como
+  está. No hay decisión tomada sobre cómo resolverlo.
+- El inventario de binarios ajenos sin firma de Windows
+  (`packaging/windows/vendor-unsigned-pe.sha256`) sigue vacío y su exigencia
+  está desactivada (véase «Binarios ajenos sin firma»).
+
 ## Política
 
 Todo tag `v*` activa un release oficial y el workflow falla de forma cerrada.
@@ -123,8 +134,8 @@ a mano y apuntar quién y cuándo:
 
 Formato de las etiquetas: `release.yml` solo se dispara con tags `v*` y
 `validate-official-tag.py` exige la `v`. Las etiquetas del repositorio hasta
-`0.0.125` no la llevan, así que ninguna de esas versiones ha pasado por esta
-cadena de firma. Falta decidir si las próximas se etiquetan como `vX.Y.Z`. La
+`0.0.127` no la llevan, así que `release.yml` no se dispara con ninguna de
+esas etiquetas y esas versiones no han pasado por esta cadena de firma. Falta decidir si las próximas se etiquetan como `vX.Y.Z`. La
 receta de F-Droid apunta al hash del commit, no a la etiqueta.
 
 ## Variables de GitHub

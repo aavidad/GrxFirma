@@ -17,7 +17,7 @@ clave oficial, dar de alta los secretos, abrir las cuentas y publicar.
 | Canal | Qué se sube | Quién firma | Qué falta |
 | --- | --- | --- | --- |
 | GitHub Releases | APK de `release.yml` | Clave del proyecto | Clave y secretos ([CERTIFICADOS.md](CERTIFICADOS.md#c-clave-de-firma-de-android)) |
-| F-Droid | Receta en `fdroiddata` | F-Droid | Comprobar compilación de `0.0.127` y preparar merge request |
+| F-Droid | Receta en `fdroiddata` | F-Droid | La receta de `0.0.127` compila y es reproducible aquí (véase abajo). Falta pasar `fdroid lint` y `fdroid build`, abrir la merge request y que F-Droid la acepte |
 | Google Play | AAB de `release.yml` | Clave del proyecto (subida) y Google (distribución) | Cuenta, ficha, formularios y prueba cerrada |
 
 Un móvil no puede actualizar una app instalada desde un canal con un APK de
@@ -30,7 +30,7 @@ F-Droid usa siempre la suya.
 Este apartado es la base de la ficha de seguridad de datos de Google Play, de
 los antifeatures de F-Droid y de la [política de privacidad](../sitio/privacidad.html).
 Se ha comprobado en el manifiesto, en `build.gradle.kts` y en el código Kotlin
-de la versión 0.0.124.
+de la versión 0.0.127: permisos, copias de seguridad, tráfico en claro, `FLAG_SECURE` y el manifiesto; el classpath de producción se comprobó contra `gradle.lockfile`.
 
 ### Permisos del manifiesto
 
@@ -308,8 +308,9 @@ Esta decisión no se puede deshacer después de la primera publicación.
    `mobile/android/fastlane/metadata/android/<idioma>/changelogs/<versionCode>.txt`.
 4. Cuando acabe la prueba cerrada, promociona la misma versión a producción.
 
-El `versionCode` (124 para 0.0.124) sube con cada versión de `VERSION.txt`,
-como pide Play.
+El `versionCode` (127 para 0.0.127) sube con cada versión de `VERSION.txt`,
+como pide Play. En `mobile/android/fastlane/metadata/android/<idioma>/changelogs/`
+el último fichero que existe es `124.txt`: falta el de la versión que se publique.
 
 ### 5. Ficha de la tienda
 

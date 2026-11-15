@@ -29,7 +29,9 @@ sistema actual; los componentes Qt, WinUI y móviles tienen sus propias puertas.
 | Windows | `./packaging/windows/build-suite.sh --with-winui --nsis` |
 | macOS | `./packaging/macos/build-suite.sh --pkg` |
 
-Las opciones de cada plataforma se explican en los README de `packaging/`.
+macOS está parado desde el 14/11/2026: su paquete `.pkg` falla hoy en la
+integración continua y no se ha probado en un Mac real. Las opciones de cada
+plataforma se explican en los README de `packaging/`.
 Agrupa los artefactos y genera el inventario con:
 
 ```bash
@@ -43,12 +45,16 @@ descritas en [RELEASE_SIGNING.md](RELEASE_SIGNING.md).
 
 ## Publicación oficial
 
-El workflow `.github/workflows/release.yml` valida la versión del tag, construye
+El workflow `.github/workflows/release.yml` se dispara solo con etiquetas que
+empiezan por `v`. Las etiquetas publicadas hasta la 0.0.127 no la llevan, así
+que ese flujo no se ha ejecutado con ellas. Valida la versión del tag, construye
 los paquetes, firma los artefactos con las credenciales configuradas por el
 responsable de la publicación, verifica su contenido y adjunta el inventario y
 el SBOM al GitHub Release. Las credenciales se entregan al workflow mediante el
 almacén de secretos del proveedor de CI; no forman parte del repositorio.
 
 Antes de anunciar una versión, comprueba funcionalmente los paquetes finales
-en las plataformas y canales que se vayan a distribuir. Las pruebas sobre otro
+en las plataformas y canales que se vayan a distribuir. El flujo oficial exige
+también el paquete de macOS firmado y notarizado, que hoy no se puede
+construir; véase [RELEASE_SIGNING.md](RELEASE_SIGNING.md). Las pruebas sobre otro
 candidato no acreditan el contenido de uno nuevo.
