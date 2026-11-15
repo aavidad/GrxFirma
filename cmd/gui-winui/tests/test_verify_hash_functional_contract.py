@@ -28,12 +28,17 @@ class VerifyAndHashFunctionalContractTests(unittest.TestCase):
         cls.hash_xaml = cls.hash_xaml_path.read_text(encoding="utf-8")
 
     def test_pages_use_app_session_picker_and_explicit_lifecycle(self):
+        # Lote 39f: el modelo de Verificar lo crea la app con la misma sesión
+        # y el mismo selector, para conservarlo entre visitas.
+        app = (APP / "App.xaml.cs").read_text(encoding="utf-8")
+        self.assertIn("new ViewModels.VerifyPageViewModel(OperationSession, FilePickerService)", app)
+        self.assertIn("((App)Application.Current).VerifyViewModel", self.verify_page)
+        self.assertIn("app.OperationSession", self.hash_page)
+        self.assertIn("app.FilePickerService", self.hash_page)
         for source, xaml in (
             (self.verify_page, self.verify_xaml),
             (self.hash_page, self.hash_xaml),
         ):
-            self.assertIn("app.OperationSession", source)
-            self.assertIn("app.FilePickerService", source)
             self.assertIn("ViewModel.Activate()", source)
             self.assertIn("ViewModel.Deactivate()", source)
             self.assertIn('Loaded="OnLoaded"', xaml)

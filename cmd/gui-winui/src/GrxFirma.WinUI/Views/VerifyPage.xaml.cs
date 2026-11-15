@@ -19,23 +19,25 @@ public sealed partial class VerifyPage : Page
 
     public VerifyPage()
     {
-        var app = (App)Application.Current;
-        ViewModel = new VerifyPageViewModel(
-            app.OperationSession,
-            app.FilePickerService);
+        // El modelo es el de la app: al volver a Verificar se conservan el
+        // fichero y el resultado (lote 39f).
+        ViewModel = ((App)Application.Current).VerifyViewModel;
         InitializeComponent();
         RefreshExportLabels();
         ForcedTrustAcceptButton.Content =
             VerifyPageViewModel.CatalogText("verify.forced_trust.ui.accept_button");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             ForcedTrustAcceptButton, (string)ForcedTrustAcceptButton.Content);
-        ViewModel.PropertyChanged += (_, change) =>
-        {
-            if (change.PropertyName is nameof(VerifyPageViewModel.HasHtmlReport)
-                or nameof(VerifyPageViewModel.CanExportReport)) RefreshExportLabels();
-            if (change.PropertyName == nameof(VerifyPageViewModel.ReportSavedMessage))
-                AnnounceReportSaved();
-        };
+    }
+
+    // El modelo sobrevive a la página: la suscripción va y viene con ella para
+    // que una página ya cerrada no siga recibiendo cambios.
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs change)
+    {
+        if (change.PropertyName is nameof(VerifyPageViewModel.HasHtmlReport)
+            or nameof(VerifyPageViewModel.CanExportReport)) RefreshExportLabels();
+        if (change.PropertyName == nameof(VerifyPageViewModel.ReportSavedMessage))
+            AnnounceReportSaved();
     }
 
     // El lector de pantalla no oye el cambio de texto por sí solo: se lanza
@@ -77,7 +79,9 @@ public sealed partial class VerifyPage : Page
         }
 
         _isLoaded = true;
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
         ViewModel.DiagnosticRequested += OnDiagnosticRequested;
+        RefreshExportLabels();
         ViewModel.Activate();
     }
 
@@ -89,6 +93,7 @@ public sealed partial class VerifyPage : Page
         }
 
         _isLoaded = false;
+        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
         ViewModel.DiagnosticRequested -= OnDiagnosticRequested;
         ViewModel.Deactivate();
     }

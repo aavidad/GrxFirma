@@ -32,6 +32,16 @@ public partial class App : Application
     internal DesktopOperationSession OperationSession { get; }
     internal WindowsRestServer RestServer { get; } = new();
     internal IFilePickerService FilePickerService { get; private set; } = null!;
+
+    // La página Verificar se crea de nuevo en cada visita. Su modelo vive
+    // aquí para que el fichero elegido y el resultado sigan ahí al volver de
+    // otra página, mientras la app siga abierta. No se guarda en disco.
+    private ViewModels.VerifyPageViewModel? _verifyViewModel;
+    internal ViewModels.VerifyPageViewModel VerifyViewModel =>
+        _verifyViewModel ??= new ViewModels.VerifyPageViewModel(OperationSession, FilePickerService);
+    // Tras cambiar de idioma, el resultado ya escrito quedaría en el idioma
+    // anterior: la página vuelve a empezar.
+    internal void ForgetVerifyState() => _verifyViewModel = null;
     internal ISecurePasswordPromptService SecurePasswordPromptService
     {
         get;

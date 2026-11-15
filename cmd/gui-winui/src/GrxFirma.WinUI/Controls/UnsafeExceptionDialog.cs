@@ -59,19 +59,29 @@ internal static class UnsafeExceptionDialog
         AutomationProperties.SetName(acceptance, acceptanceText);
         AutomationProperties.SetHelpText(acceptance, Localizer.Fill("excepciones.pantalla.version", ("version", item.AcceptanceVersion)));
         body.Children.Add(acceptance);
+        // El texto del caso es la primera parada del teclado y el foco inicial:
+        // el lector de pantalla empieza por el nombre del caso, como en
+        // Android, y las flechas desplazan la ayuda larga. Antes el foco caía
+        // en «Más información».
+        var scroll = new ScrollViewer
+        {
+            Content = body,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            HorizontalScrollMode = ScrollMode.Disabled,
+            MaxHeight = Math.Max(120, root.Size.Height * 0.6),
+            IsTabStop = true,
+            UseSystemFocusVisuals = true,
+            TabIndex = 0,
+        };
+        AutomationProperties.SetName(scroll, heading.Text);
+        AutomationProperties.SetHelpText(scroll, risk.Text);
         var dialog = new ContentDialog
         {
             XamlRoot = root,
             RequestedTheme = theme,
             Title = Localizer.Text(model.TitleKey(helpOnly)),
-            Content = new ScrollViewer
-            {
-                Content = body,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                HorizontalScrollMode = ScrollMode.Disabled,
-                MaxHeight = Math.Max(120, root.Size.Height * 0.6),
-            },
+            Content = scroll,
             CloseButtonText = Localizer.Text(helpOnly ? "excepciones.pantalla.cerrar" : "excepciones.cancelar"),
             PrimaryButtonText = !helpOnly && item.Activable ? Localizer.Text(model.PrimaryButtonKey) : string.Empty,
             IsPrimaryButtonEnabled = false,
@@ -91,6 +101,9 @@ internal static class UnsafeExceptionDialog
             help.Click += (_, _) =>
             {
                 risk.Text = CatalogText(item.HelpKey);
+                AutomationProperties.SetHelpText(scroll, risk.Text);
+                // El botón desaparece: el foco pasa al texto, que ya es la ayuda.
+                scroll.Focus(FocusState.Keyboard);
                 help.Visibility = Visibility.Collapsed;
                 risk.StartBringIntoView();
             };
@@ -100,8 +113,10 @@ internal static class UnsafeExceptionDialog
         {
             // La cola común de diálogos puede abrirlo cuando ya se ha cancelado.
             if (cancellationToken.IsCancellationRequested) { dialog.Hide(); return; }
-            if (acceptance.Visibility == Visibility.Visible) acceptance.Focus(FocusState.Programmatic);
-            else dialog.Focus(FocusState.Programmatic);
+            // ContentDialog pone su propio foco al abrirse; el nuestro va
+            // después, en la cola, para que no lo pise.
+            dialog.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,
+                () => scroll.Focus(FocusState.Keyboard));
         };
         cancellationToken.ThrowIfCancellationRequested();
         using var cancellation = cancellationToken.Register(() => dialog.DispatcherQueue.TryEnqueue(() => dialog.Hide()));

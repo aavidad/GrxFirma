@@ -44,7 +44,44 @@ public sealed class UnsafeExceptionsTests
         Assert.AreEqual("2026-11-15.1", activation.GetProperty("acceptanceVersion").GetString());
         Assert.AreEqual("cms_cbc", activation.GetProperty("id").GetString());
         Assert.AreEqual("fixture-token", activation.GetProperty("retryId").GetString());
+        Assert.AreEqual("aviso", activation.GetProperty("origin").GetString());
         Assert.AreEqual(1, transport.Calls[2].Parameters.EnumerateObject().Count());
+    }
+
+    // Lote 39f: activar una excepción no confirma una firma. El motor puede
+    // ofrecer un reintento, pero una firma no se repite sin que la persona la
+    // vuelva a lanzar y pase otra vez por la confirmación de firma.
+    [TestMethod]
+    public async Task SignatureBlock_ActivatesWithoutReplayingTheSignature()
+    {
+        foreach (var action in new[] { "sign", "sign_batch", "sign_multicosign", "protect_sign" })
+        {
+            var transport = new Fake();
+            string? notice = null;
+            var client = new UnsafeExceptionsClient(transport)
+            { RequestAcceptance = (_, _) => Task.FromResult(true), Notice = value => notice = value };
+            var result = await client.SendAsync<object, JsonElement>(action, new { inputPath = "fixture.pdf" });
+            Assert.IsFalse(result.IsSuccess, action);
+            CollectionAssert.AreEqual(new[] { action, "unsafe_exceptions_activate" },
+                transport.Calls.Select(x => x.Action).ToArray(), action);
+            var activation = transport.Calls[1].Parameters;
+            Assert.IsFalse(activation.TryGetProperty("retryId", out _), action);
+            Assert.AreEqual("aviso", activation.GetProperty("origin").GetString(), action);
+            Assert.AreEqual("excepciones.pantalla.reenviar", notice, action);
+        }
+    }
+
+    // Lote 39f: el recibo distingue Configuración del aviso de un bloqueo.
+    [TestMethod]
+    public async Task Activation_FromSettingsSaysAjustes_FromABlockSaysAviso()
+    {
+        var transport = new Fake();
+        var client = new UnsafeExceptionsClient(transport) { RequestAcceptance = (_, _) => Task.FromResult(true) };
+        Assert.IsTrue(await client.ActivateAsync(Item()));
+        Assert.AreEqual("ajustes", transport.Calls[0].Parameters.GetProperty("origin").GetString());
+        Assert.IsFalse(transport.Calls[0].Parameters.TryGetProperty("retryId", out _));
+        Assert.IsTrue(await client.ActivateAsync(Item() with { OperationPending = true }));
+        Assert.AreEqual("aviso", transport.Calls[1].Parameters.GetProperty("origin").GetString());
     }
 
     [TestMethod]
@@ -89,6 +126,7 @@ public sealed class UnsafeExceptionsTests
         await client.SendAsync<object, JsonElement>("protect", new { passwordB64 = "dummy" });
         Assert.AreEqual(2, transport.Calls.Count);
         Assert.IsFalse(transport.Calls[1].Parameters.TryGetProperty("retryId", out _));
+        Assert.AreEqual("aviso", transport.Calls[1].Parameters.GetProperty("origin").GetString());
         Assert.AreEqual("excepciones.pantalla.reenviar", notice);
     }
 

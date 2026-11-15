@@ -251,6 +251,7 @@ public sealed partial class MainWindow : Window
         var changed = Localizer.SetLanguage(language);
         ApplyControlLanguage();
         if (!changed) return;
+        _app.ForgetVerifyState();
         RefreshProgrammaticLanguage();
         // NavigationView almacena sus entradas aparte del árbol visual.
         foreach (var item in RootNavigation.MenuItems.OfType<DependencyObject>())
