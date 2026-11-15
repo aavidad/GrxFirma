@@ -34,8 +34,11 @@ sealed interface UiText {
     data class Resource(@param:StringRes val id: Int, val arguments: List<Any> = emptyList()) : UiText
     data class Plural(@param:PluralsRes val id: Int, val count: Int, val arguments: List<Any> = emptyList()) : UiText
     data class Lines(val lines: List<UiText>) : UiText
-    /** Clave cerrada del catálogo del motor (verifactu.*, eni.*, csv.error.*). */
-    data class Engine(val key: String) : UiText
+    /**
+     * Clave cerrada del catálogo del motor (verifactu.*, eni.*, csv.error.*).
+     * [values] rellena marcadores «{nombre}» con otros textos ya cerrados.
+     */
+    data class Engine(val key: String, val values: Map<String, UiText> = emptyMap()) : UiText
     /** Fecha RFC 3339 que se muestra en el idioma y zona horaria del dispositivo. */
     data class DateTime(val iso: String, val withTime: Boolean = false) : UiText
     data class Verification(
@@ -73,7 +76,8 @@ fun UiText.resolve(context: Context): String = when (this) {
         else java.text.DateFormat.getDateInstance(java.text.DateFormat.LONG)
         format.format(java.util.Date.from(instant))
     } catch (_: Exception) { iso }
-    is UiText.Engine -> if (EngineKeys.isClosed(key)) EngineText.resolve(context, key) else context.getString(R.string.error_core_operation)
+    is UiText.Engine -> if (!EngineKeys.isClosed(key)) context.getString(R.string.error_core_operation) else
+        values.entries.fold(EngineText.resolve(context, key)) { text, (name, value) -> text.replace("{$name}", value.resolve(context)) }
     // El resumen en lenguaje llano; las evidencias van aparte en VerificationCard.technical.
     is UiText.Verification -> VerificationCard.summary(this).joinToString("\n") { it.resolve(context) }
 }
@@ -96,6 +100,8 @@ sealed interface OperationResult {
     data class Success(val title: UiText, val detail: UiText? = null) : OperationResult
     /** Hecho decidido por la persona (descartar, cierre por seguridad): sin color de error. */
     data class Notice(val detail: UiText) : OperationResult
+    /** GrxFirma no ha hecho la comprobación por seguridad: ni éxito ni error, color de aviso. */
+    data class Blocked(val title: UiText, val detail: UiText) : OperationResult
     data class Error(val detail: UiText) : OperationResult
 }
 
@@ -163,6 +169,8 @@ data class MainUiState(
     val unsafeSaving: Boolean = false,
     val unsafeError: UiText? = null,
     val unsafePrompt: UnsafeExceptionState? = null,
+    /** El diálogo se abrió por un bloqueo de una operación, no desde Preferencias. */
+    val unsafePromptFromBlock: Boolean = false,
     val wave4: Wave4State = Wave4State(),
 ) {
     private val idle: Boolean get() = !busy && !awaitingSave && !awaitingReportSave && unsafePrompt == null && !unsafeSaving
@@ -295,7 +303,6 @@ fun Throwable.toUserText(): UiText {
                 val key = message.orEmpty()
                 EngineKeys.localResource(key)?.let { return UiText.Resource(it) }
                 if (EngineKeys.isClosed(key)) return UiText.Engine(key)
-                EngineKeys.blockKey(key)?.let { return UiText.Engine(it) }
                 R.string.error_core_operation
             }
         }

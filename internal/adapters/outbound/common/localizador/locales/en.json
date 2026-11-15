@@ -6975,7 +6975,7 @@
   "excepciones.sha1_crear.aviso": "Allowed: create a SHA-1 signature. Warning: SHA-1 no longer provides sufficient collision resistance.",
   "excepciones.sha1_crear.bloqueo": "The app blocks this for your security. Blocked: create a SHA-1 signature. SHA-1 no longer provides sufficient collision resistance. For example, two different documents can be made to share the same digest under this algorithm. You can enable this by accepting the warning in GrxFirma or in Preferences, Security, «Create SHA-1 signatures». If your organization does not allow it, contact your administrator.",
   "excepciones.sha1_leer.ajuste": "Evaluate old SHA-1 signatures",
-  "excepciones.sha1_leer.aviso": "Allowed: evaluate an old SHA-1 signature. Warning: SHA-1 no longer provides sufficient collision resistance.",
+  "excepciones.sha1_leer.aviso": "This signature uses SHA-1 and was checked because you allowed it. SHA-1 is no longer secure, so the result is not a guarantee.",
   "excepciones.sha1_leer.bloqueo": "The app blocks this for your security. This signature was not evaluated. Blocked: evaluate an old SHA-1 signature. SHA-1 no longer provides sufficient collision resistance. For example, an old signature may have a digest that does not provide the protection expected today. You can enable this by accepting the warning in GrxFirma or in Preferences, Security, «Evaluate old SHA-1 signatures». If your organization does not allow it, contact your administrator.",
   "excepciones.sha1_conservar.ajuste": "Keep SHA-1 signatures in ENI or co-signatures",
   "excepciones.sha1_conservar.aviso": "Allowed: keep an old SHA-1 signature in an ENI document or co-signature. Warning: SHA-1 no longer provides sufficient collision resistance.",

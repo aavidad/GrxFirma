@@ -8,6 +8,8 @@
     <item name="unsafeMore" type="id" />
     <item name="unsafeHelpText" type="id" />
     <item name="unsafeStatus" type="id" />
+    <item name="unsafeScroll" type="id" />
+    <item name="unsafeFooter" type="id" />
     <item name="unsafePreferences" type="id" />
     <item name="unsafeRefresh" type="id" />
 </resources>

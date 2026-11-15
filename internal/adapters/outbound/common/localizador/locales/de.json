@@ -6975,7 +6975,7 @@
   "excepciones.sha1_crear.aviso": "Se ha permitido crear una firma SHA-1. Aviso: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones.",
   "excepciones.sha1_crear.bloqueo": "La app no permite esto por seguridad. Se ha bloqueado crear una firma SHA-1. SHA-1 ya no ofrece una resistencia suficiente frente a colisiones. Por ejemplo, dos documentos distintos pueden llegar a compartir la misma huella de ese algoritmo. Puede activarlo aceptando el aviso que muestra GrxFirma o en Preferencias, Seguridad, «Crear firmas SHA-1». Si su organización no lo permite, consulte al administrador.",
   "excepciones.sha1_leer.ajuste": "Evaluar firmas SHA-1 antiguas",
-  "excepciones.sha1_leer.aviso": "Se ha permitido evaluar una firma SHA-1 antigua. Aviso: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones.",
+  "excepciones.sha1_leer.aviso": "This signature uses SHA-1 and was checked because you allowed it. SHA-1 is no longer secure, so the result is not a guarantee.",
   "excepciones.sha1_leer.bloqueo": "La app no permite esto por seguridad. No se ha evaluado esta firma SHA-1 antigua. SHA-1 ya no ofrece una resistencia suficiente frente a colisiones. Por ejemplo, una firma antigua puede tener un resumen que no ofrezca la protección esperada hoy. Puede activarlo aceptando el aviso que muestra GrxFirma o en Preferencias, Seguridad, «Evaluar firmas SHA-1 antiguas». Si su organización no lo permite, consulte al administrador.",
   "excepciones.sha1_conservar.ajuste": "Conservar firmas SHA-1 en ENI o cofirmas",
   "excepciones.sha1_conservar.aviso": "Se ha permitido conservar una firma SHA-1 antigua al crear un ENI o una cofirma. Aviso: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones.",

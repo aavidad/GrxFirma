@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 
 	"grxfirma/internal/adapters/outbound/common/localizador"
@@ -94,20 +93,19 @@ type Block struct {
 	ConfigUnavailable bool   `json:"config_unavailable,omitempty"`
 }
 
+// Error da el texto para la persona, sin la marca «[id; clave]» del lote 30:
+// las interfaces identifican el bloqueo por el propio *Block (errors.As o la
+// causa tipada de un resultado) y lo pintan desde sus claves y su catálogo.
+// Este texto queda para la terminal y el registro, en el idioma del proceso.
 func (b *Block) Error() string {
 	loc := localizador.Detectar()
-	key := b.BlockKey
-	if !b.Activable && b.OrganizationKey != "" {
-		key = b.OrganizationKey
-	}
-	message := loc.T(key)
 	if b.ConfigUnavailable {
-		return loc.T("excepciones.directorio_no_disponible") + " [" + b.ID + "; " + b.BlockKey + "]"
+		return loc.T("excepciones.directorio_no_disponible")
 	}
 	if !b.Activable && b.OrganizationKey != "" {
-		message = loc.T(b.RiskKey) + "\n" + message + " [" + b.ID + "; " + b.OrganizationKey + "]"
+		return loc.T(b.RiskKey) + "\n" + loc.T(b.OrganizationKey)
 	}
-	return message + " [" + b.ID + "; " + b.BlockKey + "]"
+	return loc.T(b.BlockKey)
 }
 func blockForState(e Exception, s State) *Block {
 	return &Block{ID: e.ID, BlockKey: e.BlockKey, SettingKey: e.SettingKey, PolicyKey: e.PolicyKey, TitleKey: e.TitleKey, RiskKey: e.RiskKey, AcceptanceKey: e.AcceptanceKey, HelpKey: e.HelpKey, OrganizationKey: e.OrganizationKey, AcceptanceVersion: AcceptanceVersion, Activable: s.Activable, ConfigUnavailable: s.ConfigUnavailable}
@@ -129,23 +127,6 @@ func DescribeAt(dir, id string) *Block {
 		return nil
 	}
 	return blockForState(e, state(e, dir, nil))
-}
-
-// FromText recupera el contrato en adaptadores antiguos que guardan Error().
-// Solo reconoce la marca completa emitida por Block, nunca texto libre.
-// Deprecated: solo diagnóstico de formatos antiguos. Nunca usar para decidir
-// políticas o presentar activaciones; use errors.As o BlockReport.
-func FromText(message string, contexts ...context.Context) *Block {
-	for _, e := range catalog {
-		if strings.Contains(message, "["+e.ID+"; "+e.BlockKey+"]") {
-			if len(contexts) > 0 && contexts[0] != nil {
-				dir, err := directoryFor(contexts...)
-				return blockForState(e, state(e, dir, err))
-			}
-			return blocked(e).(*Block)
-		}
-	}
-	return nil
 }
 
 type State struct {

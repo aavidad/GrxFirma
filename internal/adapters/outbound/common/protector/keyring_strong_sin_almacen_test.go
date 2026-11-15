@@ -381,7 +381,7 @@ func TestLocalStrongKeyring_BloqueaClaveFicheroSinAjuste(t *testing.T) {
 	keyring := protector.NuevoLocalStrongKeyring(cfg, data, nil)
 	protectedOriginal, protected := protegerAlto(t, destinatarioDeV1(t, id, seed, xKey))
 	_ = protectedOriginal
-	if _, err := keyring.DecryptionKeys(context.Background(), protected); err == nil || !strings.Contains(err.Error(), "alto_clave_fichero_leer") {
+	if _, err := keyring.DecryptionKeys(context.Background(), protected); bloqueoTipadoV38(err) == nil || bloqueoTipadoV38(err).ID != "alto_clave_fichero_leer" {
 		t.Fatalf("lectura sin bloqueo: %v", err)
 	}
 	// Una directiva ilegible y una prohibición explícita prevalecen sobre el ajuste.
@@ -397,13 +397,13 @@ func TestLocalStrongKeyring_BloqueaClaveFicheroSinAjuste(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 			tc.policy(t)
-			if _, err := keyring.DecryptionKeys(context.Background(), protected); err == nil || !strings.Contains(err.Error(), "alto_clave_fichero_leer") {
+			if _, err := keyring.DecryptionKeys(context.Background(), protected); bloqueoTipadoV38(err) == nil || bloqueoTipadoV38(err).ID != "alto_clave_fichero_leer" {
 				t.Fatalf("lectura sin bloqueo: %v", err)
 			}
 		})
 	}
 	noLegacy := protector.NuevoLocalStrongKeyring(t.TempDir(), t.TempDir(), nil)
-	if _, err := noLegacy.List(context.Background()); err == nil || !strings.Contains(err.Error(), "alto_clave_fichero_crear") {
+	if _, err := noLegacy.List(context.Background()); bloqueoTipadoV38(err) == nil || bloqueoTipadoV38(err).ID != "alto_clave_fichero_crear" {
 		t.Fatalf("creación sin bloqueo: %v", err)
 	}
 }

@@ -110,7 +110,8 @@ func (uc *VerifySignatureUseCase) Ejecutar(ctx context.Context, cmd VerifyComman
 		if errors.As(err, &block) {
 			uc.auditar(ctx, cmd, false, err)
 			v := domain.VerificationResult{Valid: false, Reason: block.Error(), Coverage: domain.CoberturaNoAcreditada, Warnings: domain.UnirAvisos([]string{block.BlockKey}, avisos.Claves()...), Errors: []string{block.Error()}, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: block.Error()}, Trust: domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: block.Error()}}
-			return VerifyResult{Verification: v.Normalize(), Firmantes: signers}, nil
+			// La causa viaja tipada: los adaptadores no la deducen del texto.
+			return VerifyResult{Verification: v.WithPolicyError(block).Normalize(), Firmantes: signers}, nil
 		}
 		uc.auditar(ctx, cmd, false, err)
 		return VerifyResult{}, fmt.Errorf("no se pudo verificar la firma del documento: %w", err)

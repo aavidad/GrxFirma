@@ -343,12 +343,12 @@ func TestMotorFirmaGo_PAdESRC4RequiereAjuste(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := firmarCifrado(t, data, nil); err == nil || !strings.Contains(err.Error(), "pdf_cifrado_heredado") {
+	if _, err := firmarCifrado(t, data, nil); !esBloqueoV38(err, "pdf_cifrado_heredado") {
 		t.Fatalf("sin ajuste debe bloquear RC4: %v", err)
 	}
 	excepciones.SetForTest(t, "pdf_cifrado_heredado", true)
 	machinepolicy.SetForTest(t, "permitir_pdf_cifrado_heredado", false)
-	if _, err := firmarCifrado(t, data, nil); err == nil || !strings.Contains(err.Error(), "pdf_cifrado_heredado") {
+	if _, err := firmarCifrado(t, data, nil); !esBloqueoV38(err, "pdf_cifrado_heredado") {
 		t.Fatalf("la directiva debe bloquear RC4: %v", err)
 	}
 }

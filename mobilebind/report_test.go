@@ -55,11 +55,10 @@ func TestVerifyIncludesDesktopHTMLReportOnRequest(t *testing.T) {
 	}
 }
 
-// La app traduce los avisos del motor usando la frase en castellano como
-// clave de su catálogo: el texto del catálogo del motor debe coincidir.
+// Lote 38: el aviso de la cadena viaja como clave cerrada y la app lo traduce
+// con su catálogo; el texto del motor conserva las tildes.
 func TestTextosMotorSalenDelCatalogo(t *testing.T) {
-	const claveApp = "La integridad criptografica se ha verificado, pero la confianza de la cadena no esta evaluada por el sistema."
-	if got := textoMotor("movil.verificacion.cadena_no_evaluada"); got != claveApp {
+	if got := textoMotor("movil.verificacion.cadena_no_evaluada"); !strings.Contains(got, "criptográfica se ha comprobado") {
 		t.Fatalf("aviso de cadena = %q", got)
 	}
 	if got := textoMotor("movil.informe.confianza_no_evaluada"); got == "movil.informe.confianza_no_evaluada" || got == "" {

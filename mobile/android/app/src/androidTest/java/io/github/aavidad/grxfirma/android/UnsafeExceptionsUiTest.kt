@@ -41,22 +41,22 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
             var cancelled = false
             lateinit var dialog: UnsafeExceptionDialog
             scenario.onActivity {
-                dialog = UnsafeExceptionDialog(it, item, { value -> accepted = value }, { cancelled = true; dialog.close() })
+                dialog = UnsafeExceptionDialog(it, item, true, { value -> accepted = value }, { cancelled = true; dialog.close() })
                 dialog.show()
             }
             assertConsentWindowHasFocus()
             onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(not(isEnabled())))
-            onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).check(matches(not(isChecked()))).perform(scrollTo(), click())
-            onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(isEnabled())).perform(scrollTo(), click())
+            onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).check(matches(not(isChecked()))).perform(click())
+            onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(isEnabled())).perform(click())
             assertTrue(accepted)
             scenario.onActivity { dialog.render(true, null) }
             onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(not(isEnabled())))
             onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).check(matches(not(isEnabled())))
             scenario.onActivity { dialog.render(false, null) }
-            onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).perform(scrollTo(), click())
+            onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).perform(click())
             assertTrue(cancelled)
             scenario.onActivity {
-                dialog = UnsafeExceptionDialog(it, item, {}, {})
+                dialog = UnsafeExceptionDialog(it, item, true, {}, {})
                 dialog.show()
             }
             onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).check(matches(not(isChecked())))
@@ -67,13 +67,13 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
     @Test fun organizationBlockHasNoAcceptanceAndStillOffersScrollableHelp() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity {
-                UnsafeExceptionDialog(it, item.copy(activable = false, fixed = true),
+                UnsafeExceptionDialog(it, item.copy(activable = false, fixed = true), true,
                     { fail("Una directiva no permite activar") }, {}).show()
             }
             onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(not(isDisplayed())))
             // La casilla no se añade al árbol de accesibilidad si está prohibida.
             onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist())
-            onView(withId(R.id.unsafeMore)).inRoot(isDialog()).perform(scrollTo(), click())
+            onView(withId(R.id.unsafeMore)).inRoot(isDialog()).perform(click())
             onView(withId(R.id.unsafeHelpText)).inRoot(isDialog()).check(matches(isDisplayed()))
             onView(withId(R.id.unsafeHelpText)).inRoot(isDialog()).check(matches(withText(org.hamcrest.Matchers.containsString("CMS"))))
         }
@@ -99,7 +99,7 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                 binding = DialogPreferencesBinding.inflate(activity.layoutInflater)
                 panel = UnsafeExceptionsPanel(binding.unsafePreferences, {}, { selected ->
                     activated = selected.id
-                    UnsafeExceptionDialog(activity, selected, {}, {}).show()
+                    UnsafeExceptionDialog(activity, selected, false, {}, {}).show()
                 }, { selected -> disabled = selected.id })
                 panel.render(MainUiState(backend = io.github.aavidad.grxfirma.android.core.CoreReadiness(true, "ready", ""),
                     unsafeExceptionsAvailable = true, unsafeExceptions = cases))
@@ -133,7 +133,7 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                 }
                 expectedStatement = UiText.Engine(item.key("aceptacion")).resolve(context)
                 expectedCheckbox = UnsafeExceptionTexts.text(context, "aceptacion_casilla")
-                consent = UnsafeExceptionDialog(context, item, { accepted = it }, { cancelled = true; consent.close() })
+                consent = UnsafeExceptionDialog(context, item, true, { accepted = it }, { cancelled = true; consent.close() })
                 consent.show()
             }
             assertConsentWindowHasFocus()
@@ -147,20 +147,20 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                     assertEquals("El aviso no debe limitar sus líneas", Int.MAX_VALUE, text.maxLines)
                 }
             onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(not(isEnabled())))
-            onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).perform(scrollTo())
+            onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog())
                 .check(matches(withText(expectedCheckbox))).check(matches(isCompletelyDisplayed()))
                 .check { view, error ->
                     if (error != null) throw error
                     assertControlInsideSafeArea(view)
                 }.perform(click())
-            onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).perform(scrollTo())
+            onView(withId(R.id.unsafeActivate)).inRoot(isDialog())
                 .check(matches(isEnabled())).check(matches(isCompletelyDisplayed()))
                 .check { view, error ->
                     if (error != null) throw error
                     assertControlInsideSafeArea(view)
                 }.perform(click())
             assertTrue(accepted)
-            onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).perform(scrollTo())
+            onView(withId(R.id.unsafeCancel)).inRoot(isDialog())
                 .check(matches(isCompletelyDisplayed()))
                 .check { view, error ->
                     if (error != null) throw error
@@ -169,6 +169,109 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
             assertTrue(cancelled)
         }
     }
+
+    /** Lote 38: desde Preferencias nada se ha bloqueado; la ventana se anuncia con el título visible. */
+    @Test fun titleDependsOnWhereTheDialogOpensAndNamesTheWindow() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            for (fromBlock in listOf(false, true)) {
+                lateinit var expected: String
+                lateinit var dialog: UnsafeExceptionDialog
+                scenario.onActivity {
+                    expected = UiText.Engine(UnsafeExceptionDialog.titleKey(item, fromBlock)).resolve(it)
+                    dialog = UnsafeExceptionDialog(it, item, fromBlock, {}, {})
+                    dialog.show()
+                }
+                onView(withText(expected)).inRoot(isDialog()).check(matches(isDisplayed()))
+                onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).check { view, error ->
+                    if (error != null) throw error
+                    val params = view.rootView.layoutParams as WindowManager.LayoutParams
+                    assertEquals("Título accesible de la ventana", expected, params.title.toString())
+                }
+                // La versión del texto viaja al núcleo; no se enseña a la persona.
+                onView(withText(org.hamcrest.Matchers.containsString(item.acceptanceVersion))).inRoot(isDialog())
+                    .check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist())
+                scenario.onActivity { dialog.close() }
+            }
+        }
+    }
+
+    /** La principal va rellena y, deshabilitada, conserva su color; las secundarias, con borde o solo texto. */
+    @Test fun primaryActionKeepsItsWeightAndSecondariesAreSeparate() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { UnsafeExceptionDialog(it, item, true, {}, {}).show() }
+            onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                val button = view as com.google.android.material.button.MaterialButton
+                val primary = androidx.core.content.ContextCompat.getColor(view.context, R.color.primary)
+                val disabled = button.backgroundTintList!!.getColorForState(intArrayOf(-android.R.attr.state_enabled), 0)
+                assertFalse(button.isEnabled)
+                assertEquals("Mismo tono que la principal", primary and 0xFFFFFF, disabled and 0xFFFFFF)
+                assertTrue("Visible aunque esté deshabilitada", android.graphics.Color.alpha(disabled) > 0x40)
+            }
+            onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                val cancel = view as com.google.android.material.button.MaterialButton
+                assertTrue("Cancelar lleva borde", cancel.strokeWidth > 0)
+                val activate = view.rootView.findViewById<View>(R.id.unsafeActivate)
+                val more = view.rootView.findViewById<com.google.android.material.button.MaterialButton>(R.id.unsafeMore)
+                assertEquals("Más información va como texto", 0, more.strokeWidth)
+                assertTrue("Las secundarias van por debajo y separadas", locationY(cancel) >= locationY(activate) + activate.height)
+                assertFalse("Las secundarias no van rellenas", cancel.backgroundTintList?.defaultColor ==
+                    (activate as com.google.android.material.button.MaterialButton).backgroundTintList?.defaultColor)
+            }
+        }
+    }
+
+    /** Con letra al 200 % el texto se desplaza y la casilla y los botones quedan fijos abajo. */
+    @Test fun atTwoHundredPercentOnlyTheTextScrolls() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val configuration = Configuration(activity.resources.configuration).apply { fontScale = 2f }
+                val context = android.view.ContextThemeWrapper(activity, R.style.Theme_GrxFirma).apply {
+                    applyOverrideConfiguration(configuration)
+                }
+                UnsafeExceptionDialog(context, item, true, {}, {}).show()
+            }
+            onView(withId(R.id.unsafeScroll)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                assertTrue("Hay más texto debajo y se indica", view.canScrollVertically(1))
+                assertTrue(view.isVerticalScrollBarEnabled)
+                assertFalse("La barra no se oculta", view.isScrollbarFadingEnabled)
+            }
+            onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).check(matches(isCompletelyDisplayed()))
+            onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(isCompletelyDisplayed()))
+            onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).check(matches(isCompletelyDisplayed()))
+        }
+    }
+
+    /** Con letra grande los «?» de Confianza y Cobertura no salen de su fila: el texto se ajusta. */
+    @Test fun verificationHelpButtonsStayInsideTheirRowWithLargeText() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val group = activity.findViewById<ViewGroup>(R.id.verificationHelpGroup)
+                group.visibility = View.VISIBLE
+                listOf(R.id.verificationIntegrityLabel, R.id.verificationTrustLabel, R.id.verificationCoverageLabel).forEach { id ->
+                    activity.findViewById<android.widget.TextView>(id).apply {
+                        textSize = 28f // equivale a BodyMedium al 200 %
+                        text = (text.toString() + " ").repeat(6)
+                    }
+                }
+                group.requestLayout()
+            }
+            for (id in listOf(R.id.verificationIntegrityHelp, R.id.verificationTrustHelp, R.id.verificationCoverageHelp)) {
+                onView(withId(id)).check { view, error ->
+                    if (error != null) throw error
+                    val row = view.parent as View
+                    val density = view.resources.displayMetrics.density
+                    assertTrue("El «?» conserva sus 48 dp", view.width >= (48 * density).toInt() - 1)
+                    assertTrue("El «?» queda dentro de la fila", view.right <= row.width && view.left >= 0)
+                    assertEquals(View.VISIBLE, view.visibility)
+                }
+            }
+        }
+    }
+
+    private fun locationY(view: View): Int = IntArray(2).also { view.getLocationOnScreen(it) }[1]
 
     /** Las barras pueden tener alturas diferentes; ningún control debe quedar debajo de ellas. */
     private fun assertControlInsideSafeArea(view: View) {

@@ -207,7 +207,7 @@ func TestUnprotect_V1AmbiguaSeAbreConAviso(t *testing.T) {
 		t.Fatalf("un sobre v1 normal debe abrirse sin avisos: %+v, %v", out, err)
 	}
 	ambiguo := afpDeAtacante(t, 1, "factura.pdf", "text/html\nname=factura.pdf", &priv.PublicKey)
-	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || excepciones.FromText(err.Error()) == nil {
+	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || bloqueoTipadoV38(err) == nil {
 		t.Fatalf("la lectura ambigua debe requerir ajuste: %v", err)
 	}
 	excepciones.SetForTest(t, "afp_aad_ambigua", true)
@@ -223,11 +223,11 @@ func TestUnprotect_V1AmbiguaSeAbreConAviso(t *testing.T) {
 		t.Fatalf("falta el aviso o el detalle: %v %v", out.Avisos, out.Detalles)
 	}
 	machinepolicy.SetForTest(t, "permitir_afp_aad_ambigua", false)
-	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || excepciones.FromText(err.Error()) == nil {
+	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || bloqueoTipadoV38(err) == nil {
 		t.Fatalf("la directiva debe prevalecer: %v", err)
 	}
 	machinepolicy.ErrorForTest(t, "permitir_afp_aad_ambigua", errors.New("fixture ilegible"))
-	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || excepciones.FromText(err.Error()) == nil {
+	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || bloqueoTipadoV38(err) == nil {
 		t.Fatalf("la directiva ilegible debe bloquear: %v", err)
 	}
 	v9 := afpDeAtacante(t, 9, "futuro.pdf", "application/pdf", &priv.PublicKey)

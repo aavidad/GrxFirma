@@ -42,14 +42,23 @@ func reportBlock(ctx context.Context, b *Block) {
 	r.mu.Unlock()
 }
 
-// ForMessage devuelve únicamente un bloqueo que Check ya emitió en esta operación.
-// El texto puede identificarlo para un adaptador antiguo, pero nunca crearlo.
+// ForMessage devuelve únicamente un bloqueo que Check ya emitió en esta operación
+// y cuyo texto completo aparece en el mensaje. Sirve a los adaptadores que aún
+// guardan Error() como texto; el texto puede identificar un bloqueo real de la
+// operación, pero nunca crearlo, y un documento o un certificado no pueden
+// añadir uno que Check no haya emitido. Siempre que haya error, use errors.As
+// o la causa tipada del resultado (domain.VerificationResult.PolicyError).
 func (r *BlockReport) ForMessage(message string) *Block {
+	if r == nil || message == "" {
+		return nil
+	}
 	for _, e := range Catalog() {
-		if strings.Contains(message, "["+e.ID+"; "+e.BlockKey+"]") {
-			if b := r.For(e.ID); b != nil {
-				return b
-			}
+		b := r.For(e.ID)
+		if b == nil {
+			continue
+		}
+		if text := b.Error(); text != "" && strings.Contains(message, text) {
+			return b
 		}
 	}
 	return nil

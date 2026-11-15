@@ -114,7 +114,7 @@ func TestRunGenerarENI_CAdESSHA1LoCierraLaPolitica(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, false)
 	rc, stderr, destino := generarENISHA1(t, cadesImplicitaSHA1Prueba(t, []byte("acta de la sesión de 2012")))
 	if rc == 0 || !strings.Contains(stderr, localizador.Para("es").T("excepciones.sha1_conservar.organizacion")) ||
-		!strings.Contains(stderr, "[sha1_conservar; excepciones.sha1_conservar.bloqueo]") {
+		strings.Contains(stderr, "[sha1_conservar;") {
 		t.Fatalf("rc=%d stderr=%s", rc, stderr)
 	}
 	if _, err := os.Stat(destino); err == nil {

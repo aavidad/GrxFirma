@@ -82,7 +82,7 @@ func TestXAdESC14NAntiguaNoSeEvaluaSinAjuste(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	block := excepciones.FromText(result.Reason)
+	block := bloqueoTipadoV38(result.PolicyError())
 	if block == nil || block.ID != "xml_c14n_antigua" || result.Valid || result.Integrity.Status != domain.VerificationStatusUnknown {
 		t.Fatalf("C14N antigua debe quedar no evaluada con su ajuste visible: valid=%v integridad=%s motivo=%q", result.Valid, result.Integrity.Status, result.Reason)
 	}
@@ -167,7 +167,7 @@ func TestSoloCompatibilidadDTDNoBloqueaC14N(t *testing.T) {
 	excepciones.SetForTest(t, "xml_c14n_antigua", false)
 	result := markXMLCompatibility(domain.NewVerificationSuccess("XAdES", "", nil), []string{detalleDOCTYPEExterno}, context.Background())
 	var block *excepciones.Block
-	if block = excepciones.FromText(result.Reason); block != nil && block.ID == "xml_c14n_antigua" {
+	if block = bloqueoTipadoV38(result.PolicyError()); block != nil && block.ID == "xml_c14n_antigua" {
 		t.Fatalf("solo DTD externa no debe pedir ajuste C14N: %v", result.Reason)
 	}
 }

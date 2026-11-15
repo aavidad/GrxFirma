@@ -1351,7 +1351,7 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 
 	result, err := m.Verificar.Execute(ctx, cmd)
 	if err != nil {
-		return respuesta{OK: false, Action: "verify", Error: err.Error()}
+		return respuesta{OK: false, Action: "verify", Error: err.Error(), cause: err}
 	}
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: "verify", Error: err.Error()}
@@ -1375,7 +1375,8 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 		}
 	}
 
-	return respuesta{OK: true, Action: "verify", Data: resultadoVerificacion{
+	// La causa tipada del motor decide el bloqueo; el texto del resultado no.
+	return respuesta{OK: true, Action: "verify", cause: result.Verification.PolicyError(), Data: resultadoVerificacion{
 		ReportHTML: reportHTML,
 		Valid:      result.Verification.Valid,
 		Reason:     result.Verification.Reason,

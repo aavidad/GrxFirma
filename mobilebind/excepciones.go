@@ -4,6 +4,7 @@ package mobilebind
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"strings"
 
@@ -46,7 +47,7 @@ func (f *Facade) SetUnsafeExceptionJSON(request string) (string, error) {
 		return "", excepciones.ErrAcceptanceRequired
 	}
 	if err := excepciones.SetUserAt(f.configDir, p.ID, false); err != nil {
-		return "", err
+		return "", errorTipado(err)
 	}
 	return f.UnsafeExceptionsJSON()
 }
@@ -79,7 +80,7 @@ func (f *Facade) ActivateUnsafeExceptionJSON(request string) (string, error) {
 		ID: p.ID, Accepted: *p.Accepted, AcceptanceVersion: p.AcceptanceVersion,
 	})
 	if err != nil {
-		return "", err
+		return "", errorTipado(err)
 	}
 	data, err := json.Marshal(accepted)
 	if err != nil {
@@ -122,4 +123,54 @@ func decodeUnsafeExceptionRequest(raw string, target any) error {
 		return newFacadeError("error.formato_invalido")
 	}
 	return nil
+}
+
+// bloqueoTipado lleva a la app el contrato de un bloqueo con el mismo JSON que
+// el IPC de escritorio (exceptionId, activable, blockKey, settingKey...). La app
+// lo lee del mensaje de la excepción de gomobile (lote 33) y pinta el bloqueo
+// con su propio catálogo. Solo se crea desde un *excepciones.Block que emitió
+// el núcleo; nunca desde el texto de un documento o de otro error.
+type bloqueoTipado struct{ block *excepciones.Block }
+
+func (e *bloqueoTipado) Error() string {
+	b := e.block
+	data, err := json.Marshal(struct {
+		ErrorCode         string `json:"errorCode"`
+		ExceptionID       string `json:"exceptionId"`
+		Activable         bool   `json:"activable"`
+		BlockKey          string `json:"blockKey"`
+		SettingKey        string `json:"settingKey"`
+		TitleKey          string `json:"titleKey"`
+		RiskKey           string `json:"riskKey"`
+		AcceptanceKey     string `json:"acceptanceKey"`
+		HelpKey           string `json:"helpKey"`
+		OrganizationKey   string `json:"organizationKey"`
+		AcceptanceVersion string `json:"acceptanceVersion"`
+		ConfigUnavailable bool   `json:"configUnavailable,omitempty"`
+	}{"unsafe_exception_blocked", b.ID, b.Activable, b.BlockKey, b.SettingKey, b.TitleKey, b.RiskKey,
+		b.AcceptanceKey, b.HelpKey, b.OrganizationKey, b.AcceptanceVersion, b.ConfigUnavailable})
+	if err != nil {
+		return b.BlockKey
+	}
+	return string(data)
+}
+
+// Unwrap conserva errors.As(err, *excepciones.Block) para el resto del núcleo.
+func (e *bloqueoTipado) Unwrap() error { return e.block }
+
+// errorTipado sustituye un error que contiene un bloqueo por su contrato JSON
+// y deja los demás errores como estaban.
+func errorTipado(err error) error {
+	if err == nil {
+		return nil
+	}
+	var typed *bloqueoTipado
+	if errors.As(err, &typed) {
+		return typed
+	}
+	var block *excepciones.Block
+	if !errors.As(err, &block) || block == nil {
+		return err
+	}
+	return &bloqueoTipado{block: block}
 }

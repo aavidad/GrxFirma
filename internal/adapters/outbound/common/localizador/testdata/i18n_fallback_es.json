@@ -234,7 +234,6 @@
     "excepciones.sha1_crear.titulo",
     "excepciones.sha1_leer.aceptacion",
     "excepciones.sha1_leer.ajuste",
-    "excepciones.sha1_leer.aviso",
     "excepciones.sha1_leer.ayuda",
     "excepciones.sha1_leer.bloqueo",
     "excepciones.sha1_leer.organizacion",

@@ -46,7 +46,7 @@ func TestCMSProtector_LeeSignedAndEnvelopedDataV1SoloConOptIn(t *testing.T) {
 
 	machinepolicy.SetForTest(t, machinepolicy.PermitirCMSAESECBLegacy, false)
 	disabled, err := NuevoCMSProtector().Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key})
-	if err == nil || excepciones.FromText(err.Error()) == nil {
+	if err == nil || bloqueoTipadoV38(err) == nil {
 		t.Fatalf("Unprotect() sin opt-in error = %v; want instruccion explicita", err)
 	}
 	if len(disabled.Document.Content) != 0 {
@@ -70,11 +70,11 @@ func TestCMSProtector_LeeSignedAndEnvelopedDataV1SoloConOptIn(t *testing.T) {
 		t.Fatalf("debe avisar del uso de AES-ECB: %v", unprotected.Avisos)
 	}
 	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", false)
-	if _, err := newTrustedCMSTestProtector(cert).Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key}); err == nil || excepciones.FromText(err.Error()) == nil || excepciones.FromText(err.Error()).ID != "cms_rsa_v15_leer" {
+	if _, err := newTrustedCMSTestProtector(cert).Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key}); err == nil || bloqueoTipadoV38(err) == nil || bloqueoTipadoV38(err).ID != "cms_rsa_v15_leer" {
 		t.Fatalf("la máquina prohíbe transporte v15 aunque habilite AES-ECB: %v", err)
 	}
 	machinepolicy.ErrorForTest(t, "permitir_cms_rsa_v15_leer", errors.New("fixture ilegible"))
-	if _, err := newTrustedCMSTestProtector(cert).Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key}); err == nil || excepciones.FromText(err.Error()) == nil || excepciones.FromText(err.Error()).ID != "cms_rsa_v15_leer" {
+	if _, err := newTrustedCMSTestProtector(cert).Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key}); err == nil || bloqueoTipadoV38(err) == nil || bloqueoTipadoV38(err).ID != "cms_rsa_v15_leer" {
 		t.Fatalf("directiva v15 ilegible debe bloquear AES-ECB: %v", err)
 	}
 }

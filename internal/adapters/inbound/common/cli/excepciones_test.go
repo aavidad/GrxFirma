@@ -102,7 +102,9 @@ func TestActivarExcepcionCLIDirectivaProhibeOIlegible(t *testing.T) {
 			if rc := a.Run(context.Background(), []string{"-activar-excepcion", id, "-acepto-el-aviso"}); rc != 1 || excepcionActivaEn(dir, id) {
 				t.Fatalf("directiva %s activó excepción: rc=%d", tc.name, rc)
 			}
-			if !strings.Contains(stderr.String(), id) {
+			// La persona lee el caso por su nombre; la marca interna ya no se pinta.
+			if !strings.Contains(stderr.String(), localizador.Para("es").T("excepciones."+id+".organizacion")) ||
+				strings.Contains(stderr.String(), "["+id+";") {
 				t.Fatalf("falta identificador del bloqueo: %q", stderr.String())
 			}
 		})
