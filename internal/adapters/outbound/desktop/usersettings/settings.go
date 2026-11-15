@@ -324,7 +324,11 @@ func (a *Almacen) rutaFichero() (string, error) {
 		if err != nil || !filepath.IsAbs(home) {
 			return "", fmt.Errorf("obteniendo directorio home: %w", settingsfile.ErrDirectory)
 		}
-		dir = appdirs.Config(home)
+		comprobada, err := appdirs.ConfigComprobada(home)
+		if err != nil {
+			return "", fmt.Errorf("obteniendo directorio de configuración: %w", settingsfile.ErrDirectory)
+		}
+		dir = comprobada
 	}
 	if !filepath.IsAbs(dir) || filepath.Clean(dir) != dir || filepath.Dir(dir) == dir {
 		return "", settingsfile.ErrDirectory

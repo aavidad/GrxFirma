@@ -9,6 +9,8 @@
 // manifiesto; si no está disponible, Available devuelve false.
 package wintaskdialog
 
+import "errors"
+
 // Choice es un botón o una opción de radio del diálogo.
 type Choice struct {
 	ID    int32
@@ -29,6 +31,12 @@ type Spec struct {
 	// ShowVerification.
 	Verification string
 }
+
+// ErrSinEscritorio indica que el proceso no tiene un escritorio visible
+// (servicio, SSH, CI) y el diálogo no se ha mostrado. Quien lo recibe no puede
+// suponer ninguna respuesta de la persona: un aviso sigue sin ventana y una
+// confirmación se da por no concedida.
+var ErrSinEscritorio = errors.New("wintaskdialog: no hay un escritorio visible para mostrar el diálogo")
 
 // IDCancel es el identificador que devuelve Windows al cancelar.
 const IDCancel int32 = 2

@@ -3795,11 +3795,11 @@ func (a *Adaptador) directorioTLSRest() string {
 	if strings.TrimSpace(a.ConfigDir) != "" {
 		return filepath.Join(a.ConfigDir, "tls")
 	}
-	home, err := os.UserHomeDir()
-	if err != nil || strings.TrimSpace(home) == "" {
+	dir, err := appdirs.ConfigUsuario()
+	if err != nil {
 		return filepath.Join(os.TempDir(), "grxfirma", "tls")
 	}
-	return filepath.Join(appdirs.Config(home), "tls")
+	return filepath.Join(dir, "tls")
 }
 
 func (a *Adaptador) directorioP12() (string, error) {

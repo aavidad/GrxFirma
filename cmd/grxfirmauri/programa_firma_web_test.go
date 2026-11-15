@@ -18,8 +18,11 @@ import (
 )
 
 // Las pruebas no leen el registro, mimeapps.list ni la política reales.
+// Tampoco abren ventanas nativas: el aviso de AutoFirma es un TaskDialog en
+// Windows que, por SSH o en CI, nadie cierra y deja la prueba colgada.
 func TestMain(m *testing.M) {
 	nuevoSelectorFirmaWeb = func() ports.ProtocoloAfirma { return &selectorFirmaWebFalso{} }
+	presentarAvisoFirmaWeb = func(context.Context, string) {}
 	os.Exit(m.Run())
 }
 
@@ -54,6 +57,7 @@ type escenarioFirmaWeb struct {
 	respuesta  eleccionProgramaFirmaWeb
 	errDialogo error
 	reenvios   [][2]string
+	avisos     []string
 	errReenvio error
 	fallos     int
 	firmarAqui bool
@@ -62,10 +66,13 @@ type escenarioFirmaWeb struct {
 func nuevoEscenarioFirmaWeb(t *testing.T, estado ports.EstadoProtocoloAfirma) *escenarioFirmaWeb {
 	t.Helper()
 	e := &escenarioFirmaWeb{sel: &selectorFirmaWebFalso{estado: estado}}
-	prevSel, prevPreg, prevFallo, prevReenv := nuevoSelectorFirmaWeb, preguntarProgramaFirmaWeb, preguntarFalloReenvio, reenviarAutoFirma
+	prevSel, prevPreg, prevFallo, prevReenv, prevAviso := nuevoSelectorFirmaWeb, preguntarProgramaFirmaWeb, preguntarFalloReenvio, reenviarAutoFirma, presentarAvisoFirmaWeb
 	t.Cleanup(func() {
-		nuevoSelectorFirmaWeb, preguntarProgramaFirmaWeb, preguntarFalloReenvio, reenviarAutoFirma = prevSel, prevPreg, prevFallo, prevReenv
+		nuevoSelectorFirmaWeb, preguntarProgramaFirmaWeb, preguntarFalloReenvio, reenviarAutoFirma, presentarAvisoFirmaWeb = prevSel, prevPreg, prevFallo, prevReenv, prevAviso
 	})
+	presentarAvisoFirmaWeb = func(_ context.Context, mensaje string) {
+		e.avisos = append(e.avisos, mensaje)
+	}
 	nuevoSelectorFirmaWeb = func() ports.ProtocoloAfirma { return e.sel }
 	preguntarProgramaFirmaWeb = func(_ context.Context, puedeRecordar bool) (eleccionProgramaFirmaWeb, error) {
 		e.preguntas = append(e.preguntas, puedeRecordar)
@@ -115,6 +122,9 @@ func TestFirmaWebPreguntarYRecordarAutoFirma(t *testing.T) {
 	if len(e.reenvios) != 1 || e.reenvios[0] != [2]string{exeAutoFirmaPrueba, uriPrueba} {
 		t.Fatalf("reenvío: %v", e.reenvios)
 	}
+	if len(e.avisos) != 1 || e.avisos[0] != tl("excepciones.autofirma.aviso") {
+		t.Fatalf("la persona debe ver en una ventana que firma AutoFirma: %q", e.avisos)
+	}
 }
 
 func TestFirmaWebPreguntarYElegirGrxFirma(t *testing.T) {
@@ -139,6 +149,9 @@ func TestFirmaWebConPoliticaNoSeRecuerda(t *testing.T) {
 	}
 	if len(e.sel.elegidos) != 0 {
 		t.Fatalf("con la política no se cambia la preferencia: %v", e.sel.elegidos)
+	}
+	if len(e.avisos) != 1 {
+		t.Fatalf("el reenvío a AutoFirma debe avisar una vez: %q", e.avisos)
 	}
 }
 

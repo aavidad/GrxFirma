@@ -10,6 +10,7 @@ package portalpaths
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,11 +21,41 @@ import (
 
 var ErrProtected = errors.New("portalpaths: ruta de datos de la aplicación no permitida")
 
-// Check devuelve la ruta física cuando no pertenece a Config, Data, State ni
-// Cache. Resuelve el ancestro existente también para destinos aún sin crear,
-// de modo que un alias simbólico o una ruta con componentes padre no eludan
-// la barrera. Sin HOME fiable falla cerrado.
+// ErrCarpetaPropia es el ErrProtected de una ruta dentro de las carpetas
+// propias de GrxFirma (configuración, datos, estado o caché). Quien lo recibe
+// puede explicar a la persona por qué no se usa la carpeta que eligió.
+var ErrCarpetaPropia = fmt.Errorf("%w: carpeta propia de GrxFirma", ErrProtected)
+
+// Hay dos barreras y el origen de la ruta lo decide quien llama según el
+// camino del código, nunca un dato que mande la web:
+//
+//   - Check, para rutas que propone la web: protege todo AppData en Windows
+//     y ~/.config, ~/.local y ~/.cache en Linux y macOS, además de las
+//     carpetas de GrxFirma.
+//   - CheckElegida, para rutas que la persona eligió en un diálogo del
+//     sistema: solo protege las carpetas propias de GrxFirma, de modo que se
+//     puede firmar un adjunto de Outlook, un fichero abierto desde un ZIP o
+//     algo guardado en %TEMP%.
+
+// Check devuelve la ruta física de una ruta propuesta por la web cuando no
+// cae en las raíces protegidas. Resuelve el ancestro existente también para
+// destinos aún sin crear, de modo que un alias simbólico o una ruta con
+// componentes padre no eludan la barrera. Sin HOME fiable falla cerrado.
 func Check(raw string) (string, error) {
+	return check(raw, false)
+}
+
+// CheckElegida es Check para una ruta que la persona eligió en un diálogo del
+// sistema: solo rechaza las carpetas propias de GrxFirma.
+func CheckElegida(raw string) (string, error) {
+	return check(raw, true)
+}
+
+// check aplica la barrera de las carpetas propias (soloPropias) o la de la
+// web. Un rechazo es ErrCarpetaPropia solo si la ruta cae en una carpeta de
+// GrxFirma; el resto de AppData, ~/.config, ~/.local o ~/.cache da
+// ErrProtected, para no explicar a la persona algo que no es.
+func check(raw string, soloPropias bool) (string, error) {
 	if raw == "" || strings.IndexByte(raw, 0) >= 0 || !filepath.IsAbs(raw) || HasParentComponent(raw) {
 		return "", ErrProtected
 	}
@@ -37,7 +68,20 @@ func Check(raw string) (string, error) {
 		return "", ErrProtected
 	}
 	var identities []os.FileInfo
-	for _, root := range protectedRoots(home) {
+	rechazo := func() error {
+		if soloPropias {
+			return ErrCarpetaPropia
+		}
+		if _, err := check(raw, true); errors.Is(err, ErrCarpetaPropia) {
+			return ErrCarpetaPropia
+		}
+		return ErrProtected
+	}
+	roots := protectedRoots(home)
+	if soloPropias {
+		roots = ownRoots(home)
+	}
+	for _, root := range roots {
 		physicalRoot, err := physicalPath(root)
 		if err != nil {
 			return "", ErrProtected
@@ -49,17 +93,26 @@ func Check(raw string) (string, error) {
 			return "", ErrProtected
 		}
 		if within(root, raw) || within(physicalRoot, path) {
-			return "", ErrProtected
+			return "", rechazo()
 		}
 	}
-	if protected, err := protectedAncestor(path, identities, os.Stat); err != nil || protected {
+	protected, err := protectedAncestor(path, identities, os.Stat)
+	if err != nil {
 		return "", ErrProtected
+	}
+	if protected {
+		return "", rechazo()
 	}
 	return path, nil
 }
 
+// ownRoots son las carpetas propias de GrxFirma, las de appdirs.
+func ownRoots(home string) []string {
+	return []string{appdirs.Config(home), appdirs.Data(home), appdirs.State(home), appdirs.Cache(home)}
+}
+
 func protectedRoots(home string) []string {
-	roots := []string{appdirs.Config(home), appdirs.Data(home), appdirs.State(home), appdirs.Cache(home)}
+	roots := ownRoots(home)
 	if runtime.GOOS == "windows" {
 		return append(roots,
 			filepath.Dir(appdirs.Config(home)),
@@ -78,7 +131,28 @@ func protectedRoots(home string) []string {
 // apertura de securefile no sigue un enlace en el componente final y lee por
 // el descriptor ya abierto, aunque el nombre cambie después.
 func ReadFileLimit(path string, max int64) ([]byte, error) {
-	physical, err := Check(path)
+	return readFileLimit(path, max, Check)
+}
+
+// ReadFileLimitElegida es ReadFileLimit para un fichero que la persona eligió
+// en un diálogo del sistema.
+func ReadFileLimitElegida(path string, max int64) ([]byte, error) {
+	return readFileLimit(path, max, CheckElegida)
+}
+
+// WriteFile guarda en una ruta propuesta por la web.
+func WriteFile(path string, data []byte, force bool) (string, error) {
+	return writeFile(path, data, force, Check)
+}
+
+// WriteFileElegida guarda en una ruta que la persona eligió en un diálogo
+// del sistema.
+func WriteFileElegida(path string, data []byte, force bool) (string, error) {
+	return writeFile(path, data, force, CheckElegida)
+}
+
+func readFileLimit(path string, max int64, check func(string) (string, error)) ([]byte, error) {
+	physical, err := check(path)
 	if err != nil {
 		return nil, err
 	}

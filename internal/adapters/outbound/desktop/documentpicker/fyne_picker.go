@@ -25,6 +25,7 @@ import (
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/portalpaths"
 )
 
 const fyneDocumentPickerAppID = "io.github.aavidad.grxfirma.afirmauri"
@@ -147,6 +148,15 @@ func (r fyneResolver) ResolveDocumentFiltered(ctx context.Context, filter ports.
 				return
 			}
 			defer reader.Close()
+
+			// Lo elegido en el diálogo se admite salvo en las carpetas
+			// propias de GrxFirma, la misma regla que en Windows.
+			if uri := reader.URI(); uri != nil && uri.Scheme() == "file" {
+				if _, err := portalpaths.CheckElegida(uri.Path()); err != nil {
+					emit(resolveResult{err: err})
+					return
+				}
+			}
 
 			data, readErr := io.ReadAll(reader)
 			if readErr != nil {

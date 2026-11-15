@@ -3337,11 +3337,11 @@ func (a *Adaptador) resolverCertificadoFirma(ctx context.Context, cfg configCLI)
 func (a *Adaptador) leerDominiosConfiados(_ context.Context) ([]domain.TrustDecision, error) {
 	configDir := strings.TrimSpace(a.ConfigDir)
 	if configDir == "" {
-		home, err := os.UserHomeDir()
+		dir, err := appdirs.ConfigUsuario()
 		if err != nil {
 			return nil, err
 		}
-		configDir = appdirs.Config(home)
+		configDir = dir
 	}
 
 	cfg, err := config.Load(configDir)
@@ -4176,11 +4176,11 @@ func serializarDominiosConfiados(dominios []domain.TrustDecision) []map[string]s
 func (a *Adaptador) directorioTLS() string {
 	configDir := strings.TrimSpace(a.ConfigDir)
 	if configDir == "" {
-		home, err := os.UserHomeDir()
+		dir, err := appdirs.ConfigUsuario()
 		if err != nil {
 			return filepath.Join(os.TempDir(), "grxfirma", "tls")
 		}
-		configDir = appdirs.Config(home)
+		configDir = dir
 	}
 	return filepath.Join(configDir, "tls")
 }
@@ -4188,11 +4188,11 @@ func (a *Adaptador) directorioTLS() string {
 func (a *Adaptador) directorioP12() string {
 	configDir := strings.TrimSpace(a.ConfigDir)
 	if configDir == "" {
-		home, err := os.UserHomeDir()
+		dir, err := appdirs.ConfigUsuario()
 		if err != nil {
 			return filepath.Join(".", "pkcs12")
 		}
-		configDir = appdirs.Config(home)
+		configDir = dir
 	}
 	if cfg, err := config.Load(configDir); err == nil && strings.TrimSpace(cfg.DirectorioP12) != "" {
 		return cfg.DirectorioP12
@@ -4203,11 +4203,11 @@ func (a *Adaptador) directorioP12() string {
 func (a *Adaptador) rutaAutoseleccionPersistente() string {
 	configDir := strings.TrimSpace(a.ConfigDir)
 	if configDir == "" {
-		home, err := os.UserHomeDir()
+		dir, err := appdirs.ConfigUsuario()
 		if err != nil {
 			return filepath.Join(".", "preferred-certificates.json")
 		}
-		configDir = appdirs.Config(home)
+		configDir = dir
 	}
 	return filepath.Join(configDir, "preferred-certificates.json")
 }

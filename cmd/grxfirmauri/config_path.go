@@ -5,12 +5,10 @@
 
 package main
 
-import (
-	"grxfirma/internal/appdirs"
-	"os"
-)
+import "grxfirma/internal/appdirs"
 
-func defaultProtocolConfigDir() string {
-	home, _ := os.UserHomeDir()
-	return appdirs.Config(home)
+// defaultProtocolConfigDir falla cerrado sin carpeta personal absoluta o, en
+// Windows, sin %APPDATA% absoluto.
+func defaultProtocolConfigDir() (string, error) {
+	return appdirs.ConfigUsuario()
 }

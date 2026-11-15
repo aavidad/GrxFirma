@@ -6939,6 +6939,11 @@
   ,"No se encontró un gestor de certificados nativo (seahorse/kleopatra).": "No native certificate manager found (seahorse/kleopatra)."
   ,"Información: ": "Information: ",
   "excepciones.autofirma.aviso": "This operation has been delegated to AutoFirma. Its own security controls and settings apply.",
+  "portalpaths.carpeta_propia.titulo": "This folder cannot be used",
+  "portalpaths.carpeta_propia.detalle": "GrxFirma cannot use this folder because it keeps its own settings and data there. Choose another folder, such as Documents or Downloads.",
+  "portalpaths.documento_no_permitido": "GrxFirma cannot open a document from the folder where it keeps its own settings and data. Choose a document from another folder.",
+  "portalpaths.documento_no_valido": "GrxFirma cannot open the selected document. Choose a file from a folder on this computer or on the network.",
+  "portalpaths.selector_un_documento": "Choose a single document to sign.",
   "excepciones.politica_ilegible.aviso": "The policy for this device could not be read. Unsafe exceptions remain disabled until the administrator fixes the policy.",
   "excepciones.trifasica_redireccion.aviso": "The three-phase signing server redirected the operation to another authorized origin. Check the destination before continuing.",
   "excepciones.anclas_locales.aviso": "This verification uses the local trust anchors specified when the REST service started. They replace the system trust roots for this request.",

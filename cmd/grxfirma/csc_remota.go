@@ -99,8 +99,9 @@ type entornoCSC struct {
 }
 
 func nuevoEntornoCSC(ctx context.Context, logger *slog.Logger, t func(string, ...any) string, idioma string) entornoCSC {
-	home, _ := os.UserHomeDir()
-	configDir := appdirs.Config(home)
+	// Sin carpeta de configuración válida queda vacía y config.Load y la
+	// credencial remota fallan al usarla.
+	configDir, _ := appdirs.ConfigUsuario()
 	return entornoCSC{
 		ctx:         ctx,
 		logger:      logger,

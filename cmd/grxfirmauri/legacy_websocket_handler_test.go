@@ -807,11 +807,11 @@ func TestLegacyWebSocketHandler_SaveAceptaDestinoElegidoPorElUsuarioFueraDelHome
 
 func TestLegacyWebSocketHandler_SaveRechazaRutasDeDispositivoORelativas(t *testing.T) {
 	for _, ruta := range []string{`\\.\PhysicalDrive0`, `\\?\C:\x.txt`, "relativa.txt", ""} {
-		if _, ok := resolveUserChosenWritablePath(ruta); ok {
+		if _, err := resolveUserChosenWritablePath(ruta); err == nil {
 			t.Fatalf("ruta %q aceptada", ruta)
 		}
 	}
-	if _, ok := resolveUserChosenWritablePath(t.TempDir()); ok {
+	if _, err := resolveUserChosenWritablePath(t.TempDir()); err == nil {
 		t.Fatal("un directorio no es un destino de guardado válido")
 	}
 }
@@ -1893,7 +1893,7 @@ func TestSanitizeLegacyFilename_NeutralizaDatosDelPortal(t *testing.T) {
 }
 
 func TestLegacyWebSocketHandler_SaveBloqueaExtensionesEjecutables(t *testing.T) {
-	dir := t.TempDir()
+	dir := carpetaGuardadoWeb(t)
 	for _, nombre := range []string{"factura.exe", "FIRMA.LNK", "x.ps1.", "a.hta", "doc.pdf.bat"} {
 		destino := filepath.Join(dir, nombre)
 		handler := &legacyWebSocketHandler{

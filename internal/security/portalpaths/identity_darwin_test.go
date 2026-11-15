@@ -8,11 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"grxfirma/internal/testsupport/perfil"
 )
 
 func TestDarwinMayusculasNoPermitenLeerConfiguracion(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
+	home := perfil.Nuevo(t)
 	root := filepath.Join(home, ".config", "grxfirma")
 	if err := os.MkdirAll(root, 0700); err != nil {
 		t.Fatal(err)

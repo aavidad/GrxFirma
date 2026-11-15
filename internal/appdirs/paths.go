@@ -7,9 +7,11 @@
 package appdirs
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 // Config devuelve la raíz de configuración del usuario.
@@ -18,6 +20,33 @@ func Config(home string) string {
 		return windowsRoot(home, "APPDATA", "Roaming")
 	}
 	return filepath.Join(home, ".config", "grxfirma")
+}
+
+// ErrConfigNoDisponible indica que el entorno no da una carpeta de
+// configuración absoluta y fiable.
+var ErrConfigNoDisponible = errors.New("appdirs: carpeta de configuración no disponible")
+
+// ConfigComprobada es Config para quien debe fallar cerrado. Rechaza una
+// carpeta personal vacía o relativa y, en Windows, también %APPDATA% vacío o
+// relativo, que allí decide la configuración igual que HOME en Linux. Config
+// tomaría entonces %USERPROFILE%\AppData\Roaming por su cuenta.
+func ConfigComprobada(home string) (string, error) {
+	if strings.TrimSpace(home) == "" || !filepath.IsAbs(home) {
+		return "", ErrConfigNoDisponible
+	}
+	if runtime.GOOS == "windows" && !filepath.IsAbs(os.Getenv("APPDATA")) {
+		return "", ErrConfigNoDisponible
+	}
+	return Config(home), nil
+}
+
+// ConfigUsuario es ConfigComprobada con la carpeta personal del sistema.
+func ConfigUsuario() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", ErrConfigNoDisponible
+	}
+	return ConfigComprobada(home)
 }
 
 // Data devuelve la raíz de datos del usuario.

@@ -453,7 +453,10 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	if err != nil {
 		return nil, "", err
 	}
-	configDir := appdirs.Config(home)
+	configDir, err := configDirGUI()
+	if err != nil {
+		return nil, "", err
+	}
 
 	cfg, err := config.Load(configDir)
 	if err != nil {
@@ -965,12 +968,18 @@ func frontendPorDefecto(goos string) string {
 
 // configDirGUI resuelve una configuración privada; sin HOME absoluto el
 // servidor no arranca con rutas relativas ni con un temporal compartido.
+// configDirGUI falla cerrado sin una carpeta personal absoluta y, en Windows,
+// sin un %APPDATA% absoluto, que es lo que allí decide la configuración.
 func configDirGUI() (string, error) {
 	home, err := validGUIHome()
 	if err != nil {
 		return "", err
 	}
-	return appdirs.Config(home), nil
+	dir, err := appdirs.ConfigComprobada(home)
+	if err != nil {
+		return "", errors.New("no se pudo resolver el directorio de configuración")
+	}
+	return dir, nil
 }
 func validGUIHome() (string, error) {
 	home, err := os.UserHomeDir()

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"grxfirma/internal/testsupport/perfil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,10 +15,7 @@ import (
 )
 
 func TestNativehostExcepcionesNoAceptaActivacionAunqueDeclareGUI(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
-	t.Setenv("APPDATA", home)
+	home := perfil.Nuevo(t)
 	dir := appdirs.Config(home)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		t.Fatal(err)

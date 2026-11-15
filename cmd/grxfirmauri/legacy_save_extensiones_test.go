@@ -55,7 +55,7 @@ func (a *aprobacionConTituloStub) ConTitulo(titulo string) ports.UserApproval {
 
 // A-09: la confirmación de guardado no sale como «Confirmación de firma».
 func TestGuardadoWeb_ConfirmacionConTituloPropio(t *testing.T) {
-	destino := filepath.Join(t.TempDir(), "informe.docx")
+	destino := filepath.Join(carpetaGuardadoWeb(t), "informe.docx")
 	approval := &aprobacionConTituloStub{}
 	handler := &legacyWebSocketHandler{
 		savePicker: func(context.Context, string, string) (string, error) { return destino, nil },
@@ -82,7 +82,7 @@ func TestGuardadoWeb_ConfirmacionConTituloPropio(t *testing.T) {
 // Lo que ya se bloqueaba antes del lote 4 sigue bloqueado, con interfaz o
 // sin ella, y no se ofrece a confirmar.
 func TestGuardadoWeb_BloqueaEjecutablesDeSiempre(t *testing.T) {
-	dir := t.TempDir()
+	dir := carpetaGuardadoWeb(t)
 	for _, nombre := range []string{"x.exe", "x.js", "x.lnk", "x.ps1", "x.sh", "x.desktop", "x.hta"} {
 		destino := filepath.Join(dir, nombre)
 		approval := &userApprovalStub{approved: true}
@@ -115,7 +115,7 @@ func (a *aprobacionRegistrada) Request(ctx context.Context, mensaje string) (boo
 // macros, imágenes de disco, guiones...) se podían guardar antes; ahora piden
 // confirmación con el aviso de macros o código, y se guardan si se acepta.
 func TestGuardadoWeb_TiposConRiesgoPidenConfirmacionConAviso(t *testing.T) {
-	dir := t.TempDir()
+	dir := carpetaGuardadoWeb(t)
 	aviso := tl(claveConfirmarGuardadoConRiesgo, ".docm", "x")
 	normal := tl(claveConfirmarGuardado, ".docm", "x")
 	if aviso == claveConfirmarGuardadoConRiesgo || aviso == normal {
@@ -142,7 +142,7 @@ func TestGuardadoWeb_TiposConRiesgoPidenConfirmacionConAviso(t *testing.T) {
 // lote 4 se guardaba se vuelve a guardar, con aviso en el registro y, en
 // Windows, con la marca de procedencia.
 func TestGuardadoWeb_SinInterfazGuardaConAviso(t *testing.T) {
-	dir := t.TempDir()
+	dir := carpetaGuardadoWeb(t)
 	for _, nombre := range []string{"informe.docx", "x.docm", "x.iso", "x.raro"} {
 		destino := filepath.Join(dir, nombre)
 		if resp := guardarDesdeWeb(t, destino, nil); resp != "SAVE_OK" {
@@ -179,7 +179,7 @@ func guardarDesdeWebCon(t *testing.T, destino string, approval ports.UserApprova
 
 // A-09: fuera de la lista de firmas y datos se pide confirmación explícita.
 func TestGuardadoWeb_TipoNoHabitualPideConfirmacion(t *testing.T) {
-	dir := t.TempDir()
+	dir := carpetaGuardadoWeb(t)
 
 	destino := filepath.Join(dir, "informe.docx")
 	approval := &userApprovalStub{approved: false}
@@ -199,7 +199,7 @@ func TestGuardadoWeb_TipoNoHabitualPideConfirmacion(t *testing.T) {
 
 // A-09: las firmas y los datos habituales se guardan sin preguntar más.
 func TestGuardadoWeb_TiposHabitualesNoPreguntan(t *testing.T) {
-	dir := t.TempDir()
+	dir := carpetaGuardadoWeb(t)
 	for _, nombre := range []string{"doc.pdf", "f.csig", "f.xsig", "f.xml", "f.p7s", "f.asice", "datos.json"} {
 		approval := &userApprovalStub{}
 		if resp := guardarDesdeWeb(t, filepath.Join(dir, nombre), approval); resp != "SAVE_OK" {

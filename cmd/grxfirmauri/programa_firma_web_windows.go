@@ -29,8 +29,11 @@ func preguntarFalloReenvioPlataforma(ctx context.Context) (bool, error) {
 	return mostrarFalloReenvio(ctx)
 }
 
+// presentProtocolNoticePlatform no abre la ventana sin un escritorio visible
+// (servicio, SSH, CI): nadie podría cerrarla y el enlace quedaría esperando.
+// El aviso ya queda en el registro, en la salida de error y en avisos.
 func presentProtocolNoticePlatform(ctx context.Context, message string) {
-	if !wintaskdialog.Available() {
+	if !wintaskdialog.Available() || !wintaskdialog.Interactive() {
 		return
 	}
 	_, _, _ = wintaskdialog.Show(ctx, wintaskdialog.Spec{

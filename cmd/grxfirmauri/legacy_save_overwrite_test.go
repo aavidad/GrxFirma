@@ -14,7 +14,7 @@ import (
 // Sin la confirmación del diálogo del sistema, guardar desde un portal nunca
 // reemplaza un fichero que ya existe.
 func TestWriteLegacySavedFile_SoloReemplazaConConfirmacion(t *testing.T) {
-	dir := t.TempDir()
+	dir := carpetaGuardadoWeb(t)
 	destino := filepath.Join(dir, "firmado.pdf")
 	if err := os.WriteFile(destino, []byte("previo"), 0o600); err != nil {
 		t.Fatal(err)

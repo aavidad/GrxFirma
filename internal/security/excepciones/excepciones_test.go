@@ -4,6 +4,7 @@ package excepciones
 import (
 	"context"
 	"errors"
+	"grxfirma/internal/testsupport/perfil"
 	"os"
 	"path/filepath"
 	"slices"
@@ -14,7 +15,7 @@ import (
 )
 
 func TestCatalogDecisionMatrix(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	perfil.Nuevo(t)
 	for _, e := range Catalog() {
 		t.Run(e.ID, func(t *testing.T) {
 			machinepolicy.UnsetForTest(t, e.PolicyKey)
@@ -66,9 +67,9 @@ func TestNegativeCMSPolicyClosesOnError(t *testing.T) {
 	}
 }
 func TestUpgrade127DoesNotEnableExceptions(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	dir := filepath.Join(home, ".config", "grxfirma")
+	// En Windows los ajustes salen de %APPDATA%, no de HOME: con solo HOME,
+	// la prueba leía (y otras escribían) los ajustes reales del usuario.
+	dir := perfil.DirConfig(perfil.Nuevo(t))
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		t.Fatal(err)
 	}
@@ -88,8 +89,7 @@ func TestUpgrade127DoesNotEnableExceptions(t *testing.T) {
 	}
 }
 func TestUserSettingsPersistenceAndPrecedence(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
+	perfil.Nuevo(t)
 	e, _ := Find("tsa_http")
 	machinepolicy.UnsetForTest(t, e.PolicyKey)
 	dir, _ := configDir()

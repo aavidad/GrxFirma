@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"grxfirma/internal/appdirs"
-	"os"
 	"strings"
 	"sync"
 
@@ -178,8 +177,11 @@ func setProtocolLocalizer(configDir string) {
 func resolveProtocolLocalizer(configDir string) *localizador.Localizador {
 	configDir = strings.TrimSpace(configDir)
 	if configDir == "" {
-		home, _ := os.UserHomeDir()
-		configDir = appdirs.Config(home)
+		dir, err := appdirs.ConfigUsuario()
+		if err != nil {
+			return localizador.Detectar()
+		}
+		configDir = dir
 	}
 	doc, err := usersettings.CargarDocumentoCompat(context.Background(), configDir)
 	if err == nil && doc.General.Idioma != nil && strings.TrimSpace(*doc.General.Idioma) != "" {

@@ -55,6 +55,10 @@ var (
 	preguntarProgramaFirmaWeb = preguntarProgramaFirmaWebPlataforma
 	preguntarFalloReenvio     = preguntarFalloReenvioPlataforma
 	reenviarAutoFirma         = afirmahandler.Reenviar
+	// presentarAvisoFirmaWeb muestra el aviso en una ventana nativa que
+	// espera a que la persona la cierre. Las pruebas lo sustituyen, como los
+	// demás diálogos de este fichero: sin escritorio nadie la cerraría.
+	presentarAvisoFirmaWeb = presentProtocolNoticePlatform
 )
 
 // decidirProgramaFirmaWeb devuelve handled=true si el enlace ya se atendió
@@ -78,7 +82,7 @@ func decidirProgramaFirmaWeb(ctx context.Context, rawURI string) (bool, int) {
 		avisos.Registrar(message, "")
 		setStartupTLSTrustNotice(detailWithStartupTLSTrustNotice(message))
 		_, _ = fmt.Fprintln(os.Stderr, message)
-		presentProtocolNoticePlatform(ctx, message)
+		presentarAvisoFirmaWeb(ctx, message)
 	}
 	switch estado.Efectiva {
 	case ports.ProgramaAfirmaAutoFirma:
@@ -125,7 +129,7 @@ func reenviarOFirmarConGrxFirma(ctx context.Context, sel ports.ProtocoloAfirma, 
 		avisos.Registrar(message, "")
 		setStartupTLSTrustNotice(detailWithStartupTLSTrustNotice(message))
 		_, _ = fmt.Fprintln(os.Stderr, message)
-		presentProtocolNoticePlatform(ctx, message)
+		presentarAvisoFirmaWeb(ctx, message)
 		return true, 0
 	}
 	slog.WarnContext(ctx, "afirma_reenvio_no_realizado", "motivo", motivo, "error", err)

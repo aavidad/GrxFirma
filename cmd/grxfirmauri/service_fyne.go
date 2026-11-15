@@ -197,8 +197,11 @@ func runExplicitDesktopService(ctx context.Context, stderr io.Writer) int {
 }
 
 func runDesktopService(ctx context.Context, stderr io.Writer, force, governance bool) (bool, int) {
-	home, _ := os.UserHomeDir()
-	configDir := appdirs.Config(home)
+	configDir, err := appdirs.ConfigUsuario()
+	if err != nil {
+		_, _ = fmt.Fprintln(stderr, tl("rest.verify_only.error.config_dir"))
+		return true, 1
+	}
 	setProtocolLocalizer(configDir)
 	cfg, err := config.Load(configDir)
 	if err != nil {

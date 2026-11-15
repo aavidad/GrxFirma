@@ -372,7 +372,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	configDir := appdirs.Config(home)
+	configDir, err := appdirs.ConfigComprobada(home)
+	if err != nil {
+		writeErrorToLog(logger, ctx, "cargar_configuracion", err)
+		os.Exit(1)
+	}
 	cfg, err := config.Load(configDir)
 	if err != nil {
 		writeErrorToLog(logger, ctx, "cargar_configuracion", err)

@@ -10,6 +10,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"grxfirma/internal/appdirs"
 	"image/color"
 	"io"
@@ -47,8 +48,11 @@ func runProtocolUIShell(parent context.Context, stderr io.Writer, rawURI string)
 	aplicarEscalaProtocolUI("")
 	traceWriter := newProtocolTraceWriter(stderr)
 
-	home, _ := os.UserHomeDir()
-	configDir := appdirs.Config(home)
+	configDir, err := appdirs.ConfigUsuario()
+	if err != nil {
+		_, _ = fmt.Fprintln(stderr, tl("rest.verify_only.error.config_dir"))
+		return 1
+	}
 	setProtocolLocalizer(configDir)
 	ctx, cancel := context.WithCancel(parent)
 	defer cancel()

@@ -77,17 +77,17 @@ func readFilePinned(path string, max int64) ([]byte, error) {
 	return data, nil
 }
 
-// WriteFile publica por un descriptor de directorio fijado. Una carrera que
+// writeFile publica por un descriptor de directorio fijado. Una carrera que
 // reemplace un ancestro por un enlace no altera el destino abierto; sin
 // confirmación se usa linkat para publicar solo si el nombre está libre.
-func WriteFile(path string, data []byte, force bool) (string, error) {
+func writeFile(path string, data []byte, force bool, check func(string) (string, error)) (string, error) {
 	if len(data) == 0 {
 		return "", ErrProtected
 	}
 	if hasSymlinkComponent(path) {
 		return "", ErrProtected
 	}
-	physical, err := Check(path)
+	physical, err := check(path)
 	if err != nil {
 		return "", err
 	}

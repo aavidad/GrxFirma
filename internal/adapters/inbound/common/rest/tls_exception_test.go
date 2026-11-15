@@ -1,5 +1,11 @@
 // Derechos de autor (C) 2026 Alberto Avidad Fernández.
 // SPDX-License-Identifier: EUPL-1.2
+
+// En Windows la clave de la CA local se protege con DPAPI y no hay almacén
+// sustituible (UseManagedCAKeyStorage solo existe fuera de Windows).
+
+//go:build !windows
+
 package rest
 
 import (

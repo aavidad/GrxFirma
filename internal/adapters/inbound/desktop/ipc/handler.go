@@ -3190,10 +3190,16 @@ func (m *Manejador) configDirSeguro() string {
 		return filepath.Clean(dir)
 	}
 	home, err := os.UserHomeDir()
-	if err != nil || strings.TrimSpace(home) == "" || !filepath.IsAbs(home) {
+	if err != nil {
 		return ""
 	}
-	return appdirs.Config(home)
+	// Sin perfil absoluto, o en Windows sin %APPDATA% absoluto, no hay
+	// configuración: nunca se supone una carpeta.
+	dir, err := appdirs.ConfigComprobada(home)
+	if err != nil {
+		return ""
+	}
+	return dir
 }
 
 // ---------------------------------------------------------------------------

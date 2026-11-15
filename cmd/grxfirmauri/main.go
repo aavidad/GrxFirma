@@ -257,7 +257,10 @@ func runConDependencias(
 	}
 	_ = os.Setenv("SYSLOG_IDENTIFIER", "grxfirma-afirmauri")
 	configurarRegistroPorDefecto(os.Stderr)
-	setProtocolLocalizer(defaultProtocolConfigDir())
+	// Sin carpeta válida, el idioma sale del sistema y cada orden que la
+	// necesite falla más abajo.
+	protocolConfigDir, protocolConfigErr := defaultProtocolConfigDir()
+	setProtocolLocalizer(protocolConfigDir)
 	setStartupTLSTrustNotice("")
 
 	noPromptRemoval := len(args) == 2 && strings.EqualFold(strings.TrimSpace(args[0]), removeManagedLocalTLSTrustFlag) && strings.EqualFold(strings.TrimSpace(args[1]), noPromptLocalTLSTrustFlag)
@@ -265,8 +268,12 @@ func runConDependencias(
 		strings.TrimSpace(args[0]),
 		removeManagedLocalTLSTrustFlag,
 	) {
+		if protocolConfigErr != nil {
+			_, _ = fmt.Fprintln(stderr, tl("rest.verify_only.error.config_dir"))
+			return 1
+		}
 		rootCertFile := filepath.Join(
-			defaultProtocolConfigDir(),
+			protocolConfigDir,
 			"tls",
 			"websocket-localhost-root.crt.pem",
 		)
@@ -285,7 +292,11 @@ func runConDependencias(
 		strings.TrimSpace(args[0]),
 		installManagedLocalTLSTrustFlag,
 	) {
-		if err := installManagedLocalTLSTrust(ctx, filepath.Join(defaultProtocolConfigDir(), "tls")); err != nil {
+		if protocolConfigErr != nil {
+			_, _ = fmt.Fprintln(stderr, tl("rest.verify_only.error.config_dir"))
+			return 1
+		}
+		if err := installManagedLocalTLSTrust(ctx, filepath.Join(protocolConfigDir, "tls")); err != nil {
 			_, _ = fmt.Fprintln(stderr, tl("error: ")+err.Error())
 			return 1
 		}
@@ -371,8 +382,10 @@ func ejecutarURIProtocolo(
 		action = normalizeProtocolLaunchAction(firstQueryParam(parsed.Query(), "op", "operation", "action"))
 	}
 	if action != "selectcert" {
-		if err := prepareStartupLocalTLSTrust(ctx, defaultProtocolConfigDir(), stderr); err != nil {
-			return 1
+		if dir, err := defaultProtocolConfigDir(); err == nil {
+			if err := prepareStartupLocalTLSTrust(ctx, dir, stderr); err != nil {
+				return 1
+			}
 		}
 	}
 	if forwarded, err := tryForwardLaunchToResident(rawURI); forwarded {
@@ -475,8 +488,11 @@ func handleProtocolRequestWithGraceConDependencias(
 	setProtocolPhase("startup", tl("Arrancando GrxFirma..."), tl("Inicializando el flujo de firma web"))
 	timer.Mark("startup_begin", "exe", exePath)
 
-	home, _ := os.UserHomeDir()
-	configDir := appdirs.Config(home)
+	configDir, err := appdirs.ConfigUsuario()
+	if err != nil {
+		writeErrorToLog(logger, ctx, "cargar_configuracion", err)
+		return 1
+	}
 	setProtocolLocalizer(configDir)
 	setProtocolPhase("config_load", tl("Cargando configuración..."), tl("Preparando preferencias y entorno local"))
 	cfg, err := config.Load(configDir)

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/testsupport/perfil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -114,7 +115,7 @@ func TestV3CurrentReceiptInEachFileWorks(t *testing.T) {
 }
 
 func TestV3AndroidHasNoImplicitHomeSettings(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	perfil.Nuevo(t)
 	if dir, err := configDirForOS("android"); err == nil || dir != "" {
 		t.Fatalf("Android usa HOME implícito: %q %v", dir, err)
 	}
