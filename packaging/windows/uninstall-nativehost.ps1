@@ -30,6 +30,7 @@ function Remove-RegistryValueIfOwned {
         [switch]$PathValue
     )
 
+    $removeEmptyKey = $false
     $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($Path, $true)
     if ($null -eq $key) {
         return
@@ -67,9 +68,14 @@ function Remove-RegistryValueIfOwned {
         }
         if ($PSCmdlet.ShouldProcess("HKCU:\$Path", "Eliminar valor de registro propio")) {
             $key.DeleteValue($ValueName, $false)
+            $removeEmptyKey = ($key.ValueCount -eq 0 -and $key.SubKeyCount -eq 0)
         }
     } finally {
         $key.Dispose()
+    }
+    # La clave del host solo contenía nuestro valor: no se deja vacía.
+    if ($removeEmptyKey) {
+        [Microsoft.Win32.Registry]::CurrentUser.DeleteSubKey($Path, $false)
     }
 }
 
