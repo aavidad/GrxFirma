@@ -807,6 +807,19 @@ public sealed class ProtectPageViewModel
                 : await operations.ProtectAsync(
                     parameters,
                     operationCancellation.Token);
+            // Un bloqueo de una excepción insegura no es una avería. Proteger
+            // lleva una contraseña que no se guarda: tras activar, la persona
+            // vuelve a pulsar el botón y se le piden los datos de nuevo.
+            switch (UnsafeBlock.Classify(result))
+            {
+                case UnsafeBlockOutcome.Resend:
+                    ProtectValidationMessage = Localizer.Text("excepciones.pantalla.reenviar");
+                    return null;
+                case UnsafeBlockOutcome.Blocked:
+                    ProtectValidationMessage = Localizer.Text(
+                        UnsafeBlock.MessageKey(result.UnsafeException!, Localizer.Has));
+                    return null;
+            }
             if (!IsSuccessful(result))
             {
                 ProtectValidationMessage =

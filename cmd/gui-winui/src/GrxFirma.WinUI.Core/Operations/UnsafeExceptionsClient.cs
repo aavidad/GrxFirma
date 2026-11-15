@@ -170,7 +170,11 @@ public sealed class UnsafeExceptionsClient(IIpcClient inner) : IIpcClient
             if (!await ActivateCoreAsync(block, retryId, fromBlock: true, cancellationToken).ConfigureAwait(false)) break;
             if (retryId is null)
             {
-                Notice?.Invoke("excepciones.pantalla.reenviar");
+                // Sin reintento del motor, la operación sigue sin hacer pero
+                // ya está activada. Una firma la relanza su página pasando
+                // otra vez por la confirmación; el resto pide pulsar de nuevo.
+                result = result with { UnsafeExceptionActivated = true };
+                if (!SigningOperations.Contains(action)) Notice?.Invoke("excepciones.pantalla.reenviar");
                 break;
             }
             var retried = await inner.SendAsync<object, TData>("unsafe_operation_retry",
@@ -200,4 +204,32 @@ public sealed class UnsafeExceptionsClient(IIpcClient inner) : IIpcClient
 
     // Ownership of the transport stays with App, which also watches reconnects.
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+}
+
+/// <summary>Qué hace una página con el resultado de una operación.</summary>
+public enum UnsafeBlockOutcome
+{
+    /// <summary>No es un bloqueo de una excepción insegura.</summary>
+    None,
+    /// <summary>Bloqueo sin activar (cancelado o fijado por la organización).
+    /// Se informa en la página; nunca abre el diagnóstico de averías.</summary>
+    Blocked,
+    /// <summary>La persona activó la excepción: la página relanza la
+    /// operación pasando por su confirmación.</summary>
+    Resend,
+}
+
+public static class UnsafeBlock
+{
+    public static UnsafeBlockOutcome Classify<TData>(IpcCallResult<TData> result) =>
+        result.IsSuccess || result.UnsafeException is null ? UnsafeBlockOutcome.None
+        : result.UnsafeExceptionActivated ? UnsafeBlockOutcome.Resend
+        : UnsafeBlockOutcome.Blocked;
+
+    /// <summary>Clave del texto para un bloqueo que sigue en pie: el de la
+    /// organización si lo fija ella, o el título común del aviso.</summary>
+    public static string MessageKey(UnsafeExceptionState block, Func<string, bool> catalogHas) =>
+        !block.Activable && !string.IsNullOrWhiteSpace(block.OrganizationKey) && catalogHas(block.OrganizationKey)
+            ? block.OrganizationKey
+            : "excepciones.pantalla.titulo";
 }

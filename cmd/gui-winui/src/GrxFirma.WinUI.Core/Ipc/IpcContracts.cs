@@ -121,6 +121,11 @@ public sealed record IpcCallResult<TData>
     public TData? Data { get; init; }
     public UnsafeExceptionState? UnsafeException { get; init; }
     public string? RetryId { get; init; }
+    /// <summary>
+    /// La persona activó la excepción en el aviso de una firma bloqueada. El
+    /// motor no repite firmas: la página la relanza con su confirmación.
+    /// </summary>
+    public bool UnsafeExceptionActivated { get; init; }
     public IReadOnlyList<string> WarningKeys { get; init; } = [];
     public OperationDiagnostic? Diagnostic { get; init; }
 
