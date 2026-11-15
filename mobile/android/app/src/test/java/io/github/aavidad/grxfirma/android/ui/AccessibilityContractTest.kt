@@ -151,6 +151,22 @@ class AccessibilityContractTest {
         assertTrue(activity.contains("R.string.verification_aspect_value"))
     }
 
+    /** Lote 39d: un texto seleccionable recibe el foco al abrir y TalkBack empezaba por él, no por el título. */
+    @Test fun `unsafe exception dialogs start reading at the title`() {
+        val ui = File(main, "java/io/github/aavidad/grxfirma/android/ui/UnsafeExceptionsUi.kt").readText()
+        assertFalse("texto seleccionable en el diálogo de excepciones", ui.contains("setTextIsSelectable(true)"))
+    }
+
+    /** Lote 39d: tras cancelar un bloqueo, la tarjeta ofrece volver a ver el aviso. */
+    @Test fun `a blocked result offers to show the warning again`() {
+        val button = byId(xml("layout/activity_main.xml"), "resultUnsafeReview")
+        assertEquals("48dp", button.getAttributeNS(android, "minHeight"))
+        assertEquals("", button.getAttributeNS(android, "text"))
+        val activity = File(main, "java/io/github/aavidad/grxfirma/android/MainActivity.kt").readText()
+        assertTrue(activity.contains("UnsafeExceptionTexts.text(this@MainActivity, \"revisar_aviso\")"))
+        assertTrue(activity.contains("resultUnsafeReview.setOnClickListener { viewModel.verify() }"))
+    }
+
     @Test fun `check boxes built in code use the themed Material class with its focus ring`() {
         // Un CheckBox de Android creado con su constructor no toma el estilo del tema
         // (checkboxStyle) y se queda sin el anillo de foco de 2 dp.

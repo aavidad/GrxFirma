@@ -114,7 +114,7 @@ Cada ayuda explica qué se ha detenido, el riesgo y cómo continuar o desactivar
 
 ### `afp_aad_ambigua`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: abrir un archivo AFP v1 con metadatos ambiguos. Un archivo .afp guarda contenido protegido y metadatos como el nombre.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: abrir un archivo AFP v1 con metadatos ambiguos. Un archivo .afp guarda contenido protegido y metadatos como el nombre.
 
 Por qué es inseguro: Los saltos de línea permiten interpretar sus metadatos de más de una forma. Por ejemplo, un salto de línea en el nombre puede cambiar cómo se interpreta el nombre y el tipo del archivo.
 
@@ -130,7 +130,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `alto_clave_fichero_crear`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: crear una clave de protección alta en un fichero sin almacén seguro. La identidad del perfil alto necesita una clave privada, que normalmente guarda el almacén de secretos del sistema.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: crear una clave de protección alta en un fichero sin almacén seguro. La identidad del perfil alto necesita una clave privada, que normalmente guarda el almacén de secretos del sistema.
 
 Por qué es inseguro: La clave privada queda fuera del almacén de secretos del sistema. Por ejemplo, otro programa con acceso a su cuenta podría copiar el fichero de la clave privada.
 
@@ -146,7 +146,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `alto_clave_fichero_leer`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: usar una clave antigua de protección alta guardada en un fichero. La identidad del perfil alto usa una clave privada guardada antes en un fichero.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: usar una clave antigua de protección alta guardada en un fichero. La identidad del perfil alto usa una clave privada guardada antes en un fichero.
 
 Por qué es inseguro: La clave privada está fuera del almacén de secretos del sistema. Por ejemplo, un programa con acceso al fichero podría copiar la clave antigua mientras se usa.
 
@@ -162,7 +162,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `aprobacion_automatica`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: firmar desde la extensión sin confirmar cada operación. La extensión es el complemento del navegador que solicita la firma a GrxFirma.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: firmar desde la extensión sin confirmar cada operación. La extensión es el complemento del navegador que solicita la firma a GrxFirma.
 
 Por qué es inseguro: Se omite la aprobación visible de la persona. Por ejemplo, una petición de firma de la extensión podría continuar sin el diálogo de confirmación.
 
@@ -178,7 +178,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `ca_clave_fichero`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: guardar la clave privada de la CA local en un fichero sin almacén seguro. La autoridad local crea el certificado que GrxFirma usa para sus conexiones locales.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: guardar la clave privada de la CA local en un fichero sin almacén seguro. La autoridad local crea el certificado que GrxFirma usa para sus conexiones locales.
 
 Por qué es inseguro: Quien pueda leer ese fichero podrá usar la clave de la CA local. Por ejemplo, un programa de su cuenta que copie la clave podría crear certificados locales falsos.
 
@@ -194,7 +194,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `ca_instalacion_automatica`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: instalar automáticamente la CA local al abrir un enlace de firma en Linux. La autoridad local emite certificados para la conexión entre GrxFirma y el navegador.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: instalar automáticamente la CA local al abrir un enlace de firma en Linux. La autoridad local emite certificados para la conexión entre GrxFirma y el navegador.
 
 Por qué es inseguro: La instalación amplía la confianza del navegador. Por ejemplo, el navegador confiará en la autoridad local para las conexiones que esta pueda emitir.
 
@@ -210,7 +210,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `cms_aes_ecb`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: abrir un sobre CMS AES-ECB de AutoFirma 1.9. CMS es un formato de archivo cifrado. AES-ECB cifra bloques iguales de forma que dejan patrones visibles.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: abrir un sobre CMS AES-ECB de AutoFirma 1.9. CMS es un formato de archivo cifrado. AES-ECB cifra bloques iguales de forma que dejan patrones visibles.
 
 Por qué es inseguro: AES-ECB revela patrones del contenido. Por ejemplo, dos partes iguales del documento dejan patrones iguales en el cifrado.
 
@@ -226,7 +226,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `cms_cbc`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: abrir un sobre CMS cifrado con AES-CBC. CMS es un formato de archivo cifrado. AES-CBC es un modo de cifrado que no comprueba por sí mismo si el contenido se cambió.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: abrir un sobre CMS cifrado con AES-CBC. CMS es un formato de archivo cifrado. AES-CBC es un modo de cifrado que no comprueba por sí mismo si el contenido se cambió.
 
 Por qué es inseguro: AES-CBC no autentica el contenido y puede ocultar cambios. Por ejemplo, un cambio en el archivo cifrado puede no detectarse al abrirlo.
 
@@ -242,7 +242,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `cms_cifrado_heredado`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: abrir un sobre CMS cifrado con DES, 3DES u otro cifrado antiguo. CMS es un formato de archivo cifrado para uno o varios destinatarios.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: abrir un sobre CMS cifrado con DES, 3DES u otro cifrado antiguo. CMS es un formato de archivo cifrado para uno o varios destinatarios.
 
 Por qué es inseguro: Estos cifrados ya no protegen bien el contenido. Por ejemplo, un archivo antiguo puede usar DES y revelar más información a quien lo intercepte.
 
@@ -258,7 +258,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `cms_rsa_v15_crear`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: crear un sobre CMS con transporte RSA PKCS#1 v1.5. CMS es un formato de archivo cifrado. RSA PKCS#1 v1.5 es una forma antigua de cifrar la clave del contenido.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: crear un sobre CMS con transporte RSA PKCS#1 v1.5. CMS es un formato de archivo cifrado. RSA PKCS#1 v1.5 es una forma antigua de cifrar la clave del contenido.
 
 Por qué es inseguro: Ese transporte de clave es antiguo y menos resistente que RSA-OAEP con SHA-256. Por ejemplo, un programa antiguo que procesa el sobre puede revelar información sobre la clave mediante sus respuestas.
 
@@ -274,7 +274,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `cms_rsa_v15_leer`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: abrir un sobre CMS con transporte RSA PKCS#1 v1.5. CMS es un formato de archivo cifrado. RSA PKCS#1 v1.5 es una forma antigua de cifrar la clave del contenido.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: abrir un sobre CMS con transporte RSA PKCS#1 v1.5. CMS es un formato de archivo cifrado. RSA PKCS#1 v1.5 es una forma antigua de cifrar la clave del contenido.
 
 Por qué es inseguro: Ese transporte de clave es antiguo y menos resistente que RSA-OAEP con SHA-256. Por ejemplo, un sobre preparado para programas antiguos puede exponer información sobre la clave al probar distintas respuestas.
 
@@ -290,7 +290,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `cofirma_sin_original`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: cofirmar o contrafirmar sin el documento original. Una cofirma añade una firma a otra existente; una contrafirma firma una firma previa.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: cofirmar o contrafirmar sin el documento original. Una cofirma añade una firma a otra existente; una contrafirma firma una firma previa.
 
 Por qué es inseguro: No se puede comprobar que la firma anterior corresponda a ese documento. Por ejemplo, podría firmar sobre un resumen sin ver el documento que firmaron las otras personas.
 
@@ -306,7 +306,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `des_intercambio`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: usar DES en un intercambio AutoFirma 1.x. DES es un algoritmo antiguo de cifrado usado por ese intercambio de AutoFirma.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: usar DES en un intercambio AutoFirma 1.x. DES es un algoritmo antiguo de cifrado usado por ese intercambio de AutoFirma.
 
 Por qué es inseguro: DES y la clave corta del intercambio son inseguros incluso con HTTPS. Por ejemplo, la clave corta del paquete puede averiguarse aunque el servidor use HTTPS.
 
@@ -322,7 +322,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `llamante_desarrollo`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: aceptar una extensión de desarrollo como llamante del host nativo. El host nativo comunica una extensión del navegador con GrxFirma.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: aceptar una extensión de desarrollo como llamante del host nativo. El host nativo comunica una extensión del navegador con GrxFirma.
 
 Por qué es inseguro: Se amplía quién puede pedir operaciones al host. Por ejemplo, una extensión de pruebas podría pedir operaciones al host nativo.
 
@@ -338,7 +338,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `origen_vacio`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: aceptar una conexión WebSocket sin origen identificado. El origen de una conexión WebSocket identifica la página que la abrió.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: aceptar una conexión WebSocket sin origen identificado. El origen de una conexión WebSocket identifica la página que la abrió.
 
 Por qué es inseguro: No se sabe qué web ha iniciado la conexión. Por ejemplo, una petición sin origen no permite distinguir qué página abrió la conexión.
 
@@ -354,7 +354,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `pdf_cifrado_heredado`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: firmar un PDF que conserva RC4 o AES-CBC con derivación MD5. PDF es el formato del documento. RC4 y AES-CBC son formas antiguas de mantenerlo cifrado; MD5 interviene al obtener la clave.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: firmar un PDF que conserva RC4 o AES-CBC con derivación MD5. PDF es el formato del documento. RC4 y AES-CBC son formas antiguas de mantenerlo cifrado; MD5 interviene al obtener la clave.
 
 Por qué es inseguro: RC4 y AES-CBC con derivación MD5 mantienen una protección débil. Por ejemplo, una revisión nueva seguiría protegida por RC4 o por una clave derivada con MD5.
 
@@ -370,7 +370,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `pkcs11_experimental`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: cargar un controlador PKCS#11 experimental. PKCS#11 es una interfaz para usar tarjetas y dispositivos criptográficos mediante un controlador.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: cargar un controlador PKCS#11 experimental. PKCS#11 es una interfaz para usar tarjetas y dispositivos criptográficos mediante un controlador.
 
 Por qué es inseguro: El controlador nativo puede ejecutar código con los permisos de GrxFirma. Por ejemplo, un controlador defectuoso puede fallar o actuar con los permisos de GrxFirma.
 
@@ -386,7 +386,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `proxy_http`
 
-Qué ha pasado: GrxFirma ha detenido el envío de un usuario y una contraseña a un servidor intermedio de red sin una conexión cifrada. El proxy puede usar HTTP o SOCKS5.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene el envío de un usuario y una contraseña a un servidor intermedio de red sin una conexión cifrada. El proxy puede usar HTTP o SOCKS5.
 
 Por qué es inseguro: HTTP y SOCKS5 no cifran las credenciales en el tramo hasta el proxy. Otro equipo en esa red puede capturar el usuario y la contraseña.
 
@@ -402,7 +402,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `rsa_corta`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: firmar con una clave RSA de menos de 2048 bits. RSA es el algoritmo de la clave pública que se usa para firmar.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: firmar con una clave RSA de menos de 2048 bits. RSA es el algoritmo de la clave pública que se usa para firmar.
 
 Por qué es inseguro: Esa longitud ya no ofrece la seguridad mínima exigida. Por ejemplo, una clave de 1024 bits ofrece menos resistencia que el mínimo de 2048 bits.
 
@@ -418,7 +418,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `rutas_directas`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: usar una ruta local absoluta indicada por una web. Una ruta absoluta señala un archivo o carpeta concretos del equipo.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: usar una ruta local absoluta indicada por una web. Una ruta absoluta señala un archivo o carpeta concretos del equipo.
 
 Por qué es inseguro: La web puede leer o sustituir archivos locales sin que usted elija cada uno. Puede exponer claves de acceso o cambiar archivos que afectan al inicio de otros programas.
 
@@ -434,7 +434,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `sha1_conservar`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: conservar una firma SHA-1 antigua al crear un ENI o una cofirma. SHA-1 es un algoritmo antiguo que calcula la huella de la firma.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: conservar una firma SHA-1 antigua al crear un ENI o una cofirma. SHA-1 es un algoritmo antiguo que calcula la huella de la firma.
 
 Por qué es inseguro: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones. Por ejemplo, el documento resultante conservaría una firma cuya huella ya no ofrece la resistencia actual.
 
@@ -450,7 +450,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `sha1_crear`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: crear una firma SHA-1. SHA-1 es un algoritmo que calcula la huella usada en la firma.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: crear una firma SHA-1. SHA-1 es un algoritmo que calcula la huella usada en la firma.
 
 Por qué es inseguro: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones. Por ejemplo, dos documentos distintos pueden llegar a compartir la misma huella de ese algoritmo.
 
@@ -466,7 +466,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `sha1_leer`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: evaluar una firma SHA-1 antigua. SHA-1 es un algoritmo antiguo que calcula la huella de la firma.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: evaluar una firma SHA-1 antigua. SHA-1 es un algoritmo antiguo que calcula la huella de la firma.
 
 Por qué es inseguro: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones. Por ejemplo, una firma antigua puede tener un resumen que no ofrezca la protección esperada hoy.
 
@@ -482,7 +482,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `trifasica_http`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: hacer una firma trifásica por HTTP. La firma trifásica intercambia datos con un servidor en varios pasos. HTTP no cifra ese trayecto.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: hacer una firma trifásica por HTTP. La firma trifásica intercambia datos con un servidor en varios pasos. HTTP no cifra ese trayecto.
 
 Por qué es inseguro: HTTP no protege el intercambio con el servidor. Por ejemplo, alguien en la red podría ver o modificar datos intercambiados con el servidor de firma.
 
@@ -498,7 +498,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `tsa_http`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: enviar el resumen del documento a una TSA por HTTP. Una TSA es un servicio de sellado de tiempo. HTTP es una conexión de red que no cifra el trayecto.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: enviar el resumen del documento a una TSA por HTTP. Una TSA es un servicio de sellado de tiempo. HTTP es una conexión de red que no cifra el trayecto.
 
 Por qué es inseguro: HTTP no protege la conexión con la TSA. Por ejemplo, alguien en la red puede observar o cambiar la petición enviada al servicio de sellado.
 
@@ -514,7 +514,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 ### `xml_c14n_antigua`
 
-Qué ha pasado: GrxFirma ha detenido esta operación: evaluar una firma XML con canonicalización histórica o no declarada. XML es un formato de documento. La canonicalización fija qué bytes exactos se comprueban en su firma.
+Qué hace este ajuste: mientras está desactivado, GrxFirma detiene esta operación: evaluar una firma XML con canonicalización histórica o no declarada. XML es un formato de documento. La canonicalización fija qué bytes exactos se comprueban en su firma.
 
 Por qué es inseguro: Su interpretación puede diferir del estándar actual. Por ejemplo, dos programas pueden reconstruir de forma distinta el texto exacto que se firmó.
 

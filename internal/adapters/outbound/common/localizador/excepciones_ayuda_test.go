@@ -39,8 +39,17 @@ func TestExceptionConsentAndHelpCatalogues(t *testing.T) {
 			if lang == "es" && !strings.Contains(strings.Join(strings.Fields(string(doc)), " "), strings.Join(strings.Fields(cat[e.HelpKey]), " ")) {
 				t.Errorf("ayuda distinta en app/documento: %s", e.ID)
 			}
-			if len(strings.Split(strings.TrimSpace(cat[e.HelpKey]), "\n")) != 7 {
+			// Los apartados van separados por una línea en blanco: Qt, WinUI y
+			// Android pintan el texto tal cual y sin ella salen pegados.
+			sections := strings.Split(strings.TrimSpace(cat[e.HelpKey]), "\n\n")
+			if len(sections) != 7 {
 				t.Errorf("ayuda sin siete apartados: %s/%s", lang, e.ID)
+			}
+			for _, section := range sections {
+				if strings.TrimSpace(section) == "" || strings.Contains(section, "\n") {
+					t.Errorf("apartados de la ayuda sin línea en blanco entre ellos: %s/%s", lang, e.ID)
+					break
+				}
 			}
 			block := cat[e.BlockKey]
 			if strings.Contains(block, "-activar-excepcion") || strings.Contains(block, "-acepto-el-aviso") || strings.Contains(block, "settings.json") || strings.Contains(block, "config.json") {

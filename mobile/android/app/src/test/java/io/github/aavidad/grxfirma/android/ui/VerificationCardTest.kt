@@ -31,6 +31,19 @@ class VerificationCardTest {
         signerSummaries = listOf(SignerSummary("1", "CN=PRUEBA SINTETICA 2,O=GrxFirma QA,C=ES", "CN=CA", "ab")),
     )
 
+    /** Lote 39d: el aviso de una excepción activada se destaca en la tarjeta. */
+    @Test fun `unsafe warnings are located in the card text to highlight them`() {
+        val warning = "excepciones.sha1_leer.aviso"
+        val v = accredited.copy(warnings = listOf(warning, "firma.otro"), warningCount = 2)
+        assertEquals(listOf(UiText.Resource(R.string.verification_warning, listOf(UiText.Engine(warning)))),
+            VerificationCard.exceptionWarnings(v))
+        val text = "Documento: a.csig\nFirmado por: Ana\nAdvertencia: SHA-1 no es seguro."
+        val ranges = VerificationCard.highlightRanges(text, listOf("Advertencia: SHA-1 no es seguro.", "no está"), from = 10)
+        assertEquals(1, ranges.size)
+        assertEquals("Advertencia: SHA-1 no es seguro.", text.substring(ranges.single().first, ranges.single().last + 1))
+        assertTrue(VerificationCard.highlightRanges(text, listOf("Documento"), from = 10).isEmpty())
+    }
+
     @Test fun `unsafe warnings are visible in the card summary`() {
         val warning = "excepciones.sha1_leer.aviso"
         val summary = VerificationCard.summary(accredited.copy(warnings = listOf(warning, warning), warningCount = 2))

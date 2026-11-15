@@ -67,10 +67,19 @@ object VerificationCard {
         }))
         if (verdict(v) == Verdict.REVOCATION_INCONCLUSIVE) add(UiText.Resource(R.string.verification_revocation_unknown))
         // Estos avisos deben verse sin desplegar las evidencias técnicas.
-        v.warnings.distinct().filter { it.startsWith("excepciones.") && EngineKeys.isClosed(it) }.forEach {
-            add(UiText.Resource(R.string.verification_warning, listOf(UiText.Engine(it))))
-        }
+        addAll(exceptionWarnings(v))
     }
+
+    /** Avisos de una excepción insegura activada: van en el resumen y destacados. */
+    fun exceptionWarnings(v: UiText.Verification): List<UiText> =
+        v.warnings.distinct().filter { it.startsWith("excepciones.") && EngineKeys.isClosed(it) }
+            .map { UiText.Resource(R.string.verification_warning, listOf(UiText.Engine(it))) }
+
+    /** Dónde está cada aviso ya resuelto dentro del texto de la tarjeta, a partir de [from]. */
+    fun highlightRanges(text: CharSequence, warnings: List<String>, from: Int = 0): List<IntRange> =
+        warnings.filter { it.isNotEmpty() }.mapNotNull { warning ->
+            text.indexOf(warning, from).takeIf { it >= 0 }?.let { it until it + warning.length }
+        }
 
     /** Evidencias del motor para quien las necesite; el motivo solo se cita si explica un rechazo. */
     fun technical(context: Context, v: UiText.Verification): String = buildList {

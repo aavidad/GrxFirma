@@ -713,6 +713,16 @@
                     android:textIsSelectable="true"
                     android:visibility="gone" />
 
+                <!-- Tras cancelar un bloqueo, vuelve a mostrar el aviso. El texto sale del catálogo. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/resultUnsafeReview"
+                    style="@style/Widget.GrxFirma.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="48dp"
+                    android:visibility="gone" />
+
                         <TextView
                             android:id="@+id/verificationDetail"
                             style="@style/TextAppearance.Material3.BodyMedium"
