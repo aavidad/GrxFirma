@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
+	"grxfirma/internal/testsupport/perfil"
 	"io"
 	"math/big"
 	"os"
@@ -30,15 +31,14 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/truststore"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
+
 	"software.sslmate.com/src/go-pkcs12"
 )
 
 func TestCLITLSUsaCAUnicaGestionada(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
+	home := perfil.Nuevo(t)
 	configDir := filepath.Join(home, ".config", "grxfirma")
 	operations := []string{"generar-certificados-tls", "estado-confianza-tls"}
 	if localtlstrust.ManagedTrustLifecycleSupported() {
@@ -81,9 +81,7 @@ func TestCLITLSUsaCAUnicaGestionada(t *testing.T) {
 }
 
 func TestCLITLSLimpiarPreservaFicherosAjenos(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
+	home := perfil.Nuevo(t)
 	configDir := filepath.Join(home, ".config", "grxfirma")
 	adapter := New(nil, nil).WithConfigDir(configDir)
 	var stdout, stderr strings.Builder

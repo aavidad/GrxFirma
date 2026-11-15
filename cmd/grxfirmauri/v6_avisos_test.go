@@ -8,6 +8,7 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/testsupport/perfil"
 	"slices"
 	"strings"
 	"testing"
@@ -29,9 +30,7 @@ func TestV6WSSDevuelveAvisosSinColectorDelLlamante(t *testing.T) {
 		machinepolicy.UnsetForTest(t, e.PolicyKey)
 		excepciones.SetForTest(t, id, true)
 	}
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
+	perfil.Nuevo(t)
 	h, solicitud := newSignAndSaveFlowTest(t, acceptLegacySaveDefaultForTest)
 	base := h.signUC.(*signExecutorStub).result
 	h.signUC = v6SignConAvisos{result: base}

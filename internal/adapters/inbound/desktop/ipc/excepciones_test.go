@@ -7,11 +7,12 @@ import (
 	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/testsupport/perfil"
 	"testing"
 )
 
 func TestUnsafeExceptionsIPCListSetAndPolicyBlock(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	perfil.Nuevo(t)
 	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
 	m := &Manejador{Loc: localizador.Para("es")}
 	call := func(action, raw string) respuesta {

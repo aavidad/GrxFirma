@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/testsupport/perfil"
 	"io"
 	"io/fs"
 	"os"
@@ -54,13 +55,7 @@ func TestV6OpcionesSinURINoTocanHOME(t *testing.T) {
 	for _, arg := range []string{"--help", "-h", "-help", "--version", "-version", "--diagnostico", "--diagnose", "--desconocida", "documento.pdf", "https://portal.example", "afirma:", "afirma://", "afirma:%zz"} {
 		t.Run(arg, func(t *testing.T) {
 			calls = 0
-			home := t.TempDir()
-			t.Setenv("HOME", home)
-			t.Setenv("USERPROFILE", home)
-			t.Setenv("APPDATA", filepath.Join(home, "AppData", "Roaming"))
-			t.Setenv("LOCALAPPDATA", filepath.Join(home, "AppData", "Local"))
-			t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-			t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
+			home := perfil.Nuevo(t)
 			if err := os.WriteFile(filepath.Join(home, "existente"), []byte("no modificar"), 0600); err != nil {
 				t.Fatal(err)
 			}

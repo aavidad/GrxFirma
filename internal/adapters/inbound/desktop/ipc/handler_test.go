@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"grxfirma/internal/testsupport/perfil"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -2883,9 +2884,7 @@ func TestDespachar_ExportDiagnostic_CanSignUsaMetadatoSinAbrirClave(t *testing.T
 }
 
 func TestDespachar_ClearTlsTrust_RetiraConfianzaAntesDeArtefactosPropios(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
+	home := perfil.Nuevo(t)
 	tlsDir := filepath.Join(home, ".config", "grxfirma", "tls")
 	if err := os.MkdirAll(tlsDir, 0o700); err != nil {
 		t.Fatalf("os.MkdirAll(tlsDir) error = %v", err)

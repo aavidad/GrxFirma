@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"grxfirma/internal/testsupport/perfil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -18,10 +19,7 @@ import (
 )
 
 func TestAfirmaURIParametrosNoActivanExcepcion(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
-	t.Setenv("APPDATA", home)
+	home := perfil.Nuevo(t)
 	dir := appdirs.Config(home)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		t.Fatal(err)

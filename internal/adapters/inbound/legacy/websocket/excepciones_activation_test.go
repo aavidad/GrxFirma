@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"grxfirma/internal/testsupport/perfil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,10 +18,7 @@ import (
 
 // Recorre el despachador de comandos sin abrir puertos ni hacer peticiones.
 func TestSocketExcepcionesNoAceptaActivacionDesdePortal(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
-	t.Setenv("APPDATA", home)
+	home := perfil.Nuevo(t)
 	dir := appdirs.Config(home)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		t.Fatal(err)
