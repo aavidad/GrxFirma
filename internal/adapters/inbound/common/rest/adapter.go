@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"grxfirma/internal/appdirs"
+	"grxfirma/internal/security/excepciones"
 	"io"
 	"net/http"
 	"net/url"
@@ -1355,6 +1356,7 @@ func (a *Adaptador) handleProtectSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, protectResponse{
+		Warnings:               a.traducirAvisosProteccion(r, result.Warnings),
 		OK:                     true,
 		Profile:                string(result.Protected.Profile),
 		RecipientCount:         result.Protected.RecipientCount,
@@ -2006,6 +2008,12 @@ func (a *Adaptador) handleSettings(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
 			writeError(w, http.StatusBadRequest, "json de ajustes invalido")
 			return
+		}
+		for key := range settings {
+			if excepciones.ReservedSettings(key) {
+				writeError(w, http.StatusForbidden, a.t("excepciones.canal_no_local"))
+				return
+			}
 		}
 		if err := ports.ValidarSinCredencialesProxyEnClaro(settings); err != nil {
 			writeError(w, http.StatusBadRequest, err.Error())

@@ -7,6 +7,8 @@ package triphase
 
 import (
 	"context"
+	"errors"
+	"grxfirma/internal/security/excepciones"
 	"net/http"
 	"time"
 )
@@ -33,6 +35,11 @@ func conReintentos(ctx context.Context, maxIntentos int, f func() (*http.Respons
 		if err == nil {
 			// Petición completada (independientemente del código HTTP).
 			return resp, nil
+		}
+
+		var block *excepciones.Block
+		if errors.As(err, &block) {
+			return nil, err
 		}
 
 		// Error de red: registrar y esperar antes del siguiente intento.

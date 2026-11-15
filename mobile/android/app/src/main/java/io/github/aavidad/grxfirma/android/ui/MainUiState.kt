@@ -286,6 +286,7 @@ fun Throwable.toUserText(): UiText {
                 val key = message.orEmpty()
                 EngineKeys.localResource(key)?.let { return UiText.Resource(it) }
                 if (EngineKeys.isClosed(key)) return UiText.Engine(key)
+				EngineKeys.blockKey(key)?.let { return UiText.Engine(it) }
                 R.string.error_core_operation
             }
         }

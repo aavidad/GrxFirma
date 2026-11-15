@@ -69,6 +69,7 @@ func (uc *SignDocumentUseCase) WithComponedorAprobacion(componer ComponedorAprob
 // Ejecutar realiza la firma del documento descrito en el comando.
 // Todos los errores devueltos son aptos para mostrarse al usuario en castellano.
 func (uc *SignDocumentUseCase) Ejecutar(ctx context.Context, cmd SignCommand) (SignResult, error) {
+	ctx, avisos := domain.ConAvisosOperacion(ctx)
 	inicio := time.Now()
 	estado := "error"
 	defer func() {
@@ -130,8 +131,7 @@ func (uc *SignDocumentUseCase) Ejecutar(ctx context.Context, cmd SignCommand) (S
 	_ = uc.publicarEvento(ctx, "firma_iniciada", cmd.Document.Name)
 
 	// Ejecutar la firma con un registro de avisos propio de esta operación.
-	ctxFirma, avisos := domain.ConAvisosOperacion(ctx)
-	resultado, err := uc.motor.Sign(ctxFirma, trabajo, clave)
+	resultado, err := uc.motor.Sign(ctx, trabajo, clave)
 	if err != nil {
 		uc.auditarFallo(ctx, cmd, cert, err)
 		return SignResult{}, fmt.Errorf("error durante la operacion de firma: %w", err)

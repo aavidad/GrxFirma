@@ -26,7 +26,7 @@ import (
 
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
-	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/security/excepciones"
 )
 
 const (
@@ -92,12 +92,6 @@ type legacyCMSSignedEnvelopedData struct {
 	SignerInfos                []legacyCMSSignerInfo `asn1:"set"`
 }
 
-// legacyCMSAESReaderEnabled: solo un administrador (política de máquina)
-// puede habilitar la lectura de sobres AES-ECB heredados.
-func legacyCMSAESReaderEnabled() bool {
-	return machinepolicy.OptIn(machinepolicy.PermitirCMSAESECBLegacy)
-}
-
 func decryptLegacyV1SignedEnvelopedCMS(ctx context.Context, protected domain.Document, keys []domain.ProtectionKeyMaterial, trustAnchors ports.TrustAnchorProvider) (domain.UnprotectedPayload, bool, error) {
 	if err := ctx.Err(); err != nil {
 		return domain.UnprotectedPayload{}, true, err
@@ -106,12 +100,11 @@ func decryptLegacyV1SignedEnvelopedCMS(ctx context.Context, protected domain.Doc
 	if err != nil {
 		return domain.UnprotectedPayload{}, false, nil
 	}
-	if !legacyCMSAESReaderEnabled() {
-		return domain.UnprotectedPayload{}, true, fmt.Errorf(
-			"SignedAndEnvelopedData AES-ECB heredado de AutoFirma 1.9 detectado; "+
-				"su lectura esta deshabilitada por seguridad: un administrador debe habilitar la politica de maquina %s solo para migrar sobres de confianza",
-			machinepolicy.PermitirCMSAESECBLegacy,
-		)
+	if err := excepciones.Require(ctx, "cms_aes_ecb"); err != nil {
+		return domain.UnprotectedPayload{}, true, err
+	}
+	if err := excepciones.Require(ctx, "cms_rsa_v15_leer"); err != nil {
+		return domain.UnprotectedPayload{}, true, err
 	}
 
 	for _, key := range keys {
@@ -169,6 +162,7 @@ func decryptLegacyV1SignedEnvelopedCMS(ctx context.Context, protected domain.Doc
 				Document:    doc,
 				Profile:     domain.ProtectionProfileCompat,
 				RecipientID: key.RecipientID,
+				Avisos:      []string{excepciones.Warning("cms_aes_ecb"), excepciones.Warning("cms_rsa_v15_leer")},
 			}, true, nil
 		}
 		if verificationErr == nil {

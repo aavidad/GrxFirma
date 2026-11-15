@@ -20,9 +20,14 @@ import (
 	"strings"
 	"time"
 
+	"grxfirma/internal/adapters/inbound/legacy/legacycrypto"
 	"grxfirma/internal/adapters/outbound/common/limits"
+	"grxfirma/internal/adapters/outbound/common/localizador"
+	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 )
 
 type signingKeyContextKey struct{}
@@ -62,7 +67,17 @@ func (e *Executor) ValidarDestino(ctx context.Context, origen string) error {
 	if e == nil || e.validarDestino == nil {
 		return errors.New("no se puede comprobar si el destino está autorizado")
 	}
-	return e.validarDestino(ctx, origen)
+	if err := e.validarDestino(ctx, origen); err != nil {
+		return err
+	}
+	u, err := url.Parse(origen)
+	if err != nil {
+		return err
+	}
+	if strings.EqualFold(u.Scheme, "http") {
+		return excepciones.Require(ctx, "trifasica_http")
+	}
+	return nil
 }
 
 // ConValidadorDestino fija el validador que se aplica en el punto de uso a los
@@ -143,6 +158,8 @@ func politicaRedireccionTrifasica(previa func(*http.Request, []*http.Request) er
 				return fmt.Errorf("redirección a otro origen rechazada: %s: %w", origen, err)
 			}
 			slog.Warn("triphase_redireccion_otro_origen", "saltos", len(via))
+			domain.AnotarAviso(req.Context(), "excepciones.trifasica_redireccion.aviso")
+			avisos.Registrar(localizador.Detectar().T("excepciones.trifasica_redireccion.aviso"), "")
 		}
 		if previa != nil {
 			return previa(req, via)
@@ -269,9 +286,33 @@ func (e *Executor) doWithFallback(do func(client *http.Client) (*http.Response, 
 //  4. Firma local — el motor de firma firma el hash devuelto por PreSign.
 //  5. PostSign — POST al servlet con la firma producida.
 //  6. Upload — PUT/POST al STServlet con el resultado final cifrado.
-func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, job domain.SignatureJob) (domain.SignatureResult, error) {
+func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, job domain.SignatureJob) (result domain.SignatureResult, err error) {
+	ctx, warnings := domain.ConAvisosOperacion(ctx)
+	defer func() { result.Warnings = append(result.Warnings, warnings.Claves()...) }()
+
 	if err := session.Validate(); err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("sesion invalida: %w", err)
+	}
+	if err := ctx.Err(); err != nil {
+		return domain.SignatureResult{}, err
+	}
+	if session.SessionKey != "" {
+		if _, err := decodificarClaveAES128(session.SessionKey); err != nil {
+			if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, session.RetrieveEndpoint, session.UploadEndpoint); err != nil {
+				return domain.SignatureResult{}, err
+			}
+		}
+	}
+	for _, raw := range []string{session.RetrieveEndpoint, session.UploadEndpoint} {
+		u, err := url.Parse(raw)
+		if err != nil {
+			return domain.SignatureResult{}, err
+		}
+		if strings.EqualFold(u.Scheme, "http") {
+			if err := excepciones.Require(ctx, "trifasica_http"); err != nil {
+				return domain.SignatureResult{}, err
+			}
+		}
 	}
 
 	// Paso 1: Retrieve.
@@ -293,6 +334,12 @@ func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, 
 	var retrieved retrieveResponse
 	if err := json.Unmarshal(rawData, &retrieved); err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("respuesta retrieve no es JSON valido: %w", err)
+	}
+
+	// La TSA indicada por el servidor se reenvía en prefirma. Si usa HTTP,
+	// se pide la misma excepción que en las firmas con sello locales.
+	if err := requireTriphaseTSAProperties(ctx, retrieved.ExtraParams); err != nil {
+		return domain.SignatureResult{}, err
 	}
 
 	formato := strings.TrimSpace(retrieved.Format)
@@ -331,7 +378,13 @@ func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, 
 	if err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("algoritmo de firma no soportado: %w", err)
 	}
-	pk1B64, err := signLegacyBatchPreData(hashBytes, signingKey, algoritmo, hashAlg, nil)
+	if err := requireLegacyBatchSigningPreflight(ctx, signingKey); err != nil {
+		return domain.SignatureResult{}, err
+	}
+	if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
+		return domain.SignatureResult{}, err
+	}
+	pk1B64, err := signLegacyBatchPreData(hashBytes, signingKey, algoritmo, hashAlg, nil, ctx)
 	if err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("firma local PKCS#1 fallida: %w", err)
 	}
@@ -398,7 +451,7 @@ func (e *Executor) retrieve(ctx context.Context, session domain.ExchangeSession)
 			if err != nil {
 				return nil, err
 			}
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -448,7 +501,7 @@ func (e *Executor) retrieveCompat(ctx context.Context, session domain.ExchangeSe
 				if method == http.MethodPost {
 					req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 				}
-				return client.Do(req)
+				return doTriphaseRequest(client, req)
 			})
 		})
 		if err != nil {
@@ -503,7 +556,7 @@ func (e *Executor) presign(ctx context.Context, session domain.ExchangeSession, 
 				return nil, err
 			}
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -545,7 +598,7 @@ func (e *Executor) postsign(ctx context.Context, session domain.ExchangeSession,
 				return nil, err
 			}
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -582,6 +635,9 @@ func (e *Executor) UploadCertificate(ctx context.Context, session domain.Exchang
 	certB64 := base64.StdEncoding.EncodeToString(certDER)
 	var datEncoded string
 	if session.SessionKey != "" {
+		if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, session.RetrieveEndpoint, session.UploadEndpoint); err != nil {
+			return err
+		}
 		cifrado, err := cifrarLegacyDES(certDER, session.SessionKey, session.RetrieveEndpoint, session.UploadEndpoint)
 		if err != nil {
 			return fmt.Errorf("cifrado legacy del certificado fallido: %w", err)
@@ -680,6 +736,9 @@ func (e *Executor) UploadSignature(ctx context.Context, session domain.ExchangeS
 
 	var payload string
 	if strings.TrimSpace(session.SessionKey) != "" {
+		if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, session.RetrieveEndpoint, session.UploadEndpoint); err != nil {
+			return err
+		}
 		encCertVal, err := cifrarLegacyDES(certDER, session.SessionKey, session.RetrieveEndpoint, session.UploadEndpoint)
 		if err != nil {
 			return fmt.Errorf("cifrado legacy del certificado fallido: %w", err)
@@ -773,7 +832,7 @@ func (e *Executor) uploadEncoded(ctx context.Context, session domain.ExchangeSes
 			if err != nil {
 				return nil, err
 			}
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -797,7 +856,7 @@ func (e *Executor) doLegacyPOST(ctx context.Context, endpoint string, form url.V
 				return nil, err
 			}
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -835,4 +894,26 @@ func esParametroClaveSesion(nombre string) bool {
 	default:
 		return false
 	}
+}
+
+func requireTriphaseTSAOptions(ctx context.Context, options map[string]string) error {
+	for key, value := range options {
+		if strings.EqualFold(strings.TrimSpace(key), "tsaurl") && strings.TrimSpace(value) != "" {
+			if err := tsaclient.RequireTransport(ctx, strings.TrimSpace(value)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Todo intercambio con los servlets pasa por el mismo control, incluidas
+// lectura y subida independientes de una firma trifásica completa.
+func doTriphaseRequest(client *http.Client, req *http.Request) (*http.Response, error) {
+	if strings.EqualFold(req.URL.Scheme, "http") {
+		if err := excepciones.Require(req.Context(), "trifasica_http"); err != nil {
+			return nil, err
+		}
+	}
+	return client.Do(req)
 }

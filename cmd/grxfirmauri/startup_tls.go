@@ -8,7 +8,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"grxfirma/internal/security/excepciones"
 	"io"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -53,6 +55,17 @@ func detailWithStartupTLSTrustNotice(detail string) string {
 // forwarding or starting WSS. A later launch also discovers new Firefox
 // profiles. The installer owns the decision whether anything changed.
 func prepareStartupLocalTLSTrust(ctx context.Context, configDir string, stderr io.Writer) error {
+	if runtime.GOOS != "linux" {
+		return nil
+	}
+	if err := excepciones.Check("ca_instalacion_automatica"); err != nil {
+		message := err.Error()
+		setStartupTLSTrustNotice(message)
+		if stderr != nil {
+			_, _ = fmt.Fprintln(stderr, message)
+		}
+		return nil
+	}
 	changed, err := ensureStartupLocalTLSTrust(ctx, configDir)
 	if err != nil {
 		message := tl(startupTLSFailedID)
@@ -64,7 +77,7 @@ func prepareStartupLocalTLSTrust(ctx context.Context, configDir string, stderr i
 		return err
 	}
 	if changed {
-		message := tl(startupTLSInstalledID)
+		message := tl(startupTLSInstalledID) + "\n" + tl("excepciones.ca_instalacion_automatica.aviso")
 		setStartupTLSTrustNotice(message)
 		if stderr != nil {
 			_, _ = fmt.Fprintln(stderr, message)

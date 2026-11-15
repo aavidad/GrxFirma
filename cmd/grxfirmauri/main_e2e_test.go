@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -34,6 +35,7 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/tokenruntime"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/internal/testsupport/tsatest"
 	"grxfirma/presentation/desktop/certpicker"
@@ -42,6 +44,34 @@ import (
 
 func runE2EAislado(ctx context.Context, args []string, stderr *bytes.Buffer) int {
 	return runE2EAisladoConAprobador(ctx, args, stderr, aprobacionE2E{})
+}
+
+func permitirCAProtocoloE2E(t *testing.T) {
+	t.Helper()
+	for _, id := range []string{"ca_instalacion_automatica", "ca_clave_fichero"} {
+		e, _ := excepciones.Find(id)
+		machinepolicy.UnsetForTest(t, e.PolicyKey)
+		excepciones.SetForTest(t, id, true)
+	}
+}
+
+func permitirHTTPProtocoloE2E(t *testing.T) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_trifasica_http")
+	excepciones.SetForTest(t, "trifasica_http", true)
+}
+
+func permitirTSAProtocoloE2E(t *testing.T) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+	excepciones.SetForTest(t, "tsa_http", true)
+}
+
+func assertAvisoE2E(t *testing.T, warnings *domain.AvisosOperacion, id string) {
+	t.Helper()
+	if !slices.Contains(warnings.Claves(), excepciones.Warning(id)) {
+		t.Fatalf("falta aviso %s en resultado de operación: %v", id, warnings.Claves())
+	}
 }
 
 func runE2EAisladoConAprobador(
@@ -99,6 +129,9 @@ func (rechazoE2E) Request(context.Context, string) (bool, error) {
 }
 
 func TestRun_ProcesaURIRegistrableYSubeResultado(t *testing.T) {
+	permitirCAProtocoloE2E(t)
+	permitirHTTPProtocoloE2E(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 	home := t.TempDir()
 	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
@@ -205,7 +238,7 @@ func TestRun_ProcesaURIRegistrableYSubeResultado(t *testing.T) {
 	rawURI := "afirma://sign?id=req-e2e&rtservlet=" + retrieve + "&stservlet=" + storage + "&signFormat=CAdES"
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 
@@ -239,9 +272,14 @@ func TestRun_ProcesaURIRegistrableYSubeResultado(t *testing.T) {
 	if string(resultado) != "resultado-firmado" {
 		t.Fatalf("resultado subido = %q, want %q", string(resultado), "resultado-firmado")
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func TestRun_ProcesaURIRegistrableConXAdESTYtsaURLPorPeticion(t *testing.T) {
+	permitirCAProtocoloE2E(t)
+	permitirHTTPProtocoloE2E(t)
+	permitirTSAProtocoloE2E(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 	home := t.TempDir()
 	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
@@ -358,7 +396,7 @@ func TestRun_ProcesaURIRegistrableConXAdESTYtsaURLPorPeticion(t *testing.T) {
 	rawURI := "afirma://sign?id=req-e2e-tsa&rtservlet=" + retrieve + "&stservlet=" + storage + "&signFormat=XAdES"
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 	if !presignVisto || !postsignVisto || !uploadVisto {
@@ -367,9 +405,15 @@ func TestRun_ProcesaURIRegistrableConXAdESTYtsaURLPorPeticion(t *testing.T) {
 	if !tsaVisto {
 		t.Fatal("tsaURL no se propagó en extraParams al servidor de prefirma")
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
+	assertAvisoE2E(t, operationWarnings, "tsa_http")
 }
 
 func TestRun_ProcesaURIRegistrableConPAdESTYtsaURLPorPeticion(t *testing.T) {
+	permitirCAProtocoloE2E(t)
+	permitirHTTPProtocoloE2E(t)
+	permitirTSAProtocoloE2E(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 	home := t.TempDir()
 	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
@@ -486,7 +530,7 @@ func TestRun_ProcesaURIRegistrableConPAdESTYtsaURLPorPeticion(t *testing.T) {
 	rawURI := "afirma://sign?id=req-e2e-pades-tsa&rtservlet=" + retrieve + "&stservlet=" + storage + "&signFormat=PAdES"
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 	if !presignVisto || !postsignVisto || !uploadVisto {
@@ -495,9 +539,14 @@ func TestRun_ProcesaURIRegistrableConPAdESTYtsaURLPorPeticion(t *testing.T) {
 	if !tsaVisto {
 		t.Fatal("tsaURL no se propagó en extraParams al servidor de prefirma")
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
+	assertAvisoE2E(t, operationWarnings, "tsa_http")
 }
 
 func TestRun_ProcesaURIBatchRemotoJSONCompatV1(t *testing.T) {
+	permitirCAProtocoloE2E(t)
+	permitirHTTPProtocoloE2E(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 	home := t.TempDir()
 	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
@@ -603,15 +652,19 @@ func TestRun_ProcesaURIBatchRemotoJSONCompatV1(t *testing.T) {
 		"&dat=" + base64.StdEncoding.EncodeToString(rawBatch)
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 	if !waitVisto || !preVisto || !postVisto || !uploadVisto {
 		t.Fatalf("flujo batch remoto incompleto: wait=%v pre=%v post=%v upload=%v", waitVisto, preVisto, postVisto, uploadVisto)
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func TestRun_BatchLocalStopOnErrorNoIniciaTrabajosPosteriores(t *testing.T) {
+	permitirCAProtocoloE2E(t)
+	permitirHTTPProtocoloE2E(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 	home := t.TempDir()
 	configDir := testProtocolConfigDir(home)
 	p12Dir := filepath.Join(configDir, "pkcs12")
@@ -716,7 +769,7 @@ func TestRun_BatchLocalStopOnErrorNoIniciaTrabajosPosteriores(t *testing.T) {
 		"&jsonbatch=true&dat=" + url.QueryEscape(base64.StdEncoding.EncodeToString(rawBatch))
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 1 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 1 {
 		t.Fatalf("run() code = %d, want 1; stderr=%s", code, stderr.String())
 	}
 	if got := retrieveCalls.Load(); got != 2 {
@@ -734,6 +787,7 @@ func TestRun_BatchLocalStopOnErrorNoIniciaTrabajosPosteriores(t *testing.T) {
 	if got := uploadCalls.Load(); got != 1 {
 		t.Fatalf("upload calls = %d, want 1", got)
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func TestRun_BatchCanceladoAntesDeRedNoContactaServicios(t *testing.T) {
@@ -838,6 +892,7 @@ func TestRun_ProcesaURISelectCertYSubeCertificado(t *testing.T) {
 	}
 
 	setTestUserHome(t, home)
+	operationCtx, operationWarnings := aceptarExcepcionProtocoloPrueba(t, configDir, "trifasica_http")
 	t.Setenv("GRXFIRMA_PKCS12_DIR", p12Dir)
 	t.Setenv("GRXFIRMA_PKCS12_PASSWORD", "valor-prueba")
 
@@ -845,7 +900,7 @@ func TestRun_ProcesaURISelectCertYSubeCertificado(t *testing.T) {
 	rawURI := "afirma://selectcert?id=req-selectcert-e2e&stservlet=" + storage
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 
@@ -873,6 +928,7 @@ func TestRun_ProcesaURISelectCertYSubeCertificado(t *testing.T) {
 			sha256.Sum256(certFixture.Raw),
 		)
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
@@ -932,6 +988,7 @@ func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
 	}
 
 	setTestUserHome(t, home)
+	operationCtx, operationWarnings := aceptarExcepcionProtocoloPrueba(t, configDir, "trifasica_http")
 	t.Setenv("GRXFIRMA_PKCS12_DIR", p12Dir)
 	t.Setenv("GRXFIRMA_PKCS12_PASSWORD", "valor-prueba")
 
@@ -939,7 +996,7 @@ func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
 	rawURI := "afirma://selectcert?id=req-selectcert-fallback&stservlet=" + storage + "&customToken=abc123"
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code != 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 
@@ -962,6 +1019,7 @@ func TestRun_ProcesaURISelectCertConFallbackLegacy(t *testing.T) {
 	if _, err := x509.ParseCertificate(certSubido); err != nil {
 		t.Fatalf("certificado legacy no es DER X.509 válido: %v", err)
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 // Con clave de sesión el certificado solo viaja cifrado y la clave nunca
@@ -1017,6 +1075,7 @@ func TestRun_ProcesaURISelectCertConSessionKeyNoReintentaEnClaro(t *testing.T) {
 	}
 
 	setTestUserHome(t, home)
+	operationCtx, operationWarnings := aceptarExcepcionProtocoloPrueba(t, configDir, "trifasica_http")
 	t.Setenv("GRXFIRMA_PKCS12_DIR", p12Dir)
 	t.Setenv("GRXFIRMA_PKCS12_PASSWORD", "valor-prueba")
 
@@ -1024,12 +1083,13 @@ func TestRun_ProcesaURISelectCertConSessionKeyNoReintentaEnClaro(t *testing.T) {
 	rawURI := "afirma://selectcert?id=req-selectcert-key&stservlet=" + storage + "&key=abcd&customToken=abc123"
 
 	var stderr bytes.Buffer
-	if code := runE2EAislado(context.Background(), []string{rawURI}, &stderr); code == 0 {
+	if code := runE2EAislado(operationCtx, []string{rawURI}, &stderr); code == 0 {
 		t.Fatal("run() debía fallar: el servidor rechazó la única subida cifrada")
 	}
 	if intentos != 1 {
 		t.Fatalf("intentos upload selectcert sessionkey = %d, want 1", intentos)
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
@@ -1095,6 +1155,7 @@ func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
 	}
 
 	setTestUserHome(t, home)
+	operationCtx, operationWarnings := aceptarExcepcionProtocoloPrueba(t, configDir, "trifasica_http")
 	t.Setenv("GRXFIRMA_PKCS12_DIR", p12Dir)
 	t.Setenv("GRXFIRMA_PKCS12_PASSWORD", "valor-prueba")
 
@@ -1112,7 +1173,7 @@ func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
 		return certpicker.ResultadoSeleccion{}, errors.New("el catálogo QA no contiene la identidad elegida explícitamente")
 	})
 	var stderr bytes.Buffer
-	if code := runE2EAisladoConAprobador(context.Background(), []string{rawURI}, &stderr, aprobacionE2E{}, selector); code != 0 {
+	if code := runE2EAisladoConAprobador(operationCtx, []string{rawURI}, &stderr, aprobacionE2E{}, selector); code != 0 {
 		t.Fatalf("run() code = %d, stderr = %s", code, stderr.String())
 	}
 
@@ -1141,6 +1202,7 @@ func TestRun_ProcesaURISelectCertReutilizaPreferenciaPersistente(t *testing.T) {
 	if !bytes.Equal(certSubido, esperado.Raw) {
 		t.Fatal("se subió una identidad distinta de la exigida por el contrato de selección")
 	}
+	assertAvisoE2E(t, operationWarnings, "trifasica_http")
 }
 
 func generarP12(t *testing.T, commonName, password string) []byte {

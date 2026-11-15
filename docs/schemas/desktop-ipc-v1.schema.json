@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/aavidad/GrxFirma/blob/main/docs/schemas/desktop-ipc-v1.schema.json",
   "title": "GrxFirma desktop IPC v1",
-  "description": "Contrato NDJSON del IPC local. Omitir protocol mantiene la compatibilidad legacy. get/save/diagnose_token_settings requieren además el PID exacto del frontend autorizado; nunca son opciones web. Sus parámetros rechazan claves duplicadas incluso escapadas, algo que JSON Schema no representa.",
+  "description": "Contrato NDJSON del IPC local. Omitir protocol mantiene la compatibilidad legacy. get/save/diagnose_token_settings y las acciones unsafe_exceptions_* y unsafe_operation_retry requieren un frontend local autorizado; nunca son opciones web. Sus parámetros rechazan claves duplicadas incluso escapadas, algo que JSON Schema no representa.",
   "oneOf": [
     {
       "$ref": "#/$defs/request"
@@ -50,6 +50,22 @@
         {
           "if": {"properties": {"action": {"const": "protection_recipient_remove"}}, "required": ["action"]},
           "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["id"], "properties": {"id": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "unsafe_exceptions_list"}}, "required": ["action"]},
+          "then": {"properties": {"params": {"type": "object", "maxProperties": 0}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "unsafe_exceptions_set"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["id", "enabled"], "properties": {"id": {"type": "string", "minLength": 1}, "enabled": {"const": false}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "unsafe_exceptions_activate"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["id", "accepted", "acceptanceVersion"], "properties": {"id": {"type": "string", "minLength": 1}, "accepted": {"const": true}, "acceptanceVersion": {"const": "2026-11-15.2"}, "retryId": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "unsafe_operation_retry"}}, "required": ["action"]},
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["retryId"], "properties": {"retryId": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
         },
         {
           "if": {"properties": {"action": {"const": "save_token_settings"}}, "required": ["action"]},
@@ -201,11 +217,35 @@
         "error": {
           "type": "string"
         },
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "exceptionId": {"type": "string"},
+        "blockKey": {"type": "string"},
+        "settingKey": {"type": "string"},
+        "exception": {"$ref": "#/$defs/unsafeExceptionBlock"},
+        "activable": {"type": "boolean"},
+        "titleKey": {"type": "string"},
+        "riskKey": {"type": "string"},
+        "acceptanceKey": {"type": "string"},
+        "helpKey": {"type": "string"},
+        "acceptanceVersion": {"type": "string"},
+        "retryId": {"type": "string"},
         "diagnostic": {
           "$ref": "#/$defs/diagnostic"
         }
       },
       "allOf": [
+        {
+          "if": {"properties": {"errorCode": {"const": "unsafe_exception_blocked"}}, "required": ["errorCode"]},
+          "then": {"required": ["exceptionId", "blockKey", "settingKey", "exception", "activable", "titleKey", "riskKey", "acceptanceKey", "helpKey", "acceptanceVersion"]}
+        },
+        {
+          "if": {"properties": {"action": {"enum": ["unsafe_exceptions_list", "unsafe_exceptions_set"]}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "then": {"required": ["data"], "properties": {"data": {"type": "array", "items": {"$ref": "#/$defs/unsafeExceptionState"}}}}
+        },
+        {
+          "if": {"properties": {"action": {"const": "unsafe_exceptions_activate"}, "ok": {"const": true}}, "required": ["action", "ok"]},
+          "then": {"required": ["data"], "properties": {"data": {"$ref": "#/$defs/unsafeAcceptance"}}}
+        },
         {
           "if": {"properties": {"action": {"const": "facturae_create"}, "ok": {"const": true}}, "required": ["action", "ok"]},
           "then": {"required": ["data"], "properties": {"data": {"type": "object", "required": ["total"], "properties": {"total": {"type": "string"}, "xml": {"type": "string"}, "outputPath": {"type": "string"}}, "additionalProperties": false}}}
@@ -391,6 +431,63 @@
       ],
       "additionalProperties": false
     },
+    "unsafeExceptionBlock": {
+      "type": "object",
+      "required": ["id", "block_key", "setting_key", "policy_key", "title_key", "risk_key", "acceptance_key", "help_key", "organization_key", "acceptance_version", "activable"],
+      "properties": {
+        "id": {"type": "string"},
+        "block_key": {"type": "string"},
+        "setting_key": {"type": "string"},
+        "policy_key": {"type": "string"},
+        "title_key": {"type": "string"},
+        "risk_key": {"type": "string"},
+        "acceptance_key": {"type": "string"},
+        "help_key": {"type": "string"},
+        "organization_key": {"type": "string"},
+        "acceptance_version": {"const": "2026-11-15.2"},
+        "activable": {"type": "boolean"},
+        "config_unavailable": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "unsafeAcceptance": {
+      "type": "object",
+      "required": ["id", "accepted_at", "text_version", "origin", "channel"],
+      "properties": {
+        "id": {"type": "string"},
+        "accepted_at": {"type": "string", "format": "date-time"},
+        "text_version": {"type": "string", "minLength": 1, "description": "Version accepted at that time; historical receipts remain visible but do not enable an exception."},
+        "origin": {"const": "aceptado desde el aviso"},
+        "channel": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "unsafeExceptionState": {
+      "type": "object",
+      "required": ["id", "user_key", "policy_key", "warning_key", "block_key", "setting_key", "title_key", "risk_key", "acceptance_key", "help_key", "organization_key", "acceptance_version", "activable", "enabled", "fixed", "user_enabled", "policy_unreadable"],
+      "properties": {
+        "id": {"type": "string"},
+        "user_key": {"type": "string"},
+        "policy_key": {"type": "string"},
+        "warning_key": {"type": "string"},
+        "block_key": {"type": "string"},
+        "setting_key": {"type": "string"},
+        "title_key": {"type": "string"},
+        "risk_key": {"type": "string"},
+        "acceptance_key": {"type": "string"},
+        "help_key": {"type": "string"},
+        "organization_key": {"type": "string"},
+        "acceptance_version": {"const": "2026-11-15.2"},
+        "activable": {"type": "boolean"},
+        "enabled": {"type": "boolean"},
+        "fixed": {"type": "boolean"},
+        "user_enabled": {"type": "boolean"},
+        "policy_unreadable": {"type": "boolean"},
+        "config_unavailable": {"type": "boolean"},
+        "last_acceptance": {"$ref": "#/$defs/unsafeAcceptance"}
+      },
+      "additionalProperties": false
+    },
     "tokenSettingsUpdate": {
       "description": "Máximo 64 KiB de JSON UTF-8. Se guarda solo con confirmación y revisión vigente. Las rutas absolutas, permisos, propietarios y alias de módulos se validan localmente. Deshabilitar permite retirar un controlador ausente. No contiene PIN, comandos, helper ni entorno.",
       "type": "object",
@@ -476,6 +573,10 @@
         "smartcard_status",
         "sign_batch",
         "sign_multicosign",
+        "unsafe_exceptions_activate",
+        "unsafe_exceptions_list",
+        "unsafe_exceptions_set",
+        "unsafe_operation_retry",
         "tls_diagnostics",
         "unprotect",
         "use_temporary_certificate",

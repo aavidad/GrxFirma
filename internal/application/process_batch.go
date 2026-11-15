@@ -66,6 +66,7 @@ func (uc *ProcessBatchUseCase) WithComponedorAprobacion(componer ComponedorAprob
 
 // Ejecutar procesa todos los trabajos del lote y devuelve errores parciales por indice.
 func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCommand) (BatchResult, error) {
+	ctx, avisosIniciales := domain.ConAvisosOperacion(ctx)
 	if err := ctx.Err(); err != nil {
 		return BatchResult{}, err
 	}
@@ -113,10 +114,14 @@ func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCom
 		Errores: make(map[int]error),
 	}
 
+	avisosPrevios := avisosIniciales.Claves()
 	if capacidad > 1 {
 		uc.procesarPorGrupos(ctx, cmd, clave, claveLote, capacidad, cert, &resultado)
 		_ = uc.publicarEvento(ctx, "lote_completado", fmt.Sprintf("errores=%d", len(resultado.Errores)))
 		uc.auditarLote(ctx, cmd, cert, resultado.TodosExitosos(), nil)
+		for i := range resultado.Results {
+			resultado.Results[i].Warnings = domain.UnirAvisos(resultado.Results[i].Warnings, avisosPrevios...)
+		}
 		return resultado, nil
 	}
 
@@ -145,7 +150,7 @@ func (uc *ProcessBatchUseCase) Ejecutar(ctx context.Context, cmd ProcessBatchCom
 		resultado.Results = append(resultado.Results, SignResult{
 			Result:          firma,
 			CertificateUsed: cert,
-			Warnings:        avisos.Claves(),
+			Warnings:        domain.UnirAvisos(avisos.Claves(), avisosPrevios...),
 		})
 		uc.auditarTrabajo(ctx, i, job, cert, true, nil)
 		if uc != nil && uc.metricas != nil {

@@ -6,6 +6,7 @@
 package localtlstrust
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -21,7 +22,8 @@ var ErrManagedCAKeyLegacy = errors.New("localtlstrust: clave CA anterior sin pro
 
 // SaveManagedCAKey persiste la clave de la CA en el directorio privado TLS.
 // En Windows la cifra DPAPI para el usuario actual antes de escribirla.
-func SaveManagedCAKey(path string, keyDER []byte) error {
+func SaveManagedCAKey(path string, keyDER []byte, contexts ...context.Context) error {
+	ctx := managedCAOperationContext(contexts)
 	if strings.TrimSpace(path) == "" || filepath.Dir(path) == "." {
 		return errors.New("localtlstrust: ruta de clave CA sin directorio propio")
 	}
@@ -31,7 +33,7 @@ func SaveManagedCAKey(path string, keyDER []byte) error {
 	if err := securefile.ProtectDirectory(filepath.Dir(path), 0o700); err != nil {
 		return fmt.Errorf("localtlstrust: proteger directorio de clave CA: %w", err)
 	}
-	protected, err := protectManagedCAKey(keyDER)
+	protected, err := protectManagedCAKey(ctx, keyDER)
 	if err != nil {
 		return err
 	}
@@ -51,7 +53,8 @@ func SaveManagedCAKey(path string, keyDER []byte) error {
 // LoadManagedCAKey devuelve la clave protegida del usuario actual. No
 // interpreta ni registra el material: el emisor comprueba su correspondencia
 // con el certificado de la CA antes de firmar.
-func LoadManagedCAKey(path string) ([]byte, error) {
+func LoadManagedCAKey(path string, contexts ...context.Context) ([]byte, error) {
+	ctx := managedCAOperationContext(contexts)
 	if strings.TrimSpace(path) == "" || filepath.Dir(path) == "." {
 		return nil, errors.New("localtlstrust: ruta de clave CA sin directorio propio")
 	}
@@ -74,7 +77,10 @@ func LoadManagedCAKey(path string) ([]byte, error) {
 		clearManagedCABytes(key)
 		return nil, errors.New("localtlstrust: tamaño de clave CA inválido")
 	}
-	migrateManagedCAKeyToStorage(path, protected, key)
+	if err := checkManagedCAKeyRead(ctx, path, protected, key); err != nil {
+		clearManagedCABytes(key)
+		return nil, err
+	}
 	return key, nil
 }
 
@@ -111,4 +117,11 @@ func clearManagedCABytes(data []byte) {
 	for i := range data {
 		data[i] = 0
 	}
+}
+
+func managedCAOperationContext(contexts []context.Context) context.Context {
+	if len(contexts) > 0 && contexts[0] != nil {
+		return contexts[0]
+	}
+	return context.Background()
 }

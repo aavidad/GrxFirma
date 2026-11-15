@@ -119,6 +119,7 @@ func exigirIntegraConSHA1(t *testing.T, res domain.VerificationResult, err error
 }
 
 func TestPAdES_X509RSASHA1SeVerificaComoSHA1(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	priv, cert := certForTest(t, "PDF-PKCS1")
 	for nombre, certPDF := range map[string]string{"hexadecimal": certHexPDF(cert), "literal": certLiteralPDF(cert)} {
 		t.Run(nombre, func(t *testing.T) {
@@ -137,6 +138,7 @@ func TestPAdES_X509RSASHA1SeVerificaComoSHA1(t *testing.T) {
 }
 
 func TestPAdES_X509RSASHA1AlteradoNoEsIntegro(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	priv, cert := certForTest(t, "PDF-PKCS1")
 	pdf := pdfFirmaHeredadaPrueba(t, subFiltroX509RSASHA1, certHexPDF(cert), firmaPKCS1Prueba(priv, crypto.SHA1))
 
@@ -165,6 +167,7 @@ func TestPAdES_X509RSASHA1AlteradoNoEsIntegro(t *testing.T) {
 }
 
 func TestPAdES_PKCS7SHA1SeVerificaComoSHA1(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	priv, cert := certForTest(t, "PDF-PKCS7-SHA1")
 	clave := &LocalSigningKey{ID: "k", Signer: priv, Certificate: cert}
 	firmarResumen := func(datos []byte) []byte {
@@ -198,6 +201,7 @@ func TestPAdES_PKCS7SHA1SeVerificaComoSHA1(t *testing.T) {
 // no verificada y el PDF se abría sin salir válido. Si ahora no verifica (aquí,
 // la primera, alterada por la segunda revisión), sigue igual: aviso, no error.
 func TestPAdES_FirmaAntiguaQueNoVerificaJuntoAOtrasEsAviso(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	priv, cert := certForTest(t, "PDF-PKCS1")
 	primera := pdfFirmaHeredadaPrueba(t, subFiltroX509RSASHA1, certHexPDF(cert), firmaPKCS1Prueba(priv, crypto.SHA1))
 	primera = bytes.Replace(primera, []byte("D:20140101120000Z"), []byte("D:20150101120000Z"), 1)

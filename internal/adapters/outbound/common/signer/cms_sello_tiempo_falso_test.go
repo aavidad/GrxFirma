@@ -11,9 +11,13 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"math/big"
 	"testing"
 	"time"
@@ -76,8 +80,9 @@ func plantillaSelloPrueba(nombre string, ca bool, desde time.Time) *x509.Certifi
 
 // tsaSelloPrueba emite tokens RFC 3161 reales con la fecha que se le pida.
 type tsaSelloPrueba struct {
-	emisor entidadSelloPrueba
-	fecha  time.Time
+	emisor    entidadSelloPrueba
+	fecha     time.Time
+	firmaHash crypto.Hash
 }
 
 func (s tsaSelloPrueba) RequestTimestamp(_ context.Context, resumen []byte, algoritmo crypto.Hash) ([]byte, error) {
@@ -89,7 +94,11 @@ func (s tsaSelloPrueba) RequestTimestamp(_ context.Context, resumen []byte, algo
 		Policy:            asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 55555, 1},
 		AddTSACertificate: true,
 	}
-	respuesta, err := sello.CreateResponseWithOpts(s.emisor.cert, s.emisor.clave, crypto.SHA256)
+	firmaHash := s.firmaHash
+	if firmaHash == 0 {
+		firmaHash = crypto.SHA256
+	}
+	respuesta, err := sello.CreateResponseWithOpts(s.emisor.cert, s.emisor.clave, firmaHash)
 	if err != nil {
 		return nil, err
 	}
@@ -254,5 +263,79 @@ func TestFechaFirmaCMS_SinSigningTimeElSelloSinComprobarTieneSuOrigen(t *testing
 	}
 	if sinFechaFirmada([]domain.VerificationSigningTime{{Source: domain.SigningTimeSourceTimestamp}}) {
 		t.Fatal("un sello validado sí es fecha firmada")
+	}
+}
+
+func TestFechaFirmaCMS_SelloSHA1NoCuentaValidadoSinAjuste(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_sha1_leer")
+	ca := emitirCertSelloPrueba(t, plantillaSelloPrueba("CA sello", true, time.Now().Add(-time.Hour)), nil)
+	tsa := emitirCertSelloPrueba(t, plantillaSelloPrueba("TSA sello", false, time.Now().Add(-time.Hour)), &ca)
+	contenido := []byte("acta")
+	cms := firmarCAdESTConTSA(t, contenido, tsaSelloPrueba{emisor: tsa, fecha: time.Now().Add(-time.Minute), firmaHash: crypto.SHA1})
+	anchors := domain.CertificateChain{DERCertificates: [][]byte{ca.cert.Raw}}
+	out, _, err := NewCAdESVerifier().VerifyDetachedCMSWithAnchors(context.Background(), cms, contenido, anchors)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, signedAt := range out.SigningTimes {
+		if signedAt.Source == domain.SigningTimeSourceTimestamp {
+			t.Fatalf("sello SHA-1 acreditado sin ajuste: %+v", signedAt)
+		}
+	}
+	excepciones.SetForTest(t, "sha1_leer", true)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	allowed, _, err := NewCAdESVerifier().VerifyDetachedCMSWithAnchors(ctx, cms, contenido, anchors)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, signedAt := range allowed.SigningTimes {
+		if signedAt.Source == domain.SigningTimeSourceTimestamp {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("sello autorizado sin fecha acreditada: %+v", allowed.SigningTimes)
+	}
+	hasWarning := false
+	for _, key := range warnings.Claves() {
+		if key == excepciones.Warning("sha1_leer") {
+			hasWarning = true
+		}
+	}
+	if !hasWarning {
+		t.Fatalf("falta aviso SHA-1 del sello: %+v", warnings.Claves())
+	}
+}
+
+func TestFechaFirmaCMS_SelloTSAConRSA1024NoCuentaValidado(t *testing.T) {
+	desde := time.Now().Add(-time.Hour)
+	ca := emitirCertSelloPrueba(t, plantillaSelloPrueba("CA sello", true, desde), nil)
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	template := plantillaSelloPrueba("TSA RSA corta", false, desde)
+	der, err := x509.CreateCertificate(rand.Reader, template, ca.cert, &key.PublicKey, ca.clave)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tsa := entidadSelloPrueba{cert: cert, clave: key}
+	valor := []byte("firma a sellar")
+	digest := sha256.Sum256(valor)
+	token, err := (tsaSelloPrueba{emisor: tsa, fecha: time.Now().Add(-time.Minute)}).RequestTimestamp(context.Background(), digest[:], crypto.SHA256)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fecha, validado, ok := comprobarSelloCMS(token, valor, ca.cert, domain.CertificateChain{DERCertificates: [][]byte{ca.cert.Raw}}, time.Now())
+	if !ok || fecha.IsZero() {
+		t.Fatal("el sello sintético no se pudo leer")
+	}
+	if validado {
+		t.Fatal("TSA RSA 1024 acreditada como sello válido")
 	}
 }

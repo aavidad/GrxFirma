@@ -9,9 +9,15 @@ package localtlstrust
 
 import (
 	"bytes"
+	"context"
+	"errors"
+	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -55,6 +61,9 @@ func dirClaveCA(t *testing.T) string {
 
 // No usa t.Parallel: cambia el almacén y el registro del paquete.
 func TestManagedCAKey_LinuxSinAlmacenGuardaEnFicheroPrivadoYAvisaUnaVez(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_clave_fichero")
+	excepciones.SetForTest(t, "ca_clave_fichero", true)
+
 	almacen := &almacenSecretosPrueba{datos: map[string][]byte{}, falla: true}
 	UseManagedCAKeyStorage(almacen)
 	t.Cleanup(func() { UseManagedCAKeyStorage(nil) })
@@ -64,10 +73,11 @@ func TestManagedCAKey_LinuxSinAlmacenGuardaEnFicheroPrivadoYAvisaUnaVez(t *testi
 	dir := dirClaveCA(t)
 	path := filepath.Join(dir, "websocket-localhost-root.key.pem")
 	clave := []byte("clave CA de prueba sin almacén")
-	if err := SaveManagedCAKey(path, clave); err != nil {
+	ctx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+	if err := SaveManagedCAKey(path, clave, ctx); err != nil {
 		t.Fatalf("sin almacén de secretos la CA local debe poder crearse en Linux: %v", err)
 	}
-	if got, err := LoadManagedCAKey(path); err != nil || !bytes.Equal(got, clave) {
+	if got, err := LoadManagedCAKey(path, ctx); err != nil || !bytes.Equal(got, clave) {
 		t.Fatalf("LoadManagedCAKey() = %q, %v", got, err)
 	}
 	dirInfo, err := os.Lstat(dir)
@@ -81,12 +91,17 @@ func TestManagedCAKey_LinuxSinAlmacenGuardaEnFicheroPrivadoYAvisaUnaVez(t *testi
 	if err := SaveManagedCAKey(path, []byte("otra clave CA sin almacén")); err != nil {
 		t.Fatal(err)
 	}
+	if !slices.Contains(operationWarnings.Claves(), excepciones.Warning("ca_clave_fichero")) {
+		t.Fatalf("falta aviso visible: %v", operationWarnings.Claves())
+	}
 	if n := strings.Count(registro.String(), eventoClaveCAEnFichero); n != 1 {
 		t.Fatalf("avisos de clave sin almacén = %d; want 1\n%s", n, registro.String())
 	}
 }
 
 func TestManagedCAKey_LinuxSinAlmacenNoSigueEnlaces(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_clave_fichero")
+	excepciones.SetForTest(t, "ca_clave_fichero", true)
 	almacen := &almacenSecretosPrueba{datos: map[string][]byte{}, falla: true}
 	UseManagedCAKeyStorage(almacen)
 	t.Cleanup(func() { UseManagedCAKeyStorage(nil) })
@@ -110,6 +125,8 @@ func TestManagedCAKey_LinuxSinAlmacenNoSigueEnlaces(t *testing.T) {
 }
 
 func TestManagedCAKey_LinuxMigraAlAlmacenCuandoAparece(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_clave_fichero")
+	excepciones.SetForTest(t, "ca_clave_fichero", true)
 	almacen := &almacenSecretosPrueba{datos: map[string][]byte{}, falla: true}
 	UseManagedCAKeyStorage(almacen)
 	t.Cleanup(func() { UseManagedCAKeyStorage(nil) })
@@ -170,4 +187,37 @@ func reiniciarAvisoClaveCAEnFichero(t *testing.T) {
 	t.Helper()
 	managedCAKeyFileWarning = sync.Once{}
 	t.Cleanup(func() { managedCAKeyFileWarning = sync.Once{} })
+}
+
+func TestManagedCAKey_LinuxExigeAjusteYRespetaLaDirectiva(t *testing.T) {
+	almacen := &almacenSecretosPrueba{datos: map[string][]byte{}, falla: true}
+	UseManagedCAKeyStorage(almacen)
+	t.Cleanup(func() { UseManagedCAKeyStorage(nil) })
+	path := filepath.Join(dirClaveCA(t), "root.key.pem")
+	for _, tc := range []struct {
+		name   string
+		policy func(*testing.T)
+	}{
+		{"sin_ajuste", func(t *testing.T) { machinepolicy.UnsetForTest(t, "permitir_ca_clave_fichero") }},
+		{"prohibido", func(t *testing.T) {
+			excepciones.SetForTest(t, "ca_clave_fichero", true)
+			machinepolicy.SetForTest(t, "permitir_ca_clave_fichero", false)
+		}},
+		{"ilegible", func(t *testing.T) {
+			excepciones.SetForTest(t, "ca_clave_fichero", true)
+			machinepolicy.ErrorForTest(t, "permitir_ca_clave_fichero", errors.New("ilegible"))
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.policy(t)
+			err := SaveManagedCAKey(path, []byte("clave de prueba"))
+			var block *excepciones.Block
+			if !errors.As(err, &block) || block.ID != "ca_clave_fichero" {
+				t.Fatalf("bloqueo: %v", err)
+			}
+			if _, err := os.Stat(path); !os.IsNotExist(err) {
+				t.Fatalf("fichero escrito pese al bloqueo: %v", err)
+			}
+		})
+	}
 }

@@ -61,7 +61,7 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
-	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/presentation/desktop/tokenpin"
 )
 
@@ -144,6 +144,9 @@ type aprobacionSistema struct {
 
 func (a *aprobacionSistema) Request(ctx context.Context, mensaje string) (bool, error) {
 	if a != nil && a.autoApprove {
+		if err := excepciones.Require(ctx, "aprobacion_automatica"); err != nil {
+			return false, err
+		}
 		if a.logger != nil {
 			a.logger.WarnContext(ctx, "nativehost_auto_approval_enabled")
 		}
@@ -277,7 +280,7 @@ func construirAdaptador(configDir, p12Dir, p12Password string, autoAprobacionPer
 	// petición que lo necesita.
 
 	aprobador := &aprobacionSistema{
-		autoApprove: autoAprobacionPermitida && machinepolicy.OptIn(machinepolicy.AprobacionAutomaticaHost),
+		autoApprove: autoAprobacionPermitida && excepciones.Enabled("aprobacion_automatica"),
 		logger:      logger,
 	}
 	httpClient := proxyhttp.New(configDir)
@@ -390,6 +393,7 @@ func main() {
 		writeErrorToLog(logger, ctx, "bootstrap", err)
 		os.Exit(1)
 	}
+	adaptador.WithDevelopmentCaller(!callerPolicy.isOfficialCaller(callerID))
 	limites := limits.FromEnv(limits.Default())
 	// El plazo del host queda por debajo del de la extensión (C-04).
 	operationTimeout := nativehost.PlazoOperacion(time.Duration(limites.MaxSessionSec) * time.Second)

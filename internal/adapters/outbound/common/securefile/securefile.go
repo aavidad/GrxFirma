@@ -56,6 +56,32 @@ func OpenAppend(path string, perm os.FileMode) (*os.File, error) {
 	return openAppendNoFollow(path, perm)
 }
 
+// OpenLockFile opens or creates a private regular file for reading, writing
+// and locking. It neither truncates the file nor follows the final symlink or
+// reparse point. Unlike OpenAppend, its handle supports Windows LockFileEx.
+func OpenLockFile(path string, perm os.FileMode) (*os.File, error) {
+	if strings.TrimSpace(path) == "" {
+		return nil, errors.New("securefile: empty path")
+	}
+	if strings.IndexByte(path, 0) >= 0 {
+		return nil, errors.New("securefile: path contains NUL")
+	}
+	file, err := openLockNoFollow(path, perm)
+	if err != nil {
+		return nil, err
+	}
+	info, err := file.Stat()
+	if err != nil {
+		_ = file.Close()
+		return nil, fmt.Errorf("securefile: stat lock file: %w", err)
+	}
+	if !info.Mode().IsRegular() {
+		_ = file.Close()
+		return nil, fmt.Errorf("securefile: lock path is not a regular file: %s", path)
+	}
+	return file, nil
+}
+
 // OpenDir opens a real directory without following a symlink/reparse point in
 // the final path component. The caller must close the returned handle.
 func OpenDir(path string) (*os.File, error) {

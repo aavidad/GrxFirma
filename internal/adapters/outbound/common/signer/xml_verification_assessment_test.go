@@ -14,6 +14,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,6 +24,8 @@ import (
 
 	"grxfirma/internal/adapters/outbound/common/asiccontainer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 // Las claves de estas pruebas sólo existen en memoria. Los helpers firman los
@@ -84,7 +87,65 @@ func requireCompatibility(t *testing.T, result domain.VerificationResult) {
 	}
 }
 
+func TestXMLAssessment_SignedInfoHistoricoYContenidoAlteradoNoSugiereAjuste(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", false)
+	key, cert := certForTest(t, "XML histórico alterado")
+	original := []byte(`<payload>original</payload>`)
+	firma := assessmentSignature(t, key, cert, `<root xmlns:unused="urn:contexto">`, `</root>`, "una", original, false, true)
+	_, err := assessDocument(t, firma, []byte(`<payload>alterado</payload>`))
+	if err == nil {
+		t.Fatal("el contenido alterado no puede verificarse")
+	}
+	var block *excepciones.Block
+	if errors.As(err, &block) && block.ID == "xml_c14n_antigua" {
+		t.Fatalf("SignedInfo histórico no debe ocultar contenido alterado: %v", err)
+	}
+}
+
+func TestXMLAssessment_SegundaFirmaAlteradaNoSugiereAjustePorPrimeraHistorica(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", false)
+	key, cert := certForTest(t, "XML dos firmas")
+	payload := []byte(`<payload>original</payload>`)
+	const prefix = `<root xmlns:unused="urn:contexto">`
+	const suffix = `</root>`
+	primera := assessmentSignature(t, key, cert, prefix, suffix, "una", payload, false, true)
+	segunda := assessmentSignature(t, key, cert, prefix, suffix, "dos", payload, false, false)
+	firmaSegunda := bytes.TrimSuffix(bytes.TrimPrefix(segunda, []byte(prefix)), []byte(suffix))
+	valida := bytes.Replace(primera, []byte(suffix), append(bytes.Clone(firmaSegunda), []byte(suffix)...), 1)
+	resultado, err := assessDocument(t, valida, payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if block := excepciones.FromText(resultado.Reason); block == nil || block.ID != "xml_c14n_antigua" || resultado.Valid {
+		t.Fatalf("dos firmas íntegras con una histórica deben ofrecer el ajuste sin declararse válidas: valid=%v motivo=%q", resultado.Valid, resultado.Reason)
+	}
+	firmaSegunda = bytes.Clone(firmaSegunda)
+	const marca = `<ds:SignatureValue>`
+	i := bytes.Index(firmaSegunda, []byte(marca))
+	if i < 0 {
+		t.Fatal("segunda firma sin valor")
+	}
+	i += len(marca)
+	if firmaSegunda[i] == 'A' {
+		firmaSegunda[i] = 'B'
+	} else {
+		firmaSegunda[i] = 'A'
+	}
+	combinada := bytes.Replace(primera, []byte(suffix), append(firmaSegunda, []byte(suffix)...), 1)
+	_, err = assessDocument(t, combinada, payload)
+	if err == nil {
+		t.Fatal("la segunda firma alterada no puede verificarse")
+	}
+	var block *excepciones.Block
+	if errors.As(err, &block) && block.ID == "xml_c14n_antigua" {
+		t.Fatalf("la primera firma histórica no debe ocultar la segunda alterada: %v", err)
+	}
+}
+
 func TestXMLAssessment_DeclaredRawAndHistoricalCompatibility(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	key, cert := certForTest(t, "XML assessment synthetic")
 	// XML sin canonicalizar: el raw normativo difiere de C14N (autocierre y
 	// namespace no usado). No debe degradarse por ser el último candidato viejo.
@@ -179,6 +240,7 @@ func TestXMLAssessment_DoesNotOmitIncompleteAdditionalSignature(t *testing.T) {
 }
 
 func TestXMLAssessment_ASiCKeepsHistoricalDiagnosisAndRejectsTampering(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	key, cert := certForTest(t, "ASiC compatibility synthetic")
 	payload := []byte(`<payload xmlns:unused="urn:unused"><item/></payload>`)
 	signed, err := buildASiCXAdESSignatureXML(&LocalSigningKey{Signer: key, Certificate: cert}, "payload.xml", payload, "application/xml", time.Now())
@@ -233,6 +295,7 @@ func TestXMLAssessment_ASiCKeepsHistoricalDiagnosisAndRejectsTampering(t *testin
 }
 
 func TestXMLAssessment_OOXMLSeparateSignatureEntriesAggregateCompatibility(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	key, cert := certForTest(t, "OOXML separate synthetic")
 	payload := []byte("synthetic")
 	entries := map[string][]byte{
@@ -505,6 +568,7 @@ func TestXMLAssessment_InheritedAlternativeNamespacePrefix(t *testing.T) {
 }
 
 func TestXMLAssessment_OfficeMultiSignatureContextAndCompatibility(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	key, cert := certForTest(t, "Office multi synthetic")
 	payload := []byte(`<payload><item/></payload>`)
 	for _, format := range []string{"ODF", "OOXML"} {

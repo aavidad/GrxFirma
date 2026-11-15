@@ -1004,7 +1004,7 @@ func TestRoutes_ProtectEncryptedDataWithoutRecipients(t *testing.T) {
 }
 
 func TestRoutes_ProtectSign(t *testing.T) {
-	mock := &protectAndSignUseCaseMock{}
+	mock := &protectAndSignUseCaseMock{avisos: []string{"excepciones.cms_rsa_v15_crear.aviso"}}
 	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).
 		WithSignedProtection(mock).
 		WithProtection(nil, nil, protectionRecipientsMock{recipients: []domain.ProtectionRecipient{{
@@ -1048,6 +1048,10 @@ func TestRoutes_ProtectSign(t *testing.T) {
 	}
 	if resp["documentName"] != "secreto.txt.signedenveloped.p7m" {
 		t.Fatalf("documentName inesperado: %#v", resp["documentName"])
+	}
+	warnings, ok := resp["warnings"].([]any)
+	if !ok || len(warnings) != 1 || !strings.Contains(warnings[0].(string), "RSA PKCS#1 v1.5") {
+		t.Fatalf("la respuesta REST debe mostrar el aviso localizado: %#v", resp["warnings"])
 	}
 }
 
@@ -3508,6 +3512,7 @@ func generarDestinatarioAuthEnvelopedREST(t *testing.T, id string) domain.Protec
 
 type protectAndSignUseCaseMock struct {
 	lastCmd application.ProtectAndSignCommand
+	avisos  []string
 }
 
 func (m *protectAndSignUseCaseMock) Execute(_ context.Context, cmd application.ProtectAndSignCommand) (application.ProtectAndSignResult, error) {
@@ -3523,6 +3528,7 @@ func (m *protectAndSignUseCaseMock) Execute(_ context.Context, cmd application.P
 			RecipientCount: len(cmd.RecipientIDs),
 		},
 		CertificateUsed: domain.CertificateRef{ID: cmd.CertificateID},
+		Warnings:        m.avisos,
 	}, nil
 }
 

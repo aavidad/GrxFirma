@@ -286,6 +286,7 @@ func TestExtractPDFSignature_OmiteClavesDentroDeValores(t *testing.T) {
 }
 
 func TestPAdES_X509LiteralConDelimitadoresDeterministas(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	// Estos bytes quedan siempre en el DER del certificado, aunque su clave sea aleatoria.
 	priv, cert := certForTest(t, `>> << /Contents <FFFF> /ByteRange [9 9 9 9] /SubFilter /falso /Cert (anidado) \ final`)
 	pdf := pdfFirmaHeredadaPrueba(t, subFiltroX509RSASHA1, certLiteralPDF(cert), firmaPKCS1Prueba(priv, crypto.SHA1))

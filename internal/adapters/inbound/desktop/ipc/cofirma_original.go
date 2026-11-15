@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"grxfirma/internal/adapters/outbound/common/signer"
+	"grxfirma/internal/security/excepciones"
 )
 
 // KD-03 en escritorio (lote 17b). Antes de cofirmar o contrafirmar, Qt y
@@ -110,7 +111,11 @@ const (
 // claves de catálogo y a un código estable; los demás errores se devuelven
 // como siempre.
 func (m *Manejador) respuestaErrorFirma(err error) respuesta {
-	resp := respuesta{OK: false, Action: "sign", Error: err.Error()}
+	resp := respuesta{OK: false, Action: "sign", Error: err.Error(), cause: err}
+	var block *excepciones.Block
+	if errors.As(err, &block) {
+		return resp
+	}
 	switch {
 	case errors.Is(err, signer.ErrCotejoSHA1Prohibido):
 		resp.ErrorCode = codigoCofirmaOriginalSHA1Prohibido

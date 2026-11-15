@@ -9,10 +9,14 @@
 package signingpolicy
 
 import (
+	"context"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/asn1"
 	"errors"
 	"time"
+
+	"grxfirma/internal/security/excepciones"
 )
 
 // ErrCertificateUnsuitable permite identificar un rechazo del preflight con errors.Is.
@@ -64,7 +68,18 @@ func (e *Error) Unwrap() error { return ErrCertificateUnsuitable }
 // metadatos del selector ni opciones de una petición. Los extremos de vigencia
 // son inclusivos. Una extensión KeyUsage ausente no impone restricciones de uso.
 // now debe proceder del reloj del adaptador, no de parámetros del documento.
-func ValidateCertificateDER(der []byte, now time.Time) error {
+func ValidateCertificateDER(der []byte, now time.Time, ctxs ...context.Context) error {
+	if err := validateCertificateDERCore(der, now); err != nil {
+		return err
+	}
+	cert, _ := x509.ParseCertificate(der)
+	if pub, ok := cert.PublicKey.(*rsa.PublicKey); ok && pub.N.BitLen() < 2048 {
+		return excepciones.Check("rsa_corta", ctxs...)
+	}
+	return nil
+}
+
+func validateCertificateDERCore(der []byte, now time.Time) error {
 	if len(der) == 0 {
 		return &Error{Reason: MissingIdentity}
 	}
@@ -89,6 +104,30 @@ func ValidateCertificateDER(der []byte, now time.Time) error {
 	}
 	if !usosAmpliadosPermitenFirma(cert) {
 		return &Error{Reason: DisallowedExtKeyUsage}
+	}
+	return nil
+}
+
+// ValidateSigningCertificateDER añade al resultado el aviso cuando se firma
+// con una clave RSA corta autorizada expresamente.
+func ValidateSigningCertificateDER(ctx context.Context, der []byte, now time.Time) error {
+	if err := validateCertificateDERCore(der, now); err != nil {
+		return err
+	}
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		return &Error{Reason: InvalidCertificate}
+	}
+	return CheckRSAKey(ctx, cert)
+}
+
+// CheckRSAKey sirve a motores que reciben un certificado ya analizado.
+func CheckRSAKey(ctx context.Context, cert *x509.Certificate) error {
+	if cert == nil {
+		return &Error{Reason: MissingIdentity}
+	}
+	if pub, ok := cert.PublicKey.(*rsa.PublicKey); ok && pub.N.BitLen() < 2048 {
+		return excepciones.Require(ctx, "rsa_corta")
 	}
 	return nil
 }

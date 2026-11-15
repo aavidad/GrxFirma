@@ -65,7 +65,7 @@ func NewAndroidFacade(filesDir, noBackupFilesDir string) (*Facade, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newPlatformFacade("android", true, temporaryDirectory)
+	return newPlatformFacade("android", true, temporaryDirectory, filesDir)
 }
 
 // NewIOSFacade monta la misma sesion criptografica para una UI nativa iOS.
@@ -85,10 +85,10 @@ func NewIOSFacade(applicationSupportDir, appGroupDir, keychainAccessGroup string
 	if err != nil {
 		return nil, err
 	}
-	return newPlatformFacade("ios", false, temporaryDirectory)
+	return newPlatformFacade("ios", false, temporaryDirectory, applicationSupportDir)
 }
 
-func newPlatformFacade(platform string, includeAndroidIntent bool, temporaryDirectory string) (*Facade, error) {
+func newPlatformFacade(platform string, includeAndroidIntent bool, temporaryDirectory, configDir string) (*Facade, error) {
 	store := newSessionIdentityStore()
 	approval := nativeExplicitApproval{}
 	signEngine := &mobileSignerEngine{
@@ -120,6 +120,8 @@ func newPlatformFacade(platform string, includeAndroidIntent bool, temporaryDire
 	facade.profileService = profileUseCase
 	facade.session = store
 	facade.temporaryDirectory = temporaryDirectory
+	facade.configDir = configDir
+	facade.platform = platform
 	facade.revocationMode = "embedded_evidence_only"
 	if includeAndroidIntent {
 		facade.androidIntentAdapter = androidintent.New(nil)

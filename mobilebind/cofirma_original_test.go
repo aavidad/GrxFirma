@@ -13,11 +13,14 @@ import (
 	"crypto/x509/pkix"
 	"encoding/base64"
 	"math/big"
+	"strings"
 	"testing"
 	"time"
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 // KD-03: otra app o persona comparte un .csig explícito («cofírmalo, ya lo he
@@ -66,6 +69,8 @@ func peticionCofirmaKD03(id, accion string, csig []byte) signRequest {
 }
 
 func TestSignJSONCofirmaCAdESExplicitaPideElOriginal(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_cofirma_sin_original")
+	excepciones.SetForTest(t, "cofirma_sin_original", true)
 	facade := newAndroidFacadeForTest(t)
 	id := importPKCS12(t, facade, ephemeralRSAPKCS12(t, "victima"), "victima")
 	csig := firmaExplicitaAtacanteKD03(t, documentoOcultoKD03)
@@ -131,11 +136,10 @@ func TestSignJSONCofirmaCAdESImplicitaNoPideOriginal(t *testing.T) {
 	}
 }
 
-// En el lote no se puede elegir el original de cada firma y la interfaz de
-// Android no pide confirmación. Por retrocompatibilidad (lote 16c) el lote
-// sigue cofirmando una CAdES explícita, y lo avisa en cada elemento afectado
-// y en el registro; la confirmación ya no es obligatoria.
+// El lote pide el ajuste persistente y la confirmación antes de cofirmar
+// una CAdES explícita sin original; el aviso queda en el elemento y el lote.
 func TestProcessBatchCofirmaCAdESExplicitaFirmaConAvisoPorElemento(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_cofirma_sin_original")
 	facade := newAndroidFacadeForTest(t)
 	id := importPKCS12(t, facade, ephemeralRSAPKCS12(t, "victima"), "victima")
 	csig := firmaExplicitaAtacanteKD03(t, documentoOcultoKD03)
@@ -152,25 +156,34 @@ func TestProcessBatchCofirmaCAdESExplicitaFirmaConAvisoPorElemento(t *testing.T)
 			},
 		},
 	}
-	for _, confirmado := range []bool{false, true} {
-		lote.ConfirmUnseenContent = confirmado
+	lote.ConfirmUnseenContent = true
+	if _, err := facade.ProcessBatchJSON(mustJSON(t, lote)); err == nil || !strings.Contains(err.Error(), "cofirma_sin_original") {
+		t.Fatalf("sin ajuste, la cofirma del lote debe bloquearse: %v", err)
+	}
+	excepciones.SetForTest(t, "cofirma_sin_original", true)
+	lote.ConfirmUnseenContent = false
+	if _, err := facade.ProcessBatchJSON(mustJSON(t, lote)); err == nil || err.Error() != mobileErrorCofirmaSinOriginal {
+		t.Fatalf("sin confirmación, la cofirma del lote debe bloquearse: %v", err)
+	}
+	lote.ConfirmUnseenContent = true
+	{
 		raw, err := facade.ProcessBatchJSON(mustJSON(t, lote))
 		if err != nil {
-			t.Fatalf("confirmado=%v: el lote debe firmar como antes: %v", confirmado, err)
+			t.Fatalf("confirmado: el lote debe firmar: %v", err)
 		}
 		var respuesta mobileBatchResponse
 		decodeResponse(t, raw, &respuesta)
 		if !respuesta.OK || len(respuesta.Items) != 2 {
-			t.Fatalf("confirmado=%v: el lote debe firmar los dos elementos: %+v", confirmado, respuesta)
+			t.Fatalf("el lote debe firmar los dos elementos: %+v", respuesta)
 		}
 		if w := respuesta.Items[0].Warnings; len(w) != 1 || w[0] != mobileAvisoCofirmaSinOriginal {
-			t.Fatalf("confirmado=%v: la cofirma sin original debe llevar su aviso: %+v", confirmado, respuesta.Items[0])
+			t.Fatalf("la cofirma sin original debe llevar su aviso: %+v", respuesta.Items[0])
 		}
 		if len(respuesta.Items[1].Warnings) != 0 {
-			t.Fatalf("confirmado=%v: una firma normal no lleva el aviso: %+v", confirmado, respuesta.Items[1])
+			t.Fatalf("una firma normal no lleva el aviso: %+v", respuesta.Items[1])
 		}
 		if len(respuesta.Warnings) != 1 || respuesta.Warnings[0] != mobileAvisoCofirmaSinOriginal {
-			t.Fatalf("confirmado=%v: el lote resume el aviso: %+v", confirmado, respuesta.Warnings)
+			t.Fatalf("el lote resume el aviso: %+v", respuesta.Warnings)
 		}
 	}
 }

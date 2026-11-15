@@ -26,6 +26,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/systemtrust"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 )
 
 // go-cryptobin convierte BER a DER mediante un contador global no protegido.
@@ -97,7 +98,7 @@ func NuevoCMSProtectorConAnclas(trustAnchors ports.TrustAnchorProvider) *CMSProt
 	return &CMSProtector{trustAnchors: trustAnchors}
 }
 
-func (p *CMSProtector) Protect(_ context.Context, job domain.ProtectionJob, recipients []domain.ProtectionRecipient) (domain.ProtectedPayload, error) {
+func (p *CMSProtector) Protect(ctx context.Context, job domain.ProtectionJob, recipients []domain.ProtectionRecipient) (domain.ProtectedPayload, error) {
 	if err := job.Validate(); err != nil {
 		return domain.ProtectedPayload{}, err
 	}
@@ -132,6 +133,12 @@ func (p *CMSProtector) Protect(_ context.Context, job domain.ProtectionJob, reci
 		blob           []byte
 		recipientCount int
 	)
+	transporteHeredado := normalizeProtectionContainerToken(job.Options["cms_key_transport"]) == "pkcs1v15"
+	if (contentType == cmsContentTypeNone || contentType == cmsContentTypeEnvelopedData) && transporteHeredado {
+		if err := excepciones.Require(ctx, "cms_rsa_v15_crear"); err != nil {
+			return domain.ProtectedPayload{}, err
+		}
+	}
 	switch contentType {
 	case cmsContentTypeEncryptedData:
 		secret, err := requiredProtectionSecret(
@@ -164,13 +171,23 @@ func (p *CMSProtector) Protect(_ context.Context, job domain.ProtectionJob, reci
 			}
 			certs = append(certs, compatCert)
 		}
+		keyEncrypt := cryptobinpkcs7.KeyEncrypt(cmsOAEP256KeyEncrypt{})
+		if transporteHeredado {
+			keyEncrypt = cryptobinpkcs7.KeyEncryptRSA
+		}
 		blob, err = cryptobinpkcs7.Encrypt(rand.Reader, job.Document.Content, certs, cryptobinpkcs7.Opts{
 			Cipher:     cryptobinpkcs7.AES256GCM,
-			KeyEncrypt: cryptobinpkcs7.KeyEncryptRSA,
+			KeyEncrypt: keyEncrypt,
 			Mode:       cryptobinpkcs7.DefaultMode,
 		})
 		if err != nil {
 			return domain.ProtectedPayload{}, fmt.Errorf("creando sobre CMS: %w", err)
+		}
+		if !transporteHeredado {
+			blob, err = completarParametrosOAEP256(blob)
+			if err != nil {
+				return domain.ProtectedPayload{}, err
+			}
 		}
 		recipientCount = len(certs)
 	}
@@ -200,9 +217,18 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 		// antes cuál es (F-06). Uno heredado se descifra con aviso, salvo que
 		// la política de máquina lo prohíba. EncryptedData se trata luego
 		// para dar un error más claro si falta PSK.
-		revision, err = revisarCMS(protected.Content)
+		revision, err = revisarCMS(protected.Content, ctx)
 		if err != nil {
 			return domain.UnprotectedPayload{}, err
+		}
+		contentRevision := revision
+		if contentType == cmsContentTypeEnvelopedData {
+			contentRevision.rsaV15 = false
+		}
+		for _, id := range contentRevision.excepciones() {
+			if err := excepciones.Require(ctx, id); err != nil {
+				return domain.UnprotectedPayload{}, err
+			}
 		}
 	case cmsContentTypeSignedEnvelopedData:
 		var anchors ports.TrustAnchorProvider
@@ -253,30 +279,45 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 	if revision.sinAjenos != nil {
 		sobre = revision.sinAjenos
 	}
-	for _, key := range keys {
-		if !key.Supports(domain.ProtectionProfileCompat) {
-			continue
+	// Preferimos los destinatarios OAEP: la presencia de otro destinatario
+	// v1.5 no obliga a habilitarlo si la clave propia abre el sobre seguro.
+	for _, legacyTransport := range []bool{false, true} {
+		for _, key := range keys {
+			if !key.Supports(domain.ProtectionProfileCompat) {
+				continue
+			}
+			if len(key.CertificateDER) == 0 {
+				continue
+			}
+			cert, priv, err := parseCMSRSAKeyMaterial(key)
+			if err != nil {
+				continue
+			}
+			algorithm, found := revision.transportePara(cert)
+			if !found || algorithm.Equal(oidCMSRSAPKCS1v15) != legacyTransport {
+				continue
+			}
+			if legacyTransport {
+				if err := excepciones.Require(ctx, "cms_rsa_v15_leer"); err != nil {
+					return domain.UnprotectedPayload{}, err
+				}
+			}
+			plaintext, err := decryptCMSEnvelopedData(ctx, sobre, cert, priv)
+			if err != nil {
+				continue
+			}
+			doc, err := domain.NewDocument(unprotectedCMSFileName(protected.Name), plaintext, inferUnprotectedMIME(protected.MIMEType))
+			if err != nil {
+				return domain.UnprotectedPayload{}, err
+			}
+			selectedRevision := revision
+			selectedRevision.rsaV15 = legacyTransport
+			return conAvisosRevisionCMS(domain.UnprotectedPayload{
+				Document:    doc,
+				Profile:     domain.ProtectionProfileCompat,
+				RecipientID: key.RecipientID,
+			}, selectedRevision), nil
 		}
-		if len(key.CertificateDER) == 0 {
-			continue
-		}
-		cert, priv, err := parseCMSRSAKeyMaterial(key)
-		if err != nil {
-			continue
-		}
-		plaintext, err := decryptCMSEnvelopedData(sobre, cert, priv)
-		if err != nil {
-			continue
-		}
-		doc, err := domain.NewDocument(unprotectedCMSFileName(protected.Name), plaintext, inferUnprotectedMIME(protected.MIMEType))
-		if err != nil {
-			return domain.UnprotectedPayload{}, err
-		}
-		return conAvisosRevisionCMS(domain.UnprotectedPayload{
-			Document:    doc,
-			Profile:     domain.ProtectionProfileCompat,
-			RecipientID: key.RecipientID,
-		}, revision), nil
 	}
 	return domain.UnprotectedPayload{}, errors.New("no se pudo desproteger el sobre CMS con las claves disponibles")
 }
@@ -467,8 +508,8 @@ func parseCMSRecipientCertificate(recipient domain.ProtectionRecipient, profile 
 	if !ok {
 		return nil, fmt.Errorf("el destinatario '%s' no usa clave RSA compatible con CMS", recipient.ID)
 	}
-	// El transporte CMS actual es RSAES-PKCS1-v1_5: KeyAgreement no autoriza
-	// por sí solo a usar el certificado para cifrar la CEK.
+	// El transporte de la CEK requiere KeyEncipherment tanto para OAEP como
+	// para la excepción PKCS#1 v1.5.
 	if cert.KeyUsage != 0 && cert.KeyUsage&x509.KeyUsageKeyEncipherment == 0 {
 		return nil, fmt.Errorf("el certificado del destinatario '%s' no permite cifrado de clave", recipient.ID)
 	}
@@ -521,11 +562,39 @@ func parseCMSRSAKeyMaterial(key domain.ProtectionKeyMaterial) (*x509.Certificate
 	return cert, priv, nil
 }
 
-func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.PrivateKey) ([]byte, error) {
+func decryptCMSEnvelopedData(ctx context.Context, data []byte, cert *x509.Certificate, priv *rsa.PrivateKey) ([]byte, error) {
+	revision, err := revisarCMS(data, ctx)
+	if err != nil {
+		return nil, err
+	}
+	algorithm, found := revision.transportePara(cert)
+	if !found {
+		return nil, errors.New("no se encontró un destinatario CMS para el certificado")
+	}
+	legacyTransport := algorithm.Equal(oidCMSRSAPKCS1v15)
+	if legacyTransport {
+		if err := excepciones.Check("cms_rsa_v15_leer", ctx); err != nil {
+			return nil, err
+		}
+	}
+	if !legacyTransport && !algorithm.Equal(oidCMSRSAESOAEP) {
+		return nil, errors.New("transporte de clave CMS no permitido")
+	}
+	// Nunca se pasa OAEP al lector digitorus: ignora el OID de transporte y
+	// puede abrir ciphertext PKCS#1 v1.5 mal etiquetado como OAEP.
 	if err := comprobarAnidamientoCMS(data); err != nil {
 		return nil, err
 	}
+	// La dependencia reconoce el cifrado OAEP-SHA-256 con un OID interno
+	// distinto del OID estándar del sobre. Verificamos primero los parámetros
+	// explícitos y adaptamos solo la copia que recibe la biblioteca.
+	adaptado, _, err := transformarOAEP256(data, false)
+	if err != nil {
+		return nil, err
+	}
+	data = adaptado
 	compatCert, err := cryptobinx509.ParseCertificate(cert.Raw)
+	var primaryErr error = err
 	if err == nil {
 		var (
 			plaintext  []byte
@@ -539,6 +608,10 @@ func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.Priv
 		if decryptErr == nil {
 			return plaintext, nil
 		}
+		primaryErr = decryptErr
+	}
+	if !legacyTransport {
+		return nil, primaryErr
 	}
 
 	// Compatibilidad de lectura con los contenedores V2 emitidos antes de

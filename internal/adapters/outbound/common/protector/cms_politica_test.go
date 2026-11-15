@@ -13,6 +13,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"math/big"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -21,6 +22,7 @@ import (
 	cryptobinx509 "github.com/deatil/go-cryptobin/x509"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -122,13 +124,26 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 	}
 	machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, false)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, false)
+	for _, caso := range heredados {
+		if _, err := abrir(caso.doc, caso.claves); err == nil || excepciones.FromText(err.Error()) == nil {
+			t.Fatalf("el lector heredado debe bloquear sin ajuste: %v", err)
+		}
+		break
+	}
+	excepciones.SetForTest(t, "cms_cifrado_heredado", true)
+	excepciones.SetForTest(t, "cms_cbc", true)
+	excepciones.SetForTest(t, "cms_rsa_v15_leer", true)
+	for _, id := range []string{"cms_cifrado_heredado", "cms_cbc", "cms_rsa_v15_leer"} {
+		e, _ := excepciones.Find(id)
+		machinepolicy.UnsetForTest(t, e.PolicyKey)
+	}
 	for nombre, caso := range heredados {
 		out, err := abrir(caso.doc, caso.claves)
 		if err != nil {
 			t.Errorf("%s: lo que se abría antes debe seguir abriéndose: %v", nombre, err)
 			continue
 		}
-		if len(out.Avisos) != 1 || out.Avisos[0] != avisoCMSCifradoHeredado {
+		if len(out.Avisos) == 0 || out.Avisos[0] != excepciones.Warning("cms_cifrado_heredado") {
 			t.Errorf("%s: falta el aviso visible: %v", nombre, out.Avisos)
 		}
 		if len(out.Detalles) != 1 || !strings.HasPrefix(out.Detalles[0], detalleCMSCifradoHeredado) ||
@@ -137,8 +152,7 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 		}
 	}
 
-	// Lo que escribe GrxFirma y AES-CBC (lo que emite `openssl cms -encrypt`
-	// por defecto) se abre sin aviso, con o sin la política.
+	// GCM no requiere ajuste de cifrado; CBC sí lo requiere y avisa.
 	actuales := map[string]struct {
 		doc    domain.Document
 		claves []domain.ProtectionKeyMaterial
@@ -149,12 +163,14 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 		"EncryptedData AES-256-GCM": {encryptedConCifrado(t, cryptobinpkcs7.AES256GCM, secreto), claveSimetrica},
 		"EncryptedData AES-256-CBC": {encryptedConCifrado(t, cryptobinpkcs7.AES256CBC, secreto), claveSimetrica},
 	}
-	for _, prohibir := range []bool{false, true} {
-		machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, prohibir)
-		for nombre, caso := range actuales {
-			if out, err := abrir(caso.doc, caso.claves); err != nil || len(out.Avisos) != 0 || len(out.Detalles) != 0 {
-				t.Errorf("%s (prohibir=%v): %v %v", nombre, prohibir, err, out.Avisos)
-			}
+	for nombre, caso := range actuales {
+		out, err := abrir(caso.doc, caso.claves)
+		if err != nil {
+			t.Errorf("%s: %v", nombre, err)
+			continue
+		}
+		if strings.Contains(nombre, "CBC") && !slices.Contains(out.Avisos, excepciones.Warning("cms_cbc")) {
+			t.Errorf("%s: falta aviso CBC: %v", nombre, out.Avisos)
 		}
 	}
 
@@ -164,8 +180,16 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
 	for nombre, caso := range heredados {
 		_, err := abrir(caso.doc, caso.claves)
-		if err == nil || !strings.Contains(err.Error(), machinepolicy.ProhibirCifradoCMSHeredado) {
+		if err == nil || excepciones.FromText(err.Error()) == nil {
 			t.Errorf("%s: la política prohibir_cifrado_cms_heredado debe impedirlo: %v", nombre, err)
+		}
+	}
+	for nombre, caso := range actuales {
+		if !strings.Contains(nombre, "CBC") {
+			continue
+		}
+		if _, err := abrir(caso.doc, caso.claves); err == nil || excepciones.FromText(err.Error()) == nil {
+			t.Errorf("%s: política debe impedir CBC: %v", nombre, err)
 		}
 	}
 }

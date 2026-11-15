@@ -27,6 +27,7 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 )
 
 const chunkSize = 512 * 1024
@@ -92,17 +93,26 @@ type VerifySignatureUseCase interface {
 
 // Adaptador implementa el host Native Messaging para el borde de escritorio.
 type Adaptador struct {
-	Catalogo        ports.CertificateCatalog
-	Firmar          SignDocumentUseCase
-	Verificar       VerifySignatureUseCase
-	ProbarIdentidad GeneradorPruebaIdentidadLocal
-	TrustPolicy     ports.TrustPolicy
-	Metrics         ports.OperationMetrics
-	Limits          limits.Limits
-	RequireCaller   bool
+	Catalogo          ports.CertificateCatalog
+	Firmar            SignDocumentUseCase
+	Verificar         VerifySignatureUseCase
+	ProbarIdentidad   GeneradorPruebaIdentidadLocal
+	TrustPolicy       ports.TrustPolicy
+	Metrics           ports.OperationMetrics
+	Limits            limits.Limits
+	RequireCaller     bool
+	DevelopmentCaller bool
 
 	replayMu sync.Mutex
 	seenIDs  map[string]time.Time
+}
+
+// WithDevelopmentCaller marca la sesión de una extensión de pruebas autorizada.
+func (a *Adaptador) WithDevelopmentCaller(enabled bool) *Adaptador {
+	if a != nil {
+		a.DevelopmentCaller = enabled
+	}
+	return a
 }
 
 // New construye el adaptador Native Messaging.
@@ -154,6 +164,7 @@ type response struct {
 	Certificates  []certificateJSON          `json:"certificates,omitempty"`
 	Signature     string                     `json:"signature,omitempty"`
 	SignatureLen  int                        `json:"signatureLen,omitempty"`
+	Warnings      []string                   `json:"warnings,omitempty"`
 	Result        *verifyResultJSON          `json:"result,omitempty"`
 	IdentityProof *identityProofMetadataJSON `json:"identityProof,omitempty"`
 	Chunk         int                        `json:"chunk"`
@@ -169,11 +180,13 @@ type certificateJSON struct {
 }
 
 type verifyResultJSON struct {
-	Valid             bool     `json:"valid"`
-	Reason            string   `json:"reason,omitempty"`
-	Details           []string `json:"details,omitempty"`
-	Signers           []string `json:"signers,omitempty"`
-	CertificateStatus string   `json:"certificateStatus,omitempty"`
+	Valid             bool                          `json:"valid"`
+	Reason            string                        `json:"reason,omitempty"`
+	Details           []string                      `json:"details,omitempty"`
+	Warnings          []string                      `json:"warnings,omitempty"`
+	Evidence          []domain.VerificationEvidence `json:"evidence,omitempty"`
+	Signers           []string                      `json:"signers,omitempty"`
+	CertificateStatus string                        `json:"certificateStatus,omitempty"`
 }
 
 // ServeOnce procesa una unica peticion Native Messaging sobre stdin/stdout.
@@ -195,7 +208,23 @@ func (a *Adaptador) ServeOnce(ctx context.Context, callerID string, r io.Reader,
 }
 
 // Process traduce un payload Native Messaging a una o varias respuestas JSON.
-func (a *Adaptador) Process(ctx context.Context, callerID string, payload []byte) ([][]byte, error) {
+func (a *Adaptador) Process(ctx context.Context, callerID string, payload []byte) (responses [][]byte, processErr error) {
+	defer func() {
+		if a == nil || !a.DevelopmentCaller || processErr != nil {
+			return
+		}
+		for i, raw := range responses {
+			var item response
+			if json.Unmarshal(raw, &item) != nil || !item.Success {
+				continue
+			}
+			item.Warnings = domain.UnirAvisos(item.Warnings, excepciones.Warning("llamante_desarrollo"))
+			encoded, err := json.Marshal(item)
+			if err == nil {
+				responses[i] = encoded
+			}
+		}
+	}()
 	inicio := time.Now()
 	op := "desconocido"
 	estado := "error"
@@ -354,7 +383,14 @@ func (a *Adaptador) handleSign(ctx context.Context, reqID, callerID string, req 
 		return marshalResponses([]response{errorResponse(reqID, err.Error())})
 	}
 	signature := base64.StdEncoding.EncodeToString(result.Result.Data)
-	return marshalResponses(chunkSignature(reqID, signature))
+	parts := chunkSignature(reqID, signature)
+	if len(parts) > 0 {
+		parts[0].Warnings = result.Warnings
+		if a.DevelopmentCaller {
+			parts[0].Warnings = domain.UnirAvisos(parts[0].Warnings, excepciones.Warning("llamante_desarrollo"))
+		}
+	}
+	return marshalResponses(parts)
 }
 
 func (a *Adaptador) claimRequestID(requestID string, now time.Time) error {
@@ -451,6 +487,10 @@ func (a *Adaptador) handleVerify(ctx context.Context, reqID string, req request)
 	for _, signer := range result.Firmantes {
 		signers = append(signers, signer.ID)
 	}
+	warnings := result.Verification.Warnings
+	if a.DevelopmentCaller {
+		warnings = domain.UnirAvisos(warnings, excepciones.Warning("llamante_desarrollo"))
+	}
 	return marshalResponses([]response{{
 		RequestID: reqID,
 		Success:   true,
@@ -458,6 +498,8 @@ func (a *Adaptador) handleVerify(ctx context.Context, reqID string, req request)
 			Valid:             result.Verification.Valid,
 			Reason:            result.Verification.Reason,
 			Details:           result.Verification.Details,
+			Warnings:          warnings,
+			Evidence:          result.Verification.Evidence,
 			Signers:           signers,
 			CertificateStatus: string(result.Verification.Certificate.Status),
 		},

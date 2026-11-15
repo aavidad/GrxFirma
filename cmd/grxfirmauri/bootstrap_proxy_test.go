@@ -15,16 +15,64 @@ import (
 	"crypto/x509/pkix"
 	"encoding/base64"
 	"math/big"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"os"
+	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"grxfirma/internal/adapters/outbound/common/revocationclient"
+	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/internal/testsupport/tsatest"
 )
+
+type runtimeProxyRoundTrip func(*http.Request) (*http.Response, error)
+
+func (f runtimeProxyRoundTrip) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+
+func TestTSAConProxyCredencialesHTTPAvisosEnMismoContextoSinSocket(t *testing.T) {
+	for _, id := range []string{"tsa_http", "proxy_http"} {
+		e, _ := excepciones.Find(id)
+		machinepolicy.UnsetForTest(t, e.PolicyKey)
+		excepciones.SetForTest(t, id, true)
+	}
+	enabled, typ, host, port, secretID := true, "manual", "proxy.example", 3128, "secret-1"
+	loader := func(context.Context, string) (ports.DocumentoConfiguracionUsuario, error) {
+		return docWithProxy(ports.ConfiguracionUsuarioProxy{Enabled: &enabled, Type: &typ, Host: &host, Port: &port, SecretID: &secretID}), nil
+	}
+	secrets := &proxySecretLoaderMock{status: ports.ProxySecretStoreStatus{Available: true}, material: ports.ProxySecretMaterial{Username: "usuario", Password: []byte("secreto")}}
+	transport := construirTransporteHTTPCompartidoConDependencias(t.TempDir(), loader, secrets)
+	responder := tsatest.NewResponder(t)
+	client := &http.Client{Transport: runtimeProxyRoundTrip(func(req *http.Request) (*http.Response, error) {
+		proxyURL, err := transport.Proxy(req)
+		if err != nil || proxyURL == nil || proxyURL.User == nil {
+			t.Errorf("petición TSA perdió proxy: %v, %v", proxyURL, err)
+			return nil, err
+		}
+		recorder := httptest.NewRecorder()
+		responder.ServeHTTP(recorder, req)
+		return recorder.Result(), nil
+	})}
+	tsa := construirTSAClienteRuntime("http://tsa.example.invalid/tsr", client)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	hash := crypto.SHA256.New().Sum(nil)
+	if _, err := tsa.RequestTimestamp(ctx, hash, crypto.SHA256); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"tsa_http", "proxy_http"} {
+		if !slices.Contains(warnings.Claves(), excepciones.Warning(id)) {
+			t.Fatalf("falta aviso %s en la misma operación: %v", id, warnings.Claves())
+		}
+	}
+}
 
 func TestConstruirTSAClienteRuntime_ReutilizaClienteCompartido(t *testing.T) {
 	t.Parallel()
@@ -115,7 +163,11 @@ func TestResolverClienteHTTPRuntime_UsaClienteExistenteSinReleerSettings(t *test
 }
 
 func TestConstruirTSAClienteRuntime_E2EUsaProxySeguroCompartido(t *testing.T) {
-	t.Parallel()
+	for _, id := range []string{"tsa_http", "proxy_http"} {
+		e, _ := excepciones.Find(id)
+		machinepolicy.UnsetForTest(t, e.PolicyKey)
+		excepciones.SetForTest(t, id, true)
+	}
 
 	var (
 		proxySeen bool
@@ -160,8 +212,14 @@ func TestConstruirTSAClienteRuntime_E2EUsaProxySeguroCompartido(t *testing.T) {
 	client := construirClienteTrifasicoConDependencias("/tmp/config", loader, secrets)
 	tsa := construirTSAClienteRuntime(targetURL, client)
 	hash := crypto.SHA256.New().Sum(nil)
-	if _, err := tsa.RequestTimestamp(context.Background(), hash, crypto.SHA256); err != nil {
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	if _, err := tsa.RequestTimestamp(ctx, hash, crypto.SHA256); err != nil {
 		t.Fatalf("RequestTimestamp() error = %v", err)
+	}
+	for _, id := range []string{"tsa_http", "proxy_http"} {
+		if !slices.Contains(warnings.Claves(), excepciones.Warning(id)) {
+			t.Fatalf("falta aviso de %s en resultado: %v", id, warnings.Claves())
+		}
 	}
 
 	if !proxySeen {
@@ -177,7 +235,13 @@ func TestConstruirTSAClienteRuntime_E2EUsaProxySeguroCompartido(t *testing.T) {
 }
 
 func TestConstruirRevocationProviderRuntime_E2EUsaProxySeguroCompartido(t *testing.T) {
-	t.Parallel()
+	probarRevocacionProxyCompartido(t, false)
+}
+func TestConstruirRevocationProviderRuntime_E2EProxyHTTPS_DestinoHTTP_SinExcepcion(t *testing.T) {
+	probarRevocacionProxyCompartido(t, true)
+}
+func probarRevocacionProxyCompartido(t *testing.T, tlsProxy bool) {
+	t.Helper()
 
 	now := time.Now()
 	caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -239,18 +303,33 @@ func TestConstruirRevocationProviderRuntime_E2EUsaProxySeguroCompartido(t *testi
 		urlSeen   string
 	)
 	targetURL := "http://8.8.8.8/list.crl"
-	proxySrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	proxyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if (r.TLS != nil) != tlsProxy {
+			t.Error("el esquema del proxy no coincide con su transporte")
+		}
 		proxySeen = true
 		authSeen = r.Header.Get("Proxy-Authorization")
 		urlSeen = r.URL.String()
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(crlDER)
-	}))
+	})
+	var proxySrv *httptest.Server
+	if tlsProxy {
+		proxySrv = httptest.NewTLSServer(proxyHandler)
+	} else {
+		proxySrv = httptest.NewServer(proxyHandler)
+	}
 	defer proxySrv.Close()
 
 	host, port := splitProxyHostPort(t, proxySrv.URL)
 	enabled := true
 	typ := "manual"
+	if tlsProxy {
+		typ = "system"
+		t.Setenv("HTTP_PROXY", strings.Replace(proxySrv.URL, "https://", "https://alberto:secreto@", 1))
+		t.Setenv("HTTPS_PROXY", os.Getenv("HTTP_PROXY"))
+		t.Setenv("NO_PROXY", "")
+	}
 	secretID := "secret-1"
 	loader := func(context.Context, string) (ports.DocumentoConfiguracionUsuario, error) {
 		return docWithProxy(ports.ConfiguracionUsuarioProxy{
@@ -273,11 +352,28 @@ func TestConstruirRevocationProviderRuntime_E2EUsaProxySeguroCompartido(t *testi
 		},
 	}
 
-	client := construirClienteTrifasicoConDependencias("/tmp/config", loader, secrets)
+	configDir := t.TempDir()
+	var operationCtx context.Context
+	var warnings *domain.AvisosOperacion
+	if tlsProxy {
+		machinepolicy.UnsetForTest(t, "permitir_proxy_http")
+		excepciones.SetForTest(t, "proxy_http", false)
+		operationCtx, warnings = domain.ConAvisosOperacion(excepciones.WithConfigDir(context.Background(), configDir))
+	} else {
+		operationCtx, warnings = aceptarExcepcionProtocoloPrueba(t, configDir, "proxy_http")
+	}
+	client := construirClienteTrifasicoConDependencias(configDir, loader, secrets)
+	if tlsProxy {
+		transport := client.Transport.(*http.Transport)
+		transport.TLSClientConfig = proxySrv.Client().Transport.(*http.Transport).TLSClientConfig.Clone()
+		if transport.TLSClientConfig.InsecureSkipVerify {
+			t.Fatal("el cliente debe confiar en la CA sin desactivar TLS")
+		}
+	}
 	provider := construirRevocationProviderRuntime(client)
 
 	leaf.CRLDistributionPoints = []string{targetURL}
-	evidence, err := provider.Fetch(context.Background(), leaf, issuer)
+	evidence, err := provider.Fetch(operationCtx, leaf, issuer)
 	if err != nil {
 		t.Fatalf("Fetch() error = %v", err)
 	}
@@ -294,21 +390,25 @@ func TestConstruirRevocationProviderRuntime_E2EUsaProxySeguroCompartido(t *testi
 	if authSeen != wantAuth {
 		t.Fatalf("Proxy-Authorization = %q, want %q", authSeen, wantAuth)
 	}
+	if slices.Contains(warnings.Claves(), excepciones.Warning("proxy_http")) == tlsProxy {
+		t.Fatalf("proxy TLS=%v avisos=%v", tlsProxy, warnings.Claves())
+	}
+
 }
 
 func splitProxyHostPort(t *testing.T, raw string) (string, int) {
 	t.Helper()
-	trimmed := strings.TrimPrefix(raw, "http://")
-	host, portText, ok := strings.Cut(trimmed, ":")
-	if !ok {
-		t.Fatalf("proxy URL inesperada: %q", raw)
+	parsed, err := url.Parse(raw)
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		t.Fatalf("proxy URL inesperada: %q (%v)", raw, err)
 	}
-	port := 0
-	for _, ch := range portText {
-		if ch < '0' || ch > '9' {
-			t.Fatalf("puerto proxy inesperado: %q", portText)
-		}
-		port = port*10 + int(ch-'0')
+	host, portText, err := net.SplitHostPort(parsed.Host)
+	if err != nil || host == "" {
+		t.Fatalf("host y puerto proxy inesperados: %q (%v)", raw, err)
+	}
+	port, err := strconv.Atoi(portText)
+	if err != nil || port < 1 || port > 65535 {
+		t.Fatalf("puerto proxy inesperado: %q", portText)
 	}
 	return host, port
 }

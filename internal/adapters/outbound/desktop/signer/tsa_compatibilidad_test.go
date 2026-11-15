@@ -11,14 +11,45 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
 
 	"grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/internal/testsupport/tsatest"
 )
+
+func permitirTSAHTTPPrueba(t *testing.T) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+	excepciones.SetForTest(t, "tsa_http", true)
+}
+
+// Usa el recibo persistido por la interfaz local, sin sustituir la decisión de usuario.
+func contextoConAceptacionTSAHTTP(t *testing.T) (context.Context, *domain.AvisosOperacion) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+	dir := t.TempDir()
+	ctx := excepciones.WithConfigDir(context.Background(), dir)
+	_, err := excepciones.ActivateLocal(excepciones.ForLocalDesktop(ctx), dir, excepciones.ActivationRequest{
+		ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
+	})
+	if err != nil {
+		t.Fatalf("no se pudo aceptar TSA HTTP en la configuración temporal: %v", err)
+	}
+	return domain.ConAvisosOperacion(ctx)
+}
+
+func exigirAvisoTSAHTTP(t *testing.T, avisos *domain.AvisosOperacion) {
+	t.Helper()
+	if !slices.Contains(avisos.Claves(), excepciones.Warning("tsa_http")) {
+		t.Fatalf("falta aviso TSA HTTP: %q", avisos.Claves())
+	}
+}
 
 // tsaLocalContada arranca una TSA de prueba en 127.0.0.1 que cuenta las
 // peticiones.
@@ -59,6 +90,7 @@ func capturarRegistro(t *testing.T) *bytes.Buffer {
 // pasada como opción vuelve a funcionar; queda un aviso con el host, sin la
 // ruta ni la consulta.
 func TestMotorFirmaGo_TSADeOpcionesREST_RedLocalConAviso(t *testing.T) {
+	permitirTSAHTTPPrueba(t)
 	srv, peticiones := tsaLocalContada(t)
 	registro := capturarRegistro(t)
 	priv, cert := generarCertRSA(t)
@@ -68,9 +100,11 @@ func TestMotorFirmaGo_TSADeOpcionesREST_RedLocalConAviso(t *testing.T) {
 	// tsaclient ya rechazaba credenciales en la URL; aquí se comprueba que el
 	// aviso no lleva ruta ni consulta.
 	tsaURL := srv.URL + "/ruta/privada?x=1"
-	if _, err := motor.Sign(context.Background(), trabajoXAdEST(t, tsaURL), clave); err != nil {
+	ctx, avisosOperacion := domain.ConAvisosOperacion(context.Background())
+	if _, err := motor.Sign(ctx, trabajoXAdEST(t, tsaURL), clave); err != nil {
 		t.Fatalf("por REST la TSA interna debía admitirse: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 	if peticiones.Load() == 0 {
 		t.Fatal("no se consultó la TSA interna")
 	}
@@ -87,6 +121,7 @@ func TestMotorFirmaGo_TSADeOpcionesREST_RedLocalConAviso(t *testing.T) {
 
 // Con la lista de TSA permitidas definida, REST solo admite las de la lista.
 func TestMotorFirmaGo_TSADeOpcionesREST_ListaRestringe(t *testing.T) {
+	permitirTSAHTTPPrueba(t)
 	srv, peticiones := tsaLocalContada(t)
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
@@ -99,9 +134,11 @@ func TestMotorFirmaGo_TSADeOpcionesREST_ListaRestringe(t *testing.T) {
 		t.Fatalf("la TSA fuera de la lista recibió %d peticiones", peticiones.Load())
 	}
 	dentro := signer.NuevoMotorFirmaGo(nil).AvisarTSADeOpcionesEnRedLocal().ConTSAPermitidas([]string{srv.URL + "/tsa"})
-	if _, err := dentro.Sign(context.Background(), trabajoXAdEST(t, srv.URL), clave); err != nil {
+	ctx, avisosOperacion := domain.ConAvisosOperacion(context.Background())
+	if _, err := dentro.Sign(ctx, trabajoXAdEST(t, srv.URL), clave); err != nil {
 		t.Fatalf("una TSA de la lista debía admitirse: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 	vacia := signer.NuevoMotorFirmaGo(nil).AvisarTSADeOpcionesEnRedLocal().ConTSAPermitidas([]string{})
 	if _, err := vacia.Sign(context.Background(), trabajoXAdEST(t, srv.URL), clave); err == nil {
 		t.Fatal("una lista definida y vacía no debía admitir ninguna TSA de opciones")
@@ -111,6 +148,7 @@ func TestMotorFirmaGo_TSADeOpcionesREST_ListaRestringe(t *testing.T) {
 // En los caminos web (afirma://, WebSocket, nativehost) una TSA interna sigue
 // rechazada salvo que esté en la lista; la lista no restringe las públicas.
 func TestMotorFirmaGo_TSADeOpcionesWeb_ListaSoloExceptua(t *testing.T) {
+	permitirTSAHTTPPrueba(t)
 	srv, peticiones := tsaLocalContada(t)
 	priv, cert := generarCertRSA(t)
 	clave := signer.NuevaClaveLocal(priv, cert)
@@ -123,7 +161,9 @@ func TestMotorFirmaGo_TSADeOpcionesWeb_ListaSoloExceptua(t *testing.T) {
 		t.Fatalf("la TSA interna recibió %d peticiones", peticiones.Load())
 	}
 	listada := signer.NuevoMotorFirmaGo(nil).ConTSAPermitidas([]string{srv.URL})
-	if _, err := listada.Sign(context.Background(), trabajoXAdEST(t, srv.URL), clave); err != nil {
+	ctx, avisosOperacion := domain.ConAvisosOperacion(context.Background())
+	if _, err := listada.Sign(ctx, trabajoXAdEST(t, srv.URL), clave); err != nil {
 		t.Fatalf("una TSA interna de la lista debía admitirse: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 }

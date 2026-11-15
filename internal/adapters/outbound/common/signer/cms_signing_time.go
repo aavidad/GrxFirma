@@ -6,10 +6,14 @@
 package signer
 
 import (
+	"context"
 	"crypto"
+	"crypto/rsa"
 	"crypto/subtle"
 	"crypto/x509"
 	"encoding/asn1"
+	"grxfirma/internal/security/cryptopolicy"
+	"grxfirma/internal/security/excepciones"
 	"time"
 
 	"github.com/digitorus/pkcs7"
@@ -31,10 +35,10 @@ const margenRelojSelloTiempo = 5 * time.Minute
 //
 // Sin ninguno no se inventa una fecha. La fecha solo se informa: la vigencia
 // del certificado firmante se sigue evaluando en el instante actual.
-func fechaFirmaCMS(signerInfo signerInfoRaw, firmante *x509.Certificate, anclas domain.CertificateChain) (time.Time, string, bool) {
+func fechaFirmaCMS(signerInfo signerInfoRaw, firmante *x509.Certificate, anclas domain.CertificateChain, contexts ...context.Context) (time.Time, string, bool) {
 	selloDeclarado, hayDeclarado := time.Time{}, false
 	for _, token := range extraerSellosTiempoCMS(signerInfo) {
-		fecha, validado, ok := comprobarSelloCMS(token, signerInfo.Signature, firmante, anclas, time.Now())
+		fecha, validado, ok := comprobarSelloCMS(token, signerInfo.Signature, firmante, anclas, time.Now(), contexts...)
 		if !ok {
 			continue
 		}
@@ -63,9 +67,23 @@ func fechaFirmaCMS(signerInfo signerInfoRaw, firmante *x509.Certificate, anclas 
 // anclas del verificador en el instante del sello; y que ese instante caiga
 // dentro de la vigencia del certificado firmante. Sin la cadena, un sello lo
 // puede fabricar cualquiera con una «TSA» propia y la hora que quiera.
-func comprobarSelloCMS(token, valorFirma []byte, firmante *x509.Certificate, anclas domain.CertificateChain, ahora time.Time) (fecha time.Time, validado, ok bool) {
+func comprobarSelloCMS(token, valorFirma []byte, firmante *x509.Certificate, anclas domain.CertificateChain, ahora time.Time, contexts ...context.Context) (fecha time.Time, validado, ok bool) {
 	if len(valorFirma) == 0 {
 		return time.Time{}, false, false
+	}
+	p7, err := pkcs7.Parse(token)
+	if err != nil || len(p7.Signers) != 1 {
+		return time.Time{}, false, false
+	}
+	ctx := context.Background()
+	if len(contexts) > 0 && contexts[0] != nil {
+		ctx = contexts[0]
+	}
+	if cryptopolicy.CMSUsesSHA1(p7.Signers[0].DigestAlgorithm.Algorithm, p7.Signers[0].DigestEncryptionAlgorithm.Algorithm) {
+		if excepciones.Check("sha1_leer", ctx) != nil {
+			domain.AnotarAviso(ctx, "excepciones.sha1_leer.bloqueo")
+			return time.Time{}, false, false
+		}
 	}
 	sello, err := timestamp.Parse(token)
 	// Sin certificado embebido timestamp.Parse no comprueba la firma.
@@ -79,10 +97,10 @@ func comprobarSelloCMS(token, valorFirma []byte, firmante *x509.Certificate, anc
 		return time.Time{}, false, false
 	}
 	fecha = sello.Time.UTC()
-	return fecha, selloCMSValidado(token, sello, fecha, firmante, anclas, ahora), true
+	return fecha, selloCMSValidado(p7, sello, fecha, firmante, anclas, ahora, contexts...), true
 }
 
-func selloCMSValidado(token []byte, sello *timestamp.Timestamp, fecha time.Time, firmante *x509.Certificate, anclas domain.CertificateChain, ahora time.Time) bool {
+func selloCMSValidado(p7 *pkcs7.PKCS7, sello *timestamp.Timestamp, fecha time.Time, firmante *x509.Certificate, anclas domain.CertificateChain, ahora time.Time, contexts ...context.Context) bool {
 	switch sello.HashAlgorithm {
 	case crypto.SHA256, crypto.SHA384, crypto.SHA512:
 	default:
@@ -94,11 +112,24 @@ func selloCMSValidado(token []byte, sello *timestamp.Timestamp, fecha time.Time,
 	if firmante == nil || fecha.Before(firmante.NotBefore) || fecha.After(firmante.NotAfter) {
 		return false
 	}
-	p7, err := pkcs7.Parse(token)
-	if err != nil {
+	tsa := p7.GetOnlySigner()
+	if tsa != nil {
+		if key, ok := tsa.PublicKey.(*rsa.PublicKey); ok && key.N.BitLen() < 2048 {
+			return false
+		}
+	}
+	if len(p7.Signers) != 1 {
 		return false
 	}
-	tsa := p7.GetOnlySigner()
+	if cryptopolicy.CMSUsesSHA1(p7.Signers[0].DigestAlgorithm.Algorithm, p7.Signers[0].DigestEncryptionAlgorithm.Algorithm) {
+		ctx := context.Background()
+		if len(contexts) > 0 && contexts[0] != nil {
+			ctx = contexts[0]
+		}
+		if excepciones.Require(ctx, "sha1_leer") != nil {
+			return false
+		}
+	}
 	if tsa == nil || !usoSelladoTiempo(tsa) {
 		return false
 	}
@@ -112,7 +143,7 @@ func selloCMSValidado(token []byte, sello *timestamp.Timestamp, fecha time.Time,
 			intermedios.AddCert(cert)
 		}
 	}
-	_, err = tsa.Verify(x509.VerifyOptions{
+	_, err := tsa.Verify(x509.VerifyOptions{
 		Roots:         raices,
 		Intermediates: intermedios,
 		CurrentTime:   fecha,

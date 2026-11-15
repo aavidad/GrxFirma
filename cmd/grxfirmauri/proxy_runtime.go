@@ -22,6 +22,7 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/proxysecretstore"
 	"grxfirma/internal/adapters/outbound/desktop/usersettings"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 )
 
 type proxySettingsLoader func(context.Context, string) (ports.DocumentoConfiguracionUsuario, error)
@@ -117,8 +118,14 @@ func construirTransporteHTTPCompartidoConDependencias(configDir string, loadSett
 	}
 
 	transport.Proxy = func(req *http.Request) (*url.URL, error) {
+		if req == nil || req.URL == nil {
+			return nil, nil
+		}
 		if shouldBypassProxy(req.URL, cfg.ExcludedURLs) {
 			return nil, nil
+		}
+		if err := requireProxyHTTPForRequest(req.Context(), proxyURL); err != nil {
+			return nil, err
 		}
 		return proxyURL, nil
 	}
@@ -313,6 +320,20 @@ func ensureTransportProxyFromEnvironment(transport *http.Transport) {
 	// porque este último cachea el entorno via sync.Once y no refleja cambios en tests.
 	// En producción el entorno no cambia, así que el comportamiento es equivalente.
 	transport.Proxy = func(req *http.Request) (*url.URL, error) {
-		return httpproxy.FromEnvironment().ProxyFunc()(req.URL)
+		if req == nil || req.URL == nil {
+			return nil, nil
+		}
+		proxyURL, err := httpproxy.FromEnvironment().ProxyFunc()(req.URL)
+		if err != nil {
+			return nil, err
+		}
+		if err := requireProxyHTTPForRequest(req.Context(), proxyURL); err != nil {
+			return nil, err
+		}
+		return proxyURL, nil
 	}
+}
+
+func requireProxyHTTPForRequest(ctx context.Context, proxyURL *url.URL) error {
+	return excepciones.RequireProxyCredentials(ctx, proxyURL)
 }

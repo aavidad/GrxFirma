@@ -3,7 +3,7 @@
 // Licencia: EUPL 1.2 o posterior
 // SPDX-License-Identifier: EUPL-1.2
 
-//go:build !windows && !darwin
+//go:build !windows && !darwin && !android
 
 package machinepolicy
 

@@ -23,6 +23,19 @@ func etiquetaAjustada(texto string, negrita bool) *widget.Label {
 	return label
 }
 
+func presentProtocolNoticePlatform(_ context.Context, message string) {
+	if checkPlatformGraphicsReadiness() != nil {
+		return
+	}
+	a := newLegacyFyneApp()
+	w := a.NewWindow(tl("afirma.elegir.titulo"))
+	closeButton := widget.NewButton(tl("Cerrar"), w.Close)
+	w.SetContent(container.NewPadded(container.NewBorder(nil, closeButton, nil, nil, etiquetaAjustada(message, false))))
+	w.Resize(fyne.NewSize(560, 240))
+	w.CenterOnScreen()
+	w.ShowAndRun()
+}
+
 // mostrarEleccionProgramaFirmaWeb pregunta con qué programa firmar. Cerrar la
 // ventana equivale a GrxFirma sin recordar, que es lo que pasaba antes.
 func mostrarEleccionProgramaFirmaWeb(_ context.Context, puedeRecordar bool) (eleccionProgramaFirmaWeb, error) {

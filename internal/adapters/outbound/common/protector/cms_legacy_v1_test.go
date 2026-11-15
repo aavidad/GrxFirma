@@ -19,10 +19,10 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
-	"strings"
 	"testing"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -46,14 +46,16 @@ func TestCMSProtector_LeeSignedAndEnvelopedDataV1SoloConOptIn(t *testing.T) {
 
 	machinepolicy.SetForTest(t, machinepolicy.PermitirCMSAESECBLegacy, false)
 	disabled, err := NuevoCMSProtector().Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key})
-	if err == nil || !strings.Contains(err.Error(), machinepolicy.PermitirCMSAESECBLegacy) {
+	if err == nil || excepciones.FromText(err.Error()) == nil {
 		t.Fatalf("Unprotect() sin opt-in error = %v; want instruccion explicita", err)
 	}
 	if len(disabled.Document.Content) != 0 {
 		t.Fatal("el lector deshabilitado no debe devolver texto claro")
 	}
 
+	machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirCMSAESECBLegacy, true)
+	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", true)
 	unprotected, err := newTrustedCMSTestProtector(cert).Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key})
 	if err != nil {
 		t.Fatalf("Unprotect() con opt-in error = %v", err)
@@ -63,6 +65,17 @@ func TestCMSProtector_LeeSignedAndEnvelopedDataV1SoloConOptIn(t *testing.T) {
 	}
 	if unprotected.RecipientID != key.RecipientID {
 		t.Fatalf("RecipientID = %q; want %q", unprotected.RecipientID, key.RecipientID)
+	}
+	if len(unprotected.Avisos) != 2 || unprotected.Avisos[0] != excepciones.Warning("cms_aes_ecb") || unprotected.Avisos[1] != excepciones.Warning("cms_rsa_v15_leer") {
+		t.Fatalf("debe avisar del uso de AES-ECB: %v", unprotected.Avisos)
+	}
+	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", false)
+	if _, err := newTrustedCMSTestProtector(cert).Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key}); err == nil || excepciones.FromText(err.Error()) == nil || excepciones.FromText(err.Error()).ID != "cms_rsa_v15_leer" {
+		t.Fatalf("la máquina prohíbe transporte v15 aunque habilite AES-ECB: %v", err)
+	}
+	machinepolicy.ErrorForTest(t, "permitir_cms_rsa_v15_leer", errors.New("fixture ilegible"))
+	if _, err := newTrustedCMSTestProtector(cert).Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{key}); err == nil || excepciones.FromText(err.Error()) == nil || excepciones.FromText(err.Error()).ID != "cms_rsa_v15_leer" {
+		t.Fatalf("directiva v15 ilegible debe bloquear AES-ECB: %v", err)
 	}
 }
 
@@ -97,7 +110,9 @@ func TestCMSProtector_RechazaManipulacionDeSignedAndEnvelopedDataV1(t *testing.T
 	if err != nil {
 		t.Fatalf("NewDocument() error = %v", err)
 	}
+	machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirCMSAESECBLegacy, true)
+	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", true)
 	result, err := NuevoCMSProtector().Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{{
 		RecipientID:               "legacy-v1",
 		RSAOAEP256PrivateKeyPKCS8: privateDER,

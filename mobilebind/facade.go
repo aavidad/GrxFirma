@@ -22,6 +22,7 @@ import (
 	desktopsigner "grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 const (
@@ -82,6 +83,8 @@ type Facade struct {
 	contractJSON         string
 	session              *sessionIdentityStore
 	temporaryDirectory   string
+	configDir            string
+	platform             string
 	systemTrustAnchors   bool
 	revocationMode       string
 	timeout              time.Duration
@@ -104,6 +107,10 @@ func newFacade(signService signService, verifyService verifyService, selectServi
 		selectService: selectService,
 		timeout:       30 * time.Second,
 	}
+}
+
+func (f *Facade) operationContext() context.Context {
+	return excepciones.WithConfigDir(context.Background(), f.configDir)
 }
 
 func (f *Facade) withBatchService(service processBatchService) *Facade {
@@ -491,7 +498,7 @@ func (f *Facade) SignJSON(payload string) (out string, err error) {
 				return "", err
 			}
 		}
-		avisosFirma, err = comprobarOriginalCofirma(content, original, req.ConfirmUnseenContent)
+		avisosFirma, err = comprobarOriginalCofirma(content, original, req.ConfirmUnseenContent, f.operationContext())
 		if err != nil {
 			return "", err
 		}
@@ -519,7 +526,7 @@ func (f *Facade) SignJSON(payload string) (out string, err error) {
 		return "", newFacadeError("solicitud de firma no valida")
 	}
 	cmd.OriginalContent = original
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	result, err := f.signService.Execute(ctx, cmd)
 	if err != nil {
@@ -600,7 +607,7 @@ func (f *Facade) VerifyJSON(payload string) (out string, err error) {
 	if err != nil {
 		return "", newFacadeError("documento firmado no valido")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	verifyCmd := application.VerifyCommand{SignedDocument: doc}
 	if req.OriginalBase64 != "" {
@@ -698,7 +705,7 @@ func (f *Facade) SelectCertificateJSON(payload string) (out string, err error) {
 	if err := validateBoundedText("issuer_filter", req.IssuerFilter, 256, true); err != nil {
 		return "", err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	result, err := f.selectService.Execute(ctx, application.SelectCertificateCommand{
 		SubjectFilter:   req.SubjectFilter,
@@ -751,7 +758,7 @@ func (f *Facade) processBatchJSON(payload string) (string, error) {
 	if req.Session != nil {
 		cmd.Session = exchangeSessionFromRequest(*req.Session)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	result, err := f.batchService.Execute(ctx, cmd)
 	if err != nil {
@@ -786,7 +793,7 @@ func (f *Facade) retrieveRequestJSON(payload string) (string, error) {
 	if err := json.Unmarshal([]byte(payload), &req); err != nil {
 		return "", errJSONInvalido("recuperacion")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	result, err := f.retrieveService.Execute(ctx, application.RetrieveRequestCommand{
 		Session: exchangeSessionFromRequest(req.Session),
@@ -816,7 +823,7 @@ func (f *Facade) uploadResultJSON(payload string) (string, error) {
 	if err != nil {
 		return "", errCampoBase64("data_base64")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	if err := f.uploadService.Execute(ctx, application.UploadResultCommand{
 		Session: exchangeSessionFromRequest(req.Session),
@@ -888,7 +895,7 @@ func (f *Facade) ImportCertificateSecretBytesJSON(data, password []byte) (out st
 }
 
 func (f *Facade) importCertificateLocked(data []byte, password string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	result, err := f.importService.Execute(ctx, application.ImportCertificateCommand{
 		Data:     data,
@@ -928,7 +935,7 @@ func (f *Facade) ResolvePlatformProfileJSON() (out string, err error) {
 	}
 	f.operationMu.Lock()
 	defer f.operationMu.Unlock()
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	result, err := f.profileService.Execute(ctx, application.ResolvePlatformProfileCommand{})
 	if err != nil {
@@ -979,7 +986,7 @@ func (f *Facade) TranslateAndroidIntentJSON(payload string) (out string, err err
 		return "", err
 	}
 	defer zeroBytes(rawPayload)
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	solicitud, err := f.androidIntentAdapter.HandleShared(ctx, req.Action, req.Descriptor, rawPayload)
 	if err != nil {

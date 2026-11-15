@@ -15,6 +15,8 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/pkcs11worker"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 type fakeKey struct{}
@@ -46,7 +48,14 @@ func testRef(id string) domain.CertificateRef {
 	return domain.CertificateRef{ID: id, Fingerprint: strings.Repeat("a", 64), Subject: "Identidad local sintética", SigningKeyNeedsUnlock: true}
 }
 
+func permitirTokenExperimental(t *testing.T) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_pkcs11_experimental")
+	excepciones.SetForTest(t, "pkcs11_experimental", true)
+}
+
 func TestRoutingRequiresObservedExactIdentityAndOriginalPINReference(t *testing.T) {
+	permitirTokenExperimental(t)
 	var calls []string
 	var pinCalls int
 	refs := map[string]domain.CertificateRef{"one": testRef("slot-one"), "two": testRef("slot-two")}
@@ -107,6 +116,7 @@ func TestRoutingRequiresObservedExactIdentityAndOriginalPINReference(t *testing.
 }
 
 func TestPartialCatalogKeepsGoodModulesWithSanitizedDiagnostics(t *testing.T) {
+	permitirTokenExperimental(t)
 	fail := map[string]bool{"one": true}
 	r := &Runtime{modules: []string{"one", "two"}}
 	r.factory = func(module string, pin pkcs11worker.PINSource) source {
@@ -142,6 +152,7 @@ func TestPartialCatalogKeepsGoodModulesWithSanitizedDiagnostics(t *testing.T) {
 }
 
 func TestIdentityCollisionDoesNotSelectAnyModule(t *testing.T) {
+	permitirTokenExperimental(t)
 	r := &Runtime{modules: []string{"one", "two"}, factory: func(string, pkcs11worker.PINSource) source {
 		return &fakeSource{refs: []domain.CertificateRef{testRef("duplicate")}}
 	}}
@@ -155,6 +166,7 @@ func TestIdentityCollisionDoesNotSelectAnyModule(t *testing.T) {
 }
 
 func TestMissingPromptAndCancelledContextNeverInventPIN(t *testing.T) {
+	permitirTokenExperimental(t)
 	ref := testRef("one")
 	r := &Runtime{routes: map[string]route{ref.ID: {module: "one", reference: ref}}}
 	r.factory = func(_ string, pin pkcs11worker.PINSource) source {
@@ -177,6 +189,7 @@ func TestMissingPromptAndCancelledContextNeverInventPIN(t *testing.T) {
 }
 
 func TestConcurrentCatalogAndKeyLookup(t *testing.T) {
+	permitirTokenExperimental(t)
 	ref := testRef("one")
 	r := &Runtime{modules: []string{"one"}, factory: func(_ string, pin pkcs11worker.PINSource) source {
 		return &fakeSource{refs: []domain.CertificateRef{ref}, pin: pin, keyFor: func(context.Context, domain.CertificateRef, pkcs11worker.PINSource) (ports.SigningKey, error) {

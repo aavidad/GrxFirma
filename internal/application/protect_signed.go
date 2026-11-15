@@ -51,6 +51,7 @@ func (uc *ProtectAndSignDocumentUseCase) Ejecutar(ctx context.Context, cmd Prote
 	if err := ctx.Err(); err != nil {
 		return ProtectAndSignResult{}, err
 	}
+	ctx, avisos := domain.ConAvisosOperacion(ctx)
 	job := domain.ProtectionJob{
 		Document: cmd.Document,
 		Profile:  cmd.Profile,
@@ -110,6 +111,7 @@ func (uc *ProtectAndSignDocumentUseCase) Ejecutar(ctx context.Context, cmd Prote
 	return ProtectAndSignResult{
 		Protected:       protected,
 		CertificateUsed: cert,
+		Warnings:        avisos.Claves(),
 	}, nil
 }
 

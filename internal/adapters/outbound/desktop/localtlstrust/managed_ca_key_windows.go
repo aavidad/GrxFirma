@@ -9,6 +9,7 @@ package localtlstrust
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"unsafe"
@@ -26,7 +27,7 @@ func forgetManagedCAKeyProtection([]byte) {}
 // guarda sin DPAPI.
 func migrateManagedCAKeyToStorage(string, []byte, []byte) {}
 
-func protectManagedCAKey(key []byte) ([]byte, error) {
+func protectManagedCAKey(_ context.Context, key []byte) ([]byte, error) {
 	ciphertext, err := callManagedCAKeyDPAPI(key, true)
 	if err != nil {
 		return nil, err
@@ -77,3 +78,5 @@ func callManagedCAKeyDPAPI(input []byte, protect bool) ([]byte, error) {
 	_, _ = windows.LocalFree(windows.Handle(unsafe.Pointer(out.Data)))
 	return result, nil
 }
+
+func checkManagedCAKeyRead(context.Context, string, []byte, []byte) error { return nil }

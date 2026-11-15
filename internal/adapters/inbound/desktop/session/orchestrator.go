@@ -21,6 +21,8 @@ import (
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/originvalidator"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/triphase"
+	"grxfirma/internal/adapters/outbound/common/localizador"
+	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
@@ -142,6 +144,12 @@ func (o *Orchestrator) HandleRequest(ctx context.Context, solicitud afirmauri.So
 func (o *Orchestrator) HandleRequestConAprobacion(ctx context.Context, solicitud afirmauri.Solicitud, aprobador ports.UserApproval) error {
 	ctx, cancel := context.WithTimeout(ctx, o.timeout)
 	defer cancel()
+	ctx, operationWarnings := domain.ConAvisosOperacion(ctx)
+	defer func() {
+		for _, key := range operationWarnings.Claves() {
+			o.publicar(ctx, "session.warning", key)
+		}
+	}()
 	release, err := certpicker.BeginCredentialOperation(ctx, o.certSelector)
 	if err != nil {
 		return err
@@ -258,7 +266,11 @@ func (o *Orchestrator) HandleRequestConAprobacion(ctx context.Context, solicitud
 	o.publicar(ctx, "session.complete", "firma completada")
 
 	// Paso 7: Notificar el resultado al usuario.
-	o.notificar(ctx, "Firma completada", "El documento ha sido firmado correctamente.")
+	message := "El documento ha sido firmado correctamente."
+	for _, key := range operationWarnings.Claves() {
+		message += "\n" + localizador.Detectar().T(key)
+	}
+	o.notificar(ctx, "Firma completada", message)
 	return nil
 }
 
@@ -563,6 +575,16 @@ func (o *Orchestrator) ejecutarSimple(ctx context.Context, solicitud afirmauri.S
 			}
 			if err := o.validarOrigenes(ctx, afirmauri.Solicitud{Origenes: origenes}); err != nil {
 				return fmt.Errorf("validación de origen del manifiesto recuperado fallida: %w", err)
+			}
+			// Este manifiesto XML se firma localmente sin pasar por
+			// Executor.Execute. Una tsaURL cedida al motor exige la misma
+			// decisión de transporte antes de entregar el trabajo.
+			for key, value := range cmd.Options {
+				if strings.EqualFold(strings.TrimSpace(key), "tsaURL") && strings.TrimSpace(value) != "" {
+					if err := tsaclient.RequireTransport(ctx, value); err != nil {
+						return err
+					}
+				}
 			}
 			if o.signer == nil {
 				return errors.New("el motor de firma no está configurado")

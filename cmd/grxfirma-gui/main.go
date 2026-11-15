@@ -68,6 +68,7 @@ import (
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/presentation/desktop/tokenpin"
 )
 
@@ -115,8 +116,11 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	home, _ := os.UserHomeDir()
-	configDir := appdirs.Config(home)
+	configDir, err := configDirGUI()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, bootLoc.T("rest.verify_only.error.config_dir"))
+		os.Exit(1)
+	}
 	loc := localizador.Para(idiomaPreferido(configDir))
 	localTLSStartupStatus := ensureLocalTLSStartup(ctx, configDir)
 
@@ -304,16 +308,23 @@ func resolverPasswordP12GUI(
 // Se repite en cada arranque para incorporar perfiles Firefox nuevos; la
 // implementación de confianza solo modifica los almacenes que lo necesitan.
 func ensureLocalTLSStartup(ctx context.Context, configDir string) ipc.LocalTLSStartupStatus {
+	ctx, notices := domain.ConAvisosOperacion(ctx)
 	status := ipc.LocalTLSStartupStatus{State: "unknown"}
 	if runtime.GOOS != "linux" {
 		return status
 	}
 	status.State = "error"
+	if err := excepciones.Require(ctx, "ca_instalacion_automatica"); err != nil {
+		status.BlockKey = "excepciones.ca_instalacion_automatica.bloqueo"
+		status.ExceptionID = "ca_instalacion_automatica"
+		return status
+	}
 	if !filepath.IsAbs(configDir) {
 		return status
 	}
 	err := localtlstrust.WithLocalTLSStartupLock(ctx, configDir, func() error {
-		_, _, rootCertFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificate(
+		_, _, rootCertFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(
+			ctx,
 			filepath.Join(configDir, "tls"), "websocket-localhost",
 		)
 		if err != nil {
@@ -323,8 +334,14 @@ func ensureLocalTLSStartup(ctx context.Context, configDir string) ipc.LocalTLSSt
 		return err
 	})
 	if err != nil {
+		var block *excepciones.Block
+		if errors.As(err, &block) {
+			status.ExceptionID = block.ID
+			status.BlockKey = block.BlockKey
+		}
 		return status
 	}
+	status.Warnings = notices.Claves()
 	status.State = "ready"
 	return status
 }
@@ -432,7 +449,10 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	// avisos (solo la lee afirma://, que es otro proceso): cada firma lleva
 	// sus avisos en su propio registro de operación (lote 17b).
 	avisos.SoloEnRegistro()
-	home, _ := os.UserHomeDir()
+	home, err := validGUIHome()
+	if err != nil {
+		return nil, "", err
+	}
 	configDir := appdirs.Config(home)
 
 	cfg, err := config.Load(configDir)
@@ -941,4 +961,21 @@ func frontendPorDefecto(goos string) string {
 		return string(frontendWinUI)
 	}
 	return "qt"
+}
+
+// configDirGUI resuelve una configuración privada; sin HOME absoluto el
+// servidor no arranca con rutas relativas ni con un temporal compartido.
+func configDirGUI() (string, error) {
+	home, err := validGUIHome()
+	if err != nil {
+		return "", err
+	}
+	return appdirs.Config(home), nil
+}
+func validGUIHome() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil || strings.TrimSpace(home) == "" || !filepath.IsAbs(home) {
+		return "", errors.New("no se pudo resolver el directorio de configuración")
+	}
+	return home, nil
 }

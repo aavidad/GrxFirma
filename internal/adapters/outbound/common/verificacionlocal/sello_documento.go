@@ -47,6 +47,16 @@ func (e *Evaluador) EvaluarSelloDocumento(ctx context.Context, token, contenido 
 	if anidamientoasn1.Comprobar(value.FullBytes, anidamientoasn1.MaxProfundidad) != nil {
 		return base, noValida
 	}
+	p7, err := pkcs7.Parse(value.FullBytes)
+	if err != nil {
+		return base, noValida
+	}
+	if control := controlFirmaSello(ctx, p7, p7.GetOnlySigner()); control.Estado != "" {
+		if control.Estado == domain.SelloNoComprobado {
+			return base, domain.AspectoDictamen{Estado: domain.IntegridadParcial, Motivo: control.Motivo}
+		}
+		return base, noValida
+	}
 	sello, err := timestamp.Parse(value.FullBytes)
 	if err != nil {
 		return base, noValida
@@ -60,10 +70,6 @@ func (e *Evaluador) EvaluarSelloDocumento(ctx context.Context, token, contenido 
 	digest := sello.HashAlgorithm.New()
 	_, _ = digest.Write(contenido)
 	if subtle.ConstantTimeCompare(digest.Sum(nil), sello.HashedMessage) != 1 || sello.Time.After(referencia.Add(margenRelojSello)) {
-		return base, noValida
-	}
-	p7, err := pkcs7.Parse(value.FullBytes)
-	if err != nil {
 		return base, noValida
 	}
 	tsa := p7.GetOnlySigner()

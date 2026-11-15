@@ -1,0 +1,253 @@
+[
+  {
+    "name": "igual",
+    "body_base64": "dHNhVVJMPWh0dHA6Ly90c2EveA==",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "dos_puntos",
+    "body_base64": "dHNhVVJMOmh0dHA6Ly90c2EveA==",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "espacio",
+    "body_base64": "dHNhVVJMIGh0dHA6Ly90c2EveA==",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "tab",
+    "body_base64": "dHNhVVJMCToJaHR0cDovL3RzYS94",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "ff",
+    "body_base64": "DHRzYVVSTAw9DGh0dHA6Ly90c2EveA==",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "continuacion_lf",
+    "body_base64": "dHNhXAogVVJMPWh0dHA6Ly90c2EveA==",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "continuacion_crlf",
+    "body_base64": "dHNhXA0KCVVSTD1odHRwOi8vdHNhL3g=",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "continuacion_cr",
+    "body_base64": "dHNhXA1VUkw9aHR0cDovL3RzYS94",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "lineas_cr",
+    "body_base64": "YT1iDXRzYVVSTD1odHRwOi8vdHNhL3g=",
+    "invalid": false,
+    "properties": {
+      "a": "b",
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "comentarios",
+    "body_base64": "I3RzYVVSTD1odHRwOi8vbm8NISBjb21lbnRhcmlvCiB0c2FVUkw9aHR0cHM6Ly90c2EveA==",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "https://tsa/x"
+    }
+  },
+  {
+    "name": "comentario_no_continua",
+    "body_base64": "IyBpZ25vcmFcCnRzYVVSTD1odHRwOi8vdHNhL3g=",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "comentario_continuado",
+    "body_base64": "YT12YWxvclwKICNuby1lcy1jb21lbnRhcmlvCnRzYVVSTD1odHRwczovL3RzYS94",
+    "invalid": false,
+    "properties": {
+      "a": "valor#no-es-comentario",
+      "tsaURL": "https://tsa/x"
+    }
+  },
+  {
+    "name": "escapes",
+    "body_base64": "dHNhXHUwMDU1Ukw9aHR0cFw6Ly90c2EveA==",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "espacio_escapado",
+    "body_base64": "YVwgYlw6Y1w9ZCA9IHZcIHRcdFxuXHJcZlxc",
+    "invalid": false,
+    "properties": {
+      "a b:c=d": "v t\t\n\r\f\\"
+    }
+  },
+  {
+    "name": "par_barras",
+    "body_base64": "YT12YWxvclxcCnRzYVVSTD1odHRwOi8vdHNhL3g=",
+    "invalid": false,
+    "properties": {
+      "a": "valor\\",
+      "tsaURL": "http://tsa/x"
+    }
+  },
+  {
+    "name": "impar_barras",
+    "body_base64": "YT12YWxvclxcXAp0c2FVUkw9aHR0cDovL25v",
+    "invalid": false,
+    "properties": {
+      "a": "valor\\tsaURL=http://no"
+    }
+  },
+  {
+    "name": "vacio",
+    "body_base64": "",
+    "invalid": false,
+    "properties": {}
+  },
+  {
+    "name": "valor_vacio",
+    "body_base64": "dHNhVVJM",
+    "invalid": false,
+    "properties": {
+      "tsaURL": ""
+    }
+  },
+  {
+    "name": "clave_vacia",
+    "body_base64": "PXZhbHVl",
+    "invalid": false,
+    "properties": {
+      "": "value"
+    }
+  },
+  {
+    "name": "solo_barra",
+    "body_base64": "XA==",
+    "invalid": false,
+    "properties": {
+      "": ""
+    }
+  },
+  {
+    "name": "continuacion_vacia",
+    "body_base64": "XAoKYT1i",
+    "invalid": false,
+    "properties": {
+      "a": "b"
+    }
+  },
+  {
+    "name": "fin_continuacion",
+    "body_base64": "YT1iXA==",
+    "invalid": false,
+    "properties": {
+      "a": "b"
+    }
+  },
+  {
+    "name": "blancos_finales",
+    "body_base64": "IGEgPSB2YWx1ZSAJ",
+    "invalid": false,
+    "properties": {
+      "a": "value \t"
+    }
+  },
+  {
+    "name": "varios_separadores",
+    "body_base64": "YSA6ID12YWx1ZQ==",
+    "invalid": false,
+    "properties": {
+      "a": "=value"
+    }
+  },
+  {
+    "name": "unicode",
+    "body_base64": "YT1cdTIwYWNcdUQ4M0RcdURFMDA=",
+    "invalid": false,
+    "properties": {
+      "a": "€😀"
+    }
+  },
+  {
+    "name": "latin1",
+    "body_base64": "Y2Fm6T1uafFv",
+    "invalid": false,
+    "properties": {
+      "café": "niño"
+    }
+  },
+  {
+    "name": "duplicada",
+    "body_base64": "dHNhVVJMPWh0dHA6Ly9vbGQKdHNhVVJMPWh0dHBzOi8vbmV3",
+    "invalid": false,
+    "properties": {
+      "tsaURL": "https://new"
+    }
+  },
+  {
+    "name": "unicode_corto",
+    "body_base64": "dHNhVVJMPVx1MTI=",
+    "invalid": true,
+    "properties": {}
+  },
+  {
+    "name": "unicode_malo",
+    "body_base64": "dHNhVVJMPVx1R0dHRw==",
+    "invalid": true,
+    "properties": {}
+  },
+  {
+    "name": "dos_u",
+    "body_base64": "YT1cdXUwMDQx",
+    "invalid": true,
+    "properties": {}
+  },
+  {
+    "name": "escape_desconocido",
+    "body_base64": "YT1celxi",
+    "invalid": false,
+    "properties": {
+      "a": "zb"
+    }
+  },
+  {
+    "name": "nl_literal",
+    "body_base64": "YT12YWx1ZVxudHNhVVJMPWh0dHA6Ly9ub3QtYS1rZXk=",
+    "invalid": false,
+    "properties": {
+      "a": "value\ntsaURL=http://not-a-key"
+    }
+  }
+]

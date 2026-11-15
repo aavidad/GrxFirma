@@ -89,6 +89,10 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	if err := e.ValidarDestino(ctx, servidor.Scheme+"://"+servidor.Host); err != nil {
 		return nil, fmt.Errorf("servidor de firma trifásica no autorizado: %w", err)
 	}
+	params := propiedadesTrifasicas(req.ExtraParams)
+	if err := requireTriphaseTSAProperties(ctx, params); err != nil {
+		return nil, err
+	}
 	formato, err := formatoServidorTrifasico(req.FormatoLegacy)
 	if err != nil {
 		return nil, err
@@ -124,7 +128,6 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 		certParam = append(certParam, base64.URLEncoding.EncodeToString(c))
 	}
 	doc := base64.URLEncoding.EncodeToString(req.Datos)
-	params := propiedadesTrifasicas(req.ExtraParams)
 
 	comunes := [][2]string{
 		{"cop", cop}, {"format", formato}, {"algo", algoritmo}, {"cert", strings.Join(certParam, ",")},
@@ -168,7 +171,13 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	if n > 1 {
 		slog.Warn("triphase_server_varias_firmas", "firmas", n, "operacion", cop)
 	}
-	firmados, err := signLegacyBatchTriphaseXML(datosTrifasicos, key, algoritmo, req.ExtraParams, nil)
+	if err := requireLegacyBatchSigningPreflight(ctx, key); err != nil {
+		return nil, err
+	}
+	if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
+		return nil, err
+	}
+	firmados, err := signLegacyBatchTriphaseXML(datosTrifasicos, key, algoritmo, req.ExtraParams, nil, ctx)
 	if err != nil {
 		trazaServidorTrifasico("firma_local", "error")
 		return nil, fmt.Errorf("firma local de la prefirma fallida: %w", err)

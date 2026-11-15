@@ -8,8 +8,11 @@ package verificacionlocal
 import (
 	"context"
 	"crypto"
+	"crypto/rsa"
 	"crypto/subtle"
 	"crypto/x509"
+	"grxfirma/internal/security/cryptopolicy"
+	"grxfirma/internal/security/excepciones"
 	"time"
 
 	"github.com/digitorus/pkcs7"
@@ -58,6 +61,13 @@ func (e *Evaluador) evaluarSello(ctx context.Context, token, valorFirma []byte, 
 	if anidamientoasn1.Comprobar(token, anidamientoasn1.MaxProfundidad) != nil {
 		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "sello_mal_formado_o_firma_no_valida"}
 	}
+	p7, err := pkcs7.Parse(token)
+	if err != nil {
+		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "sello_mal_formado_o_firma_no_valida"}
+	}
+	if control := controlFirmaSello(ctx, p7, p7.GetOnlySigner()); control.Estado != "" {
+		return control
+	}
 	sello, err := timestamp.Parse(token)
 	if err != nil {
 		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "sello_mal_formado_o_firma_no_valida"}
@@ -78,10 +88,6 @@ func (e *Evaluador) evaluarSello(ctx context.Context, token, valorFirma []byte, 
 	fecha := sello.Time.UTC()
 	if fecha.After(referencia.Add(margenRelojSello)) {
 		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "sello_en_el_futuro", Fecha: fecha}
-	}
-	p7, err := pkcs7.Parse(token)
-	if err != nil {
-		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "sello_mal_formado_o_firma_no_valida"}
 	}
 	tsa := p7.GetOnlySigner()
 	if tsa == nil {
@@ -128,4 +134,25 @@ func tieneUsoSellado(cert *x509.Certificate) bool {
 		}
 	}
 	return false
+}
+
+// El resumen RFC 3161 y el algoritmo con que firma la TSA son decisiones
+// distintas. SHA-256 en messageImprint no acredita una firma SHA-1 del token.
+func controlFirmaSello(ctx context.Context, p7 *pkcs7.PKCS7, tsa *x509.Certificate) domain.AspectoDictamen {
+	if p7 == nil || len(p7.Signers) != 1 {
+		return domain.AspectoDictamen{}
+	}
+	if tsa == nil {
+		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "sello_sin_firmante_unico"}
+	}
+	if key, ok := tsa.PublicKey.(*rsa.PublicKey); ok && key.N.BitLen() < 2048 {
+		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "tsa_clave_rsa_corta"}
+	}
+	if cryptopolicy.CMSUsesSHA1(p7.Signers[0].DigestAlgorithm.Algorithm, p7.Signers[0].DigestEncryptionAlgorithm.Algorithm) {
+		if err := excepciones.Require(ctx, "sha1_leer"); err != nil {
+			domain.AnotarAviso(ctx, "excepciones.sha1_leer.bloqueo")
+			return domain.AspectoDictamen{Estado: domain.SelloNoComprobado, Motivo: "excepciones.sha1_leer.bloqueo"}
+		}
+	}
+	return domain.AspectoDictamen{}
 }

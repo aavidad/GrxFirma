@@ -6,9 +6,11 @@
 package signingpolicy
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -16,6 +18,10 @@ import (
 	"math/big"
 	"testing"
 	"time"
+
+	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 func TestValidateCertificateDER(t *testing.T) {
@@ -88,5 +94,63 @@ func assertReason(t *testing.T, err error, want Reason) {
 	var typed *Error
 	if !errors.Is(err, ErrCertificateUnsuitable) || !errors.As(err, &typed) || typed.Reason != want {
 		t.Fatalf("error = %v; motivo esperado %s", err, want)
+	}
+}
+
+func TestRSA1024RequiereAjusteYDevuelveAviso(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_rsa_corta")
+	now := time.Date(2026, 11, 15, 12, 0, 0, 0, time.UTC)
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &x509.Certificate{
+		SerialNumber: big.NewInt(2), NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour),
+		KeyUsage: x509.KeyUsageDigitalSignature, BasicConstraintsValid: true,
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, key.Public(), key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var block *excepciones.Block
+	if err := ValidateCertificateDER(der, now); !errors.As(err, &block) || block.ID != "rsa_corta" {
+		t.Fatalf("RSA 1024 sin ajuste: %v", err)
+	}
+	excepciones.SetForTest(t, "rsa_corta", true)
+	ctx, avisos := domain.ConAvisosOperacion(context.Background())
+	if err := ValidateSigningCertificateDER(ctx, der, now); err != nil {
+		t.Fatal(err)
+	}
+	if got := avisos.Claves(); len(got) != 1 || got[0] != excepciones.Warning("rsa_corta") {
+		t.Fatalf("aviso RSA 1024 = %v", got)
+	}
+	machinepolicy.SetForTest(t, "permitir_rsa_corta", false)
+	if err := ValidateSigningCertificateDER(ctx, der, now); !errors.As(err, &block) || block.ID != "rsa_corta" {
+		t.Fatalf("la directiva debe bloquear RSA 1024: %v", err)
+	}
+}
+
+func TestValidateCertificateDERRespetaDirectorioDeOperacion(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_rsa_corta")
+	now := time.Now()
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &x509.Certificate{SerialNumber: big.NewInt(71), NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour), KeyUsage: x509.KeyUsageDigitalSignature}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, key.Public(), key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	ctx := excepciones.WithConfigDir(context.Background(), dir)
+	if _, err = excepciones.ActivateLocal(excepciones.ForLocalCLI(ctx), dir, excepciones.ActivationRequest{ID: "rsa_corta", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion}); err != nil {
+		t.Fatal(err)
+	}
+	if err = ValidateCertificateDER(der, now, ctx); err != nil {
+		t.Fatalf("operación privada autorizada: %v", err)
+	}
+	if err = ValidateCertificateDER(der, now); err == nil {
+		t.Fatal("autorización privada se filtró a otra operación")
 	}
 }

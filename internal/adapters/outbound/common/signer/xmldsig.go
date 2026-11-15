@@ -45,6 +45,9 @@ func (e *XMLDSigDetached) Sign(ctx context.Context, job domain.SignatureJob, key
 	if err != nil {
 		return domain.SignatureResult{}, err
 	}
+	if err := requireXAdESAlgorithm(ctx, job.Options); err != nil {
+		return domain.SignatureResult{}, err
+	}
 	// Variantes de AutoFirma Java (XMLDSig Enveloping, Enveloped, Externally
 	// Detached) y cofirma: mismo constructor que XAdES, sin propiedades XAdES.
 	if variante := xadesVariante(job.Options); variante != xadesVarianteDetached || job.Action == domain.ActionCoSign {
@@ -58,7 +61,7 @@ func (e *XMLDSigDetached) Sign(ctx context.Context, job domain.SignatureJob, key
 			etiqueta string
 		)
 		if job.Action == domain.ActionCoSign {
-			firmado, etiqueta, err = cosignXAdES(pura, clave)
+			firmado, etiqueta, err = cosignXAdES(ctx, pura, clave)
 		} else if job.Action == domain.ActionSign {
 			firmado, etiqueta, err = buildXAdESEnvelop(pura, clave, variante)
 		} else {

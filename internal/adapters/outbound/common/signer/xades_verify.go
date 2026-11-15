@@ -27,6 +27,7 @@ import (
 
 	"grxfirma/internal/adapters/outbound/common/officecontainer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 type XAdESVerifier struct{}
@@ -106,8 +107,8 @@ func (v *ODFVerifier) Verify(ctx context.Context, signedDocument domain.Document
 	for _, signature := range signatures {
 		result = marcarSelloXMLNoEvaluable(result, signature.fragment)
 	}
-	result = markXMLCompatibility(result, compatibility)
-	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, antiguos)
+	result = markXMLCompatibility(result, compatibility, ctx)
+	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, antiguos, ctx)
 	result = aplicarCoberturaXML(result, coberturaContenedor(contenedor.nombres, entradaODFSinFirmar, cubiertasPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
@@ -202,8 +203,8 @@ func (v *OOXMLVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	for _, name := range names {
 		result = marcarSelloXMLNoEvaluable(result, signatures[name])
 	}
-	result = markXMLCompatibility(result, compatibility)
-	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, antiguos)
+	result = markXMLCompatibility(result, compatibility, ctx)
+	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, antiguos, ctx)
 	result = aplicarCoberturaXML(result, coberturaOOXML(contenedor, cubiertasPorFirma, relacionesPorFirma, noComprobado))
 	return applyXMLRevocation(ctx, result, allSignerCertificates, allEmbeddedCertificates), allSigners, nil
 }
@@ -263,7 +264,7 @@ func verifyXMLSignatureDocument(ctx context.Context, xmlData []byte, requireSign
 	if doctypeExterno {
 		compatibility = append(compatibility, detalleDOCTYPEExterno)
 	}
-	aggregate.result = markXMLCompatibility(aggregate.result, compatibility)
+	aggregate.result = markXMLCompatibility(aggregate.result, compatibility, ctx)
 	if doctypeExterno {
 		aggregate.result.Warnings = appendUniqueString(aggregate.result.Warnings, motivoDOCTYPEExterno)
 	}
@@ -272,7 +273,7 @@ func verifyXMLSignatureDocument(ctx context.Context, xmlData []byte, requireSign
 		// después de firmar (E1-07).
 		aggregate.result.Warnings = appendUniqueString(aggregate.result.Warnings, motivoPIFueraDeRaizSinFirmar)
 	}
-	aggregate.result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), aggregate.result, antiguos)
+	aggregate.result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), aggregate.result, antiguos, ctx)
 	if documentoFirmado {
 		cobertura, err := coberturaDocumentoXML(xmlData, aggregate.coberturas)
 		if err != nil {
@@ -287,6 +288,11 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	signedInfoXML, signatureValue, certificates, err := extractContextualSignatureCore(xmlData, signatureContext)
 	if err != nil {
 		return xmlSignatureVerification{}, err
+	}
+	if usesSHA1(signedInfoXML) {
+		if err := excepciones.Check("sha1_leer", ctx); err != nil {
+			return xmlSignatureVerification{}, err
+		}
 	}
 	if err := ctx.Err(); err != nil {
 		return xmlSignatureVerification{}, err
@@ -330,8 +336,8 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	result := domain.NewVerificationSuccess(format, reason, details)
 	result = applySignerVerificationMetadata(domain.RegistroConfianzaForzadaDe(ctx), result, signerCertificates, certificates, anchors)
 	result = marcarSelloXMLNoEvaluable(result, xmlData)
-	result = markXMLCompatibility(result, compatibility)
-	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, antiguos)
+	result = markXMLCompatibilityParcial(result, compatibility, ctx)
+	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, antiguos, ctx)
 	return xmlSignatureVerification{
 		result:               result,
 		signers:              signers,

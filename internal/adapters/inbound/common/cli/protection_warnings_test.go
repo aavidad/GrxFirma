@@ -8,7 +8,10 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
+	"grxfirma/internal/security/excepciones"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -24,6 +27,46 @@ func (m proteccionCLIConAvisos) Execute(ctx context.Context, cmd application.Pro
 	res, err := (&protectCLIMock{}).Execute(ctx, cmd)
 	res.Warnings = m.avisos
 	return res, err
+}
+
+type proteccionFirmadaCLIConAvisos struct{ avisos []string }
+
+func (m proteccionFirmadaCLIConAvisos) Execute(ctx context.Context, cmd application.ProtectAndSignCommand) (application.ProtectAndSignResult, error) {
+	res, err := (&protectAndSignCLIMock{}).Execute(ctx, cmd)
+	res.Warnings = m.avisos
+	return res, err
+}
+
+func TestProteccionFirmadaCLI_AvisosVisiblesYJSON(t *testing.T) {
+	const aviso = "excepciones.cms_rsa_v15_crear.aviso"
+	for _, modoJSON := range []bool{false, true} {
+		loc := localizador.Para("es")
+		var out, errOut strings.Builder
+		a := New(nil, nil).WithLocalizador(loc).WithProteccionFirmada(proteccionFirmadaCLIConAvisos{avisos: []string{aviso}})
+		a.Stdout, a.Stderr = &out, &errOut
+		a.LeerFichero = func(string) ([]byte, error) { return []byte("contenido"), nil }
+		args := []string{"-operacion", "proteger-firmando", "-entrada", "acta.txt", "-destinatario", "dest-1", "-id-certificado", "cert-1", "-perfil-proteccion", "compat", "-no-guardar"}
+		if modoJSON {
+			args = append(args, "-json")
+		}
+		if rc := a.Run(context.Background(), args); rc != 0 {
+			t.Fatalf("json=%v rc=%d stderr=%s", modoJSON, rc, errOut.String())
+		}
+		if !strings.Contains(errOut.String(), loc.T(aviso)) {
+			t.Fatalf("json=%v sin aviso visible: %s", modoJSON, errOut.String())
+		}
+		if modoJSON {
+			var campos struct {
+				Advertencias []string `json:"advertencias"`
+			}
+			if err := json.Unmarshal([]byte(out.String()), &campos); err != nil {
+				t.Fatal(err)
+			}
+			if len(campos.Advertencias) != 1 || campos.Advertencias[0] != aviso {
+				t.Fatalf("JSON sin clave de aviso: %s", out.String())
+			}
+		}
+	}
 }
 
 type exportacionCLIConAvisos struct{ avisos []string }
@@ -70,5 +113,13 @@ func TestProteccionCLI_AvisosVisiblesYJSONOpcional(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestV3CotejoENIC14NDevuelveAviso(t *testing.T) {
+	a := New(nil, nil)
+	avisos, err := a.resolverCotejoENI(commonsigner.ErrFirmaCorrespondeConC14NAntigua)
+	if err != nil || !slices.Contains(avisos, excepciones.Warning("xml_c14n_antigua")) {
+		t.Fatalf("aviso C14N perdido: %v %v", avisos, err)
 	}
 }

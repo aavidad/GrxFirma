@@ -19,6 +19,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -27,6 +28,8 @@ import (
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 var (
@@ -57,9 +60,16 @@ func TestCMSProtector_EmiteAlgoritmosDERReales(t *testing.T) {
 	envelopedAlgorithms := inspectCMSAlgorithms(t, enveloped.Document.Content)
 	requireCMSOID(t, "EnvelopedData content type", envelopedAlgorithms.contentType, oidCMSEnvelopedData)
 	requireCMSOID(t, "EnvelopedData content cipher", envelopedAlgorithms.contentEncryption, oidTestAES256GCM)
-	requireCMSOID(t, "EnvelopedData key transport", envelopedAlgorithms.keyEncryption[0], oidTestRSAEncryption)
-	if envelopedAlgorithms.keyEncryption[0].Equal(oidTestRSAESOAEP) {
-		t.Fatal("EnvelopedData declara RSA-OAEP, pero la dependencia cifra con PKCS#1 v1.5")
+	requireCMSOID(t, "EnvelopedData key transport", envelopedAlgorithms.keyEncryption[0], oidTestRSAESOAEP)
+	privateDER, err := x509.MarshalPKCS8PrivateKey(priv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	opened, err := NuevoCMSProtector().Unprotect(context.Background(), enveloped.Document, []domain.ProtectionKeyMaterial{{
+		RecipientID: recipient.ID, RSAOAEP256PrivateKeyPKCS8: privateDER, CertificateDER: cert.Raw,
+	}})
+	if err != nil || !bytes.Equal(opened.Document.Content, doc.Content) {
+		t.Fatalf("el lector propio debe abrir EnvelopedData OAEP-SHA-256: %v", err)
 	}
 
 	authEnveloped, err := NuevoCMSProtector().Protect(context.Background(), domain.ProtectionJob{
@@ -114,14 +124,13 @@ func TestCMSProtector_EmiteAlgoritmosDERReales(t *testing.T) {
 	signedAlgorithms := inspectCMSAlgorithms(t, signed.Document.Content)
 	requireCMSOID(t, "SignedAndEnvelopedData content type", signedAlgorithms.contentType, oidCMSSignedEnvelopedData)
 	requireCMSOID(t, "SignedAndEnvelopedData content cipher", signedAlgorithms.contentEncryption, oidTestAES256GCM)
-	requireCMSOID(t, "SignedAndEnvelopedData key transport", signedAlgorithms.keyEncryption[0], oidTestRSAEncryption)
+	requireCMSOID(t, "SignedAndEnvelopedData key transport", signedAlgorithms.keyEncryption[0], oidTestRSAESOAEP)
+	if oaep, err := transporteSAEDParaCertificado(signed.Document.Content, cert); err != nil || !oaep {
+		t.Fatalf("SignedAndEnvelopedData debe declarar OAEP-SHA-256 y MGF1-SHA-256: %v", err)
+	}
 	requireCMSOID(t, "SignedAndEnvelopedData digest", signedAlgorithms.digest[0], oidTestSHA256)
 	requireCMSOID(t, "SignedAndEnvelopedData signature", signedAlgorithms.signature[0], oidTestSHA256WithRSA)
 
-	privateDER, err := x509.MarshalPKCS8PrivateKey(priv)
-	if err != nil {
-		t.Fatalf("MarshalPKCS8PrivateKey() error = %v", err)
-	}
 	unprotected, err := newTrustedCMSTestProtector(cert).Unprotect(context.Background(), signed.Document, []domain.ProtectionKeyMaterial{{
 		RecipientID:               recipient.ID,
 		RSAOAEP256PrivateKeyPKCS8: privateDER,
@@ -200,6 +209,11 @@ func TestCMSSignedEnvelopedProtector_RechazaFirmanteDistintoDelCertificado(t *te
 }
 
 func TestCMSProtector_InteropEnvelopedDataConOpenSSL(t *testing.T) {
+	excepciones.SetForTest(t, "cms_rsa_v15_leer", true)
+	excepciones.SetForTest(t, "cms_cbc", true)
+	machinepolicy.UnsetForTest(t, "permitir_cms_rsa_v15_leer")
+	machinepolicy.UnsetForTest(t, "permitir_cms_cbc")
+	machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
 	opensslPath, err := exec.LookPath("openssl")
 	if err != nil {
 		t.Skip("OpenSSL no disponible")
@@ -271,6 +285,8 @@ func TestCMSProtector_InteropEnvelopedDataConOpenSSL(t *testing.T) {
 }
 
 func TestCMSProtector_LeeEnvelopedDataV2ConParametrosGCMLegacy(t *testing.T) {
+	excepciones.SetForTest(t, "cms_rsa_v15_leer", true)
+	machinepolicy.UnsetForTest(t, "permitir_cms_rsa_v15_leer")
 	priv, cert := newCMSRSAIdentity(t, x509.KeyUsageKeyEncipherment)
 	plaintext := []byte("contenedor V2 previo a la correccion DER")
 	secret := bytes.Repeat([]byte{0x6b}, protectionAES256KeyBytes)
@@ -321,6 +337,70 @@ func TestCMSProtector_LeeEnvelopedDataV2ConParametrosGCMLegacy(t *testing.T) {
 	}
 	if !bytes.Equal(unprotectedEncrypted.Document.Content, plaintext) {
 		t.Fatalf("contenido EncryptedData recuperado = %q; want %q", unprotectedEncrypted.Document.Content, plaintext)
+	}
+}
+
+func TestCMSFallbackNoConfundeOAEPEtiquetadoConRSAV15(t *testing.T) {
+	private, cert := newCMSRSAIdentity(t, x509.KeyUsageKeyEncipherment)
+	privateDER, err := x509.MarshalPKCS8PrivateKey(private)
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := pkcs7.ContentEncryptionAlgorithm
+	pkcs7.ContentEncryptionAlgorithm = pkcs7.EncryptionAlgorithmAES256GCM
+	defer func() { pkcs7.ContentEncryptionAlgorithm = old }()
+	blob, err := pkcs7.Encrypt([]byte("contenido legado"), []*x509.Certificate{cert})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rsaOID, _ := asn1.Marshal(oidTestRSAEncryption)
+	oaepOID, _ := asn1.Marshal(oidTestRSAESOAEP)
+	if bytes.Count(blob, rsaOID) != 1 {
+		t.Fatalf("OID RSA v15 esperado una vez: %d", bytes.Count(blob, rsaOID))
+	}
+	camuflado := bytes.Replace(blob, rsaOID, oaepOID, 1)
+	doc, err := domain.NewDocument("oaep-falso.enveloped", camuflado, domain.MIMETypeProtectedCMS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keys := []domain.ProtectionKeyMaterial{{RecipientID: "dest", RSAOAEP256PrivateKeyPKCS8: privateDER, CertificateDER: cert.Raw}}
+	for _, permitido := range []bool{false, true} {
+		machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", permitido)
+		out, err := NuevoCMSProtector().Unprotect(context.Background(), doc, keys)
+		if err == nil || len(out.Document.Content) != 0 {
+			t.Fatalf("OAEP falso (permiso v15=%v) se descifró: %v", permitido, err)
+		}
+	}
+}
+
+func TestCMSFallbackCBCExigeAmbosAjustes(t *testing.T) {
+	private, cert := newCMSRSAIdentity(t, x509.KeyUsageKeyEncipherment)
+	privateDER, err := x509.MarshalPKCS8PrivateKey(private)
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := pkcs7.ContentEncryptionAlgorithm
+	pkcs7.ContentEncryptionAlgorithm = pkcs7.EncryptionAlgorithmAES256CBC
+	defer func() { pkcs7.ContentEncryptionAlgorithm = old }()
+	blob, err := pkcs7.Encrypt([]byte("contenido CBC legado"), []*x509.Certificate{cert})
+	if err != nil {
+		t.Fatal(err)
+	}
+	doc, err := domain.NewDocument("cbc-v2.enveloped", blob, domain.MIMETypeProtectedCMS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keys := []domain.ProtectionKeyMaterial{{RecipientID: "dest", RSAOAEP256PrivateKeyPKCS8: privateDER, CertificateDER: cert.Raw}}
+	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", true)
+	machinepolicy.UnsetForTest(t, "permitir_cms_cbc")
+	machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
+	if _, err := NuevoCMSProtector().Unprotect(context.Background(), doc, keys); err == nil || excepciones.FromText(err.Error()) == nil {
+		t.Fatalf("CBC sin ajuste debe bloquear: %v", err)
+	}
+	excepciones.SetForTest(t, "cms_cbc", true)
+	out, err := NuevoCMSProtector().Unprotect(context.Background(), doc, keys)
+	if err != nil || !bytes.Equal(out.Document.Content, []byte("contenido CBC legado")) || !slices.Contains(out.Avisos, excepciones.Warning("cms_cbc")) {
+		t.Fatalf("CBC+v15 autorizados: %v; avisos=%v", err, out.Avisos)
 	}
 }
 

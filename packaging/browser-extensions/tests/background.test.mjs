@@ -15,6 +15,19 @@ const testDir = path.dirname(fileURLToPath(import.meta.url));
 const extensionRoot = path.resolve(testDir, "..");
 
 for (const variant of ["chromium", "firefox"]) {
+  test(`${variant}: conserva avisos del primer fragmento nativo`, async () => {
+    const harness = await loadBackground(variant, {
+      nativeResponse(message) {
+        return [
+          { requestId: message.requestId, success: true, signature: "Zmly", warnings: ["excepciones.des_intercambio.aviso"], chunk: 0, totalChunks: 2 },
+          { requestId: message.requestId, success: true, signature: "bWE=", chunk: 1, totalChunks: 2 }
+        ];
+      }
+    });
+    const response = await vm.runInContext("sendToNativeHost", harness.context)("sign", {});
+    assert.equal(response.signature, "ZmlybWE=");
+    assert.deepEqual(Array.from(response.warnings), ["excepciones.des_intercambio.aviso"]);
+  });
   test(`${variant}: no persiste documentos del firmador en storage.local`, async () => {
     const signer = await readFile(
       path.join(extensionRoot, "src", variant, "signer", "signer.js"),

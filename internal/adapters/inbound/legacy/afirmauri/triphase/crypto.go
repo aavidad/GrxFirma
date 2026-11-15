@@ -85,7 +85,7 @@ func descifrarAES128CBC(datos []byte, claveRaw string, endpoints ...string) ([]b
 		return plano, nil
 	}
 	if err := legacycrypto.RequireDESEnIntercambio(endpoints...); err != nil {
-		return nil, errLegacyDESDeshabilitado
+		return nil, err
 	}
 	return descifrarLegacyDES(datos, claveRaw, endpoints...)
 }
@@ -100,7 +100,7 @@ func cifrarAES128CBC(datos []byte, claveRaw string, endpoints ...string) ([]byte
 		return cifrado, nil
 	}
 	if err := legacycrypto.RequireDESEnIntercambio(endpoints...); err != nil {
-		return nil, errLegacyDESDeshabilitado
+		return nil, err
 	}
 	return cifrarLegacyDES(datos, claveRaw, endpoints...)
 }

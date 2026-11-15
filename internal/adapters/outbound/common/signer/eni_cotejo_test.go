@@ -14,6 +14,8 @@ import (
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 func TestCotejarCAdESExplicitaConElOriginal(t *testing.T) {
@@ -41,6 +43,8 @@ func TestCotejarCAdESExplicitaConElOriginal(t *testing.T) {
 }
 
 func TestCotejarXAdESSeparadaConElOriginal(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", true)
 	priv, cert := generarCertRSAPrueba(t)
 	casos := map[string]struct {
 		nombre, mime string
@@ -67,6 +71,36 @@ func TestCotejarXAdESSeparadaConElOriginal(t *testing.T) {
 				t.Fatalf("original ajeno aceptado: %v", err)
 			}
 		})
+	}
+}
+
+func TestCotejarXAdESSeparadaNoConfundeCanonicalizacionConBytesOriginales(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	priv, cert := generarCertRSAPrueba(t)
+	original := []byte(`<a b="1"></a>`)
+	mismaFormaCanonica := []byte(`<a  b="1"/>`)
+	doc, err := domain.NewDocument("original.xml", original, "application/xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	firma, err := commonsigner.NewXAdESBESDetached().Sign(context.Background(), domain.SignatureJob{
+		Document: doc, Format: domain.FormatXAdES, Action: domain.ActionSign,
+		Options: map[string]string{"format": "XAdES Externally Detached", "uri": "urn:original"},
+	}, &commonsigner.LocalSigningKey{ID: "k", Signer: priv, Certificate: cert})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := commonsigner.CotejarXAdESSeparada(firma.Data, original); err != nil {
+		t.Fatalf("el original firmado debe cotejar: %v", err)
+	}
+	for _, permitido := range []bool{false, true} {
+		excepciones.SetForTest(t, "xml_c14n_antigua", permitido)
+		ctx, avisos := domain.ConAvisosOperacion(context.Background())
+		err := commonsigner.CotejarXAdESSeparada(firma.Data, mismaFormaCanonica, ctx)
+		var bloqueo *excepciones.Block
+		if !errors.Is(err, commonsigner.ErrFirmaNoCorrespondeOriginal) && !(errors.As(err, &bloqueo) && bloqueo.ID == "xml_c14n_antigua") {
+			t.Fatalf("permiso=%v: bytes distintos incorporados al ENI: %v; avisos=%v", permitido, err, avisos.Claves())
+		}
 	}
 }
 

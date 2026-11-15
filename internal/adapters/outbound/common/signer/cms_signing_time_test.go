@@ -15,6 +15,7 @@ import (
 
 // La fecha de cada firma llega al resumen del firmante con su origen.
 func TestVerificacionCMS_FechaDeFirmaDelAtributoFirmado(t *testing.T) {
+	activarExcepcionPrueba(t, "cofirma_sin_original")
 	contenido := []byte("contenido con fecha de firma")
 	antes := time.Now().UTC().Add(-time.Minute)
 	firma, _ := firmarCAdESParaPrueba(t, contenido, domain.ActionSign, "Firmante A", nil)

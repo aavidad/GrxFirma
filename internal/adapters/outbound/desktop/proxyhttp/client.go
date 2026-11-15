@@ -19,9 +19,12 @@ import (
 	"time"
 
 	"golang.org/x/net/http/httpproxy"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/desktop/proxysecretstore"
 	"grxfirma/internal/adapters/outbound/desktop/usersettings"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 )
 
 const (
@@ -93,6 +96,11 @@ func transportWithDependencies(configDir string, load settingsLoader, store port
 		if req != nil && bypass(req.URL, cfg.ExcludedURLs) {
 			return nil, nil
 		}
+		if proxyURL.User != nil && req != nil {
+			if err := excepciones.Require(req.Context(), "proxy_http"); err != nil {
+				return nil, err
+			}
+		}
 		return proxyURL, nil
 	}
 	return transport
@@ -118,6 +126,10 @@ func manualProxyURL(cfg proxysecretstore.RuntimeProxyConfig) (*url.URL, error) {
 		Host:   net.JoinHostPort(host, strconv.Itoa(cfg.Port)),
 	}
 	if cfg.Username != "" || len(cfg.Password) > 0 {
+		if err := excepciones.Check("proxy_http"); err != nil {
+			return nil, err
+		}
+		avisos.Registrar(localizador.Detectar().T(excepciones.Warning("proxy_http")), "")
 		proxyURL.User = url.UserPassword(cfg.Username, string(cfg.Password))
 	}
 	return proxyURL, nil
@@ -134,7 +146,14 @@ func setEnvironmentProxy(transport *http.Transport) {
 		if req == nil || req.URL == nil {
 			return nil, nil
 		}
-		return httpproxy.FromEnvironment().ProxyFunc()(req.URL)
+		proxyURL, err := httpproxy.FromEnvironment().ProxyFunc()(req.URL)
+		if err != nil || proxyURL == nil {
+			return proxyURL, err
+		}
+		if err := excepciones.RequireProxyCredentials(req.Context(), proxyURL); err != nil {
+			return nil, err
+		}
+		return proxyURL, nil
 	}
 }
 

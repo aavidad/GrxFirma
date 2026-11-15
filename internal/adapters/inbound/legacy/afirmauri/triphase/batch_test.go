@@ -86,6 +86,9 @@ func batchJobParaServidor(srvURL string) BatchJob {
 // TestBatch_TodosOK verifica que cuando todos los jobs tienen éxito,
 // el batch devuelve resultados OK para cada uno.
 func TestBatch_TodosOK(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	srv := servidorExitosoOK(t)
 	defer srv.Close()
 
@@ -101,7 +104,7 @@ func TestBatch_TodosOK(t *testing.T) {
 		jobs[i].Session.RequestID = fmt.Sprintf("req-%d", i)
 	}
 
-	ctx := ContextWithSigningKey(context.Background(), &mockSigningKey{id: "batch-test"})
+	ctx := ContextWithSigningKey(operationCtx, &mockSigningKey{id: "batch-test"})
 	resultados := batch.Execute(ctx, jobs)
 
 	if len(resultados) != numJobs {
@@ -115,11 +118,15 @@ func TestBatch_TodosOK(t *testing.T) {
 			t.Errorf("job %d: formato incorrecto: %s", r.Index, r.Result.Format)
 		}
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 // TestBatch_UnFallo_OtrosSiguen verifica que cuando un job falla (servidor retorna 500),
 // los demás jobs completan correctamente (modo best-effort).
 func TestBatch_UnFallo_OtrosSiguen(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	// Índice del job que fallará.
 	const indiceError = 1
 
@@ -167,7 +174,7 @@ func TestBatch_UnFallo_OtrosSiguen(t *testing.T) {
 	// El job con indiceError apunta a un RequestID que activa el error en el servidor.
 	jobs[indiceError].Session.RequestID = "falla-req"
 
-	ctx := ContextWithSigningKey(context.Background(), &mockSigningKey{id: "batch-test"})
+	ctx := ContextWithSigningKey(operationCtx, &mockSigningKey{id: "batch-test"})
 	resultados := batch.Execute(ctx, jobs)
 
 	if len(resultados) != numJobs {
@@ -188,6 +195,7 @@ func TestBatch_UnFallo_OtrosSiguen(t *testing.T) {
 			t.Errorf("job %d: error inesperado: %v", i, r.Err)
 		}
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 // TestBatch_ContextoCancelado verifica que cuando el contexto está cancelado

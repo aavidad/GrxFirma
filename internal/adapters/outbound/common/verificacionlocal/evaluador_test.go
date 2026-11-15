@@ -8,6 +8,8 @@ package verificacionlocal_test
 import (
 	"context"
 	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -24,6 +26,8 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/internal/testsupport/pdffixture"
 )
 
@@ -118,7 +122,7 @@ type opcionesVerificacion struct {
 
 // verificar compone el caso de uso real (verificador de formato sin red,
 // anclas locales y evaluador) y devuelve el dictamen.
-func verificar(t *testing.T, op opcionesVerificacion, nombre, mime string, firmado, original []byte) application.VerifyResult {
+func verificar(t *testing.T, op opcionesVerificacion, nombre, mime string, firmado, original []byte, contexts ...context.Context) application.VerifyResult {
 	t.Helper()
 	anclas, err := verificacionlocal.CargarAnclas(op.anclas)
 	if err != nil {
@@ -145,7 +149,11 @@ func verificar(t *testing.T, op opcionesVerificacion, nombre, mime string, firma
 		}
 		cmd.OriginalDocument = &orig
 	}
-	res, err := uc.Execute(context.Background(), cmd)
+	ctx := context.Background()
+	if len(contexts) > 0 && contexts[0] != nil {
+		ctx = contexts[0]
+	}
+	res, err := uc.Execute(ctx, cmd)
 	if err != nil {
 		t.Fatalf("verificación: %v", err)
 	}
@@ -170,12 +178,15 @@ func exigir(t *testing.T, d *domain.DictamenVerificacion, estado domain.EstadoDi
 	}
 }
 
-func TestDictamen_CAdESDetachedValidaConFuentesLocales(t *testing.T) {
+func TestDictamen_CAdESDetachedFuentesLocalesNoRehabilitanClasico(t *testing.T) {
 	e := nuevoEscenario(t)
 	firmado := e.firmarCAdES(t, nil)
 	res := verificar(t, opcionesVerificacion{anclas: e.anclas, crlDir: e.crlDir}, "firma.csig", "application/pkcs7-signature", firmado, e.original)
 	d := res.Dictamen
-	exigir(t, d, domain.EstadoDictamenValida, domain.MotivoDictamenVerificada)
+	if res.Verification.Valid {
+		t.Fatal("el verificador clásico no comprobó revocación y no debe declarar validez")
+	}
+	exigir(t, d, domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido)
 	if d.Integridad.Estado != domain.IntegridadValida || d.Cadena.Estado != domain.CadenaValida ||
 		d.Revocacion.Estado != domain.RevocacionVigente || d.Revocacion.Fuente != "crl_local" ||
 		d.SelloTiempo.Estado != domain.SelloNoPresente || d.VinculoOriginal.Estado != domain.VinculoAcreditado ||
@@ -252,7 +263,7 @@ func TestDictamen_RevocacionNoConcluyenteNuncaEsValida(t *testing.T) {
 		}))
 		escribir(t, dir, "raiz.crl", crearCRL(t, e.pki.raiz, opcionesCRL{}))
 		res := verificar(t, opcionesVerificacion{anclas: e.anclas, crlDir: dir}, "firma.csig", "application/pkcs7-signature", firmado, e.original)
-		exigir(t, res.Dictamen, domain.EstadoDictamenValida, domain.MotivoDictamenVerificada)
+		exigir(t, res.Dictamen, domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido)
 	})
 }
 
@@ -287,7 +298,7 @@ func TestDictamen_SelloDeTiempo(t *testing.T) {
 	t.Run("valido", func(t *testing.T) {
 		firmado := e.firmarCAdES(t, tsaSintetica{emisor: e.pki.tsa})
 		res := verificar(t, opcionesVerificacion{anclas: e.anclas, crlDir: e.crlDir}, "firma.csig", "application/pkcs7-signature", firmado, e.original)
-		exigir(t, res.Dictamen, domain.EstadoDictamenValida, domain.MotivoDictamenVerificada)
+		exigir(t, res.Dictamen, domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido)
 		if res.Dictamen.SelloTiempo.Estado != domain.SelloValido || res.Dictamen.SelloTiempo.Fecha.IsZero() {
 			t.Fatalf("sello=%+v", res.Dictamen.SelloTiempo)
 		}
@@ -297,7 +308,7 @@ func TestDictamen_SelloDeTiempo(t *testing.T) {
 		ajena := nuevaPKI(t, "TSA ajena")
 		firmado := e.firmarCAdES(t, tsaSintetica{emisor: ajena.tsa})
 		res := verificar(t, opcionesVerificacion{anclas: e.anclas, crlDir: e.crlDir}, "firma.csig", "application/pkcs7-signature", firmado, e.original)
-		exigir(t, res.Dictamen, domain.EstadoDictamenValida, domain.MotivoDictamenVerificada)
+		exigir(t, res.Dictamen, domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido)
 		if res.Dictamen.SelloTiempo.Estado != domain.SelloNoComprobado || res.Dictamen.SelloTiempo.Motivo != "tsa_sin_cadena_hasta_ancla" {
 			t.Fatalf("sello=%+v", res.Dictamen.SelloTiempo)
 		}
@@ -328,7 +339,7 @@ func TestDictamen_PAdESVinculoConElOriginal(t *testing.T) {
 
 	t.Run("original_aportado", func(t *testing.T) {
 		res := verificar(t, op, "firmado.pdf", "application/pdf", firmado, original)
-		exigir(t, res.Dictamen, domain.EstadoDictamenValida, domain.MotivoDictamenVerificada)
+		exigir(t, res.Dictamen, domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido)
 		if res.Dictamen.VinculoOriginal.Estado != domain.VinculoAcreditado || res.Dictamen.Formato != string(domain.FormatPAdES) {
 			t.Fatalf("vínculo=%+v formato=%s", res.Dictamen.VinculoOriginal, res.Dictamen.Formato)
 		}
@@ -336,7 +347,7 @@ func TestDictamen_PAdESVinculoConElOriginal(t *testing.T) {
 
 	t.Run("sin_original", func(t *testing.T) {
 		res := verificar(t, op, "firmado.pdf", "application/pdf", firmado, nil)
-		exigir(t, res.Dictamen, domain.EstadoDictamenValida, domain.MotivoDictamenVerificada)
+		exigir(t, res.Dictamen, domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido)
 		if res.Dictamen.VinculoOriginal.Estado != domain.VinculoNoAportado || res.Dictamen.HuellaOriginalSHA256 != "" {
 			t.Fatalf("vínculo=%+v", res.Dictamen.VinculoOriginal)
 		}
@@ -371,7 +382,7 @@ func TestDictamen_XAdESConCRLSintetica(t *testing.T) {
 	// ancla explícita para acreditar la ruta sin descargar emisores.
 	anclasXML := escribir(t, t.TempDir(), "anclas-xml.pem", append(pemCert(e.pki.raiz.cert), pemCert(e.pki.intermedia.cert)...))
 	res := verificar(t, opcionesVerificacion{anclas: anclasXML, crlDir: e.crlDir}, "expediente.xsig", "application/xml", firmado.Data, nil)
-	exigir(t, res.Dictamen, domain.EstadoDictamenValida, domain.MotivoDictamenVerificada)
+	exigir(t, res.Dictamen, domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido)
 	if res.Dictamen.Revocacion.Estado != domain.RevocacionVigente || res.Dictamen.Revocacion.Fuente != "crl_local" {
 		t.Fatalf("la CRL local no acreditó XAdES: %+v", res.Dictamen.Revocacion)
 	}
@@ -406,7 +417,7 @@ func TestDictamen_ExtensionRevocacionRemotaDesactivadaPorDefecto(t *testing.T) {
 	escribir(t, dir, "raiz.crl", crearCRL(t, e.pki.raiz, opcionesCRL{}))
 	res = verificar(t, opcionesVerificacion{anclas: e.anclas, crlDir: dir, cfg: verificacionlocal.Configuracion{RevocacionRemota: remota}},
 		"firma.csig", "application/pkcs7-signature", firmado, e.original)
-	exigir(t, res.Dictamen, domain.EstadoDictamenValida, domain.MotivoDictamenVerificada)
+	exigir(t, res.Dictamen, domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido)
 	if llamadas != 1 || res.Dictamen.Extensiones.RevocacionRemota != domain.ExtensionActiva || res.Dictamen.Revocacion.Fuente != "crl_remota" {
 		t.Fatalf("llamadas=%d revocación=%+v", llamadas, res.Dictamen.Revocacion)
 	}
@@ -433,5 +444,87 @@ func TestCargarAnclas_DirectorioYFicheroInvalido(t *testing.T) {
 	}
 	if _, err := verificacionlocal.CargarAnclas(escribir(t, t.TempDir(), "vacio.pem", []byte("sin certificados"))); err == nil {
 		t.Fatal("un fichero sin certificados debe rechazarse")
+	}
+}
+
+// El algoritmo de la firma del sello es independiente del resumen de la
+// petición de sellado; SHA-256 en messageImprint no sanea una firma SHA-1.
+func TestDictamen_SelloFirmadoConSHA1ExigeAjusteDeLectura(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_sha1_leer")
+	e := nuevoEscenario(t)
+	firmado := e.firmarCAdES(t, tsaSintetica{emisor: e.pki.tsa, firmaHash: crypto.SHA1})
+	sin := verificar(t, opcionesVerificacion{anclas: e.anclas, crlDir: e.crlDir}, "firma.csig", "application/pkcs7-signature", firmado, e.original)
+	foundBlocked := false
+	for _, w := range sin.Verification.Warnings {
+		if w == "excepciones.sha1_leer.bloqueo" {
+			foundBlocked = true
+		}
+	}
+	if !foundBlocked {
+		t.Fatalf("sin aviso del ajuste que impide evaluar el sello: %v", sin.Verification.Warnings)
+	}
+	if sin.Dictamen.SelloTiempo.Estado == domain.SelloValido {
+		t.Fatalf("TSA SHA-1 válida sin ajuste: %+v", sin.Dictamen.SelloTiempo)
+	}
+	excepciones.SetForTest(t, "sha1_leer", true)
+	permitido := verificar(t, opcionesVerificacion{anclas: e.anclas, crlDir: e.crlDir}, "firma.csig", "application/pkcs7-signature", firmado, e.original)
+	if permitido.Dictamen.SelloTiempo.Estado != domain.SelloValido {
+		t.Fatalf("TSA SHA-1 no evaluada con ajuste: %+v", permitido.Dictamen.SelloTiempo)
+	}
+	found := false
+	for _, w := range permitido.Verification.Warnings {
+		if w == excepciones.Warning("sha1_leer") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("falta aviso TSA SHA-1: %v", permitido.Verification.Warnings)
+	}
+}
+
+func TestDictamen_SelloConClaveRSA1024NoSeAcredita(t *testing.T) {
+	e := nuevoEscenario(t)
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tpl := &x509.Certificate{SerialNumber: nuevaSerie(), Subject: pkix.Name{CommonName: "TSA RSA 1024"}, NotBefore: time.Now().Add(-time.Hour), NotAfter: time.Now().Add(time.Hour), KeyUsage: x509.KeyUsageDigitalSignature, ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping}}
+	e.pki.tsa = emitir(t, tpl, &e.pki.raiz, key)
+	firmado := e.firmarCAdES(t, tsaSintetica{emisor: e.pki.tsa})
+	out := verificar(t, opcionesVerificacion{anclas: e.anclas, crlDir: e.crlDir}, "firma.csig", "application/pkcs7-signature", firmado, e.original)
+	if out.Dictamen.SelloTiempo.Estado == domain.SelloValido {
+		t.Fatalf("TSA de RSA corta acreditada: %+v", out.Dictamen.SelloTiempo)
+	}
+}
+
+func TestSelloDocumentoNoAcreditaFirmaTsaSHA1SinAjuste(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_sha1_leer")
+	e := nuevoEscenario(t)
+	contenido := []byte("documento con sello propio")
+	digest := sha256.Sum256(contenido)
+	token, err := (tsaSintetica{emisor: e.pki.tsa, firmaHash: crypto.SHA1}).RequestTimestamp(context.Background(), digest[:], crypto.SHA256)
+	if err != nil {
+		t.Fatal(err)
+	}
+	anchors := domain.CertificateChain{DERCertificates: [][]byte{e.pki.raiz.cert.Raw}}
+	evaluador := verificacionlocal.Nuevo(verificacionlocal.Configuracion{})
+	_, sin := evaluador.EvaluarSelloDocumento(context.Background(), token, contenido, anchors, time.Now())
+	if sin.Estado == domain.IntegridadValida {
+		t.Fatalf("sello documento SHA-1 acreditado sin ajuste: %+v", sin)
+	}
+	excepciones.SetForTest(t, "sha1_leer", true)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	_, con := evaluador.EvaluarSelloDocumento(ctx, token, contenido, anchors, time.Now())
+	if con.Estado != domain.IntegridadValida {
+		t.Fatalf("sello documento autorizado: %+v", con)
+	}
+	found := false
+	for _, warning := range warnings.Claves() {
+		if warning == excepciones.Warning("sha1_leer") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("falta aviso SHA-1 del sello de documento: %v", warnings.Claves())
 	}
 }

@@ -7,6 +7,7 @@ package ipc
 
 import (
 	"encoding/json"
+	"grxfirma/internal/security/excepciones"
 	"strings"
 )
 
@@ -73,6 +74,8 @@ func (p *peticion) UnmarshalJSON(data []byte) error {
 //	{"ok":true,"action":"sign","data":{...}}
 //	{"ok":false,"action":"sign","error":"mensaje localizado"}
 type respuesta struct {
+	cause error // Causa interna; no procede de JSON ni se serializa.
+
 	Protocol  string `json:"protocol,omitempty"`
 	RequestID string `json:"requestId,omitempty"`
 	TraceID   string `json:"traceId,omitempty"`
@@ -80,10 +83,22 @@ type respuesta struct {
 	Action    string `json:"action"`
 	// ErrorCode, Phase, Retryable y Outcome forman el contrato estable que
 	// permite a las GUI representar un resultado sin interpretar Error.
-	ErrorCode string `json:"errorCode"`
-	Phase     string `json:"phase"`
-	Retryable bool   `json:"retryable"`
-	Outcome   string `json:"outcome"`
+	ErrorCode         string             `json:"errorCode"`
+	ExceptionID       string             `json:"exceptionId,omitempty"`
+	WarningKeys       []string           `json:"warnings,omitempty"`
+	BlockKey          string             `json:"blockKey,omitempty"`
+	SettingKey        string             `json:"settingKey,omitempty"`
+	Exception         *excepciones.Block `json:"exception,omitempty"`
+	Activable         *bool              `json:"activable,omitempty"`
+	TitleKey          string             `json:"titleKey,omitempty"`
+	RiskKey           string             `json:"riskKey,omitempty"`
+	AcceptanceKey     string             `json:"acceptanceKey,omitempty"`
+	HelpKey           string             `json:"helpKey,omitempty"`
+	AcceptanceVersion string             `json:"acceptanceVersion,omitempty"`
+	RetryID           string             `json:"retryId,omitempty"`
+	Phase             string             `json:"phase"`
+	Retryable         bool               `json:"retryable"`
+	Outcome           string             `json:"outcome"`
 	// Data puede ser cualquier valor JSON (objeto, array, string, numero).
 	Data       any                         `json:"data,omitempty"`
 	Error      string                      `json:"error,omitempty"`

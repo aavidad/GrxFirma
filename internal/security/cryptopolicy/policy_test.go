@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -18,11 +19,12 @@ func TestSHA1DesactivadoPorDefecto(t *testing.T) {
 	if LegacySHA1Enabled() {
 		t.Fatal("SHA-1 de firma no debe estar habilitado por defecto")
 	}
-	if err := RequireLegacySHA1(); !errors.Is(err, ErrSHA1Disabled) {
+	err := RequireLegacySHA1()
+	if !errors.Is(err, ErrSHA1Disabled) {
 		t.Fatalf("RequireLegacySHA1() error = %v", err)
 	}
-	message := ErrSHA1Disabled.Error()
-	for _, fragment := range []string{"SHA-1", "inseguro", "ninguna firma", "portal", "SHA-256"} {
+	message := err.Error()
+	for _, fragment := range []string{"SHA-1", "organización", "administrador", "sha1_crear"} {
 		if !strings.Contains(message, fragment) {
 			t.Fatalf("el rechazo no explica el riesgo o la remediación (%q): %q", fragment, message)
 		}
@@ -52,6 +54,7 @@ func TestSHA1NoSeHabilitaPorVariableDeEntorno(t *testing.T) {
 // Lote 16c: solo la directiva fijada expresamente a «deshabilitada» prohíbe
 // SHA-1 legado; sin directiva se admite con aviso por compatibilidad.
 func TestSHA1ProhibidoSoloConLaDirectivaDeshabilitada(t *testing.T) {
+	excepciones.SetForTest(t, "sha1_conservar", true)
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
 	if LegacySHA1Prohibited() {
 		t.Fatal("sin la directiva, SHA-1 legado no está prohibido")

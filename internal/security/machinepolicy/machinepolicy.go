@@ -12,9 +12,12 @@
 // autenticado puede crear carpetas en ellas y plantar una política que afecte
 // a todos los usuarios del equipo.
 //
-// En el resto de sistemas no hay almacén nativo y Native devuelve false: la
-// política sigue leyéndose de /etc/grxfirma, propiedad de root.
+// En Linux y macOS no hay almacén nativo y Native devuelve false: la
+// política se lee de un fichero del sistema, propiedad de root. Android no
+// tiene esa fuente de directivas.
 package machinepolicy
+
+import "runtime"
 
 // RegistryKey es la subclave de HKLM donde se publica la política en Windows.
 const RegistryKey = `SOFTWARE\Policies\GrxFirma`
@@ -53,6 +56,10 @@ const (
 	ProhibirCifradoCMSHeredado = "prohibir_cifrado_cms_heredado"
 	FirmaRemotaCSCServicios    = "firma_remota_csc_servicios_permitidos"
 )
+
+// NoMachinePolicy indica sistemas donde no existe directiva de máquina.
+// Android podrá integrar una política gestionada por otra vía en el futuro.
+func NoMachinePolicy() bool { return runtime.GOOS == "android" }
 
 // Native indica si la plataforma dispone de un almacén de política de
 // máquina propio (registro de Windows).

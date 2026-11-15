@@ -48,6 +48,7 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/signingpolicy"
 )
 
@@ -66,6 +67,7 @@ const (
 
 type tlsIPCDependencies struct {
 	ensureBrowserCompatibleCertificate func(
+		ctx context.Context,
 		dir string,
 		prefix string,
 	) (certFile, keyFile, rootCertFile, source string, err error)
@@ -75,7 +77,7 @@ type tlsIPCDependencies struct {
 
 func defaultTLSIPCDependencies() tlsIPCDependencies {
 	return tlsIPCDependencies{
-		ensureBrowserCompatibleCertificate: resttls.EnsureBrowserCompatibleLocalhostCertificate,
+		ensureBrowserCompatibleCertificate: resttls.EnsureBrowserCompatibleLocalhostCertificateContext,
 		ensureManagedTrust:                 localtlstrust.EnsureManagedTrusted,
 		removeManagedTrust:                 localtlstrust.RemoveManagedTrusted,
 	}
@@ -203,6 +205,8 @@ type Manejador struct {
 	confianzaMu       sync.Mutex
 	confianzaForzable map[string]domain.ObstaculoConfianza
 
+	unsafeRetryMu          sync.Mutex
+	unsafeRetries          map[string]*unsafeRetry
 	settingsMu             sync.Mutex
 	certsMu                sync.RWMutex
 	tlsDeps                tlsIPCDependencies
@@ -228,7 +232,7 @@ func (m *Manejador) despacharConTimeout(parent context.Context, p peticion) resp
 
 func desktopIPCTimeoutDe(accion string) time.Duration {
 	switch accion {
-	case "sign", "sign_multicosign", "sign_batch", "protect_sign",
+	case "unsafe_operation_retry", "sign", "sign_multicosign", "sign_batch", "protect_sign",
 		"verify", "pdf_preview", "hash_create", "hash_check", "validate_invoice", "validate_eni", "generate_eni_document", "generate_eni_file",
 		// Conectar espera a que la persona autorice en el navegador.
 		"csc_connect":
@@ -239,6 +243,14 @@ func desktopIPCTimeoutDe(accion string) time.Duration {
 
 // despachar procesa una peticion y devuelve la respuesta serializada.
 func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
+	ctx = excepciones.WithConfigDir(ctx, m.configDirSeguro())
+	ctx, avisosOperacion := domain.ConAvisosOperacion(ctx)
+	ctx, blockReport := excepciones.WithBlockReport(ctx)
+	pendingRetry := m.prepareUnsafeRetry(ctx, p)
+	if pendingRetry != nil {
+		ctx = context.WithValue(ctx, unsafeRetryFilesKey{}, pendingRetry.files)
+	}
+	defer pendingRetry.clearUnlessStored()
 	accion := strings.ToLower(strings.TrimSpace(p.Action))
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: accion, Error: err.Error()}
@@ -343,6 +355,10 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handleServiceStart(ctx)
 	case "service_stop":
 		resp = m.handleServiceStop(ctx)
+	case "unsafe_operation_retry":
+		resp = m.handleUnsafeRetry(ctx, p.Params)
+	case "unsafe_exceptions_list", "unsafe_exceptions_set", "unsafe_exceptions_activate":
+		resp = m.handleUnsafeExceptions(ctx, accion, p.Params)
 	case "get_settings":
 		resp = m.handleGetSettings(ctx)
 	case "save_settings":
@@ -392,6 +408,50 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp.Diagnostic = &resultadoDiagnosticoGuiado{
 			Category: "app_local", FailureCode: resp.Error,
 			UserMessage: m.t(resp.Error), ExpertMessage: resp.Error,
+		}
+	}
+	resp.WarningKeys = domain.UnirAvisos(resp.WarningKeys, avisosOperacion.Claves()...)
+	mensajeBloqueo := resp.Error
+	if verified, ok := resp.Data.(resultadoVerificacion); ok {
+		mensajeBloqueo += verified.Reason + strings.Join(verified.Errors, " ") + strings.Join(verified.Warnings, " ")
+	}
+	var bloqueo *excepciones.Block
+	if !errors.As(resp.cause, &bloqueo) {
+		bloqueo = blockReport.ForMessage(mensajeBloqueo)
+	}
+	if bloqueo != nil {
+		resp.ErrorCode = "unsafe_exception_blocked"
+		resp.ExceptionID = bloqueo.ID
+		resp.BlockKey = bloqueo.BlockKey
+		resp.SettingKey = bloqueo.SettingKey
+		effective := excepciones.DescribeAt(m.configDirSeguro(), bloqueo.ID)
+		policyBlocked := !effective.Activable && !effective.ConfigUnavailable
+		trustedBlock := blockReport.For(bloqueo.ID) != nil
+		if !esInterfazVerificada(ctx) || !trustedBlock {
+			effective.Activable = false
+		}
+		resp.Exception = effective
+		resp.Activable = &effective.Activable
+		resp.TitleKey = effective.TitleKey
+		resp.RiskKey = effective.RiskKey
+		resp.AcceptanceKey = effective.AcceptanceKey
+		resp.HelpKey = effective.HelpKey
+		resp.AcceptanceVersion = effective.AcceptanceVersion
+		if trustedBlock && effective.Activable {
+			resp.RetryID = m.storeUnsafeRetry(ctx, pendingRetry, bloqueo.ID)
+		}
+		if !resp.OK {
+			key := effective.BlockKey
+			if policyBlocked {
+				key = effective.OrganizationKey
+			}
+			if effective.ConfigUnavailable {
+				key = "excepciones.directorio_no_disponible"
+			}
+			resp.Error = m.t(key)
+			if policyBlocked {
+				resp.Error = m.t(effective.RiskKey) + "\n" + resp.Error
+			}
 		}
 	}
 	resp = m.explicarFalloRemoto(resp, peticionRemota)
@@ -679,7 +739,7 @@ func (m *Manejador) handleFirma(ctx context.Context, raw json.RawMessage) respue
 		return respuesta{OK: false, Action: "sign", Error: err.Error()}
 	}
 
-	contenido, err := leerFicheroSeguroIPC(params.InputPath)
+	contenido, err := leerFicheroReintentoIPC(ctx, params.InputPath)
 	if err != nil {
 		return respuesta{OK: false, Action: "sign", Error: m.t("error.archivo_no_encontrado", params.InputPath)}
 	}
@@ -1260,7 +1320,7 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 		return respuesta{OK: false, Action: "verify", Error: err.Error()}
 	}
 
-	contenido, err := leerFicheroSeguroIPC(params.InputPath)
+	contenido, err := leerFicheroReintentoIPC(ctx, params.InputPath)
 	if err != nil {
 		return respuesta{OK: false, Action: "verify", Error: m.t("error.archivo_no_encontrado", params.InputPath)}
 	}
@@ -1278,7 +1338,7 @@ func (m *Manejador) handleVerificacion(ctx context.Context, raw json.RawMessage)
 		if err := verificarTamano(originalPath); err != nil {
 			return respuesta{OK: false, Action: "verify", Error: err.Error()}
 		}
-		originalContent, err := leerFicheroSeguroIPC(originalPath)
+		originalContent, err := leerFicheroReintentoIPC(ctx, originalPath)
 		if err != nil {
 			return respuesta{OK: false, Action: "verify", Error: m.t("error.archivo_no_encontrado", originalPath)}
 		}
@@ -2130,6 +2190,24 @@ func (m *Manejador) handleSaveSettings(ctx context.Context, raw json.RawMessage)
 	if err != nil {
 		return respuesta{OK: false, Action: "save_settings", Error: m.t("error.settings_no_configurado")}
 	}
+	for key := range datos {
+		if excepciones.ReservedSettings(key) && key != excepciones.UserField && key != excepciones.AcceptanceField {
+			return respuesta{OK: false, Action: "save_settings", ErrorCode: "unsafe_acceptance_required", Error: m.t("excepciones.aceptacion_requerida")}
+		}
+	}
+	for _, key := range []string{excepciones.UserField, excepciones.AcceptanceField} {
+		if proposed, exists := datos[key]; exists {
+			a, _ := json.Marshal(proposed)
+			b, _ := json.Marshal(actual.Extras[key])
+			if string(a) != string(b) {
+				return respuesta{OK: false, Action: "save_settings", ErrorCode: "unsafe_acceptance_required", Error: m.t("excepciones.aceptacion_requerida")}
+			}
+		}
+		delete(datos, key)
+		if value, exists := actual.Extras[key]; exists {
+			datos[key] = value
+		}
+	}
 	delete(datos, "proxySecretId")
 	delete(datos, "proxyRealm")
 	siguiente := ports.DocumentoConfiguracionUsuarioDesdeMapa(datos)
@@ -2953,6 +3031,7 @@ func (m *Manejador) handleInstallPublicRoots(ctx context.Context) respuesta {
 	deps := m.tlsIPCDependencies()
 	_, _, rootCertFile, source, err :=
 		deps.ensureBrowserCompatibleCertificate(
+			ctx,
 			tlsDir,
 			tlsIPCCertificatePrefix,
 		)
@@ -2960,8 +3039,10 @@ func (m *Manejador) handleInstallPublicRoots(ctx context.Context) respuesta {
 		tlsDir,
 		tlsIPCCertificatePrefix+"-root.crt.pem",
 	)
-	if err != nil ||
-		source != "grxfirma-local-ca" ||
+	if err != nil {
+		return respuesta{OK: false, Action: "install_public_roots", Error: err.Error()}
+	}
+	if source != "grxfirma-local-ca" ||
 		filepath.Clean(rootCertFile) != filepath.Clean(expectedRootCertFile) {
 		return respuesta{
 			OK:        false,
@@ -3100,14 +3181,18 @@ func removeTLSIPCManagedArtifacts(artifactPaths []string) (int, error) {
 }
 
 func (m *Manejador) configDirSeguro() string {
-	if strings.TrimSpace(m.ConfigDir) != "" {
-		return m.ConfigDir
+	if m != nil && strings.TrimSpace(m.ConfigDir) != "" {
+		dir := strings.TrimSpace(m.ConfigDir)
+		if !filepath.IsAbs(dir) {
+			return ""
+		}
+		return filepath.Clean(dir)
 	}
 	home, err := os.UserHomeDir()
-	if err == nil && strings.TrimSpace(home) != "" {
-		return appdirs.Config(home)
+	if err != nil || strings.TrimSpace(home) == "" || !filepath.IsAbs(home) {
+		return ""
 	}
-	return filepath.Join(os.TempDir(), "grxfirma")
+	return appdirs.Config(home)
 }
 
 // ---------------------------------------------------------------------------

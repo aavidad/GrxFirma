@@ -13,6 +13,7 @@ import (
 
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 func TestVerifySignature_ExitoCAdES(t *testing.T) {
@@ -169,3 +170,36 @@ func TestVerifySignature_DetachedConOriginal(t *testing.T) {
 }
 
 var _ = time.UTC
+
+func TestVerifyBlockedLegacyReturnsUnevaluated(t *testing.T) {
+	block := &excepciones.Block{ID: "sha1_leer", BlockKey: "excepciones.sha1_leer.bloqueo", SettingKey: "excepciones.sha1_leer.ajuste"}
+	uc := application.NuevoVerifySignatureUseCase(&trustAnchorMock{}, &verifierMock{err: block}, nil)
+	out, err := uc.Execute(context.Background(), application.VerifyCommand{SignedDocument: docFirmadoPrueba()})
+	if err != nil || out.Verification.Valid || out.Verification.Integrity.Status != domain.VerificationStatusUnknown || excepciones.FromText(out.Verification.Reason) == nil {
+		t.Fatalf("bloqueo perdido: valid=%v integrity=%s err=%v", out.Verification.Valid, out.Verification.Integrity.Status, err)
+	}
+}
+
+type anclasConAvisoPrevio struct{}
+
+func (anclasConAvisoPrevio) Anchors(ctx context.Context) (domain.CertificateChain, error) {
+	domain.AnotarAviso(ctx, "excepciones.anclas_locales.aviso")
+	return domain.CertificateChain{}, nil
+}
+func TestVerifyBlockedLegacyPreservesAnchorWarning(t *testing.T) {
+	block := &excepciones.Block{ID: "sha1_leer", BlockKey: "excepciones.sha1_leer.bloqueo", SettingKey: "excepciones.sha1_leer.ajuste"}
+	uc := application.NuevoVerifySignatureUseCase(anclasConAvisoPrevio{}, &verifierMock{err: block}, nil)
+	out, err := uc.Execute(context.Background(), application.VerifyCommand{SignedDocument: docFirmadoPrueba()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	seen := false
+	for _, w := range out.Verification.Warnings {
+		if w == "excepciones.anclas_locales.aviso" {
+			seen = true
+		}
+	}
+	if !seen {
+		t.Fatalf("el bloqueo perdió el aviso de anclas locales: %v", out.Verification.Warnings)
+	}
+}

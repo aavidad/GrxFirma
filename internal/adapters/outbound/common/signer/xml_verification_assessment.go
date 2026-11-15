@@ -7,6 +7,7 @@ package signer
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -18,6 +19,7 @@ import (
 	"strings"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 const xmlCompatibilityEvidence = "xml.canonicalization.compatibility"
@@ -31,8 +33,9 @@ const (
 	detalleDOCTYPEExterno        = "El documento declara una DTD externa que no se ha leído."
 	motivoDOCTYPEExterno         = "El documento declara una DTD externa que GrxFirma no lee. Si esa DTD añade valores al documento, lo que muestre otro programa puede no ser lo firmado, así que la firma no se da por válida."
 	motivoPIFueraDeRaizSinFirmar = "Con esa forma antigua no quedaban firmadas las instrucciones de proceso de fuera del elemento raíz, como una hoja de estilo, y este documento las tiene. Pudieron añadirse después de firmar."
-	motivoC14NAntiguaGrxFirma    = "La firma coincide con la forma de preparar el XML que usaban las versiones anteriores de GrxFirma, no con la estándar. Lo normal es que la hiciera una de esas versiones. No se da por válida."
 )
+
+var motivoC14NAntiguaGrxFirma = excepciones.Warning("xml_c14n_antigua")
 
 // El contexto es el documento original, no un fragmento reserializado. El
 // ordinal identifica el SignedInfo de esta firma incluso con varias firmas
@@ -304,10 +307,15 @@ func identifyXMLSignersWithContext(fragment []byte, context xmlSignatureContext,
 	declaredMatch := false
 	antiguaMatch := false
 	var lastError error
+	declarados := make(map[*x509.Certificate]bool, len(certificates))
 	for _, certificate := range certificates {
-		declared := verifiesDeclaredSignedInfo(context, signedInfo, value, certificate, c14nEstandar)
+		declarados[certificate] = verifiesDeclaredSignedInfo(context, signedInfo, value, certificate, c14nEstandar)
+		declaredMatch = declaredMatch || declarados[certificate]
+	}
+	for _, certificate := range certificates {
+		declared := declarados[certificate]
 		antigua := false
-		if !declared {
+		if !declared && !declaredMatch {
 			antigua = verifiesDeclaredSignedInfo(context, signedInfo, value, certificate, c14nAntiguaGrxFirma)
 		}
 		if !declared && !antigua {
@@ -653,11 +661,43 @@ func assessXMLReferencesExternas(fragment []byte, context xmlSignatureContext, s
 	return compatibility, noComprobadas, nil
 }
 
-func markXMLCompatibility(result domain.VerificationResult, compatibility []string) domain.VerificationResult {
+func markXMLCompatibility(result domain.VerificationResult, compatibility []string, contexts ...context.Context) domain.VerificationResult {
+	return markXMLCompatibilityConDecision(result, compatibility, true, contexts...)
+}
+
+// El resultado parcial conserva la evidencia sin decidir todavía: otras
+// firmas o referencias del mismo documento pueden estar alteradas.
+func markXMLCompatibilityParcial(result domain.VerificationResult, compatibility []string, contexts ...context.Context) domain.VerificationResult {
+	return markXMLCompatibilityConDecision(result, compatibility, false, contexts...)
+}
+
+func markXMLCompatibilityConDecision(result domain.VerificationResult, compatibility []string, decidir bool, contexts ...context.Context) domain.VerificationResult {
 	if len(compatibility) == 0 {
 		return result
 	}
-	const reason = "Compatibilidad histórica; validación XML estándar no acreditada."
+	requiereC14N := compatibilidadC14N(compatibility)
+	if decidir && requiereC14N {
+		if err := excepciones.Check("xml_c14n_antigua", contexts...); err != nil {
+			result = result.WithPolicyError(err)
+			// El bloqueo conserva lo observado: ningún consumidor puede confundirlo con éxito.
+			for _, detail := range compatibility {
+				result.Evidence = append(result.Evidence, domain.VerificationEvidence{Type: xmlCompatibilityEvidence, Summary: detail})
+			}
+			result.Valid = false
+			result.Coverage = domain.CoberturaNoAcreditada
+			result.Reason = err.Error()
+			result.Integrity.Status = domain.VerificationStatusUnknown
+			result.Integrity.Reason = err.Error()
+			result.Trust.Status = domain.VerificationStatusUnknown
+			result.Errors = []string{err.Error()}
+			result.Warnings = appendUniqueString(result.Warnings, err.Error())
+			return result.Normalize()
+		}
+	}
+	reason := motivoDOCTYPEExterno
+	if requiereC14N {
+		reason = excepciones.Warning("xml_c14n_antigua")
+	}
 	result.Valid = false
 	result.Coverage = "unknown"
 	result.Reason = reason
@@ -675,6 +715,9 @@ func markXMLCompatibility(result domain.VerificationResult, compatibility []stri
 	result.Details = withoutSuccessClaims(result.Details)
 	result.Integrity.Details = append(withoutSuccessClaims(result.Integrity.Details), compatibility...)
 	result.Warnings = appendUniqueString(result.Warnings, reason)
+	if requiereC14N {
+		result.Warnings = appendUniqueString(result.Warnings, excepciones.Warning("xml_c14n_antigua"))
+	}
 	for _, detail := range compatibility {
 		if strings.HasSuffix(detail, sufijoC14NAntigua) {
 			result.Warnings = appendUniqueString(result.Warnings, motivoC14NAntiguaGrxFirma)
@@ -684,6 +727,17 @@ func markXMLCompatibility(result domain.VerificationResult, compatibility []stri
 		result.Evidence = append(result.Evidence, domain.VerificationEvidence{Type: xmlCompatibilityEvidence, Summary: detail})
 	}
 	return result.Normalize()
+}
+
+// compatibilidadC14N distingue el lector histórico de una DTD externa,
+// que se advierte por separado y no depende de esa excepción.
+func compatibilidadC14N(detalles []string) bool {
+	for _, detalle := range detalles {
+		if detalle != detalleDOCTYPEExterno {
+			return true
+		}
+	}
+	return false
 }
 
 func xmlCompatibilityDetails(result domain.VerificationResult) []string {

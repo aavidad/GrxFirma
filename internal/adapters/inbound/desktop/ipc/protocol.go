@@ -81,6 +81,7 @@ func desktopIPCHello() resultadoIPCHello {
 
 func desktopIPCHelloWithManagedTrust(managedTrustSupported bool) resultadoIPCHello {
 	actions := []string{
+		"unsafe_exceptions_list", "unsafe_exceptions_set", "unsafe_exceptions_activate", "unsafe_operation_retry",
 		"certificate_access_options",
 		"certificate_export_public",
 		"certificates",

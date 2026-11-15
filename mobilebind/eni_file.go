@@ -109,14 +109,14 @@ func (f *Facade) CreateENIFileJSON(payload string) (out string, err error) {
 	if !f.sessionIdentityIsRSA(req.CertificateID) {
 		return "", newFacadeError(mobileFormatRequiresRSAMessage)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	key, err := f.session.KeyFor(ctx, domain.CertificateRef{ID: req.CertificateID})
 	if err != nil {
 		return "", safeOperationError("ENI")
 	}
 	sign := func(node []byte, id string) ([]byte, error) {
-		return commonsigner.FirmarNodoXAdES(node, id, key, map[string]string{})
+		return commonsigner.FirmarNodoXAdES(node, id, key, map[string]string{}, ctx)
 	}
 	input := make([]eni.DocumentoExpediente, 0, len(docs))
 	for _, doc := range docs {

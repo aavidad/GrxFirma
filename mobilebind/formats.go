@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
+	"grxfirma/internal/security/excepciones"
 )
 
 // mobileFormat describe lo que el motor compartido genera para cada formato
@@ -169,6 +170,10 @@ const verifactuKeyPrefix = "verifactu."
 // signingError conserva solo las claves de localización cerradas del motor
 // Veri*Factu; cualquier otro detalle queda en el mensaje genérico.
 func signingError(err error) error {
+	var bloque *excepciones.Block
+	if errors.As(err, &bloque) {
+		return err
+	}
 	var localized interface{ LocalizationKey() string }
 	if errors.As(err, &localized) {
 		if key := localized.LocalizationKey(); strings.HasPrefix(key, verifactuKeyPrefix) && isClosedVeriFactuKey(key) {

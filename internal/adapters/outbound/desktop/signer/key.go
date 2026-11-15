@@ -9,6 +9,7 @@
 package signer
 
 import (
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/sha1" // #nosec G505 -- SHA-1 is available only for explicitly enabled V1.9 signature interoperability.
@@ -77,11 +78,17 @@ func (c *ClaveLocal) ToLocalSigningKey() *commonsigner.LocalSigningKey {
 // SignDigest firma directamente un digest ya calculado. Se usa en protocolos
 // trifásicos legacy donde la fase local solo debe producir el PKCS#1 del PRE.
 func (c *ClaveLocal) SignDigest(digest []byte, hash crypto.Hash) ([]byte, error) {
-	if err := c.validateSigningIdentity(time.Now()); err != nil {
+	return c.SignDigestWithContext(context.Background(), digest, hash)
+}
+
+// SignDigestWithContext conserva el directorio y los avisos de la operación
+// trifásica durante el preflight y la firma local.
+func (c *ClaveLocal) SignDigestWithContext(ctx context.Context, digest []byte, hash crypto.Hash) ([]byte, error) {
+	if err := c.validateSigningIdentity(ctx, time.Now()); err != nil {
 		return nil, err
 	}
 	if hash == crypto.SHA1 {
-		if err := cryptopolicy.RequireLegacySHA1(); err != nil {
+		if err := cryptopolicy.RequireLegacySHA1(ctx); err != nil {
 			return nil, err
 		}
 	}
@@ -91,8 +98,13 @@ func (c *ClaveLocal) SignDigest(digest []byte, hash crypto.Hash) ([]byte, error)
 // SignPreData firma un PRE trifásico manteniendo la semántica de V1:
 // calcular el hash indicado por el algoritmo y firmar ese digest con PKCS#1.
 // options queda reservado para paridad futura con stores externos.
-func (c *ClaveLocal) SignPreData(preData []byte, algorithm string, _ map[string]string) (string, error) {
-	if err := c.validateSigningIdentity(time.Now()); err != nil {
+func (c *ClaveLocal) SignPreData(preData []byte, algorithm string, options map[string]string) (string, error) {
+	return c.SignPreDataWithContext(context.Background(), preData, algorithm, options)
+}
+
+// SignPreDataWithContext aplica el mismo contexto a la validación y a SHA-1.
+func (c *ClaveLocal) SignPreDataWithContext(ctx context.Context, preData []byte, algorithm string, _ map[string]string) (string, error) {
+	if err := c.validateSigningIdentity(ctx, time.Now()); err != nil {
 		return "", err
 	}
 	hash, err := hashDesdeAlgoritmoLegacy(algorithm)
@@ -102,7 +114,7 @@ func (c *ClaveLocal) SignPreData(preData []byte, algorithm string, _ map[string]
 	var digest []byte
 	switch hash {
 	case crypto.SHA1:
-		if err := cryptopolicy.RequireLegacySHA1(); err != nil {
+		if err := cryptopolicy.RequireLegacySHA1(ctx); err != nil {
 			return "", err
 		}
 		sum := sha1.Sum(preData) // #nosec G401 -- guarded legacy signature path; SHA-256+ remains the default.
@@ -126,11 +138,11 @@ func (c *ClaveLocal) SignPreData(preData []byte, algorithm string, _ map[string]
 	return base64.StdEncoding.EncodeToString(firma), nil
 }
 
-func (c *ClaveLocal) validateSigningIdentity(now time.Time) error {
+func (c *ClaveLocal) validateSigningIdentity(ctx context.Context, now time.Time) error {
 	if c == nil || c.priv == nil || c.cert == nil {
 		return &signingpolicy.Error{Reason: signingpolicy.MissingIdentity}
 	}
-	return signingpolicy.ValidateCertificateDER(c.cert.Raw, now)
+	return signingpolicy.ValidateSigningCertificateDER(ctx, c.cert.Raw, now)
 }
 
 func hashDesdeAlgoritmoLegacy(raw string) (crypto.Hash, error) {

@@ -13,6 +13,8 @@ import (
 	"time"
 
 	nativehost "grxfirma/internal/adapters/inbound/desktop/nativehost"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 func TestEnvBool(t *testing.T) {
@@ -31,6 +33,8 @@ func TestEnvBool(t *testing.T) {
 }
 
 func TestAprobacionSistema_AutoApproveExplicito(t *testing.T) {
+	machinepolicy.UnsetForTest(t, machinepolicy.AprobacionAutomaticaHost)
+	excepciones.SetForTest(t, "aprobacion_automatica", true)
 	aprobador := &aprobacionSistema{autoApprove: true}
 	ok, err := aprobador.Request(context.Background(), "firmar")
 	if err != nil {

@@ -684,6 +684,9 @@ func runRESTServer(ctx context.Context, logger *slog.Logger, rutaP12, password, 
 		fmt.Fprintln(os.Stderr, "error abriendo el servidor REST:", err)
 		return 1
 	}
+	for _, warning := range srv.Warnings {
+		fmt.Fprintln(os.Stderr, loc.T(warning))
+	}
 	fmt.Fprintf(os.Stdout, "Servidor REST local activo en https://%s\n", srv.Addr)
 	fmt.Fprintf(os.Stdout, "OpenAPI: https://%s/openapi.json\n", srv.Addr)
 	if cfg.token != "" {

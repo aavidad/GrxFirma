@@ -229,6 +229,7 @@ func cmsSHA1Lote3(t *testing.T, p pkiLote3, contenido []byte) []byte {
 }
 
 func TestConfianzaForzada_SHA1Aceptado(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	p := nuevaPKILote3(t, nil)
 	contenido := []byte("documento de 2012")
 	cms := cmsSHA1Lote3(t, p, contenido)
@@ -240,8 +241,8 @@ func TestConfianzaForzada_SHA1Aceptado(t *testing.T) {
 	if !tieneEvidenciaAlgoritmoAntiguo(con) {
 		t.Fatalf("la evidencia de algoritmo antiguo debe seguir: %v", con.Evidence)
 	}
-	if containsDetail(con.Warnings, motivoAlgoritmoAntiguo) {
-		t.Fatalf("aceptado SHA-1, el aviso es el de confianza forzada: %v", con.Warnings)
+	if !containsDetail(con.Warnings, motivoAlgoritmoAntiguo) {
+		t.Fatalf("aceptado SHA-1, el aviso de lectura sigue visible: %v", con.Warnings)
 	}
 }
 

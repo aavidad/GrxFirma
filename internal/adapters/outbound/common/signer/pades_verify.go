@@ -18,6 +18,7 @@ import (
 
 	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 const (
@@ -125,18 +126,18 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 			InicioHueco: signature.ByteRange[1],
 			FinRevision: signature.RevisionEnd,
 		})
-		aggregate.Details = append(aggregate.Details,
+		const detallePDFVerificado = "subfiltro PDF detached verificado"
+		detallesPDF := []string{
 			fmt.Sprintf("firma_pdf=%d", idx+1),
 			fmt.Sprintf("byterange=%d,%d,%d,%d", signature.ByteRange[0], signature.ByteRange[1], signature.ByteRange[2], signature.ByteRange[3]),
 			fmt.Sprintf("subfilter=%s", signature.SubFilter),
-			"subfiltro PDF detached verificado",
-		)
-		aggregate.Integrity.Details = append(aggregate.Integrity.Details,
-			fmt.Sprintf("firma_pdf=%d", idx+1),
-			fmt.Sprintf("byterange=%d,%d,%d,%d", signature.ByteRange[0], signature.ByteRange[1], signature.ByteRange[2], signature.ByteRange[3]),
-			fmt.Sprintf("subfilter=%s", signature.SubFilter),
-			"subfiltro PDF detached verificado",
-		)
+		}
+		var blocked *excepciones.Block
+		if !errors.As(result.PolicyError(), &blocked) {
+			detallesPDF = append(detallesPDF, detallePDFVerificado)
+		}
+		aggregate.Details = append(aggregate.Details, detallesPDF...)
+		aggregate.Integrity.Details = append(aggregate.Integrity.Details, detallesPDF...)
 		if signature.RevisionEnd == len(signedDocument.Content) {
 			hasFullDocumentCoverage = true
 			aggregate.Details = append(aggregate.Details, fmt.Sprintf("cobertura_firma_pdf_%d=documento_completo", idx+1))
@@ -170,7 +171,14 @@ func (v *PAdESVerifier) Verify(ctx context.Context, signedDocument domain.Docume
 	if !aggregate.Valid && aggregate.Reason == "" {
 		aggregate.Reason = "una o más firmas PAdES no son válidas"
 	}
-	if hasFullDocumentCoverage {
+	var blocked *excepciones.Block
+	if errors.As(aggregate.PolicyError(), &blocked) {
+		aggregate.Coverage = domain.CoberturaNoAcreditada
+		if aggregate.Integrity.Status != domain.VerificationStatusInvalid {
+			aggregate.Integrity.Status = domain.VerificationStatusUnknown
+			aggregate.Integrity.Reason = aggregate.Reason
+		}
+	} else if hasFullDocumentCoverage {
 		aggregate.Coverage = "full"
 	} else {
 		aggregate.Coverage = "partial"
@@ -619,6 +627,14 @@ func mergePAdESVerificationResult(base, next domain.VerificationResult) domain.V
 	base.Material = base.Material.Anadir(next.Material)
 	base.SigningTimes = append(base.SigningTimes, next.SigningTimes...)
 	base.Integrity = mergeVerificationAspect(base.Integrity, next.Integrity)
+	var blocked *excepciones.Block
+	if errors.As(next.PolicyError(), &blocked) {
+		base = base.WithPolicyError(blocked)
+		if base.Integrity.Status != domain.VerificationStatusInvalid {
+			base.Integrity.Status = domain.VerificationStatusUnknown
+			base.Integrity.Reason = next.Reason
+		}
+	}
 	base.Certificate = mergeVerificationAspect(base.Certificate, next.Certificate)
 	base.Trust = mergeVerificationAspect(base.Trust, next.Trust)
 	return base

@@ -38,6 +38,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 )
 
 // construirValidationDataPAdES recolecta el material de validación (cadena,
@@ -1127,7 +1128,7 @@ func abrirPDF(data []byte, options map[string]string) (r *pdf.Reader, err error)
 
 // comprobarPDFCifrado decide si un PDF cifrado puede firmarse conservando su
 // protección y explica al usuario lo que se hace.
-func comprobarPDFCifrado(data []byte, options map[string]string) error {
+func comprobarPDFCifrado(ctx context.Context, data []byte, options map[string]string) error {
 	r, err := abrirPDF(data, options)
 	if err != nil {
 		switch {
@@ -1148,7 +1149,13 @@ func comprobarPDFCifrado(data []byte, options map[string]string) error {
 	if !anotar && !rellenar && !c.Propietario {
 		return ErrPDFPermisos
 	}
-	avisos.Registrar("PDF cifrado", "el PDF está cifrado; la firma se añade conservando su cifrado, su contraseña y sus permisos")
+	if !c.AES256 {
+		if err := excepciones.Require(ctx, "pdf_cifrado_heredado"); err != nil {
+			return err
+		}
+		clave := excepciones.Warning("pdf_cifrado_heredado")
+		avisos.Registrar(localizador.Detectar().T(clave), localizador.Detectar().T(clave))
+	}
 	return nil
 }
 

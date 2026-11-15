@@ -15,6 +15,7 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/portalpaths"
 )
 
 // claveConfirmarGuardado es la clave del catálogo para confirmar un tipo de
@@ -135,6 +136,9 @@ func sinInterfazDeConfirmacion(aprobador ports.UserApproval) bool {
 // del lote 4, con un aviso en el registro y, en Windows, con la marca de
 // procedencia (lote 13c).
 func (h *legacyWebSocketHandler) autorizarDestinoGuardado(ctx context.Context, path string) string {
+	if _, err := portalpaths.Check(path); err != nil {
+		return "SAF_05: Ruta fuera del ámbito permitido"
+	}
 	clase := clasificarDestinoGuardado(path)
 	switch clase {
 	case destinoHabitual:

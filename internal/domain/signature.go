@@ -74,6 +74,8 @@ func (j SignatureJob) Validate() error {
 
 // SignatureResult es el resultado de una operacion de firma exitosa.
 type SignatureResult struct {
+	// Warnings contiene claves de catálogo de los permisos usados en esta operación.
+	Warnings  []string `json:"warnings,omitempty"`
 	Format    SignatureFormat
 	Data      []byte
 	Algorithm string

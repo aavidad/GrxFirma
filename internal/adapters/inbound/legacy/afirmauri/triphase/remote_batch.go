@@ -27,8 +27,13 @@ import (
 	"time"
 
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
+	"grxfirma/internal/adapters/inbound/legacy/legacycrypto"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/cryptopolicy"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/signingpolicy"
 )
 
 var legacyBatchWaitInterval = 10 * time.Second
@@ -162,15 +167,6 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 	if strings.TrimSpace(req.PreSignEndpoint) == "" || strings.TrimSpace(req.PostSignEndpoint) == "" {
 		return "", errors.New("faltan endpoints de prefirma/postfirma del lote")
 	}
-	if requireExchange {
-		if err := e.sendLegacyBatchWait(ctx, req.Session); err != nil {
-			traceLegacyBatch("wait error err=%v", err)
-			return "", fmt.Errorf("wait remoto del lote fallido: %w", err)
-		}
-		traceLegacyBatch("wait ok")
-		detenerWait := e.startLegacyBatchWaitLoop(ctx, req.Session)
-		defer detenerWait()
-	}
 
 	signingKey, ok := signingKeyFromContext(ctx).(legacyBatchSigningKey)
 	if !ok || signingKey == nil {
@@ -193,9 +189,30 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 		if algoritmo == "" {
 			algoritmo = "SHA256withRSA"
 		}
+		if err := requireTriphaseTSAProperties(ctx, batchReq.ExtraParams); err != nil {
+			return "", err
+		}
+		for _, sign := range batchReq.SingleSigns {
+			if err := requireTriphaseTSAProperties(ctx, sign.ExtraParams); err != nil {
+				return "", err
+			}
+		}
 		globalSignOptions, perSignOptions = buildLegacyBatchSignOptions(batchReq)
 	} else {
 		algoritmo = extractLegacyBatchAlgorithmFromXML(req.Payload)
+		if err := requireXMLBatchTSAOptions(ctx, req.Payload); err != nil {
+			return "", err
+		}
+	}
+
+	if requireExchange {
+		if err := e.sendLegacyBatchWait(ctx, req.Session); err != nil {
+			traceLegacyBatch("wait error err=%v", err)
+			return "", fmt.Errorf("wait remoto del lote fallido: %w", err)
+		}
+		traceLegacyBatch("wait ok")
+		detenerWait := e.startLegacyBatchWaitLoop(ctx, req.Session)
+		defer detenerWait()
 	}
 
 	batchVariants := legacyBatchVariants(req.Payload)
@@ -323,6 +340,11 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 			if err != nil {
 				return "", fmt.Errorf("error serializando respuesta batch: %w", err)
 			}
+			if req.Session.SessionKey != "" {
+				if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, req.Session.RetrieveEndpoint, req.Session.UploadEndpoint); err != nil {
+					return "", err
+				}
+			}
 			resultado, err := formatLegacyBatchResult(raw, signingKey, req.NeedCert, req.Session.SessionKey, req.Session.RetrieveEndpoint, req.Session.UploadEndpoint)
 			if err != nil {
 				return "", err
@@ -330,7 +352,13 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 			return resultado, nil
 		}
 
-		tdSigned, err := signLegacyBatchTriphase(preResp.TD, signingKey, algoritmo, globalSignOptions, perSignOptions)
+		if err := requireLegacyBatchSigningPreflight(ctx, signingKey); err != nil {
+			return "", err
+		}
+		if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
+			return "", err
+		}
+		tdSigned, err := signLegacyBatchTriphase(preResp.TD, signingKey, algoritmo, globalSignOptions, perSignOptions, ctx)
 		if err != nil {
 			return "", fmt.Errorf("firma trifásica batch fallida: %w", err)
 		}
@@ -349,7 +377,13 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 		}
 	} else {
 		traceLegacyBatchXMLParams(preRaw)
-		tdXML, err := signLegacyBatchTriphaseXML(preRaw, signingKey, algoritmo, globalSignOptions, perSignOptions)
+		if err := requireLegacyBatchSigningPreflight(ctx, signingKey); err != nil {
+			return "", err
+		}
+		if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
+			return "", err
+		}
+		tdXML, err := signLegacyBatchTriphaseXML(preRaw, signingKey, algoritmo, globalSignOptions, perSignOptions, ctx)
 		if err != nil {
 			return "", fmt.Errorf("firma trifásica batch XML fallida: %w", err)
 		}
@@ -388,6 +422,11 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 	}
 	traceLegacyBatch("postfirma ok body=%s", summarizeLegacyBatchBody(string(postRaw)))
 
+	if req.Session.SessionKey != "" {
+		if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, req.Session.RetrieveEndpoint, req.Session.UploadEndpoint); err != nil {
+			return "", err
+		}
+	}
 	resultado, err := formatLegacyBatchResult(postRaw, signingKey, req.NeedCert, req.Session.SessionKey, req.Session.RetrieveEndpoint, req.Session.UploadEndpoint)
 	if err != nil {
 		traceLegacyBatch("formato_resultado error err=%v", err)
@@ -551,7 +590,29 @@ func legacyBatchPreResponseIsEmpty(raw []byte) bool {
 	return preResp.TD == nil && len(preResp.Results) == 0
 }
 
-func signLegacyBatchTriphase(td *legacyTriphaseDataResponse, key legacyBatchSigningKey, algorithm string, signOptions map[string]string, perSignOptions map[string]map[string]string) (*legacyTriphaseDataRequest, error) {
+// Este preflight contextual valida el DER y añade el aviso RSA al resultado
+// antes de delegar en SignDigest o SignPreData, que no reciben contexto.
+func requireLegacyBatchSigningPreflight(ctx context.Context, key legacyBatchSigningKey) error {
+	chain := key.CertificateChainDER()
+	if len(chain) == 0 || len(chain[0]) == 0 {
+		return signingpolicy.ValidateSigningCertificateDER(ctx, nil, time.Now())
+	}
+	return signingpolicy.ValidateSigningCertificateDER(ctx, chain[0], time.Now())
+}
+
+func requireLegacyBatchSHA1(ctx context.Context, algorithm string) error {
+	hash, err := legacyHashFromAlgorithm(algorithm)
+	if err != nil || hash != crypto.SHA1 {
+		return err
+	}
+	if err := cryptopolicy.RequireLegacySHA1(ctx); err != nil {
+		return err
+	}
+	avisos.Registrar(localizador.Detectar().T("excepciones.sha1_crear.aviso"), "")
+	return nil
+}
+
+func signLegacyBatchTriphase(td *legacyTriphaseDataResponse, key legacyBatchSigningKey, algorithm string, signOptions map[string]string, perSignOptions map[string]map[string]string, ctxs ...context.Context) (*legacyTriphaseDataRequest, error) {
 	hash, err := legacyHashFromAlgorithm(algorithm)
 	if err != nil {
 		return nil, err
@@ -581,7 +642,7 @@ func signLegacyBatchTriphase(td *legacyTriphaseDataResponse, key legacyBatchSign
 				}
 			}
 		}
-		pk1B64, err := signLegacyBatchPreData(preData, key, algorithm, hash, opts)
+		pk1B64, err := signLegacyBatchPreData(preData, key, algorithm, hash, opts, ctxs...)
 		if err != nil {
 			return nil, fmt.Errorf("error firmando PRE: %w", err)
 		}
@@ -607,7 +668,7 @@ func signLegacyBatchTriphase(td *legacyTriphaseDataResponse, key legacyBatchSign
 	return out, nil
 }
 
-func signLegacyBatchTriphaseXML(rawTD []byte, key legacyBatchSigningKey, algorithm string, signOptions map[string]string, perSignOptions map[string]map[string]string) ([]byte, error) {
+func signLegacyBatchTriphaseXML(rawTD []byte, key legacyBatchSigningKey, algorithm string, signOptions map[string]string, perSignOptions map[string]map[string]string, ctxs ...context.Context) ([]byte, error) {
 	var td legacyXMLTriphaseData
 	if err := xml.Unmarshal(rawTD, &td); err != nil {
 		return nil, err
@@ -643,7 +704,7 @@ func signLegacyBatchTriphaseXML(rawTD []byte, key legacyBatchSigningKey, algorit
 				}
 			}
 		}
-		pk1B64, err := signLegacyBatchPreData(preData, key, algorithm, hash, opts)
+		pk1B64, err := signLegacyBatchPreData(preData, key, algorithm, hash, opts, ctxs...)
 		if err != nil {
 			return nil, err
 		}
@@ -659,10 +720,10 @@ func signLegacyBatchTriphaseXML(rawTD []byte, key legacyBatchSigningKey, algorit
 	return out, nil
 }
 
-func hashLegacyPreData(preData []byte, hash crypto.Hash) ([]byte, error) {
+func hashLegacyPreData(preData []byte, hash crypto.Hash, ctxs ...context.Context) ([]byte, error) {
 	switch hash {
 	case crypto.SHA1:
-		if err := cryptopolicy.RequireLegacySHA1(); err != nil {
+		if err := cryptopolicy.RequireLegacySHA1(ctxs...); err != nil {
 			return nil, err
 		}
 		sum := sha1.Sum(preData) // #nosec G401 -- guarded legacy signature path; SHA-256+ remains the default.
@@ -692,20 +753,38 @@ func cloneLegacySignOptions(src map[string]string) map[string]string {
 	return out
 }
 
-func signLegacyBatchPreData(preData []byte, key legacyBatchSigningKey, algorithm string, hash crypto.Hash, options map[string]string) (string, error) {
+func signLegacyBatchPreData(preData []byte, key legacyBatchSigningKey, algorithm string, hash crypto.Hash, options map[string]string, ctxs ...context.Context) (string, error) {
 	if hash == crypto.SHA1 {
-		if err := cryptopolicy.RequireLegacySHA1(); err != nil {
+		if err := cryptopolicy.RequireLegacySHA1(ctxs...); err != nil {
 			return "", err
+		}
+	}
+	if len(ctxs) > 0 && ctxs[0] != nil {
+		if typed, ok := key.(interface {
+			SignPreDataWithContext(context.Context, []byte, string, map[string]string) (string, error)
+		}); ok {
+			return typed.SignPreDataWithContext(ctxs[0], preData, algorithm, options)
 		}
 	}
 	if typed, ok := key.(legacyBatchPreSigningKey); ok {
 		return typed.SignPreData(preData, algorithm, options)
 	}
-	digest, err := hashLegacyPreData(preData, hash)
+	digest, err := hashLegacyPreData(preData, hash, ctxs...)
 	if err != nil {
 		return "", err
 	}
-	firma, err := key.SignDigest(digest, hash)
+	var firma []byte
+	if len(ctxs) > 0 && ctxs[0] != nil {
+		if typed, ok := key.(interface {
+			SignDigestWithContext(context.Context, []byte, crypto.Hash) ([]byte, error)
+		}); ok {
+			firma, err = typed.SignDigestWithContext(ctxs[0], digest, hash)
+		} else {
+			firma, err = key.SignDigest(digest, hash)
+		}
+	} else {
+		firma, err = key.SignDigest(digest, hash)
+	}
 	if err != nil {
 		return "", err
 	}
@@ -758,14 +837,40 @@ func decodeLegacyProtocolBase64(raw string) ([]byte, error) {
 }
 
 func legacyDecodeBatchExtraParams(v string) map[string]string {
+	props := make(map[string]string)
+	for _, pair := range legacyBatchExtraParamPairs(v) {
+		props[strings.ToLower(pair[0])] = pair[1]
+	}
+	return props
+}
+
+// El control no fusiona alias ni identificadores: el servidor puede distinguirlos.
+func requireTriphaseTSAProperties(ctx context.Context, raw string) error {
+	body := raw
+	if decoded, err := decodeLegacyProtocolBase64(strings.TrimSpace(raw)); err == nil && len(decoded) > 0 {
+		body = string(decoded)
+	}
+	pairs, err := readJavaProperties(body)
+	if err != nil {
+		return err
+	}
+	for _, pair := range pairs {
+		if err := requireTriphaseTSAOptions(ctx, map[string]string{pair[0]: pair[1]}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func legacyBatchExtraParamPairs(v string) [][2]string {
 	body := strings.TrimSpace(v)
 	if body == "" {
-		return map[string]string{}
+		return nil
 	}
 	if decoded, err := decodeLegacyProtocolBase64(body); err == nil && len(decoded) > 0 {
 		body = string(decoded)
 	}
-	props := make(map[string]string)
+	var props [][2]string
 	body = strings.ReplaceAll(body, `\n`, "\n")
 	for _, line := range strings.Split(strings.ReplaceAll(body, "\r\n", "\n"), "\n") {
 		line = strings.TrimSpace(line)
@@ -774,16 +879,16 @@ func legacyDecodeBatchExtraParams(v string) map[string]string {
 		}
 		sep := strings.IndexAny(line, "=:")
 		if sep < 0 {
-			props[strings.ToLower(line)] = ""
+			props = append(props, [2]string{line, ""})
 			continue
 		}
-		key := strings.ToLower(strings.TrimSpace(line[:sep]))
+		key := strings.TrimSpace(line[:sep])
 		value := strings.TrimSpace(line[sep+1:])
 		if decoded, err := url.QueryUnescape(value); err == nil {
 			value = decoded
 		}
 		if key != "" {
-			props[key] = value
+			props = append(props, [2]string{key, value})
 		}
 	}
 	return props
@@ -1012,8 +1117,16 @@ func buildLegacyBatchURL(endpoint string, params [][2]string, encode func(string
 }
 
 func (e *Executor) doLegacyBatchPOST(ctx context.Context, target string, body io.Reader) ([]byte, int, error) {
+	u, err := url.Parse(target)
+	if err != nil {
+		return nil, 0, err
+	}
+	if strings.EqualFold(u.Scheme, "http") {
+		if err := excepciones.Require(ctx, "trifasica_http"); err != nil {
+			return nil, 0, err
+		}
+	}
 	var payload []byte
-	var err error
 	if body != nil {
 		payload, err = io.ReadAll(body)
 		if err != nil {
@@ -1037,7 +1150,7 @@ func (e *Executor) doLegacyBatchPOST(ctx context.Context, target string, body io
 		req.Header.Set("User-Agent", "AutoFirma/1.6.5")
 		req.Header.Set("Accept", "*/*")
 		traceLegacyBatch("http post target=%s ctype=%q transport=%s", summarizeLegacyBatchURL(target), req.Header.Get("Content-Type"), transportName)
-		resp, doErr := client.Do(req)
+		resp, doErr := doTriphaseRequest(client, req)
 		if doErr != nil {
 			traceLegacyBatch("http post error target=%s transport=%s err=%v", summarizeLegacyBatchURL(target), transportName, doErr)
 			return nil, 0, doErr
@@ -1411,4 +1524,29 @@ func legacyBatchEncodingName(value string) string {
 		return "std"
 	}
 	return "urlsafe"
+}
+
+// requireXMLBatchTSAOptions inspecciona cada bloque, también si hay identificadores repetidos.
+func requireXMLBatchTSAOptions(ctx context.Context, raw []byte) error {
+	decoder := xml.NewDecoder(bytes.NewReader(raw))
+	for {
+		token, err := decoder.Token()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		start, ok := token.(xml.StartElement)
+		if !ok || start.Name.Local != "extraparams" {
+			continue
+		}
+		var value string
+		if err := decoder.DecodeElement(&value, &start); err != nil {
+			return err
+		}
+		if err := requireTriphaseTSAProperties(ctx, value); err != nil {
+			return err
+		}
+	}
 }

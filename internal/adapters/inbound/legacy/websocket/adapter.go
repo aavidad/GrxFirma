@@ -47,6 +47,7 @@ type LegacyMessageHandler interface {
 
 // Resultado describe la salida traducida del mensaje heredado.
 type Resultado struct {
+	Warnings            []string `json:"warnings,omitempty"`
 	Tipo                string
 	Texto               string
 	Operacion           afirmauri.TipoOperacion
@@ -211,6 +212,7 @@ func (a *Adaptador) HandleText(ctx context.Context, origin, message string) (res
 		trace.WarnContext(ctx, "legacy_adapter_sign_error", "operation", string(solicitud.Operacion), "error", err)
 		return Resultado{}, err
 	}
+	resultado.Warnings = firma.Warnings
 	resultado.Tipo = "firma"
 	resultado.Texto = EchoResponseOK
 	resultado.FirmaBase64 = base64.StdEncoding.EncodeToString(firma.Result.Data)

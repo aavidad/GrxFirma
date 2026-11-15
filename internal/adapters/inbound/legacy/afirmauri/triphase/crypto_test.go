@@ -14,7 +14,9 @@ import (
 	"strings"
 	"testing"
 
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -243,12 +245,16 @@ func TestLegacyDESDesactivadoPorDefecto(t *testing.T) {
 
 // El mensaje debe decirle al operador como reactivarlo, no fallar en opaco.
 func TestLegacyDESDesactivadoExplicaComoReactivarlo(t *testing.T) {
+	machinepolicy.UnsetForTest(t, machinepolicy.PermitirDESLegacy)
+	excepciones.SetForTest(t, "des_intercambio", false)
 	_, err := cifrarAES128CBC([]byte("datos"), "abc")
 	if err == nil {
 		t.Fatal("se esperaba error")
 	}
-	if !strings.Contains(err.Error(), machinepolicy.PermitirDESLegacy) {
-		t.Fatalf("el error debe nombrar la política que lo reactiva, y fue: %v", err)
+	if !strings.Contains(err.Error(), "[des_intercambio; excepciones.des_intercambio.bloqueo]") ||
+		!strings.Contains(err.Error(), localizador.Detectar().T("excepciones.des_intercambio.bloqueo")) ||
+		strings.Contains(err.Error(), "-activar-excepcion") || strings.Contains(err.Error(), "-acepto-el-aviso") {
+		t.Fatalf("el error debe dar preferencias y el identificador sin instrucciones de terminal: %v", err)
 	}
 }
 
@@ -318,26 +324,30 @@ func TestDecodeRetrievePayload_InformaDeDESBloqueado(t *testing.T) {
 	}
 }
 
-// Sin política de máquina, DES solo se admite para el paquete del servidor
-// intermedio cuando todos sus servidores son HTTPS, y se avisa al usuario.
-func TestDESSoloEnIntercambioHTTPS(t *testing.T) {
+// DES requiere ajuste expreso incluso cuando el intercambio usa HTTPS.
+func TestDESRequiereAjusteEnIntercambioHTTPS(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, false)
 	avisos.Reiniciar()
 	original := []byte(`{"signbatch":"ok"}`)
 	envuelto := base64.StdEncoding.EncodeToString(original)
 	https := []string{"https://firesda.example.es/afirma/storage", "https://firesda.example.es/afirma/retrieve"}
 
+	if _, err := cifrarLegacyDES([]byte(envuelto), "12345678", https...); !errors.Is(err, errLegacyDESDeshabilitado) {
+		t.Fatalf("DES sobre HTTPS debe bloquearse sin ajuste: %v", err)
+	}
+	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
 	cifrado, err := cifrarLegacyDES([]byte(envuelto), "12345678", https...)
 	if err != nil {
-		t.Fatalf("DES con servidores HTTPS: %v", err)
+		t.Fatalf("DES con directiva expresa: %v", err)
 	}
 	plano, err := DecodeRetrievePayload(cifrado, "12345678", https...)
 	if err != nil || !bytes.Equal(plano, original) {
 		t.Fatalf("descifrado HTTPS = %q, %v", plano, err)
 	}
-	if !strings.Contains(avisos.Texto(), "Compatibilidad con AutoFirma 1.x") {
+	if !strings.Contains(avisos.Texto(), "DES") {
 		t.Fatalf("el uso de DES debe explicarse al usuario: %q", avisos.Texto())
 	}
+	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, false)
 
 	for _, endpoints := range [][]string{
 		nil,

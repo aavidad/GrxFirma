@@ -6,6 +6,7 @@
 package signer_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"slices"
@@ -13,6 +14,7 @@ import (
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -42,6 +44,9 @@ func cofirmarConOriginal(t *testing.T, firma, original []byte, accion domain.Sig
 // con firmantes mixtos, igual. Un original que no corresponde no se firma.
 func TestCAdES_CofirmaExplicitaSHA1ConOriginal(t *testing.T) {
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	excepciones.SetForTest(t, "sha1_conservar", true)
+	machinepolicy.UnsetForTest(t, "permitir_cofirma_sin_original")
+	excepciones.SetForTest(t, "cofirma_sin_original", true)
 	original := []byte("acta firmada en 2012 con AutoFirma")
 	soloSHA1 := cadesSHA1Prueba(t, original, true)
 
@@ -74,13 +79,13 @@ func TestCAdES_CofirmaExplicitaSHA1ConOriginal(t *testing.T) {
 		}
 	})
 	t.Run("mixta_sin_original", func(t *testing.T) {
-		// Retrocompatibilidad: con un firmante SHA-256 se cofirma sin el
-		// original, con el aviso de que no se ha visto el documento.
+		// La firma mixta conserva SHA-1 y se cofirma sin original: ambas
+		// excepciones quedan visibles en el resultado.
 		_, avisos, err := cofirmarConOriginal(t, mixta, nil, domain.ActionCoSign)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if want := []string{commonsigner.AvisoCofirmaSinOriginal}; !slices.Equal(avisos, want) {
+		if want := []string{excepciones.Warning("sha1_conservar"), excepciones.Warning("cofirma_sin_original")}; !slices.Equal(avisos, want) {
 			t.Fatalf("avisos = %q, want %q", avisos, want)
 		}
 	})
@@ -102,6 +107,43 @@ func TestCAdES_CofirmaExplicitaSHA1ConOriginal(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestCAdES_CofirmaImplicitaSHA1ExigeAjusteYCotejo(t *testing.T) {
+	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	excepciones.SetForTest(t, "sha1_conservar", false)
+	original := []byte("acta firmada en 2012")
+	implicita := cadesSHA1Prueba(t, original, false)
+	var block *excepciones.Block
+	if _, _, err := cofirmarConOriginal(t, implicita, nil, domain.ActionCoSign); !errors.As(err, &block) || block.ID != "sha1_conservar" {
+		t.Fatalf("sin ajuste, la firma SHA-1 no debe copiarse: %v", err)
+	}
+	if _, _, err := cofirmarConOriginal(t, implicita, nil, domain.ActionCounterSign); !errors.As(err, &block) || block.ID != "sha1_conservar" {
+		t.Fatalf("sin ajuste, la contrafirma no debe copiar SHA-1: %v", err)
+	}
+	machinepolicy.UnsetForTest(t, "permitir_cofirma_sin_original")
+	excepciones.SetForTest(t, "cofirma_sin_original", true)
+	explicita := cadesSHA1Prueba(t, original, true)
+	if _, _, err := cofirmarConOriginal(t, explicita, nil, domain.ActionCoSign); !errors.As(err, &block) || block.ID != "sha1_conservar" {
+		t.Fatalf("sin original, la explícita SHA-1 requiere conservarla: %v", err)
+	}
+	excepciones.SetForTest(t, "sha1_conservar", true)
+	cofirma, avisos, err := cofirmarConOriginal(t, implicita, nil, domain.ActionCoSign)
+	if err != nil || len(cofirma) == 0 || !slices.Contains(avisos, excepciones.Warning("sha1_conservar")) {
+		t.Fatalf("con ajuste, la firma debe cotejarse y avisar: err=%v avisos=%v", err, avisos)
+	}
+	if contra, avisos, err := cofirmarConOriginal(t, implicita, nil, domain.ActionCounterSign); err != nil || len(contra) == 0 || !slices.Contains(avisos, excepciones.Warning("sha1_conservar")) {
+		t.Fatalf("con ajuste, la contrafirma debe cotejarse y avisar: err=%v avisos=%v", err, avisos)
+	}
+	manipulada := bytes.Clone(implicita)
+	i := bytes.Index(manipulada, original)
+	if i < 0 {
+		t.Fatal("fixture sin contenido implícito localizable")
+	}
+	manipulada[i] ^= 1
+	if _, _, err := cofirmarConOriginal(t, manipulada, nil, domain.ActionCoSign); !errors.Is(err, commonsigner.ErrFirmaNoCorrespondeOriginal) {
+		t.Fatalf("contenido implícito alterado no puede cofirmarse: %v", err)
 	}
 }
 
@@ -130,8 +172,15 @@ func TestCAdES_CofirmaExplicitaConOriginalSinAviso(t *testing.T) {
 func TestCAdES_CofirmaExplicitaSHA1LoCierraLaPolitica(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, false)
 	original := []byte("acta firmada en 2012 con AutoFirma")
-	res, _, err := cofirmarConOriginal(t, cadesSHA1Prueba(t, original, true), original, domain.ActionCoSign)
-	if !errors.Is(err, commonsigner.ErrCotejoSHA1Prohibido) || len(res) != 0 {
+	firma := cadesSHA1Prueba(t, original, true)
+	res, _, err := cofirmarConOriginal(t, firma, original, domain.ActionCoSign)
+	var block *excepciones.Block
+	if !errors.As(err, &block) || block.ID != "sha1_conservar" || len(res) != 0 {
 		t.Fatalf("con SHA-1 prohibido no se cofirma: err=%v", err)
+	}
+	machinepolicy.ErrorForTest(t, machinepolicy.PermitirSHA1Legacy, errors.New("ilegible"))
+	res, _, err = cofirmarConOriginal(t, firma, original, domain.ActionCoSign)
+	if !errors.As(err, &block) || block.ID != "sha1_conservar" || len(res) != 0 {
+		t.Fatalf("con directiva ilegible no se cofirma: err=%v", err)
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,6 +23,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/signingpolicy"
 )
 
@@ -59,7 +61,11 @@ func (s *VeriFactuSigner) Sign(ctx context.Context, job domain.SignatureJob, key
 	if e != nil {
 		return domain.SignatureResult{}, vfError("key")
 	}
-	if e = signingpolicy.ValidateCertificateDER(k.Certificate.Raw, time.Now()); e != nil {
+	if e = signingpolicy.ValidateSigningCertificateDER(ctx, k.Certificate.Raw, time.Now()); e != nil {
+		var block *excepciones.Block
+		if errors.As(e, &block) {
+			return domain.SignatureResult{}, e
+		}
 		return domain.SignatureResult{}, vfError("key")
 	}
 	date := n.value("FechaHoraHusoGenRegistro")
@@ -275,7 +281,14 @@ func vfCheckSignatureConContexto(ctx context.Context, data []byte, n *vfNode, at
 	registro := domain.RegistroConfianzaForzadaDe(ctx)
 	soloSHA1 := domain.NuevoRegistroConfianzaForzada(confianzaSoloSHA1(registro))
 	verification, e := verifyXMLSignatureDocument(domain.ConRegistroConfianzaForzada(ctx, soloSHA1), data, true, nil, domain.CertificateChain{}, string(FormatVeriFactu), "", nil, coberturaDelDocumento)
-	if e != nil || len(xmlCompatibilityDetails(verification.result)) > 0 {
+	var block *excepciones.Block
+	if errors.As(e, &block) {
+		return []vfProblem{{"Signature", block.BlockKey, "error"}}
+	}
+	if errors.As(verification.result.PolicyError(), &block) {
+		return []vfProblem{{"Signature", block.BlockKey, "error"}}
+	}
+	if e != nil || (!verification.result.Valid && len(algoritmosAntiguos(verification.result)) == 0) || len(xmlCompatibilityDetails(verification.result)) > 0 {
 		return fail("signature")
 	}
 	antiguo := usaSHA1 || len(algoritmosAntiguos(verification.result)) > 0

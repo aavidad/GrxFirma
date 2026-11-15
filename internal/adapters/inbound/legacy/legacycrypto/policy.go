@@ -8,71 +8,44 @@
 package legacycrypto
 
 import (
+	"context"
 	"errors"
-	"net/url"
-	"strings"
 
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/security/avisos"
-	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/security/excepciones"
 )
 
 const EnvEnableLegacyDES = "GRXFIRMA_ENABLE_LEGACY_DES"
 
-var ErrDESDisabled = errors.New(
-	"el fallback DES del protocolo heredado esta desactivado; " +
-		"si el portal aun exige el formato de sesion de V1.9, un administrador " +
-		"debe habilitar la politica de maquina " + machinepolicy.PermitirDESLegacy)
+var ErrDESDisabled = errors.New("excepciones.des_intercambio.bloqueo")
 
 // DESEnabled solo permite DES mediante una decisión explícita del operador.
 func DESEnabled() bool {
 	// Solo la política de máquina (administrador) puede habilitar DES; la
 	// variable de entorno EnvEnableLegacyDES ya no rebaja la seguridad.
-	return machinepolicy.OptIn(machinepolicy.PermitirDESLegacy)
+	return excepciones.Enabled("des_intercambio")
 }
 
 func RequireDES() error {
-	if !DESEnabled() {
-		return ErrDESDisabled
+	if err := excepciones.Check("des_intercambio"); err != nil {
+		return errors.Join(err, ErrDESDisabled)
 	}
 	return nil
 }
 
-// RequireDESEnIntercambio autoriza DES solo para el paquete de sesión del
-// servidor intermedio de AutoFirma 1.x (StorageService/RetrieveService, que
-// usan FIRe y AutoScript 1.9). Además de la política de máquina, se admite
-// cuando todos los servidores del intercambio son HTTPS: la confidencialidad
-// real la da TLS y la clave del protocolo (8 dígitos) no es más débil con DES
-// que con otro cifrado. Nunca se usa DES para firmar ni fuera de este
-// intercambio, y el uso se explica al usuario.
-func RequireDESEnIntercambio(endpoints ...string) error {
-	if DESEnabled() {
-		return nil
-	}
-	hosts, ok := endpointsHTTPS(endpoints)
-	if !ok {
-		return ErrDESDisabled
-	}
-	avisos.Registrar(
-		"Compatibilidad con AutoFirma 1.x",
-		"el portal usa el servidor intermedio heredado ("+strings.Join(hosts, ", ")+
-			"), que cifra el intercambio con DES y una clave de 8 dígitos. Se ha permitido solo para ese "+
-			"intercambio porque va cifrado por HTTPS; la firma se genera con algoritmos seguros",
-	)
-	return nil
+// RequireDESEnIntercambio autoriza DES solo para el intercambio de AutoFirma
+// 1.x tras un ajuste expreso. HTTPS no autoriza DES por sí solo.
+func RequireDESEnIntercambio(_ ...string) error {
+	return RequireDESEnIntercambioConContexto(context.Background())
 }
 
-func endpointsHTTPS(endpoints []string) ([]string, bool) {
-	var hosts []string
-	for _, raw := range endpoints {
-		raw = strings.TrimSpace(raw)
-		if raw == "" {
-			continue
-		}
-		u, err := url.Parse(raw)
-		if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Hostname() == "" || u.User != nil {
-			return nil, false
-		}
-		hosts = append(hosts, u.Hostname())
+// RequireDESEnIntercambioConContexto añade además el aviso al resultado de
+// la operación cuando el adaptador dispone de contexto.
+func RequireDESEnIntercambioConContexto(ctx context.Context, _ ...string) error {
+	if err := excepciones.Require(ctx, "des_intercambio"); err != nil {
+		return errors.Join(err, ErrDESDisabled)
 	}
-	return hosts, len(hosts) > 0
+	avisos.Registrar(localizador.Detectar().T(excepciones.Warning("des_intercambio")), "")
+	return nil
 }

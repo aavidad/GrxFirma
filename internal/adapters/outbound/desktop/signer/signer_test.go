@@ -459,6 +459,7 @@ func TestMotorFirmaGo_XAdEST_UsaTSACuandoSeSolicitaBaselineConTSA(t *testing.T) 
 }
 
 func TestMotorFirmaGo_XAdEST_UsaTsaURLDeOptionsSinTSAInyectada(t *testing.T) {
+	permitirTSAHTTPPrueba(t)
 	tsaResponder := tsatest.NewResponder(t)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -483,10 +484,12 @@ func TestMotorFirmaGo_XAdEST_UsaTsaURLDeOptionsSinTSAInyectada(t *testing.T) {
 		},
 	}
 
-	resultado, err := motor.Sign(context.Background(), job, clave)
+	ctx, avisosOperacion := domain.ConAvisosOperacion(context.Background())
+	resultado, err := motor.Sign(ctx, job, clave)
 	if err != nil {
 		t.Fatalf("Sign devolvio error inesperado: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 	if !strings.Contains(string(resultado.Data), "<xades:SignatureTimeStamp>") {
 		t.Fatal("tsaURL en options debe permitir XAdES-T sin TSA global")
 	}
@@ -962,10 +965,12 @@ func TestMotorFirmaGo_PAdEST_EmbebeTimestampEnCMS(t *testing.T) {
 		},
 	}
 
-	resultado, err := motor.Sign(context.Background(), job, clave)
+	ctx, avisosOperacion := contextoConAceptacionTSAHTTP(t)
+	resultado, err := motor.Sign(ctx, job, clave)
 	if err != nil {
 		t.Fatalf("Sign devolvio error inesperado: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 	if resultado.Algorithm != "PAdES-B-T" {
 		t.Fatalf("algoritmo esperado PAdES-B-T, obtenido %s", resultado.Algorithm)
 	}
@@ -1027,10 +1032,12 @@ func TestMotorFirmaGo_PAdEST_UsaSubFilterAdobeSiSeSolicita(t *testing.T) {
 		},
 	}
 
-	resultado, err := motor.Sign(context.Background(), job, clave)
+	ctx, avisosOperacion := contextoConAceptacionTSAHTTP(t)
+	resultado, err := motor.Sign(ctx, job, clave)
 	if err != nil {
 		t.Fatalf("Sign devolvio error inesperado: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 	if resultado.Algorithm != "PAdES-B-T-Adobe" {
 		t.Fatalf("algoritmo esperado PAdES-B-T-Adobe, obtenido %s", resultado.Algorithm)
 	}
@@ -1056,10 +1063,12 @@ func TestMotorFirmaGo_PAdEST_UsaBaselineConTSAComoPerfilT(t *testing.T) {
 		},
 	}
 
-	resultado, err := motor.Sign(context.Background(), job, clave)
+	ctx, avisosOperacion := contextoConAceptacionTSAHTTP(t)
+	resultado, err := motor.Sign(ctx, job, clave)
 	if err != nil {
 		t.Fatalf("Sign devolvio error inesperado: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 	if resultado.Algorithm != "PAdES-B-T" {
 		t.Fatalf("algoritmo esperado PAdES-B-T, obtenido %s", resultado.Algorithm)
 	}
@@ -1090,10 +1099,12 @@ func TestMotorFirmaGo_PAdEST_UsaTsaURLDeOptionsSinTSAInyectada(t *testing.T) {
 		},
 	}
 
-	resultado, err := motor.Sign(context.Background(), job, clave)
+	ctx, avisosOperacion := contextoConAceptacionTSAHTTP(t)
+	resultado, err := motor.Sign(ctx, job, clave)
 	if err != nil {
 		t.Fatalf("Sign devolvio error inesperado: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 	if resultado.Algorithm != "PAdES-B-T" {
 		t.Fatalf("algoritmo esperado PAdES-B-T, obtenido %s", resultado.Algorithm)
 	}
@@ -1117,10 +1128,12 @@ func TestMotorFirmaGo_PAdEST_ValidaConPdfsig(t *testing.T) {
 		},
 	}
 
-	resultado, err := motor.Sign(context.Background(), job, clave)
+	ctx, avisosOperacion := contextoConAceptacionTSAHTTP(t)
+	resultado, err := motor.Sign(ctx, job, clave)
 	if err != nil {
 		t.Fatalf("Sign devolvio error inesperado: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 
 	tempDir := t.TempDir()
 	signedPath := filepath.Join(tempDir, "firmado-pades-t.pdf")
@@ -1235,10 +1248,12 @@ func TestMotorFirmaGo_PAdEST_EsEstructuralmenteValidoConQPDF(t *testing.T) {
 		},
 	}
 
-	resultado, err := motor.Sign(context.Background(), job, clave)
+	ctx, avisosOperacion := contextoConAceptacionTSAHTTP(t)
+	resultado, err := motor.Sign(ctx, job, clave)
 	if err != nil {
 		t.Fatalf("Sign devolvio error inesperado: %v", err)
 	}
+	exigirAvisoTSAHTTP(t, avisosOperacion)
 
 	tempDir := t.TempDir()
 	signedPath := filepath.Join(tempDir, "firmado-pades-t.pdf")

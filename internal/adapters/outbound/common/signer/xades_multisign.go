@@ -6,6 +6,7 @@
 package signer
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
@@ -15,6 +16,7 @@ import (
 	"strings"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 // Cofirma y contrafirma XAdES con la estructura de AutoFirma Java:
@@ -171,9 +173,12 @@ func (d documentoXAdES) insertarAntesDelCierre(i int, texto string) ([]byte, err
 	return append(out, d.data[cierre:]...), nil
 }
 
-func cosignXAdES(job domain.SignatureJob, key *LocalSigningKey) ([]byte, string, error) {
+func cosignXAdES(ctx context.Context, job domain.SignatureJob, key *LocalSigningKey) ([]byte, string, error) {
 	doc, err := analizarDocumentoXAdES(job.Document.Content)
 	if err != nil {
+		return nil, "", err
+	}
+	if err := requireConservarSHA1XAdES(ctx, doc); err != nil {
 		return nil, "", err
 	}
 	principales := doc.firmasPrincipales()
@@ -325,9 +330,12 @@ func (d documentoXAdES) datosEnveloping(firma int) ([]byte, string, error) {
 	return nil, "", errors.New("no se localizan los datos firmados de la firma enveloping")
 }
 
-func countersignXAdES(job domain.SignatureJob, key *LocalSigningKey) ([]byte, string, error) {
+func countersignXAdES(ctx context.Context, job domain.SignatureJob, key *LocalSigningKey) ([]byte, string, error) {
 	doc, err := analizarDocumentoXAdES(job.Document.Content)
 	if err != nil {
+		return nil, "", err
+	}
+	if err := requireConservarSHA1XAdES(ctx, doc); err != nil {
 		return nil, "", err
 	}
 	var hojas []string
@@ -436,4 +444,14 @@ func contrafirmarFirma(job domain.SignatureJob, key *LocalSigningKey, doc docume
 	}
 	nuevo, err := analizarDocumentoXAdES(datos)
 	return nuevo, buildOpts.Algorithm.Label, err
+}
+
+// Incluye todas las firmas conservadas, también las contrafirmas anidadas.
+func requireConservarSHA1XAdES(ctx context.Context, doc documentoXAdES) error {
+	for _, span := range doc.spans {
+		if span.name.Space == nsXMLDSig && span.name.Local == "SignedInfo" && usesSHA1(doc.data[span.start:span.end]) {
+			return excepciones.Require(ctx, "sha1_conservar")
+		}
+	}
+	return nil
 }

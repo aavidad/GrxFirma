@@ -247,6 +247,8 @@ func (s *Servidor) servirConexion(ctx context.Context, conn net.Conn) {
 		_ = conn.Close()
 	}()
 
+	ctx = withUnsafeRetryOwner(ctx)
+	defer s.manejador.clearUnsafeRetries(ctx)
 	// Ocupar una ranura del semaforo; si esta lleno, rechazar la conexion.
 	select {
 	case s.semaforo <- struct{}{}:
@@ -457,7 +459,7 @@ func withIPCCorrelation(ctx context.Context, p peticion) (context.Context, error
 
 func isSensitiveIPCAction(action string) bool {
 	switch strings.ToLower(strings.TrimSpace(action)) {
-	case "proxy_secret_store", "import_certificate", "import_certificate_to_store", "certificate_export_public",
+	case "unsafe_exceptions_activate", "unsafe_operation_retry", "proxy_secret_store", "import_certificate", "import_certificate_to_store", "certificate_export_public",
 		"use_temporary_certificate", "protect", "protect_sign", "unprotect", "save_token_settings",
 		// Las firmas pueden traer el PIN o el OTP de un certificado remoto.
 		"sign", "sign_batch", "sign_multicosign":
