@@ -682,7 +682,7 @@
   "Documento ya firmado": "Documento già firmato",
   "Documento(s)": "Documento(i)",
   "Documento: ": "Documento: ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "Documenti firmati (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "Documenti firmati (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "Documenti originali",
   "Dominio": "Dominio",
   "Dominio añadido: %1": "Dominio aggiunto: %1",
@@ -2799,23 +2799,23 @@
   ,"verify.forced_trust.label.certificado_componente": "Certificato server usato per firmare"
   ,"verify.forced_trust.label.revocacion_no_comprobable": "Revoca che non è stato possibile verificare"
   ,"verify.forced_trust.label.algoritmo_sha1": "Firme con SHA-1"
-  ,"verify.forced_trust.notice.ca_desconocida": "Questo computer non conosce l'autorità che ha emesso il certificato, quindi GrxFirma non può sapere se è affidabile. Accettala solo se sai a chi appartiene e ti fidi, ad esempio un'autorità spagnola che il tuo sistema non include. Da ora, su questo computer, le firme con certificati di quell'autorità risulteranno valide, sempre con un avviso."
-  ,"verify.forced_trust.notice.clave_rsa_corta": "La chiave di questo certificato è RSA inferiore a 2048 bit. Oggi questa dimensione non è considerata sicura: qualcuno con mezzi adeguati potrebbe falsificare firme con essa. Accettala solo se il documento è vecchio e sai da dove proviene. Da ora, su questo computer, le firme di questo certificato risulteranno valide, sempre con un avviso."
-  ,"verify.forced_trust.notice.certificado_componente": "Questo è un certificato server (di componente) e non è pensato per firmare documenti, anche se alcuni portali lo usano così. Accettalo solo se sai quale ente firma con esso. Da ora, su questo computer, le firme di questo certificato risulteranno valide, sempre con un avviso."
-  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma non ha potuto verificare se il certificato è stato annullato (revocato), ad esempio perché manca la connessione. Se accetti, su questo computer risulteranno valide tutte le firme di cui non si può verificare la revoca, anche quelle di altri certificati, sempre con un avviso. Un certificato davvero revocato continuerà a risultare non valido quando sarà possibile verificarlo."
-  ,"verify.forced_trust.notice.algoritmo_sha1": "La firma usa SHA-1, un algoritmo vecchio che oggi non è considerato sicuro. Se accetti, su questo computer risulteranno valide tutte le firme il cui unico problema è SHA-1, sempre con un avviso. MD5 e gli algoritmi che GrxFirma non conosce continuano a essere rifiutati."
-  ,"verify.forced_trust.applied.ca_desconocida": "Considerata valida perché l'hai accettato nelle impostazioni: autorità di certificazione sconosciuta a questo computer."
-  ,"verify.forced_trust.applied.clave_rsa_corta": "Considerata valida perché l'hai accettato nelle impostazioni: chiave RSA inferiore a 2048 bit."
-  ,"verify.forced_trust.applied.certificado_componente": "Considerata valida perché l'hai accettato nelle impostazioni: certificato server usato per firmare."
-  ,"verify.forced_trust.applied.revocacion_no_comprobable": "Considerata valida perché l'hai accettato nelle impostazioni: revoca che non è stato possibile verificare."
-  ,"verify.forced_trust.applied.algoritmo_sha1": "Considerata valida perché l'hai accettato nelle impostazioni: firma con SHA-1."
-  ,"verify.forced_trust.hint": "Se ti fidi di questa firma, puoi accettarla nelle impostazioni di questo computer."
-  ,"verify.forced_trust.forbidden": "Il criterio di questo computer non consente di accettare manualmente queste firme. Se ti servono, rivolgiti a chi amministra il computer."
+  ,"verify.forced_trust.notice.ca_desconocida": "Questo computer non conosce l'autorità che ha emesso il certificato, quindi GrxFirma non può sapere se è affidabile. La accetti solo se sa a chi appartiene e se ne fida, ad esempio un'autorità spagnola che il suo sistema non include. Da ora, su questo computer, le firme con certificati di quell'autorità risulteranno valide, sempre con un avviso."
+  ,"verify.forced_trust.notice.clave_rsa_corta": "La chiave di questo certificato è RSA inferiore a 2048 bit. Oggi questa dimensione non è considerata sicura: qualcuno con mezzi adeguati potrebbe falsificare firme con essa. La accetti solo se il documento è vecchio e sa da dove proviene. Da ora, su questo computer, le firme di questo certificato risulteranno valide, sempre con un avviso."
+  ,"verify.forced_trust.notice.certificado_componente": "Questo è un certificato server (di componente) e non è pensato per firmare documenti, anche se alcuni portali lo usano così. Lo accetti solo se sa quale ente firma con esso. Da ora, su questo computer, le firme di questo certificato risulteranno valide, sempre con un avviso."
+  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma non ha potuto verificare se il certificato è stato annullato (revocato), ad esempio perché manca la connessione. Se accetta, su questo computer risulteranno valide tutte le firme di cui non si può verificare la revoca, anche quelle di altri certificati, sempre con un avviso. Un certificato davvero revocato continuerà a risultare non valido quando sarà possibile verificarlo."
+  ,"verify.forced_trust.notice.algoritmo_sha1": "La firma usa SHA-1, un algoritmo vecchio che oggi non è considerato sicuro. Se accetta, su questo computer risulteranno valide tutte le firme il cui unico problema è SHA-1, sempre con un avviso. MD5 e gli algoritmi che GrxFirma non conosce continuano a essere rifiutati."
+  ,"verify.forced_trust.applied.ca_desconocida": "Considerata valida perché l'ha accettato nelle impostazioni: autorità di certificazione sconosciuta a questo computer."
+  ,"verify.forced_trust.applied.clave_rsa_corta": "Considerata valida perché l'ha accettato nelle impostazioni: chiave RSA inferiore a 2048 bit."
+  ,"verify.forced_trust.applied.certificado_componente": "Considerata valida perché l'ha accettato nelle impostazioni: certificato server usato per firmare."
+  ,"verify.forced_trust.applied.revocacion_no_comprobable": "Considerata valida perché l'ha accettato nelle impostazioni: revoca che non è stato possibile verificare."
+  ,"verify.forced_trust.applied.algoritmo_sha1": "Considerata valida perché l'ha accettato nelle impostazioni: firma con SHA-1."
+  ,"verify.forced_trust.hint": "Se si fida di questa firma, può accettarla nelle impostazioni di questo computer."
+  ,"verify.forced_trust.forbidden": "Il criterio di questo computer non consente di accettare manualmente queste firme. Se le servono, si rivolga a chi amministra il computer."
   ,"verify.forced_trust.error.unknown_type": "Questo caso non esiste. Usa ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1."
   ,"verify.forced_trust.error.fingerprint": "L'impronta deve essere lo SHA-256 del certificato, in esadecimale (64 caratteri)."
   ,"verify.forced_trust.error.global_type": "Questo caso si accetta per tutte le firme e non richiede impronta."
   ,"verify.forced_trust.error.unavailable": "Questa opzione è disponibile solo nella riga di comando e nell'applicazione desktop."
-  ,"verify.forced_trust.error.not_offered": "Puoi accettare solo ciò che GrxFirma ha appena mostrato verificando una firma. Verificala di nuovo."
+  ,"verify.forced_trust.error.not_offered": "Può accettare solo ciò che GrxFirma ha appena mostrato verificando una firma. La verifichi di nuovo."
   ,"verify.forced_trust.cli.hint_command": "Per accettarlo su questo computer dopo aver letto l'avviso:"
   ,"verify.forced_trust.cli.list_empty": "Non hai accettato nulla su questo computer."
   ,"verify.forced_trust.cli.type": "Caso"
@@ -2844,14 +2844,14 @@
   ,"cli.web_signing.invalid": "Valore non valido. Usi grxfirma, autofirma o preguntar."
   ,"verify.forced_trust.ui.accept_button": "Accetta su questo computer"
   ,"verify.forced_trust.ui.dialog_title": "Accettare questa firma su questo computer?"
-  ,"verify.forced_trust.ui.dialog_intro": "Leggi cosa stai per accettare. Potrai rimuoverlo quando vuoi in Impostazioni."
+  ,"verify.forced_trust.ui.dialog_intro": "Legga cosa sta per accettare. Potrà rimuoverlo quando vuole in Impostazioni."
   ,"verify.forced_trust.ui.confirm": "Accetta su questo computer"
   ,"verify.forced_trust.ui.all_signatures": "Riguarda tutte le firme"
-  ,"verify.forced_trust.ui.outcome": "Valida perché l'hai accettata su questo computer"
+  ,"verify.forced_trust.ui.outcome": "Valida perché l'ha accettata su questo computer"
   ,"verify.forced_trust.ui.saved": "Accettato. Il documento viene verificato di nuovo."
   ,"verify.forced_trust.ui.settings_title": "Firme accettate su questo computer"
-  ,"verify.forced_trust.ui.settings_help": "Casi che hai accettato verificando le firme. Finché sono qui, quelle firme risultano valide con un avviso."
-  ,"verify.forced_trust.ui.settings_empty": "Non hai accettato nulla su questo computer."
+  ,"verify.forced_trust.ui.settings_help": "Casi che ha accettato verificando le firme. Finché sono qui, quelle firme risultano valide con un avviso."
+  ,"verify.forced_trust.ui.settings_empty": "Non ha accettato nulla su questo computer."
   ,"verify.forced_trust.ui.remove": "Rimuovi"
   ,"verify.forced_trust.ui.remove_accessible": "Rimuovi %1"
   ,"verify.forced_trust.ui.removed": "Rimosso. Quelle firme risultano di nuovo non valide."
@@ -5290,6 +5290,7 @@
   ,"verificacion.detalle.firmante": "Firmatario"
   ,"verificacion.detalle.algoritmo": "Algoritmo di firma (OID)"
   ,"verificacion.detalle.algoritmo_antiguo": "Algoritmo obsoleto"
+  ,"verificacion.detalle.signing_certificate": "Certificato del firmatario legato alla firma (attributo signingCertificate)"
   ,"verificacion.detalle.integridad_documento": "Integrità del documento"
   ,"verificacion.detalle.codificacion_cms": "Codifica della firma (CMS)"
   ,"verificacion.detalle.byterange": "Byte firmati (ByteRange)"
@@ -5310,6 +5311,7 @@
   ,"verificacion.detalle.valor.embedded": "firma inclusa nel documento"
   ,"verificacion.detalle.valor.ok": "verificate"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "assente"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "non verificabile senza il documento originale"
   ,"verificacion.detalle.valor.ber": "BER (convertita in DER per verificarla)"
   ,"winui.comun.proteger": "Proteggi"
@@ -6212,7 +6214,7 @@
   ,"winui.ventana.huellas": "Hash"
   ,"winui.comun.facturae_y_face": "Facturae, FACe e Veri*Factu"
   ,"winui.comun.acerca_de": "Informazioni"
-  ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "È disponibile una nuova versione di GrxFirma (%1). Hai la %2."
+  ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "È disponibile una nuova versione di GrxFirma (%1). La versione installata è la %2."
   ,"winui.ventana.ademas_el_motor_local_no_responde": "Inoltre, il motore locale non risponde; installare la nuova versione potrebbe risolvere il problema."
   ,"winui.contrasena.el_limite_debe_estar_entre_1_y": "Il limite deve essere compreso tra 1 e {maximum} caratteri."
   ,"winui.contrasena.el_texto_visible_del_dialogo_no_es": "Il testo visibile della finestra di dialogo non è valido."
@@ -7200,6 +7202,7 @@
   "excepciones.pantalla.fijada_activa": "Attivato dall’organizzazione",
   "excepciones.pantalla.fijada_inactiva": "Disattivato dall’organizzazione",
   "excepciones.pantalla.solo_lectura": "Questa impostazione è stabilita dall’organizzazione. Solo il suo amministratore può modificarla.",
+  "excepciones.pantalla.ayuda_organizacion": "Chi decide: su questo computer questa impostazione è stabilita dall’organizzazione, quindi non può attivarla né disattivarla in GrxFirma. Se occorre modificarla, si rivolga all’amministratore del computer.",
   "excepciones.pantalla.activar": "Attiva",
   "excepciones.pantalla.desactivar": "Disattiva",
   "excepciones.pantalla.actualizar": "Aggiorna elenco",

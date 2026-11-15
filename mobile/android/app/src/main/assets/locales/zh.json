@@ -80,7 +80,7 @@
   "no se pudo consultar un almacén raíz del sistema utilizable": "无法读取系统根证书存储，因此无法确定该证书是否可信。该签名不被视为有效。",
   "clave RSA del firmante de menos de 2048 bits": "签名者的密钥是少于 2048 位的 RSA，这一长度如今已不被视为安全。该签名不被视为有效。",
   "el certificado firmante no está destinado a firmar documentos": "用于签名的证书并非用于签署文档（例如可能是网页服务器的证书）。该签名不被视为有效。",
-  "verify.forced_trust.hint": "如果你信任此签名，可以在此计算机的设置中接受它。",
+  "verify.forced_trust.hint": "如果您信任此签名，可以在此计算机的设置中接受它。",
   "verify.forced_trust.forbidden": "此计算机的策略不允许手动接受这些签名。如有需要，请联系计算机管理员。",
   "verify.forced_trust.error.unknown_type": "该情况不存在。请使用 ca_desconocida、clave_rsa_corta、certificado_componente、revocacion_no_comprobable 或 algoritmo_sha1。",
   "verify.forced_trust.error.fingerprint": "指纹必须是证书的 SHA-256，十六进制（64 个字符）。",

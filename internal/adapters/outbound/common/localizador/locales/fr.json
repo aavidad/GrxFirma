@@ -682,7 +682,7 @@
   "Documento ya firmado": "Document déjà signé",
   "Documento(s)": "Document(s)",
   "Documento: ": "Document : ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "Documents signés (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "Documents signés (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "Documents originaux",
   "Dominio": "Domaine",
   "Dominio añadido: %1": "Domaine ajouté : %1",
@@ -5290,6 +5290,7 @@
   ,"verificacion.detalle.firmante": "Signataire"
   ,"verificacion.detalle.algoritmo": "Algorithme de signature (OID)"
   ,"verificacion.detalle.algoritmo_antiguo": "Algorithme ancien"
+  ,"verificacion.detalle.signing_certificate": "Certificat du signataire lié à la signature (attribut signingCertificate)"
   ,"verificacion.detalle.integridad_documento": "Intégrité du document"
   ,"verificacion.detalle.codificacion_cms": "Encodage de la signature (CMS)"
   ,"verificacion.detalle.byterange": "Octets signés (ByteRange)"
@@ -5310,6 +5311,7 @@
   ,"verificacion.detalle.valor.embedded": "signature incluse dans le document"
   ,"verificacion.detalle.valor.ok": "vérifiées"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "absent"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "impossible à vérifier sans le document original"
   ,"verificacion.detalle.valor.ber": "BER (convertie en DER pour la vérifier)"
   ,"winui.comun.proteger": "Protéger"
@@ -7200,6 +7202,7 @@
   "excepciones.pantalla.fijada_activa": "Activé par l’organisation",
   "excepciones.pantalla.fijada_inactiva": "Désactivé par l’organisation",
   "excepciones.pantalla.solo_lectura": "Ce réglage est imposé par l’organisation. Seul votre administrateur peut le modifier.",
+  "excepciones.pantalla.ayuda_organizacion": "Qui décide : sur cet ordinateur, ce réglage est imposé par l’organisation ; vous ne pouvez donc pas l’activer ni le désactiver dans GrxFirma. S’il faut le modifier, adressez-vous à l’administrateur de l’ordinateur.",
   "excepciones.pantalla.activar": "Activer",
   "excepciones.pantalla.desactivar": "Désactiver",
   "excepciones.pantalla.actualizar": "Actualiser la liste",

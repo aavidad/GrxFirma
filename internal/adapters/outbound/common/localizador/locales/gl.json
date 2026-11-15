@@ -682,7 +682,7 @@
   "Documento ya firmado": "Documento xa asinado",
   "Documento(s)": "Documento(s)",
   "Documento: ": "Documento: ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "Documentos asinados (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "Documentos asinados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "Documentos orixinais",
   "Dominio": "Dominio",
   "Dominio añadido: %1": "Dominio engadido: %1",
@@ -2799,23 +2799,23 @@
   ,"verify.forced_trust.label.certificado_componente": "Certificado de servidor usado para asinar"
   ,"verify.forced_trust.label.revocacion_no_comprobable": "Revogación que non se puido comprobar"
   ,"verify.forced_trust.label.algoritmo_sha1": "Sinaturas con SHA-1"
-  ,"verify.forced_trust.notice.ca_desconocida": "Este equipo non coñece a autoridade que emitiu o certificado, así que GrxFirma non pode saber se é de confianza. Acéptaa só se sabes de quen é e te fías dela, por exemplo unha autoridade española que o teu sistema non trae. Desde agora, neste equipo, as sinaturas con certificados desa autoridade sairán válidas, sempre cun aviso."
-  ,"verify.forced_trust.notice.clave_rsa_corta": "A clave deste certificado é RSA de menos de 2048 bits. Hoxe ese tamaño non se considera seguro: alguén con medios podería falsificar sinaturas con ela. Acéptao só se o documento é antigo e sabes de onde vén. Desde agora, neste equipo, as sinaturas deste certificado sairán válidas, sempre cun aviso."
-  ,"verify.forced_trust.notice.certificado_componente": "Este certificado é de servidor (de compoñente) e non está pensado para asinar documentos, aínda que algunhas sedes o usan así. Acéptao só se sabes que organismo asina con el. Desde agora, neste equipo, as sinaturas deste certificado sairán válidas, sempre cun aviso."
-  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma non puido comprobar se o certificado está anulado (revogado), por exemplo porque non hai conexión. Se o aceptas, neste equipo sairán válidas todas as sinaturas cuxa revogación non se poida comprobar, tamén as doutros certificados, sempre cun aviso. Un certificado que estea anulado de verdade seguirá saíndo non válido cando se poida comprobar."
-  ,"verify.forced_trust.notice.algoritmo_sha1": "A sinatura usa SHA-1, un algoritmo antigo que hoxe non se considera seguro. Se o aceptas, neste equipo sairán válidas todas as sinaturas cuxo único problema sexa SHA-1, sempre cun aviso. MD5 e os algoritmos que GrxFirma non coñece seguen rexeitándose."
-  ,"verify.forced_trust.applied.ca_desconocida": "Dáse por válida porque o aceptaches na configuración: autoridade de certificación que este equipo non coñece."
-  ,"verify.forced_trust.applied.clave_rsa_corta": "Dáse por válida porque o aceptaches na configuración: clave RSA de menos de 2048 bits."
-  ,"verify.forced_trust.applied.certificado_componente": "Dáse por válida porque o aceptaches na configuración: certificado de servidor usado para asinar."
-  ,"verify.forced_trust.applied.revocacion_no_comprobable": "Dáse por válida porque o aceptaches na configuración: revogación que non se puido comprobar."
-  ,"verify.forced_trust.applied.algoritmo_sha1": "Dáse por válida porque o aceptaches na configuración: sinatura con SHA-1."
-  ,"verify.forced_trust.hint": "Se confías nesta sinatura, podes aceptala na configuración deste equipo."
-  ,"verify.forced_trust.forbidden": "A política deste equipo non permite aceptar estas sinaturas a man. Se as necesitas, fala con quen administra o equipo."
+  ,"verify.forced_trust.notice.ca_desconocida": "Este equipo non coñece a autoridade que emitiu o certificado, así que GrxFirma non pode saber se é de confianza. Acéptea só se sabe de quen é e se fía dela, por exemplo unha autoridade española que o seu sistema non trae. Desde agora, neste equipo, as sinaturas con certificados desa autoridade sairán válidas, sempre cun aviso."
+  ,"verify.forced_trust.notice.clave_rsa_corta": "A clave deste certificado é RSA de menos de 2048 bits. Hoxe ese tamaño non se considera seguro: alguén con medios podería falsificar sinaturas con ela. Acépteo só se o documento é antigo e sabe de onde vén. Desde agora, neste equipo, as sinaturas deste certificado sairán válidas, sempre cun aviso."
+  ,"verify.forced_trust.notice.certificado_componente": "Este certificado é de servidor (de compoñente) e non está pensado para asinar documentos, aínda que algunhas sedes o usan así. Acépteo só se sabe que organismo asina con el. Desde agora, neste equipo, as sinaturas deste certificado sairán válidas, sempre cun aviso."
+  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma non puido comprobar se o certificado está anulado (revogado), por exemplo porque non hai conexión. Se o acepta, neste equipo sairán válidas todas as sinaturas cuxa revogación non se poida comprobar, tamén as doutros certificados, sempre cun aviso. Un certificado que estea anulado de verdade seguirá saíndo non válido cando se poida comprobar."
+  ,"verify.forced_trust.notice.algoritmo_sha1": "A sinatura usa SHA-1, un algoritmo antigo que hoxe non se considera seguro. Se o acepta, neste equipo sairán válidas todas as sinaturas cuxo único problema sexa SHA-1, sempre cun aviso. MD5 e os algoritmos que GrxFirma non coñece seguen rexeitándose."
+  ,"verify.forced_trust.applied.ca_desconocida": "Dáse por válida porque o aceptou na configuración: autoridade de certificación que este equipo non coñece."
+  ,"verify.forced_trust.applied.clave_rsa_corta": "Dáse por válida porque o aceptou na configuración: clave RSA de menos de 2048 bits."
+  ,"verify.forced_trust.applied.certificado_componente": "Dáse por válida porque o aceptou na configuración: certificado de servidor usado para asinar."
+  ,"verify.forced_trust.applied.revocacion_no_comprobable": "Dáse por válida porque o aceptou na configuración: revogación que non se puido comprobar."
+  ,"verify.forced_trust.applied.algoritmo_sha1": "Dáse por válida porque o aceptou na configuración: sinatura con SHA-1."
+  ,"verify.forced_trust.hint": "Se confía nesta sinatura, pode aceptala na configuración deste equipo."
+  ,"verify.forced_trust.forbidden": "A política deste equipo non permite aceptar estas sinaturas a man. Se as necesita, fale con quen administra o equipo."
   ,"verify.forced_trust.error.unknown_type": "Ese caso non existe. Usa ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable ou algoritmo_sha1."
   ,"verify.forced_trust.error.fingerprint": "A pegada ten que ser a SHA-256 do certificado, en hexadecimal (64 caracteres)."
   ,"verify.forced_trust.error.global_type": "Este caso acéptase para todas as sinaturas e non leva pegada."
   ,"verify.forced_trust.error.unavailable": "Esta opción só está na liña de ordes e na aplicación de escritorio."
-  ,"verify.forced_trust.error.not_offered": "Só se pode aceptar o que GrxFirma acaba de mostrar ao verificar unha sinatura. Volve verificala."
+  ,"verify.forced_trust.error.not_offered": "Só se pode aceptar o que GrxFirma acaba de mostrar ao verificar unha sinatura. Volva verificala."
   ,"verify.forced_trust.cli.hint_command": "Para aceptalo neste equipo despois de ler o aviso:"
   ,"verify.forced_trust.cli.list_empty": "Non aceptaches nada neste equipo."
   ,"verify.forced_trust.cli.type": "Caso"
@@ -2844,14 +2844,14 @@
   ,"cli.web_signing.invalid": "Valor non válido. Use grxfirma, autofirma ou preguntar."
   ,"verify.forced_trust.ui.accept_button": "Aceptar neste equipo"
   ,"verify.forced_trust.ui.dialog_title": "Aceptar esta sinatura neste equipo?"
-  ,"verify.forced_trust.ui.dialog_intro": "Le o que vas aceptar. Poderás quitalo cando queiras en Configuración."
+  ,"verify.forced_trust.ui.dialog_intro": "Lea o que vai aceptar. Poderá quitalo cando queira en Configuración."
   ,"verify.forced_trust.ui.confirm": "Aceptar neste equipo"
   ,"verify.forced_trust.ui.all_signatures": "Afecta a todas as sinaturas"
-  ,"verify.forced_trust.ui.outcome": "Válida porque a aceptaches neste equipo"
+  ,"verify.forced_trust.ui.outcome": "Válida porque a aceptou neste equipo"
   ,"verify.forced_trust.ui.saved": "Aceptado. Vólvese verificar o documento."
   ,"verify.forced_trust.ui.settings_title": "Sinaturas aceptadas neste equipo"
-  ,"verify.forced_trust.ui.settings_help": "Casos que aceptaches ao verificar sinaturas. Mentres estean aquí, esas sinaturas saen válidas cun aviso."
-  ,"verify.forced_trust.ui.settings_empty": "Non aceptaches nada neste equipo."
+  ,"verify.forced_trust.ui.settings_help": "Casos que aceptou ao verificar sinaturas. Mentres estean aquí, esas sinaturas saen válidas cun aviso."
+  ,"verify.forced_trust.ui.settings_empty": "Non aceptou nada neste equipo."
   ,"verify.forced_trust.ui.remove": "Quitar"
   ,"verify.forced_trust.ui.remove_accessible": "Quitar %1"
   ,"verify.forced_trust.ui.removed": "Quitado. Esas sinaturas volven saír non válidas."
@@ -5290,6 +5290,7 @@
   ,"verificacion.detalle.firmante": "Asinante"
   ,"verificacion.detalle.algoritmo": "Algoritmo de sinatura (OID)"
   ,"verificacion.detalle.algoritmo_antiguo": "Algoritmo antigo"
+  ,"verificacion.detalle.signing_certificate": "Certificado do asinante vinculado á sinatura (atributo signingCertificate)"
   ,"verificacion.detalle.integridad_documento": "Integridade do documento"
   ,"verificacion.detalle.codificacion_cms": "Codificación da sinatura (CMS)"
   ,"verificacion.detalle.byterange": "Bytes asinados (ByteRange)"
@@ -5310,6 +5311,7 @@
   ,"verificacion.detalle.valor.embedded": "sinatura incluída no documento"
   ,"verificacion.detalle.valor.ok": "comprobadas"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "non consta"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "non se pode comprobar sen o documento orixinal"
   ,"verificacion.detalle.valor.ber": "BER (pasouse a DER para verificala)"
   ,"winui.comun.proteger": "Protexer"
@@ -6212,7 +6214,7 @@
   ,"winui.ventana.huellas": "Resumos (hash)"
   ,"winui.comun.facturae_y_face": "Facturae, FACe e Veri*Factu"
   ,"winui.comun.acerca_de": "Acerca de"
-  ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "Hai unha nova versión de GrxFirma (%1). Tes a %2."
+  ,"winui.ventana.hay_una_version_nueva_de_grxfirma_1": "Hai unha nova versión de GrxFirma (%1). Ten a %2."
   ,"winui.ventana.ademas_el_motor_local_no_responde": "Ademais, o motor local non responde; instalar a nova versión pode resolvelo."
   ,"winui.contrasena.el_limite_debe_estar_entre_1_y": "O límite debe estar entre 1 e {maximum} caracteres."
   ,"winui.contrasena.el_texto_visible_del_dialogo_no_es": "O texto visible do diálogo non é válido."
@@ -7200,6 +7202,7 @@
   "excepciones.pantalla.fijada_activa": "Activado pola organización",
   "excepciones.pantalla.fijada_inactiva": "Desactivado pola organización",
   "excepciones.pantalla.solo_lectura": "A organización fixa este axuste. Só o seu administrador pode cambialo.",
+  "excepciones.pantalla.ayuda_organizacion": "Quen o decide: neste equipo, este axuste fíxao a organización, así que non pode activalo nin desactivalo en GrxFirma. Se precisa cambialo, consulte o administrador do equipo.",
   "excepciones.pantalla.activar": "Activar",
   "excepciones.pantalla.desactivar": "Desactivar",
   "excepciones.pantalla.actualizar": "Actualizar a lista",

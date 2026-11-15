@@ -682,7 +682,7 @@
   "Documento ya firmado": "Dokument bereits signiert",
   "Documento(s)": "Dokument(e)",
   "Documento: ": "Dokument: ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "Signierte Dokumente (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "Signierte Dokumente (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "Originaldokumente",
   "Dominio": "Domäne",
   "Dominio añadido: %1": "Domäne hinzugefügt: %1",
@@ -5290,6 +5290,7 @@
   ,"verificacion.detalle.firmante": "Unterzeichner"
   ,"verificacion.detalle.algoritmo": "Signaturalgorithmus (OID)"
   ,"verificacion.detalle.algoritmo_antiguo": "Veralteter Algorithmus"
+  ,"verificacion.detalle.signing_certificate": "An die Signatur gebundenes Zertifikat des Unterzeichners (Attribut signingCertificate)"
   ,"verificacion.detalle.integridad_documento": "Integrität des Dokuments"
   ,"verificacion.detalle.codificacion_cms": "Codierung der Signatur (CMS)"
   ,"verificacion.detalle.byterange": "Signierte Bytes (ByteRange)"
@@ -5310,6 +5311,7 @@
   ,"verificacion.detalle.valor.embedded": "Signatur im Dokument enthalten"
   ,"verificacion.detalle.valor.ok": "geprüft"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "fehlt"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "ohne das Originaldokument nicht prüfbar"
   ,"verificacion.detalle.valor.ber": "BER (zur Prüfung in DER umgewandelt)"
   ,"winui.comun.proteger": "Schützen"
@@ -7200,6 +7202,7 @@
   "excepciones.pantalla.fijada_activa": "Von der Organisation aktiviert",
   "excepciones.pantalla.fijada_inactiva": "Von der Organisation deaktiviert",
   "excepciones.pantalla.solo_lectura": "Ihre Organisation legt diese Einstellung fest. Nur Ihre Administration kann sie ändern.",
+  "excepciones.pantalla.ayuda_organizacion": "Wer entscheidet: Auf diesem Gerät legt Ihre Organisation diese Einstellung fest. Sie können sie deshalb in GrxFirma weder aktivieren noch deaktivieren. Wenn sie geändert werden muss, wenden Sie sich an die Person, die dieses Gerät verwaltet.",
   "excepciones.pantalla.activar": "Aktivieren",
   "excepciones.pantalla.desactivar": "Deaktivieren",
   "excepciones.pantalla.actualizar": "Liste aktualisieren",

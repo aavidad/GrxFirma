@@ -682,7 +682,7 @@
   "Documento ya firmado": "Document already signed",
   "Documento(s)": "Document(s)",
   "Documento: ": "Document: ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "Signed documents (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "Signed documents (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "Original documents",
   "Dominio": "Domain",
   "Dominio añadido: %1": "Domain added: %1",
@@ -5290,6 +5290,7 @@
   ,"verificacion.detalle.firmante": "Signer"
   ,"verificacion.detalle.algoritmo": "Signature algorithm (OID)"
   ,"verificacion.detalle.algoritmo_antiguo": "Outdated algorithm"
+  ,"verificacion.detalle.signing_certificate": "Signer certificate bound to the signature (signingCertificate attribute)"
   ,"verificacion.detalle.integridad_documento": "Document integrity"
   ,"verificacion.detalle.codificacion_cms": "Signature encoding (CMS)"
   ,"verificacion.detalle.byterange": "Signed bytes (ByteRange)"
@@ -5310,6 +5311,7 @@
   ,"verificacion.detalle.valor.embedded": "signature embedded in the document"
   ,"verificacion.detalle.valor.ok": "verified"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "missing"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "cannot be checked without the original document"
   ,"verificacion.detalle.valor.ber": "BER (converted to DER to verify it)"
   ,"winui.comun.proteger": "Protect"
@@ -7200,6 +7202,7 @@
   "excepciones.pantalla.fijada_activa": "Enabled by the organization",
   "excepciones.pantalla.fijada_inactiva": "Disabled by the organization",
   "excepciones.pantalla.solo_lectura": "Your organization controls this setting. Only your administrator can change it.",
+  "excepciones.pantalla.ayuda_organizacion": "Who decides: on this device, your organization sets this setting, so you cannot turn it on or off in GrxFirma. If you need it changed, contact the device administrator.",
   "excepciones.pantalla.activar": "Enable",
   "excepciones.pantalla.desactivar": "Disable",
   "excepciones.pantalla.actualizar": "Refresh list",

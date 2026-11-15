@@ -682,7 +682,7 @@
   "Documento ya firmado": "文档已签名",
   "Documento(s)": "文档",
   "Documento: ": "文档： ",
-  "Documentos firmados (*.pdf *.p7s *.xsig *.xml)": "签名文件 (*.pdf *.p7s *.xsig *.xml)",
+  "Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)": "签名文件 (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)",
   "Documentos originales": "原始文档",
   "Dominio": "域名",
   "Dominio añadido: %1": "已添加域名：%1",
@@ -2799,17 +2799,17 @@
   ,"verify.forced_trust.label.certificado_componente": "用于签名的服务器证书"
   ,"verify.forced_trust.label.revocacion_no_comprobable": "无法检查的吊销状态"
   ,"verify.forced_trust.label.algoritmo_sha1": "使用 SHA-1 的签名"
-  ,"verify.forced_trust.notice.ca_desconocida": "此计算机不认识签发该证书的机构，因此 GrxFirma 无法判断它是否可信。只有在你知道它属于谁并且信任它时才接受，例如你的系统未包含的西班牙机构。从现在起，在此计算机上，使用该机构证书的签名将显示为有效，并始终附带警告。"
-  ,"verify.forced_trust.notice.clave_rsa_corta": "此证书的 RSA 密钥少于 2048 位。如今这个长度已不被视为安全：有足够资源的人可能用它伪造签名。只有在文档较旧且你知道其来源时才接受。从现在起，在此计算机上，此证书的签名将显示为有效，并始终附带警告。"
-  ,"verify.forced_trust.notice.certificado_componente": "这是服务器（组件）证书，并非用于签署文档，尽管有些网站这样使用。只有在你知道哪个机构用它签名时才接受。从现在起，在此计算机上，此证书的签名将显示为有效，并始终附带警告。"
-  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma 无法检查该证书是否已被注销（吊销），例如因为没有网络连接。如果你接受，在此计算机上所有无法检查吊销状态的签名都将显示为有效，包括其他证书的签名，并始终附带警告。真正被吊销的证书在能够检查时仍会显示为无效。"
-  ,"verify.forced_trust.notice.algoritmo_sha1": "该签名使用 SHA-1，这是一种如今已不被视为安全的旧算法。如果你接受，在此计算机上所有唯一问题是 SHA-1 的签名都将显示为有效，并始终附带警告。MD5 以及 GrxFirma 不认识的算法仍会被拒绝。"
-  ,"verify.forced_trust.applied.ca_desconocida": "视为有效，因为你已在设置中接受：此计算机不认识的证书颁发机构。"
-  ,"verify.forced_trust.applied.clave_rsa_corta": "视为有效，因为你已在设置中接受：少于 2048 位的 RSA 密钥。"
-  ,"verify.forced_trust.applied.certificado_componente": "视为有效，因为你已在设置中接受：用于签名的服务器证书。"
-  ,"verify.forced_trust.applied.revocacion_no_comprobable": "视为有效，因为你已在设置中接受：无法检查的吊销状态。"
-  ,"verify.forced_trust.applied.algoritmo_sha1": "视为有效，因为你已在设置中接受：使用 SHA-1 的签名。"
-  ,"verify.forced_trust.hint": "如果你信任此签名，可以在此计算机的设置中接受它。"
+  ,"verify.forced_trust.notice.ca_desconocida": "此计算机不认识签发该证书的机构，因此 GrxFirma 无法判断它是否可信。只有在您知道它属于谁并且信任它时才接受，例如您的系统未包含的西班牙机构。从现在起，在此计算机上，使用该机构证书的签名将显示为有效，并始终附带警告。"
+  ,"verify.forced_trust.notice.clave_rsa_corta": "此证书的 RSA 密钥少于 2048 位。如今这个长度已不被视为安全：有足够资源的人可能用它伪造签名。只有在文档较旧且您知道其来源时才接受。从现在起，在此计算机上，此证书的签名将显示为有效，并始终附带警告。"
+  ,"verify.forced_trust.notice.certificado_componente": "这是服务器（组件）证书，并非用于签署文档，尽管有些网站这样使用。只有在您知道哪个机构用它签名时才接受。从现在起，在此计算机上，此证书的签名将显示为有效，并始终附带警告。"
+  ,"verify.forced_trust.notice.revocacion_no_comprobable": "GrxFirma 无法检查该证书是否已被注销（吊销），例如因为没有网络连接。如果您接受，在此计算机上所有无法检查吊销状态的签名都将显示为有效，包括其他证书的签名，并始终附带警告。真正被吊销的证书在能够检查时仍会显示为无效。"
+  ,"verify.forced_trust.notice.algoritmo_sha1": "该签名使用 SHA-1，这是一种如今已不被视为安全的旧算法。如果您接受，在此计算机上所有唯一问题是 SHA-1 的签名都将显示为有效，并始终附带警告。MD5 以及 GrxFirma 不认识的算法仍会被拒绝。"
+  ,"verify.forced_trust.applied.ca_desconocida": "视为有效，因为您已在设置中接受：此计算机不认识的证书颁发机构。"
+  ,"verify.forced_trust.applied.clave_rsa_corta": "视为有效，因为您已在设置中接受：少于 2048 位的 RSA 密钥。"
+  ,"verify.forced_trust.applied.certificado_componente": "视为有效，因为您已在设置中接受：用于签名的服务器证书。"
+  ,"verify.forced_trust.applied.revocacion_no_comprobable": "视为有效，因为您已在设置中接受：无法检查的吊销状态。"
+  ,"verify.forced_trust.applied.algoritmo_sha1": "视为有效，因为您已在设置中接受：使用 SHA-1 的签名。"
+  ,"verify.forced_trust.hint": "如果您信任此签名，可以在此计算机的设置中接受它。"
   ,"verify.forced_trust.forbidden": "此计算机的策略不允许手动接受这些签名。如有需要，请联系计算机管理员。"
   ,"verify.forced_trust.error.unknown_type": "该情况不存在。请使用 ca_desconocida、clave_rsa_corta、certificado_componente、revocacion_no_comprobable 或 algoritmo_sha1。"
   ,"verify.forced_trust.error.fingerprint": "指纹必须是证书的 SHA-256，十六进制（64 个字符）。"
@@ -2844,14 +2844,14 @@
   ,"cli.web_signing.invalid": "值无效。请使用 grxfirma、autofirma 或 preguntar。"
   ,"verify.forced_trust.ui.accept_button": "在此计算机上接受"
   ,"verify.forced_trust.ui.dialog_title": "在此计算机上接受此签名？"
-  ,"verify.forced_trust.ui.dialog_intro": "请阅读你将接受的内容。你可以随时在设置中移除。"
+  ,"verify.forced_trust.ui.dialog_intro": "请阅读您将接受的内容。您可以随时在设置中移除。"
   ,"verify.forced_trust.ui.confirm": "在此计算机上接受"
   ,"verify.forced_trust.ui.all_signatures": "适用于所有签名"
-  ,"verify.forced_trust.ui.outcome": "有效，因为你已在此计算机上接受"
+  ,"verify.forced_trust.ui.outcome": "有效，因为您已在此计算机上接受"
   ,"verify.forced_trust.ui.saved": "已接受。正在重新验证文档。"
   ,"verify.forced_trust.ui.settings_title": "在此计算机上接受的签名"
-  ,"verify.forced_trust.ui.settings_help": "你在验证签名时接受的情况。只要列在这里，这些签名就会显示为有效并附带警告。"
-  ,"verify.forced_trust.ui.settings_empty": "你尚未在此计算机上接受任何内容。"
+  ,"verify.forced_trust.ui.settings_help": "您在验证签名时接受的情况。只要列在这里，这些签名就会显示为有效并附带警告。"
+  ,"verify.forced_trust.ui.settings_empty": "您尚未在此计算机上接受任何内容。"
   ,"verify.forced_trust.ui.remove": "移除"
   ,"verify.forced_trust.ui.remove_accessible": "移除 %1"
   ,"verify.forced_trust.ui.removed": "已移除。这些签名将再次显示为无效。"
@@ -5290,6 +5290,7 @@
   ,"verificacion.detalle.firmante": "签名人"
   ,"verificacion.detalle.algoritmo": "签名算法（OID）"
   ,"verificacion.detalle.algoritmo_antiguo": "旧算法"
+  ,"verificacion.detalle.signing_certificate": "与签名绑定的签名人证书（signingCertificate 属性）"
   ,"verificacion.detalle.integridad_documento": "文档完整性"
   ,"verificacion.detalle.codificacion_cms": "签名编码（CMS）"
   ,"verificacion.detalle.byterange": "已签名字节（ByteRange）"
@@ -5310,6 +5311,7 @@
   ,"verificacion.detalle.valor.embedded": "签名嵌入文档中"
   ,"verificacion.detalle.valor.ok": "已验证"
   ,"verificacion.detalle.valor.sha1": "SHA-1"
+  ,"verificacion.detalle.valor.ausente": "缺失"
   ,"verificacion.detalle.valor.no_comprobable_sin_original": "没有原始文档无法检查"
   ,"verificacion.detalle.valor.ber": "BER（已转换为 DER 以进行验证）"
   ,"winui.comun.proteger": "保护"
@@ -7200,6 +7202,7 @@
   "excepciones.pantalla.fijada_activa": "由组织启用",
   "excepciones.pantalla.fijada_inactiva": "由组织停用",
   "excepciones.pantalla.solo_lectura": "此设置由组织设定，只有您的管理员可以更改。",
+  "excepciones.pantalla.ayuda_organizacion": "由谁决定：在此设备上，此设置由组织设定，因此您无法在 GrxFirma 中启用或停用。如需更改，请联系此设备的管理员。",
   "excepciones.pantalla.activar": "启用",
   "excepciones.pantalla.desactivar": "停用",
   "excepciones.pantalla.actualizar": "刷新列表",
