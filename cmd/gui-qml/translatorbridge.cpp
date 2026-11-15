@@ -19,6 +19,12 @@ TranslatorBridge::TranslatorBridge(QObject *parent) : QObject(parent) {
   reload();
 }
 
+// Sin esto, it() de ipcbridge leería un traductor ya destruido.
+TranslatorBridge::~TranslatorBridge() {
+  if (s_shared == this)
+    s_shared = nullptr;
+}
+
 TranslatorBridge *TranslatorBridge::shared() { return s_shared; }
 
 QString TranslatorBridge::detectLocale() {

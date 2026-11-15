@@ -5,6 +5,7 @@
 
 #include "ipcbridge.h"
 #include "transientsecret.h"
+#include "translatorbridge.h"
 
 #include <QElapsedTimer>
 #include <QJsonDocument>
@@ -40,6 +41,7 @@ class IpcBridgeTransientSecretTest : public QObject {
 private slots:
   void unsafeVersionedActivation();
   void unsafeBlockAndRetryRouting();
+  void unsafeBlockUsesInterfaceLanguageAndNoDiagnostic();
   void unsafeDisconnectedNeverDeferred();
   void disconnectedProtectIsNotDeferred();
   void disconnectedUnprotectIsNotDeferred();
@@ -122,6 +124,43 @@ void IpcBridgeTransientSecretTest::unsafeBlockAndRetryRouting() {
   QTRY_COMPARE(verified.count(), 2);
   QVERIFY(verified.at(1).at(0).toBool());
   QCOMPARE(warnings.last().at(0).toStringList(), QStringList{"excepciones.cms_cbc.aviso"});
+}
+
+// Lote 39a: el motor da el texto del bloqueo en el idioma del proceso. Qt lo
+// pinta desde las claves con su catálogo, no guarda el diagnóstico de avería
+// y marca la verificación como «sin evaluar» para no pintarla «No válida».
+void IpcBridgeTransientSecretTest::unsafeBlockUsesInterfaceLanguageAndNoDiagnostic() {
+  TranslatorBridge translator;
+  translator.setLocale(QStringLiteral("en"));
+  const QString english = translator.t(QStringLiteral("excepciones.sha1_leer.bloqueo"));
+  QVERIFY(english != QStringLiteral("excepciones.sha1_leer.bloqueo"));
+  IpcBridge bridge;
+  QLocalServer server;
+  auto *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  peer->readAll();
+  QSignalSpy blocked(&bridge, &IpcBridge::unsafeExceptionBlocked);
+  QSignalSpy verified(&bridge, &IpcBridge::verificationFinished);
+  bridge.verifyFile("/tmp/fixture.csig");
+  const auto sent = nextRequest(peer);
+  QVERIFY(!sent.isEmpty());
+  const QJsonObject exception{{"id", "sha1_leer"}, {"block_key", "excepciones.sha1_leer.bloqueo"},
+      {"risk_key", "excepciones.sha1_leer.riesgo"}, {"organization_key", "excepciones.sha1_leer.organizacion"},
+      {"activable", true}};
+  const QJsonObject block{{"action", "verify"}, {"requestId", sent.value("requestId")},
+      {"ok", false}, {"errorCode", "unsafe_exception_blocked"}, {"exceptionId", "sha1_leer"},
+      {"blockKey", "excepciones.sha1_leer.bloqueo"}, {"activable", true},
+      {"acceptanceVersion", "2026-11-15.3"}, {"retryId", "fixture-token"},
+      {"error", QStringLiteral("La app no permite esto por seguridad.")},
+      {"diagnostic", QJsonObject{{"category", "certificate_store"}, {"likelyOwner", "local_certificate"}}},
+      {"exception", exception}};
+  peer->write(QJsonDocument(block).toJson(QJsonDocument::Compact) + '\n'); peer->flush();
+  QTRY_COMPARE(verified.count(), 1);
+  QCOMPARE(blocked.count(), 1);
+  QCOMPARE(verified.at(0).at(0).toBool(), false);
+  QCOMPARE(verified.at(0).at(1).toString(), english);
+  QVERIFY(verified.at(0).at(2).toMap().value("unsafeBlocked").toBool());
+  QVERIFY(bridge.lastDiagnostic().isEmpty());
 }
 
 void IpcBridgeTransientSecretTest::unsafeDisconnectedNeverDeferred() {
