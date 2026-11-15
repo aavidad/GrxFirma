@@ -9,6 +9,7 @@
 # shellcheck disable=SC1091,SC2329,SC2016,SC2317
 
 setup() {
+  export GRXFIRMA_INSTALLER_LANG=es
   source "${BATS_TEST_DIRNAME}/../reproducible-build.sh"
   source "${BATS_TEST_DIRNAME}/../runtime-dependencies.sh"
 }
@@ -54,7 +55,7 @@ setup() {
   ldd() { printf 'libc.so.6 => not found\n'; }
   run grxfirma_check_bundle_runtime "${bundle}"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"faltan bibliotecas para grxfirma-pkcs11-worker"* ]]
+  [[ "$output" == *"a grxfirma-pkcs11-worker le faltan bibliotecas"* ]]
 }
 
 @test "worker package paths and fail-closed installer inventory agree" {

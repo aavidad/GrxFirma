@@ -93,5 +93,12 @@
   "AFIRMA_GRXFIRMA": "  1) GrxFirma",
   "ARTIFACTS_TITLE": "# Artefactos de la suite Linux",
   "ARTIFACTS_TABLE": "| Fichero | Tamaño (bytes) | SHA-256 |",
-  "TAR_INCOMPLETE": "Archivo tar incompleto:"
+  "TAR_INCOMPLETE": "Archivo tar incompleto:",
+  "RTD_NO_LDD": "Error: falta la herramienta ldd, así que no se pueden comprobar las bibliotecas del paquete.",
+  "RTD_LIBS_UNRESOLVED": "Error: no se han podido comprobar las bibliotecas de @1@:",
+  "RTD_LIBS_MISSING": "Error: a @1@ le faltan bibliotecas:",
+  "RTD_QML_INVALID": "Error: el paquete contiene un nombre de módulo QML que no es válido: @1@",
+  "RTD_QML_MISSING": "Error: falta el módulo QML @1@.",
+  "RTD_INSTALL_HINT": "Error: instale las bibliotecas Qt6/QML que indica el sistema o use el paquete .deb.",
+  "RTD_VERIFIED": "Todas las bibliotecas que necesita el paquete están instaladas."
 }

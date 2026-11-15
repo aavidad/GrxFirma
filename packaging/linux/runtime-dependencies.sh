@@ -284,6 +284,22 @@ grxfirma_runtime_qml_roots() {
     done
 }
 
+# Los textos viven en los catálogos del instalador, que viajan junto a este
+# script en el paquete. Sin ellos se muestra la clave, nunca prosa en el código.
+rtd_message() {
+  local helper
+  helper="$(dirname "${BASH_SOURCE[0]}")/installer-i18n.sh"
+  if ! declare -F grx_message >/dev/null && [[ -f "${helper}" ]]; then
+    # shellcheck source=packaging/linux/installer-i18n.sh
+    source "${helper}"
+  fi
+  if declare -F grx_message >/dev/null; then
+    grx_message "$@"
+  else
+    printf '%s\n' "$*"
+  fi
+}
+
 grxfirma_check_bundle_runtime() {
   local bundle_dir="$1"
   local qml_manifest="${bundle_dir}/runtime-dependencies.qml"
@@ -293,7 +309,7 @@ grxfirma_check_bundle_runtime() {
   local -a qml_roots=()
 
   if ! command -v ldd >/dev/null 2>&1; then
-    echo "error: falta ldd; no se pueden validar las bibliotecas runtime del bundle" >&2
+    rtd_message RTD_NO_LDD >&2
     return 1
   fi
 
@@ -311,13 +327,13 @@ grxfirma_check_bundle_runtime() {
       if grep -Eqi 'not a dynamic executable|statically linked' <<< "${output}"; then
         continue
       fi
-      echo "error: no se pudieron resolver las bibliotecas de ${binary}:" >&2
+      rtd_message RTD_LIBS_UNRESOLVED "${binary}" >&2
       printf '%s\n' "${output}" >&2
       failures=1
       continue
     fi
     if grep -Eq '(^|[[:space:]])[^[:space:]]+[[:space:]]+=>[[:space:]]+not found([[:space:]]|$)' <<< "${output}"; then
-      echo "error: faltan bibliotecas para ${binary}:" >&2
+      rtd_message RTD_LIBS_MISSING "${binary}" >&2
       grep -E '=>[[:space:]]+not found' <<< "${output}" >&2
       failures=1
     fi
@@ -328,7 +344,7 @@ grxfirma_check_bundle_runtime() {
     while IFS= read -r module || [[ -n "${module}" ]]; do
       [[ -n "${module}" ]] || continue
       if [[ ! "${module}" =~ ^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$ ]]; then
-        echo "error: import QML no válido en el bundle: ${module}" >&2
+        rtd_message RTD_QML_INVALID "${module}" >&2
         failures=1
         continue
       fi
@@ -341,17 +357,17 @@ grxfirma_check_bundle_runtime() {
         fi
       done
       if [[ "${qml_available}" != "1" ]]; then
-        echo "error: falta el módulo QML ${module}" >&2
+        rtd_message RTD_QML_MISSING "${module}" >&2
         failures=1
       fi
     done < "${qml_manifest}"
   fi
 
   if [[ "${failures}" != "0" ]]; then
-    echo "error: instala las bibliotecas Qt6/QML indicadas por tu distribución o usa el paquete .deb." >&2
+    rtd_message RTD_INSTALL_HINT >&2
     return 1
   fi
-  echo "Dependencias runtime del bundle verificadas."
+  rtd_message RTD_VERIFIED
 }
 
 runtime_dependencies_main() {

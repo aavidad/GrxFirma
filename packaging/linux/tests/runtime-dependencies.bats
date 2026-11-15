@@ -8,6 +8,7 @@
 # shellcheck disable=SC2317,SC2329
 
 setup() {
+  export GRXFIRMA_INSTALLER_LANG=es
   export FIXTURE_ROOT="${BATS_TEST_TMPDIR}/runtime-dependencies"
   export TEST_BIN="${FIXTURE_ROOT}/bin"
   export PACKAGE_ROOT="${FIXTURE_ROOT}/package"
@@ -200,7 +201,7 @@ EOF
   run grxfirma_check_bundle_runtime "${FIXTURE_ROOT}"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Dependencias runtime del bundle verificadas."* ]]
+  [[ "$output" == *"Todas las bibliotecas que necesita el paquete están instaladas."* ]]
 }
 
 @test "bundle preflight accepts a static Go binary" {
@@ -220,7 +221,7 @@ EOF
   run grxfirma_check_bundle_runtime "${FIXTURE_ROOT}"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Dependencias runtime del bundle verificadas."* ]]
+  [[ "$output" == *"Todas las bibliotecas que necesita el paquete están instaladas."* ]]
 }
 
 @test "dependency workspace rejects a broad cleanup parent" {

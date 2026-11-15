@@ -90,6 +90,13 @@ MSG_070	  Certificados: @1@
 PACKAGE_DETAIL	CLI, interface de ambiente de trabalho, gestor de afirma:// e anfitrião de mensagens nativas.
 PACKAGE_TITLE	GrxFirma para Linux
 REINSTALLING	A reinstalar o GrxFirma @1@...
+RTD_INSTALL_HINT	Erro: instale as bibliotecas Qt6/QML indicadas pelo sistema ou use o pacote .deb.
+RTD_LIBS_MISSING	Erro: faltam bibliotecas a @1@:
+RTD_LIBS_UNRESOLVED	Erro: não foi possível verificar as bibliotecas de @1@:
+RTD_NO_LDD	Erro: falta a ferramenta ldd, pelo que não é possível verificar as bibliotecas do pacote.
+RTD_QML_INVALID	Erro: o pacote contém um nome de módulo QML que não é válido: @1@
+RTD_QML_MISSING	Erro: falta o módulo QML @1@.
+RTD_VERIFIED	Todas as bibliotecas de que o pacote precisa estão instaladas.
 TAR_INCOMPLETE	Arquivo tar incompleto:
 UNKNOWN_VERSION	desconhecida
 UPDATING	A atualizar o GrxFirma: @1@ -> @2@...

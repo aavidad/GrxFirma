@@ -90,6 +90,13 @@ MSG_070	  Ziurtagiriak: @1@
 PACKAGE_DETAIL	CLI, mahaigaineko interfazea, afirma:// kudeatzailea eta mezularitza natiboko ostalaria.
 PACKAGE_TITLE	GrxFirma Linuxerako
 REINSTALLING	GrxFirma @1@ berriz instalatzen...
+RTD_INSTALL_HINT	Errorea: instalatu sistemak adierazten dituen Qt6/QML liburutegiak edo erabili .deb paketea.
+RTD_LIBS_MISSING	Errorea: @1@(r)i liburutegi batzuk falta zaizkio:
+RTD_LIBS_UNRESOLVED	Errorea: ezin izan dira @1@(r)en liburutegiak egiaztatu:
+RTD_NO_LDD	Errorea: ldd tresna falta da, beraz ezin dira paketeko liburutegiak egiaztatu.
+RTD_QML_INVALID	Errorea: paketeak baliozkoa ez den QML modulu-izen bat dauka: @1@
+RTD_QML_MISSING	Errorea: @1@ QML modulua falta da.
+RTD_VERIFIED	Paketeak behar dituen liburutegi guztiak instalatuta daude.
 TAR_INCOMPLETE	Tar artxiboa osatu gabe dago:
 UNKNOWN_VERSION	ezezaguna
 UPDATING	GrxFirma eguneratzen: @1@ -> @2@...

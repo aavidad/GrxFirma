@@ -93,5 +93,12 @@
   "AFIRMA_GRXFIRMA": "  1) GrxFirma",
   "ARTIFACTS_TITLE": "# Artefactes de la suite Linux",
   "ARTIFACTS_TABLE": "| Fitxer | Mida (bytes) | SHA-256 |",
-  "TAR_INCOMPLETE": "Arxiu tar incomplet:"
+  "TAR_INCOMPLETE": "Arxiu tar incomplet:",
+  "RTD_NO_LDD": "Error: falta l’eina ldd, de manera que no es poden comprovar les biblioteques del paquet.",
+  "RTD_LIBS_UNRESOLVED": "Error: no s’han pogut comprovar les biblioteques de @1@:",
+  "RTD_LIBS_MISSING": "Error: a @1@ li falten biblioteques:",
+  "RTD_QML_INVALID": "Error: el paquet conté un nom de mòdul QML que no és vàlid: @1@",
+  "RTD_QML_MISSING": "Error: falta el mòdul QML @1@.",
+  "RTD_INSTALL_HINT": "Error: instal·leu les biblioteques Qt6/QML que indica el sistema o utilitzeu el paquet .deb.",
+  "RTD_VERIFIED": "Totes les biblioteques que necessita el paquet estan instal·lades."
 }

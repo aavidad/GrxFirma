@@ -93,5 +93,12 @@
   "AFIRMA_GRXFIRMA": "  1) GrxFirma",
   "ARTIFACTS_TITLE": "# Linux 套件产物",
   "ARTIFACTS_TABLE": "| 文件 | 大小（字节）| SHA-256 |",
-  "TAR_INCOMPLETE": "tar 归档不完整："
+  "TAR_INCOMPLETE": "tar 归档不完整：",
+  "RTD_NO_LDD": "错误：缺少 ldd 工具，因此无法检查软件包的库文件。",
+  "RTD_LIBS_UNRESOLVED": "错误：无法检查 @1@ 的库文件：",
+  "RTD_LIBS_MISSING": "错误：@1@ 缺少一些库文件：",
+  "RTD_QML_INVALID": "错误：软件包中包含无效的 QML 模块名称：@1@",
+  "RTD_QML_MISSING": "错误：缺少 QML 模块 @1@。",
+  "RTD_INSTALL_HINT": "错误：请安装系统提示的 Qt6/QML 库，或使用 .deb 安装包。",
+  "RTD_VERIFIED": "软件包所需的全部库文件均已安装。"
 }
