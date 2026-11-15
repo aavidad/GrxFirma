@@ -57,6 +57,17 @@ ThemedDialog {
         bridge.activateUnsafeException(item.id, item.acceptance_version, blocked ? "aviso" : "ajustes",
                                        blocked ? (item.retryId || "") : "")
     }
+    // El desplazamiento no sigue al foco por sí solo: con letra grande la
+    // casilla podía quedar fuera de la vista al llegar con Tab.
+    function revealFocused(target) {
+        const flick = scroll.contentItem
+        if (!target || !flick || flick.height <= 0) return
+        const top = target.mapToItem(flick.contentItem, 0, 0).y - 8
+        const bottom = top + target.height + 16
+        if (top < flick.contentY) flick.contentY = Math.max(0, top)
+        else if (bottom > flick.contentY + flick.height)
+            flick.contentY = Math.min(Math.max(0, flick.contentHeight - flick.height), bottom - flick.height)
+    }
     onOpened: contentItem.enter()
     onClosed: {
         contentItem.restoreFocus()
@@ -115,6 +126,7 @@ ThemedDialog {
                         color: dialog.theme.textColor
                         wrapMode: Text.WordWrap
                         activeFocusOnTab: true
+                        onActiveFocusChanged: if (activeFocus) dialog.revealFocused(heading)
                         Accessible.role: Accessible.Heading
                         Accessible.name: text
                         Accessible.focusable: true
@@ -144,6 +156,7 @@ ThemedDialog {
                         Accessible.name: text
                         Accessible.focusable: dialog.showingHelp
                         activeFocusOnTab: dialog.showingHelp
+                        onActiveFocusChanged: if (activeFocus) dialog.revealFocused(caseBody)
                         Rectangle {
                             anchors.fill: parent
                             anchors.margins: -4
@@ -174,6 +187,7 @@ ThemedDialog {
                         text: dialog.caseText("aceptacion")
                         // Intro no marca, no desmarca ni activa: solo Espacio
                         // cambia la casilla y activar exige su botón.
+                        onActiveFocusChanged: if (activeFocus) dialog.revealFocused(acceptance)
                         Keys.onReturnPressed: function(event) { event.accepted = true }
                         Keys.onEnterPressed: function(event) { event.accepted = true }
                         Accessible.description: dialog.appText("excepciones.pantalla.version").replace("{version}", dialog.item.acceptance_version || "")

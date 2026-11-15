@@ -237,4 +237,28 @@ TestCase {
         tryCompare(cancelled, "count", 2)
         compare(fake.calls.length, 0)
     }
+    // Con letra grande y poca altura, la casilla queda a la vista al llegar
+    // con Tab, y el nombre del caso al volver con Mayús+Tab.
+    function test_focused_item_is_scrolled_into_view() {
+        Typography.textScalePercent = 200
+        dialog.present(entry(true), false)
+        dialog.height = 340
+        const heading = findChild(dialog, "unsafeHeading")
+        const box = findChild(dialog, "unsafeAcceptance")
+        const flick = box.parent.parent.parent
+        tryVerify(function() { return heading.activeFocus })
+        // Espera a que la ventana quepa justa: el texto desborda y hay barra.
+        tryVerify(function() { return flick.height > box.height + 16 && flick.contentHeight > flick.height })
+        keyClick(Qt.Key_Tab)
+        tryVerify(function() { return box.activeFocus })
+        function visibleIn(item) {
+            const y = item.mapToItem(dialog.contentItem, 0, 0).y
+            const area = flick.mapToItem(dialog.contentItem, 0, 0).y
+            return y >= area - 1 && y + Math.min(item.height, flick.height) <= area + flick.height + 1
+        }
+        tryVerify(function() { return visibleIn(box) })
+        keyClick(Qt.Key_Backtab, Qt.ShiftModifier)
+        tryVerify(function() { return heading.activeFocus })
+        tryVerify(function() { return visibleIn(heading) })
+    }
 }
