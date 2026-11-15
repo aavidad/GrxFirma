@@ -22,6 +22,7 @@
   "android.inseguro.desactivar_aqui": "Puede desactivarla en Preferencias, en Seguridad: excepciones inseguras.",
   "android.inseguro.ver_bloqueo": "Ver por qué está bloqueada",
   "android.inseguro.version_no_disponible": "No se ha podido obtener la versión del texto de aceptación. Actualice la lista antes de activar la excepción.",
+  "android.inseguro.aceptacion_casilla": "He leído el aviso y acepto el riesgo bajo mi responsabilidad.",
   ",": ",",
   "ASiC-XAdES": "ASiC-XAdES",
   "Base64": "Base64",

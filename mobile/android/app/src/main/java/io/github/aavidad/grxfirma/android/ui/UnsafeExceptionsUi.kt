@@ -49,7 +49,7 @@ class UnsafeExceptionDialog(
     private val body = column(context).apply { setPadding(context.dp(24), context.dp(12), context.dp(24), context.dp(24)) }
     val acceptance = MaterialCheckBox(context).apply {
         id = R.id.unsafeAcceptance
-        text = EngineText.resolve(context, item.key("aceptacion"))
+        text = UnsafeExceptionTexts.text(context, "aceptacion_casilla")
         minHeight = context.dp(48)
         isSingleLine = false
         visibility = if (item.canActivate) View.VISIBLE else View.GONE
@@ -89,6 +89,13 @@ class UnsafeExceptionDialog(
         }
         if (item.canActivate) {
             body.addView(paragraph(context, UnsafeExceptionTexts.text(context, "version").replace("{version}", item.acceptanceVersion)))
+            // El aviso completo se lee desplazando el contenido. La casilla es un
+            // control independiente que debe caber entero incluso con texto grande.
+            body.addView(paragraph(context, EngineText.resolve(context, item.key("aceptacion"))).apply {
+                id = R.id.unsafeAcceptanceText
+                labelFor = acceptance.id
+                setTextIsSelectable(true)
+            })
             body.addView(acceptance)
             body.addView(paragraph(context, UnsafeExceptionTexts.text(context, "desactivar_aqui")))
         }

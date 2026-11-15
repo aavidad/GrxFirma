@@ -22,6 +22,7 @@
   "android.inseguro.desactivar_aqui": "You can disable it in Preferences, under Security: unsafe exceptions.",
   "android.inseguro.ver_bloqueo": "View why it is blocked",
   "android.inseguro.version_no_disponible": "The acceptance text version could not be obtained. Refresh the list before enabling this exception.",
+  "android.inseguro.aceptacion_casilla": "I have read the warning and accept the risk under my responsibility.",
   ",": ",",
   "ASiC-XAdES": "ASiC-XAdES",
   "Base64": "Base64",

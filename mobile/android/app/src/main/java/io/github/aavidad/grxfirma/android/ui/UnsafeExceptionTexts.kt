@@ -9,7 +9,7 @@ object UnsafeExceptionTexts {
     val keys = setOf("seccion", "introduccion", "activar", "desactivar", "activar_continuar", "cancelar",
         "mas_informacion", "cerrar", "actualizar", "cargando", "guardando", "no_disponible", "reenviar",
         "activada", "desactivada", "fijada_activa", "fijada_inactiva", "directiva_ilegible", "version",
-        "aceptada_fecha", "desactivar_aqui", "ver_bloqueo", "version_no_disponible")
+        "aceptada_fecha", "desactivar_aqui", "ver_bloqueo", "version_no_disponible", "aceptacion_casilla")
         .map { "android.inseguro.$it" }.toSet()
     fun text(context: Context, suffix: String) = EngineText.resolve(context, "android.inseguro.$suffix")
 }

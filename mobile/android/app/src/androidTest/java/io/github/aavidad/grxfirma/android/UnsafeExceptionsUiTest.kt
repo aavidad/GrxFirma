@@ -3,8 +3,12 @@
 package io.github.aavidad.grxfirma.android
 
 import android.content.res.Configuration
+import android.graphics.Rect
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
@@ -21,6 +25,8 @@ import io.github.aavidad.grxfirma.android.ui.SafeWindowInsets
 import io.github.aavidad.grxfirma.android.ui.UnsafeExceptionDialog
 import io.github.aavidad.grxfirma.android.ui.UnsafeExceptionsPanel
 import io.github.aavidad.grxfirma.android.ui.UnsafeExceptionTexts
+import io.github.aavidad.grxfirma.android.ui.UiText
+import io.github.aavidad.grxfirma.android.ui.resolve
 import org.hamcrest.Matchers.not
 import org.junit.Assert.*
 import org.junit.Test
@@ -112,20 +118,72 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
         }
     }
 
+    /** Ejecutar con gestos y tres botones: se usan los insets reales de cada navegación. */
     @Test fun consentRemainsScrollableAtTwoHundredPercentTextSize() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            var accepted = false
+            var cancelled = false
+            lateinit var expectedStatement: String
+            lateinit var expectedCheckbox: String
+            lateinit var consent: UnsafeExceptionDialog
             scenario.onActivity { activity ->
                 val configuration = Configuration(activity.resources.configuration).apply { fontScale = 2f }
                 val context = android.view.ContextThemeWrapper(activity, R.style.Theme_GrxFirma).apply {
                     applyOverrideConfiguration(configuration)
                 }
-                UnsafeExceptionDialog(context, item, {}, {}).show()
+                expectedStatement = UiText.Engine(item.key("aceptacion")).resolve(context)
+                expectedCheckbox = UnsafeExceptionTexts.text(context, "aceptacion_casilla")
+                consent = UnsafeExceptionDialog(context, item, { accepted = it }, { cancelled = true; consent.close() })
+                consent.show()
             }
             assertConsentWindowHasFocus()
-            onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).perform(scrollTo(), click())
-            onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).perform(scrollTo()).check(matches(isEnabled()))
-            onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).perform(scrollTo()).check(matches(isDisplayed()))
+            // El aviso permanece íntegro y asociado al control, aunque se lea por partes al desplazarlo.
+            onView(withId(R.id.unsafeAcceptanceText)).inRoot(isDialog()).check(matches(withText(expectedStatement)))
+                .check { view, error ->
+                    if (error != null) throw error
+                    val text = view as android.widget.TextView
+                    assertEquals(R.id.unsafeAcceptance, text.labelFor)
+                    assertNull("El aviso no se debe elidir", text.ellipsize)
+                    assertEquals("El aviso no debe limitar sus líneas", Int.MAX_VALUE, text.maxLines)
+                }
+            onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(not(isEnabled())))
+            onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).perform(scrollTo())
+                .check(matches(withText(expectedCheckbox))).check(matches(isCompletelyDisplayed()))
+                .check { view, error ->
+                    if (error != null) throw error
+                    assertControlInsideSafeArea(view)
+                }.perform(click())
+            onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).perform(scrollTo())
+                .check(matches(isEnabled())).check(matches(isCompletelyDisplayed()))
+                .check { view, error ->
+                    if (error != null) throw error
+                    assertControlInsideSafeArea(view)
+                }.perform(click())
+            assertTrue(accepted)
+            onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).perform(scrollTo())
+                .check(matches(isCompletelyDisplayed()))
+                .check { view, error ->
+                    if (error != null) throw error
+                    assertControlInsideSafeArea(view)
+                }.perform(click())
+            assertTrue(cancelled)
         }
+    }
+
+    /** Las barras pueden tener alturas diferentes; ningún control debe quedar debajo de ellas. */
+    private fun assertControlInsideSafeArea(view: View) {
+        val decor = view.rootView
+        val insets = ViewCompat.getRootWindowInsets(decor)
+        assertNotNull("La ventana debe exponer sus insets", insets)
+        val safe = insets!!.getInsets(WindowInsetsCompat.Type.systemBars() or
+            WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.displayCutout())
+        val location = IntArray(2)
+        decor.getLocationInWindow(location)
+        val area = Rect(location[0] + safe.left, location[1] + safe.top,
+            location[0] + decor.width - safe.right, location[1] + decor.height - safe.bottom)
+        view.getLocationInWindow(location)
+        val bounds = Rect(location[0], location[1], location[0] + view.width, location[1] + view.height)
+        assertTrue("El control ${view.id} debe caber entero: caja=$bounds, área segura=$area", area.contains(bounds))
     }
 
     /** inRoot espera la ventana del diálogo; estas aserciones no permiten esconder una pérdida real de foco. */
