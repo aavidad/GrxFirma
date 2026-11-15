@@ -111,6 +111,8 @@ object HelpButton {
         val text = context.getString(section.text)
         val sentence = TextView(context).apply {
             setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
+            minHeight = (48 * density).toInt()
+            gravity = Gravity.CENTER_VERTICAL
             setTextIsSelectable(true)
             this.text = if (name == null) text else {
                 // Plantilla sin rellenar («%1$s: %2$s»): el nombre va en negrita.
@@ -133,6 +135,8 @@ object HelpButton {
         val moreRes = section.more ?: return wrapper
         val detail = TextView(context).apply {
             setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
+            minHeight = (48 * density).toInt()
+            gravity = Gravity.CENTER_VERTICAL
             setTextIsSelectable(true)
             this.text = context.getString(moreRes)
             visibility = View.GONE

@@ -19,7 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
-class CoreVisibleSealSigningTest {
+class CoreVisibleSealSigningTest : AccessibilityTest() {
     @Test
     fun signsValidPdfWithThirtyDegreeSealAtHalfOpacity() {
         assumeTrue(BuildConfig.CORE_MODE == "production")

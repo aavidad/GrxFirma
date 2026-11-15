@@ -22,7 +22,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class HelpButtonUiTest {
+class HelpButtonUiTest : AccessibilityTest() {
     /**
      * El «?» de la operación se anuncia con el nombre del control y, sin elegir
      * ninguna opción, explica las tres. La cofirma lleva un «+» con nombre y

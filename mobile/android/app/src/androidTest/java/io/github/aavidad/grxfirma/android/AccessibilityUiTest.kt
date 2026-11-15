@@ -40,7 +40,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Hallazgos de la auditoría WCAG 2.1 AA de Android, comprobados en el dispositivo. */
-class AccessibilityUiTest {
+class AccessibilityUiTest : AccessibilityTest() {
     @Test fun sealCanvasStatesPositionAndAnswersKeysAndActions() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->

@@ -17,7 +17,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class ToolsUiTest {
+class ToolsUiTest : AccessibilityTest() {
     @Test fun toolGroupsExpandAndStayDisabledWithoutAProductionCore() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity {

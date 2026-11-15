@@ -13,7 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
-class DocumentsUiTest {
+class DocumentsUiTest : AccessibilityTest() {
     /** La compilación de verificación no declara servicios: la sección se oculta y lo explica. */
     @Test fun documentToolsAreHiddenWithoutADeclaringCore() {
         assumeTrue("solo la compilación de verificación carece de motor que declare servicios", BuildConfig.CORE_MODE == "verification")

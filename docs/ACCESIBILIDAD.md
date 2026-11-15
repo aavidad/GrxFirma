@@ -241,8 +241,8 @@ Contrastes más bajos que quedan, todos por encima del umbral:
 | P-W1 | WinUI | Hecho en código, pendiente de comprobar en Windows: objetivos de al menos 24 píxeles efectivos mediante compensación de escala, contenidos en la página y separados. | Baja |
 | P-W2 | WinUI | Hecho en código, pendiente de comprobar en Windows: aviso `Polite` cada 10 s y al terminar. Sin recuentos intermedios porque el contrato de lotes no los publica. | Media |
 | P-W3 | WinUI | Hecho en código, pendiente de comprobar en Windows: pinceles actualizados al cambiar el tema real o el contraste del sistema, también en páginas abiertas. | Baja |
-| P-A1 | Android | Activar `AccessibilityChecks` de Espresso en las pruebas instrumentadas. Exige nuevas dependencias verificadas y regenerar los ficheros de bloqueo. | Media |
-| P-A2 | Android | Comprobar en Android 15 o posterior que el modo de borde a borde no tapa los últimos botones con la barra de gestos. | Media |
+| P-A1 | Android | Comprobado en `medium_phone` (Android 16), con gestos y tres botones, en Production y Verification. `AccessibilityChecks` activo desde la base común de pruebas de interfaz; resúmenes y textos seleccionables de ayuda con objetivos de al menos 48 dp. Única excepción autorizada: `TouchTargetSizeCheck` sobre `mtrl_calendar_days_of_week` de Material, fila informativa sin acción. Compilación estricta sin red, unitarias y lint correctos. | Media |
+| P-A2 | Android | Comprobadas las barras y el teclado en las cuatro pasadas de Android 16. `WindowInsetsCompat` reduce la altura útil del scroll y protege los diálogos a pantalla completa; también reserva recortes físicos. Preferencias se redimensiona al abrir el teclado. Las seis pruebas de insets pasan en cada variante y navegación, incluido el campo y Guardar de Preferencias con IME visible. Capturas comparativas revisadas. | Media |
 
 ## 7. Lo que necesita revisión humana
 

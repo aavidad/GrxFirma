@@ -18,7 +18,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
-class CoreOfficialTestCertificateSigningTest {
+class CoreOfficialTestCertificateSigningTest : AccessibilityTest() {
     @Test
     fun officialFnmtTestCertificateProducesVerifiableSignatures() {
         assumeTrue("Solo se ejecuta contra el AAR productivo.", BuildConfig.CORE_MODE == "production")

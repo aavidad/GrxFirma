@@ -18,9 +18,9 @@
     android:layout_height="match_parent">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:layout_height="wrap_content">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -38,7 +38,7 @@
         android:id="@+id/contentScroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
+        android:clipToPadding="true"
         android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -129,6 +129,8 @@
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
                     android:layout_marginTop="8dp"
                     android:text="@string/no_document"
                     android:textColor="@color/on_surface"
@@ -172,6 +174,8 @@
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
                     android:layout_marginTop="8dp"
                     android:text="@string/no_original_document"
                     android:textColor="@color/on_surface"
@@ -291,6 +295,8 @@
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
                     android:layout_marginTop="8dp"
                     android:text="@string/no_certificate_file"
                     android:textColor="@color/on_surface"
@@ -333,6 +339,8 @@
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
                     android:layout_marginTop="8dp"
                     android:text="@string/no_certificate"
                     android:textColor="@color/on_surface"
