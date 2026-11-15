@@ -29,6 +29,21 @@ func permitirTSAHTTPPrueba(t *testing.T) {
 	excepciones.SetForTest(t, "tsa_http", true)
 }
 
+// Usa el recibo persistido por la interfaz local, sin sustituir la decisión de usuario.
+func contextoConAceptacionTSAHTTP(t *testing.T) (context.Context, *domain.AvisosOperacion) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+	dir := t.TempDir()
+	ctx := excepciones.WithConfigDir(context.Background(), dir)
+	_, err := excepciones.ActivateLocal(excepciones.ForLocalDesktop(ctx), dir, excepciones.ActivationRequest{
+		ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
+	})
+	if err != nil {
+		t.Fatalf("no se pudo aceptar TSA HTTP en la configuración temporal: %v", err)
+	}
+	return domain.ConAvisosOperacion(ctx)
+}
+
 func exigirAvisoTSAHTTP(t *testing.T, avisos *domain.AvisosOperacion) {
 	t.Helper()
 	if !slices.Contains(avisos.Claves(), excepciones.Warning("tsa_http")) {

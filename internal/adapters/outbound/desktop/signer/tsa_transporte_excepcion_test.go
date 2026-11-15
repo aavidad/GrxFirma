@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"slices"
 	"strings"
 	"testing"
@@ -16,11 +17,41 @@ import (
 	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/internal/testsupport/pdffixture"
+	"grxfirma/internal/testsupport/tsatest"
 )
 
 type tsaTransportFunc func(*http.Request) (*http.Response, error)
 
 func (f tsaTransportFunc) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+
+func TestMotorFirmaGo_PAdEST_ReciboVigenteSinSocket(t *testing.T) {
+	ctx, warnings := contextoConAceptacionTSAHTTP(t)
+	responder := tsatest.NewResponder(t)
+	requests := 0
+	const endpoint = "http://tsa.example.invalid/tsr"
+	client := tsaclient.New(endpoint)
+	client.HTTPClient = &http.Client{Transport: tsaTransportFunc(func(req *http.Request) (*http.Response, error) {
+		requests++
+		recorder := httptest.NewRecorder()
+		responder.ServeHTTP(recorder, req)
+		return recorder.Result(), nil
+	})}
+	priv, cert := generarCertRSA(t)
+	doc, err := domain.NewDocument("doc.pdf", pdffixture.Minimal(), "application/pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	motor := signer.NuevoMotorFirmaGo(nil).WithTimestampAuthority(client).PermitirTSADeOpcionesEnRedLocal()
+	job := domain.SignatureJob{Document: doc, Format: domain.FormatPAdES, Action: domain.ActionSign, Options: map[string]string{"level": "T", "tsaURL": endpoint}}
+	result, err := motor.Sign(ctx, job, signer.NuevaClaveLocal(priv, cert))
+	if err != nil {
+		t.Fatalf("PAdES-T con recibo vigente: %v", err)
+	}
+	if requests != 1 || result.Algorithm != "PAdES-B-T" || len(result.Data) == 0 {
+		t.Fatalf("no se generó PAdES-T con la TSA: requests=%d algorithm=%s", requests, result.Algorithm)
+	}
+	exigirAvisoTSAHTTP(t, warnings)
+}
 
 func TestPAdESTHTTPConsultaExcepcionAntesDeLaRed(t *testing.T) {
 	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
