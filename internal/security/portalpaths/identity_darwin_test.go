@@ -1,7 +1,6 @@
 //go:build darwin
 
 // SPDX-License-Identifier: EUPL-1.2
-//
 package portalpaths
 
 import (
