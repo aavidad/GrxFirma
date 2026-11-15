@@ -40,6 +40,11 @@ interface CoreBridge {
     val engineVersion: String get() = ""
     val readiness: CoreReadiness
 
+    val unsafeExceptionsAvailable: Boolean get() = false
+    fun unsafeExceptions(): List<UnsafeExceptionState> = toolsUnavailable()
+    fun disableUnsafeException(item: UnsafeExceptionState): List<UnsafeExceptionState> = toolsUnavailable()
+    fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean): Unit = toolsUnavailable()
+
     fun selectCertificate(): CertificateSummary
 
     fun importCertificate(data: ByteArray, password: CharArray): CertificateSummary

@@ -31,6 +31,14 @@ class VerificationCardTest {
         signerSummaries = listOf(SignerSummary("1", "CN=PRUEBA SINTETICA 2,O=GrxFirma QA,C=ES", "CN=CA", "ab")),
     )
 
+    @Test fun `unsafe warnings are visible in the card summary`() {
+        val warning = "excepciones.sha1_leer.aviso"
+        val summary = VerificationCard.summary(accredited.copy(warnings = listOf(warning, warning), warningCount = 2))
+        assertEquals(1, summary.count {
+            it == UiText.Resource(R.string.verification_warning, listOf(UiText.Engine(warning)))
+        })
+    }
+
     @Test
     fun `verdict follows integrity certificate and trust`() {
         assertEquals(Verdict.VALID, VerificationCard.verdict(accredited))

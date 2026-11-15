@@ -240,6 +240,13 @@
                 android:layout_marginTop="4dp" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@id/unsafePreferences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/prefRestore"
             style="@style/Widget.GrxFirma.Button.TextButton"

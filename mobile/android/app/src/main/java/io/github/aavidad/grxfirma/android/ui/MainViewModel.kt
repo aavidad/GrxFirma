@@ -5,6 +5,9 @@
 
 package io.github.aavidad.grxfirma.android.ui
 
+import io.github.aavidad.grxfirma.android.core.UnsafeExceptions
+import io.github.aavidad.grxfirma.android.core.UnsafeExceptionState
+import io.github.aavidad.grxfirma.android.core.CoreContractException
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -55,10 +58,15 @@ class MainViewModel(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val settingsStore: AppSettingsStore = InMemorySettingsStore(),
 ) : ViewModel() {
+    private var unsafeRetry: (() -> Unit)? = null
+    private var unsafeRetrySelection: MainUiState? = null
+    private var unsafeRetryDeadline: Long = 0
+
     private val initialSettings = settingsStore.load()
     private val mutableState = MutableStateFlow(
         MainUiState(
             backend = core.readiness,
+            unsafeExceptionsAvailable = core.readiness.available && core.unsafeExceptionsAvailable,
             toolsAvailable = core.readiness.available && core.toolsAvailable,
             signingFormats = core.signingFormats,
             documentServices = if (core.readiness.available) core.documentServices else emptySet(),
@@ -408,7 +416,8 @@ class MainViewModel(
             setError(UiText.Resource(R.string.error_certificate_required))
             return
         }
-        launchOperation {
+        val retryOptions = options.toMap()
+        launchOperation(retry = { sign(format, retryOptions) }) {
             val loaded = loadDocumentForSigning(document) ?: return@launchOperation
             try {
                 val effectiveFormat = if (format == "auto") when {
@@ -438,7 +447,8 @@ class MainViewModel(
                 } finally {
                     signingOriginal?.bytes?.fill(0)
                 }
-                replacePending(output, PendingKind.SIGNATURE)
+                replacePending(output, PendingKind.SIGNATURE, withWarnings(
+                    UiText.Resource(R.string.result_signed, listOf(output.format, output.algorithm)), output.warnings))
                 // The output remains saveable even if verification cannot run.
                 // Detached signatures need the input for sign, and the separately
                 // selected original for co/countersign (never the old signature).
@@ -447,7 +457,15 @@ class MainViewModel(
                     original = if (!output.format.equals("cades", true)) null else
                         if (snapshot.signatureAction == "sign") loaded else snapshot.originalDocument?.let(repository::loadDocument)
                     core.verify(LoadedFile(output.displayName, output.mimeType, output.bytes), original)
-                } catch (_: Exception) {
+                } catch (error: Exception) {
+                    val blocked = UnsafeExceptions.block(error)
+                    if (blocked != null) {
+                        // Ya existe una firma: nunca volver a firmar para repetir su verificación.
+                        unsafeRetry = null
+                        unsafeRetrySelection = snapshot
+                        unsafeRetryDeadline = 0
+                        mutableState.value = mutableState.value.copy(unsafePrompt = hydrateUnsafeBlock(blocked), unsafeError = null)
+                    }
                     null
                 } finally {
                     if (original !== loaded) original?.bytes?.fill(0)
@@ -469,7 +487,7 @@ class MainViewModel(
                         ),
                     ),
                 )
-                effectChannel.send(UiEffect.SaveSignedDocument(output.displayName, output.mimeType))
+                if (mutableState.value.unsafePrompt == null) effectChannel.send(UiEffect.SaveSignedDocument(output.displayName, output.mimeType))
             } finally {
                 loaded.bytes.fill(0)
             }
@@ -485,7 +503,7 @@ class MainViewModel(
             setError(UiText.Resource(R.string.error_document_required))
             return
         }
-        launchOperation {
+        launchOperation(retry = { verify() }) {
             val loaded = repository.loadDocument(document)
             var original: io.github.aavidad.grxfirma.android.model.LoadedFile? = null
             try {
@@ -848,7 +866,8 @@ class MainViewModel(
             return
         }
         val key = if (snapshot.usesTransientKey) secret else { secret.fill('\u0000'); null }
-        launchOperation(onFinished = { key?.fill('\u0000') }) {
+        launchOperation(onFinished = { key?.fill('\u0000') },
+            retry = if (key == null) ({ protect(CharArray(0), CharArray(0), sign) }) else null) {
             val loadedRecipients = ArrayList<ByteArray>()
             // Proteger y firmar firma el documento: tiene que ser el que se eligió (H-06).
             val loaded = if (sign) loadDocumentForSigning(document) ?: return@launchOperation
@@ -873,7 +892,7 @@ class MainViewModel(
                 )
                 val output = try {
                     core.protect(loaded, request, key)
-                } catch (error: io.github.aavidad.grxfirma.android.core.CoreContractException) {
+                } catch (error: CoreContractException) {
                     // Sin destinatarios, el único certificado que puede fallar es el propio.
                     if (error.toUserText() == UiText.Resource(R.string.error_protect_recipient) &&
                         request.includeSessionCertificate && loadedRecipients.isEmpty()) {
@@ -882,7 +901,7 @@ class MainViewModel(
                     }
                     throw error
                 }
-                val detail = UiText.Resource(R.string.result_protected_detail, listOf(output.displayName))
+                val detail = withWarnings(UiText.Resource(R.string.result_protected_detail, listOf(output.displayName)), output.warnings)
                 replacePending(output, PendingKind.TOOL, detail)
                 mutableState.value = mutableState.value.copy(awaitingSave = true,
                     result = OperationResult.Success(UiText.Resource(
@@ -915,11 +934,12 @@ class MainViewModel(
             return
         }
         val key = secret.takeIf { it.isNotEmpty() }
-        launchOperation(onFinished = { secret.fill('\u0000') }) {
+        launchOperation(onFinished = { secret.fill('\u0000') },
+            retry = if (key == null) ({ unprotect(CharArray(0)) }) else null) {
             val loaded = repository.loadDocument(document)
             try {
                 val output = core.unprotect(loaded, key)
-                val detail = UiText.Resource(R.string.result_unprotected_detail, listOf(output.displayName))
+                val detail = withWarnings(UiText.Resource(R.string.result_unprotected_detail, listOf(output.displayName)), output.warnings)
                 replacePending(output, PendingKind.TOOL, detail)
                 mutableState.value = mutableState.value.copy(awaitingSave = true,
                     result = OperationResult.Success(UiText.Resource(R.string.result_unprotected), detail))
@@ -1396,6 +1416,7 @@ class MainViewModel(
                 val qr = core.readVeriFactuQr(trimmed)
                 mutableState.value = mutableState.value.copy(veriFactuQr = qr)
             } catch (error: Exception) {
+                if (UnsafeExceptions.block(error) != null) throw error
                 mutableState.value = mutableState.value.copy(qrError = error.toUserText())
             }
         }
@@ -1427,6 +1448,7 @@ class MainViewModel(
                 val qr = core.readVeriFactuQrImage(prepared)
                 mutableState.value = mutableState.value.copy(veriFactuQr = qr)
             } catch (error: Exception) {
+                if (UnsafeExceptions.block(error) != null) throw error
                 mutableState.value = mutableState.value.copy(qrError = error.toUserText())
             } finally {
                 source?.fill(0)
@@ -1538,6 +1560,7 @@ class MainViewModel(
                 val response = core.queryVeriFactuQr(qr.url)
                 mutableState.value = mutableState.value.copy(aeatResponse = response)
             } catch (error: Exception) {
+                if (UnsafeExceptions.block(error) != null) throw error
                 mutableState.value = mutableState.value.copy(qrError = error.toUserText())
             }
         }
@@ -1607,9 +1630,10 @@ class MainViewModel(
         allowAwaitingSave: Boolean = false,
         clearsResult: Boolean = !allowAwaitingSave,
         onFinished: () -> Unit = {},
+        retry: (() -> Unit)? = null,
         block: suspend () -> Unit,
     ) {
-        if (mutableState.value.busy || mutableState.value.awaitingReportSave || (!allowAwaitingSave && mutableState.value.awaitingSave)) {
+        if (mutableState.value.busy || mutableState.value.unsafePrompt != null || mutableState.value.unsafeSaving || mutableState.value.awaitingReportSave || (!allowAwaitingSave && mutableState.value.awaitingSave)) {
             onFinished()
             return
         }
@@ -1618,7 +1642,17 @@ class MainViewModel(
         viewModelScope.launch {
             try {
                 withContext(ioDispatcher) { block() }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (error: Exception) {
+                val blocked = UnsafeExceptions.block(error)
+                if (blocked != null) {
+                    unsafeRetry = retry
+                    unsafeRetrySelection = current
+                    unsafeRetryDeadline = System.nanoTime() + 300_000_000_000L
+                    val item = withContext(ioDispatcher) { hydrateUnsafeBlock(blocked) }
+                    mutableState.value = mutableState.value.copy(unsafePrompt = item, unsafeError = null)
+                }
                 setError(error.toUserText())
             } finally {
                 mutableState.value = mutableState.value.copy(busy = false)
@@ -1626,11 +1660,106 @@ class MainViewModel(
         }.invokeOnCompletion { onFinished() }
     }
 
+    private fun hydrateUnsafeBlock(block: UnsafeExceptionState): UnsafeExceptionState {
+        if (!core.unsafeExceptionsAvailable) return block.copy(acceptanceVersion = "")
+        return try {
+            val fresh = core.unsafeExceptions().single { it.id == block.id }
+            fresh.copy(activable = block.activable && fresh.activable)
+        } catch (_: Exception) { block.copy(acceptanceVersion = "") }
+    }
+
+    fun refreshUnsafeExceptions() {
+        val snapshot = mutableState.value
+        if (snapshot.unsafeLoading || snapshot.unsafeSaving || !snapshot.unsafeExceptionsAvailable) return
+        mutableState.value = snapshot.copy(unsafeLoading = true, unsafeError = null)
+        viewModelScope.launch {
+            try {
+                val items = withContext(ioDispatcher) { core.unsafeExceptions() }
+                mutableState.value = mutableState.value.copy(unsafeExceptions = items)
+            } catch (cancelled: CancellationException) { throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = mutableState.value.copy(unsafeError = error.toUserText())
+            } finally { mutableState.value = mutableState.value.copy(unsafeLoading = false) }
+        }
+    }
+
+    fun requestUnsafeActivation(item: UnsafeExceptionState) {
+        if (!mutableState.value.canReplaceSelection || mutableState.value.unsafeLoading) return
+        // Incluso una directiva prohibida abre la explicación y su ayuda, sin aceptación.
+        unsafeRetry = null
+        unsafeRetrySelection = null
+        mutableState.value = mutableState.value.copy(unsafePrompt = item, unsafeError = null)
+    }
+
+    fun dismissUnsafePrompt() {
+        if (mutableState.value.unsafeSaving) return
+        unsafeRetry = null
+        unsafeRetrySelection = null
+        mutableState.value = mutableState.value.copy(unsafePrompt = null, unsafeError = null)
+    }
+
+    fun activateUnsafeException(accepted: Boolean) {
+        val snapshot = mutableState.value
+        val item = snapshot.unsafePrompt ?: return
+        if (!accepted || !item.canActivate || snapshot.unsafeSaving || snapshot.busy) return
+        mutableState.value = snapshot.copy(unsafeSaving = true, unsafeError = null)
+        viewModelScope.launch {
+            var retry: (() -> Unit)? = null
+            try {
+                val fresh = withContext(ioDispatcher) {
+                    core.activateUnsafeException(item, accepted)
+                    core.unsafeExceptions()
+                }
+                // El núcleo vuelve a decidir la directiva y la versión al activar.
+                val enabled = fresh.single { it.id == item.id }.enabled
+                if (!enabled) throw CoreContractException("UNSAFE_NOT_ENABLED")
+                val previous = unsafeRetrySelection
+                if (previous != null && System.nanoTime() < unsafeRetryDeadline &&
+                    sameUnsafeSelection(previous, mutableState.value)) retry = unsafeRetry
+                val operationPending = previous != null
+                unsafeRetry = null
+                unsafeRetrySelection = null
+                mutableState.value = mutableState.value.copy(unsafePrompt = null, unsafeExceptions = fresh,
+                    result = OperationResult.Notice(UiText.Engine(if (operationPending && retry == null)
+                        "android.inseguro.reenviar" else "android.inseguro.activada")))
+            } catch (cancelled: CancellationException) { throw cancelled
+            } catch (error: Exception) {
+                // Cualquier rechazo requiere una nueva aceptación del estado vigente.
+                val fresh = withContext(ioDispatcher) { hydrateUnsafeBlock(item) }
+                mutableState.value = mutableState.value.copy(unsafePrompt = fresh, unsafeError = error.toUserText())
+            } finally { mutableState.value = mutableState.value.copy(unsafeSaving = false) }
+            retry?.invoke()
+        }
+    }
+
+    fun disableUnsafeException(item: UnsafeExceptionState) {
+        val snapshot = mutableState.value
+        if (!snapshot.canReplaceSelection || !item.canDisable || snapshot.unsafeLoading) return
+        mutableState.value = snapshot.copy(unsafeSaving = true, unsafeError = null)
+        viewModelScope.launch {
+            try {
+                val items = withContext(ioDispatcher) { core.disableUnsafeException(item) }
+                mutableState.value = mutableState.value.copy(unsafeExceptions = items)
+            } catch (cancelled: CancellationException) { throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = mutableState.value.copy(unsafeError = error.toUserText())
+            } finally { mutableState.value = mutableState.value.copy(unsafeSaving = false) }
+        }
+    }
+
+    private fun sameUnsafeSelection(a: MainUiState, b: MainUiState): Boolean =
+        a.document === b.document && a.originalDocument === b.originalDocument && a.certificate == b.certificate &&
+            a.settings == b.settings && a.signatureAction == b.signatureAction && a.signatureProfile == b.signatureProfile &&
+            a.tsaEnabled == b.tsaEnabled && a.tsaUrl == b.tsaUrl && a.recipients == b.recipients &&
+            a.protectionContainer == b.protectionContainer && !b.awaitingSave && !b.awaitingReportSave
+
     private fun setError(text: UiText) {
         mutableState.value = mutableState.value.copy(result = OperationResult.Error(text))
     }
 
     override fun onCleared() {
+        unsafeRetry = null
+        unsafeRetrySelection = null
         clearPending()
         try {
             core.clearSession()

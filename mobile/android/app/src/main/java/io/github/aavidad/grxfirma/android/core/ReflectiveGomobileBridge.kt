@@ -54,6 +54,20 @@ class ReflectiveGomobileBridge private constructor(
         detail = "Contrato mobile v${CoreJsonCodec.CONTRACT_VERSION} y servicios criptográficos verificados.",
     )
 
+    override val unsafeExceptionsAvailable: Boolean get() = listOf(
+        "unsafeExceptionsJSON", "setUnsafeExceptionJSON", "activateUnsafeExceptionJSON",
+    ).all { it in methods }
+
+    override fun unsafeExceptions(): List<UnsafeExceptionState> =
+        UnsafeExceptions.parseList(invokeJson("unsafeExceptionsJSON"))
+
+    override fun disableUnsafeException(item: UnsafeExceptionState): List<UnsafeExceptionState> =
+        UnsafeExceptions.parseList(invokeJson("setUnsafeExceptionJSON", UnsafeExceptions.disableRequest(item)))
+
+    override fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean) {
+        invokeJson("activateUnsafeExceptionJSON", UnsafeExceptions.activationRequest(item, accepted))
+    }
+
     override fun selectCertificate(): CertificateSummary = CoreJsonCodec.parseCertificate(
         invokeJson("selectCertificateJSON", CoreJsonCodec.selectCertificateRequest()),
     )
@@ -374,6 +388,13 @@ class ReflectiveGomobileBridge private constructor(
                         ),
                     )
                 }
+            // Métodos opcionales: conservar la compatibilidad con AAR anteriores.
+            listOf("unsafeExceptionsJSON", "setUnsafeExceptionJSON", "activateUnsafeExceptionJSON").forEach { name ->
+                try {
+                    required[name] = if (name == "unsafeExceptionsJSON") facadeClass.getMethod(name)
+                        else facadeClass.getMethod(name, String::class.java)
+                } catch (_: NoSuchMethodException) { }
+            }
             // Las herramientas son opcionales: un AAR anterior sigue firmando y
             // verificando, pero no ofrece huellas, protección ni lote.
             val tools = listOf(
@@ -476,8 +497,12 @@ class ReflectiveGomobileBridge private constructor(
         }
 
         private fun invoke(method: Method, receiver: Any?, vararg args: Any?): Any? = try {
-            method.invoke(receiver, *args)
+            method.invoke(receiver, *args).also { result ->
+                if (result is String) UnsafeExceptions.parseBlock(result)?.let { throw UnsafeExceptionBlockedException(it) }
+            }
         } catch (error: InvocationTargetException) {
+            // Leer el JSON íntegro antes de truncar/sanear el mensaje de diagnóstico.
+            UnsafeExceptions.block(error.targetException)?.let { throw UnsafeExceptionBlockedException(it) }
             throw CoreContractException(sanitizeError(error), error.targetException)
         }
     }

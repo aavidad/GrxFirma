@@ -5,6 +5,8 @@
 
 package io.github.aavidad.grxfirma.android.ui
 
+import io.github.aavidad.grxfirma.android.core.UnsafeExceptions
+import io.github.aavidad.grxfirma.android.core.UnsafeExceptionState
 import android.content.Context
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
@@ -155,9 +157,15 @@ data class MainUiState(
     val updateCheck: UpdateCheck? = null,
     /** Capacidades de la cuarta oleada declaradas por el núcleo. */
     val capabilities: Set<String> = emptySet(),
+    val unsafeExceptionsAvailable: Boolean = false,
+    val unsafeExceptions: List<UnsafeExceptionState> = emptyList(),
+    val unsafeLoading: Boolean = false,
+    val unsafeSaving: Boolean = false,
+    val unsafeError: UiText? = null,
+    val unsafePrompt: UnsafeExceptionState? = null,
     val wave4: Wave4State = Wave4State(),
 ) {
-    private val idle: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
+    private val idle: Boolean get() = !busy && !awaitingSave && !awaitingReportSave && unsafePrompt == null && !unsafeSaving
     private fun offers(service: String): Boolean = backend.available && service in documentServices
     val verifactuAvailable: Boolean get() = offers(DocumentServices.VERIFACTU)
     val eniDocumentAvailable: Boolean get() = offers(DocumentServices.ENI_DOCUMENT)
@@ -213,19 +221,19 @@ data class MainUiState(
     val usesTransientKey: Boolean get() = protectionContainer == "cms-encrypted"
     /** El certificado de FIRMA del DNIe no sirve para cifrar; solo el PKCS#12. */
     val canProtectForMe: Boolean get() = protectForMe && certificate != null && !certificateExternal
-    val canExportReport: Boolean get() = verification?.reportJson?.isNotEmpty() == true && !busy && !awaitingSave && !awaitingReportSave
+    val canExportReport: Boolean get() = verification?.reportJson?.isNotEmpty() == true && idle
     val canImportCertificate: Boolean
-        get() = backend.available && certificateFile != null && !busy && !awaitingSave && !awaitingReportSave
+        get() = backend.available && certificateFile != null && idle
     val canSign: Boolean
-        get() = backend.available && document != null && certificate != null && !busy && !awaitingSave && !awaitingReportSave
+        get() = backend.available && document != null && certificate != null && idle
     val canVerify: Boolean
-        get() = backend.available && document != null && !busy && !awaitingSave && !awaitingReportSave
+        get() = backend.available && document != null && idle
     val canForgetCertificate: Boolean
-        get() = backend.available && certificate != null && !busy && !awaitingSave && !awaitingReportSave
+        get() = backend.available && certificate != null && idle
     val canRetryPendingOutput: Boolean get() = awaitingSave && !busy
     val canDiscardPendingOutput: Boolean get() = awaitingSave && !busy
-    val canReplaceSelection: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
-    val canAcceptIncomingDocument: Boolean get() = !busy && !awaitingSave && !awaitingReportSave
+    val canReplaceSelection: Boolean get() = idle
+    val canAcceptIncomingDocument: Boolean get() = idle
 }
 
 /**
@@ -263,6 +271,7 @@ sealed interface UiEffect {
 }
 
 fun Throwable.toUserText(): UiText {
+    UnsafeExceptions.block(this)?.let { return UiText.Engine(it.key("bloqueo")) }
     val resource = when (this) {
         is InvalidDocumentException -> when (problem) {
             io.github.aavidad.grxfirma.android.files.DocumentProblem.TOO_LARGE -> R.string.error_document_too_large

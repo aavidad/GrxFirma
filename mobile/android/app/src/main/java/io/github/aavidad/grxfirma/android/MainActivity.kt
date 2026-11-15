@@ -5,6 +5,9 @@
 
 package io.github.aavidad.grxfirma.android
 
+import io.github.aavidad.grxfirma.android.ui.UnsafeExceptionDialog
+import io.github.aavidad.grxfirma.android.ui.UnsafeExceptionsPanel
+import io.github.aavidad.grxfirma.android.ui.SafeWindowInsets
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -138,6 +141,9 @@ private const val PICKER_GRACE_MS = 15 * 60_000L
 private const val CLOSE_RETRY_MS = 30_000L
 
 class MainActivity : AppCompatActivity() {
+    private var unsafeDialog: UnsafeExceptionDialog? = null
+    private var unsafePanel: UnsafeExceptionsPanel? = null
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var sealPreferences: SealPreferences
     private var sealSettings = SealSettings()
@@ -375,6 +381,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        unsafeDialog?.close()
+        unsafeDialog = null
+        unsafePanel = null
         binding.tools.protectKey.text?.clear()
         binding.tools.protectKeyConfirm.text?.clear()
         stopDnieReading()
@@ -1099,6 +1108,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun render(state: MainUiState) = with(binding) {
+        renderUnsafeExceptions(state)
         if (lastDocumentUri != state.document?.uri) {
             lastDocumentUri = state.document?.uri
             sealPageInfo = null
@@ -1834,9 +1844,28 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun renderUnsafeExceptions(state: MainUiState) {
+        unsafePanel?.render(state)
+        val prompt = state.unsafePrompt
+        if (prompt !== unsafeDialog?.item) {
+            unsafeDialog?.close()
+            unsafeDialog = prompt?.let {
+                UnsafeExceptionDialog(
+                    this, it, viewModel::activateUnsafeException, viewModel::dismissUnsafePrompt,
+                ).also { dialog -> dialog.show() }
+            }
+        }
+        unsafeDialog?.render(state.unsafeSaving, state.unsafeError)
+    }
+
     private fun showPreferences() {
         if (!viewModel.state.value.canReplaceSelection) return
         val dialogBinding = DialogPreferencesBinding.inflate(layoutInflater)
+        unsafePanel = UnsafeExceptionsPanel(
+            dialogBinding.unsafePreferences, viewModel::refreshUnsafeExceptions,
+            viewModel::requestUnsafeActivation, viewModel::disableUnsafeException,
+        ).also { it.render(viewModel.state.value) }
+        viewModel.refreshUnsafeExceptions()
         val current = viewModel.state.value.settings
         val formats = formatMenu
         with(dialogBinding) {
@@ -1909,10 +1938,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        dialog.setOnDismissListener { unsafePanel = null }
         dialog.show()
-        // El campo TSA puede abrir el IME: también deben quedar visibles las
-        // acciones fijas de Guardar/Cancelar, fuera del contenido desplazable.
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        dialog.window?.let {
+            it.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT)
+            SafeWindowInsets.fullScreenDialog(it)
+        }
     }
 
     /** Restaura preferencias y sello; los certificados y documentos no cambian. */

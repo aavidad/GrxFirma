@@ -66,6 +66,10 @@ object VerificationCard {
             else -> R.string.verification_certificate_unknown
         }))
         if (verdict(v) == Verdict.REVOCATION_INCONCLUSIVE) add(UiText.Resource(R.string.verification_revocation_unknown))
+        // Estos avisos deben verse sin desplegar las evidencias técnicas.
+        v.warnings.distinct().filter { it.startsWith("excepciones.") && EngineKeys.isClosed(it) }.forEach {
+            add(UiText.Resource(R.string.verification_warning, listOf(UiText.Engine(it))))
+        }
     }
 
     /** Evidencias del motor para quien las necesite; el motivo solo se cita si explica un rechazo. */
