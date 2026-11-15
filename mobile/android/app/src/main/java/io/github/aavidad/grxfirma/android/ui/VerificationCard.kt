@@ -85,7 +85,8 @@ object VerificationCard {
         if (v.format.isNotBlank()) add(context.getString(R.string.verification_format, v.format))
         add(context.getString(R.string.verification_coverage, context.getString(coverageValue(v))))
         val verdict = verdict(v)
-        if (showsReason(verdict, v.reason)) add(context.getString(R.string.verification_reason, EngineText.resolve(context, v.reason)))
+        val reasonShown = showsReason(verdict, v.reason)
+        if (reasonShown) add(context.getString(R.string.verification_reason, EngineText.resolve(context, v.reason)))
         if (v.signerSummaries.isNotEmpty()) {
             v.signerSummaries.forEach { signer ->
                 add(context.getString(R.string.verification_signer_detail,
@@ -93,10 +94,22 @@ object VerificationCard {
             }
         } else v.signers.forEach { add(context.getString(R.string.verification_signer, it)) }
         v.details.forEach { add(context.getString(R.string.verification_evidence, EngineText.resolve(context, it))) }
-        v.warnings.forEach { add(context.getString(R.string.verification_warning, EngineText.resolve(context, it))) }
-        v.errors.forEach { add(context.getString(R.string.verification_error, EngineText.resolve(context, it))) }
+        val (warnings, errors) = withoutRepeats(v, reasonShown)
+        warnings.forEach { add(context.getString(R.string.verification_warning, EngineText.resolve(context, it))) }
+        errors.forEach { add(context.getString(R.string.verification_error, EngineText.resolve(context, it))) }
         add(context.resources.getQuantityString(R.plurals.verification_signers, v.signerCount, v.signerCount))
     }.joinToString("\n")
+
+    /**
+     * Cada texto sale una vez en las evidencias: un aviso o un error que repite
+     * el motivo ya mostrado (o un aviso que también es error) no se vuelve a pintar.
+     */
+    fun withoutRepeats(v: UiText.Verification, reasonShown: Boolean): Pair<List<String>, List<String>> {
+        val seen = if (reasonShown) mutableSetOf(v.reason) else mutableSetOf()
+        val errors = v.errors.distinct().filter { seen.add(it) }
+        val warnings = v.warnings.distinct().filter { it !in seen }
+        return warnings to errors
+    }
 
     /** El motivo del motor («firma PAdES válida») contradiría un veredicto ámbar: solo acompaña a un rechazo. */
     fun showsReason(verdict: Verdict, reason: String): Boolean =

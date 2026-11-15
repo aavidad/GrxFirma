@@ -464,7 +464,8 @@ class MainViewModel(
                         unsafeRetry = null
                         unsafeRetrySelection = snapshot
                         unsafeRetryDeadline = 0
-                        mutableState.value = mutableState.value.copy(unsafePrompt = hydrateUnsafeBlock(blocked), unsafeError = null)
+                        mutableState.value = mutableState.value.copy(unsafePrompt = hydrateUnsafeBlock(blocked),
+                            unsafePromptFromBlock = true, unsafeError = null)
                     }
                     null
                 } finally {
@@ -503,7 +504,7 @@ class MainViewModel(
             setError(UiText.Resource(R.string.error_document_required))
             return
         }
-        launchOperation(retry = { verify() }) {
+        launchOperation(retry = { verify() }, onBlocked = ::blockedVerification) {
             val loaded = repository.loadDocument(document)
             var original: io.github.aavidad.grxfirma.android.model.LoadedFile? = null
             try {
@@ -1631,6 +1632,7 @@ class MainViewModel(
         clearsResult: Boolean = !allowAwaitingSave,
         onFinished: () -> Unit = {},
         retry: (() -> Unit)? = null,
+        onBlocked: ((UnsafeExceptionState) -> OperationResult)? = null,
         block: suspend () -> Unit,
     ) {
         if (mutableState.value.busy || mutableState.value.unsafePrompt != null || mutableState.value.unsafeSaving || mutableState.value.awaitingReportSave || (!allowAwaitingSave && mutableState.value.awaitingSave)) {
@@ -1651,14 +1653,23 @@ class MainViewModel(
                     unsafeRetrySelection = current
                     unsafeRetryDeadline = System.nanoTime() + 300_000_000_000L
                     val item = withContext(ioDispatcher) { hydrateUnsafeBlock(blocked) }
-                    mutableState.value = mutableState.value.copy(unsafePrompt = item, unsafeError = null)
-                }
-                setError(error.toUserText())
+                    mutableState.value = mutableState.value.copy(unsafePrompt = item, unsafePromptFromBlock = true,
+                        unsafeError = null, result = onBlocked?.invoke(item) ?: OperationResult.Error(error.toUserText()))
+                } else setError(error.toUserText())
             } finally {
                 mutableState.value = mutableState.value.copy(busy = false)
             }
         }.invokeOnCompletion { onFinished() }
     }
+
+    /**
+     * Una verificación bloqueada no es una firma no válida: la tarjeta dice que
+     * no se ha comprobado y por qué, con el texto del caso en el idioma de la app.
+     */
+    private fun blockedVerification(item: UnsafeExceptionState): OperationResult = OperationResult.Blocked(
+        UiText.Engine("android.inseguro.verificacion_bloqueada"),
+        UiText.Engine(item.key(if (!item.activable || item.fixed || item.policyUnreadable) "organizacion" else "bloqueo")),
+    )
 
     private fun hydrateUnsafeBlock(block: UnsafeExceptionState): UnsafeExceptionState {
         if (!core.unsafeExceptionsAvailable) return block.copy(acceptanceVersion = "")
@@ -1688,14 +1699,14 @@ class MainViewModel(
         // Incluso una directiva prohibida abre la explicación y su ayuda, sin aceptación.
         unsafeRetry = null
         unsafeRetrySelection = null
-        mutableState.value = mutableState.value.copy(unsafePrompt = item, unsafeError = null)
+        mutableState.value = mutableState.value.copy(unsafePrompt = item, unsafePromptFromBlock = false, unsafeError = null)
     }
 
     fun dismissUnsafePrompt() {
         if (mutableState.value.unsafeSaving) return
         unsafeRetry = null
         unsafeRetrySelection = null
-        mutableState.value = mutableState.value.copy(unsafePrompt = null, unsafeError = null)
+        mutableState.value = mutableState.value.copy(unsafePrompt = null, unsafePromptFromBlock = false, unsafeError = null)
     }
 
     fun activateUnsafeException(accepted: Boolean) {
@@ -1719,9 +1730,14 @@ class MainViewModel(
                 val operationPending = previous != null
                 unsafeRetry = null
                 unsafeRetrySelection = null
-                mutableState.value = mutableState.value.copy(unsafePrompt = null, unsafeExceptions = fresh,
-                    result = OperationResult.Notice(UiText.Engine(if (operationPending && retry == null)
-                        "android.inseguro.reenviar" else "android.inseguro.activada")))
+                // El resultado anterior se retira: con el ajuste cambiado ya no
+                // dice lo que saldría ahora. Una firma pendiente de guardar se conserva.
+                val notice = OperationResult.Notice(if (operationPending && retry == null)
+                    UiText.Engine("android.inseguro.reenviar")
+                    else UiText.Engine("android.inseguro.activada_resultado", mapOf("ajuste" to UiText.Engine(item.key("ajuste")))))
+                val current = mutableState.value
+                mutableState.value = (if (current.awaitingSave || current.awaitingReportSave) current.copy(result = notice)
+                    else current.clearedResult(notice)).copy(unsafePrompt = null, unsafePromptFromBlock = false, unsafeExceptions = fresh)
             } catch (cancelled: CancellationException) { throw cancelled
             } catch (error: Exception) {
                 // Cualquier rechazo requiere una nueva aceptación del estado vigente.
@@ -1739,7 +1755,11 @@ class MainViewModel(
         viewModelScope.launch {
             try {
                 val items = withContext(ioDispatcher) { core.disableUnsafeException(item) }
-                mutableState.value = mutableState.value.copy(unsafeExceptions = items)
+                val notice = OperationResult.Notice(UiText.Engine("android.inseguro.desactivada_resultado",
+                    mapOf("ajuste" to UiText.Engine(item.key("ajuste")))))
+                val current = mutableState.value
+                mutableState.value = (if (current.awaitingSave || current.awaitingReportSave) current.copy(result = notice)
+                    else current.clearedResult(notice)).copy(unsafeExceptions = items)
             } catch (cancelled: CancellationException) { throw cancelled
             } catch (error: Exception) {
                 mutableState.value = mutableState.value.copy(unsafeError = error.toUserText())

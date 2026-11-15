@@ -1253,6 +1253,12 @@ class MainActivity : AppCompatActivity() {
                 resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.on_surface))
                 renderDetail(null)
             }
+            is OperationResult.Blocked -> {
+                // Ni «Firma no válida» ni error en rojo: no se ha comprobado y se dice por qué.
+                resultTitle.text = result.title.resolve(this@MainActivity)
+                resultTitle.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.status_warning))
+                renderDetail(result.detail.resolve(this@MainActivity))
+            }
             is OperationResult.Error -> {
                 // Durante una operación el PIN sigue en uso (lote): no se toca.
                 if (!state.busy) {
@@ -1850,7 +1856,7 @@ class MainActivity : AppCompatActivity() {
             unsafeDialog?.close()
             unsafeDialog = prompt?.let {
                 UnsafeExceptionDialog(
-                    this, it, viewModel::activateUnsafeException, viewModel::dismissUnsafePrompt,
+                    this, it, state.unsafePromptFromBlock, viewModel::activateUnsafeException, viewModel::dismissUnsafePrompt,
                 ).also { dialog -> dialog.show() }
             }
         }

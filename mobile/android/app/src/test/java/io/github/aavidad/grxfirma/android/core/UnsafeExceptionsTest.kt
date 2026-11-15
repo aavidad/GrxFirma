@@ -90,4 +90,19 @@ class UnsafeExceptionsTest {
         assertThrows(CoreContractException::class.java) { UnsafeExceptions.parseList(JSONArray(states.drop(1)).toString()) }
         assertThrows(CoreContractException::class.java) { UnsafeExceptions.parseList(JSONArray(states + states.first()).toString()) }
     }
+
+    /** Mensaje exacto que deja la fachada Go (mobilebind.bloqueoTipado) al verificar con SHA-1 bloqueado. */
+    @Test fun `reads the typed block that the Go facade returns for a blocked verification`() {
+        val fromGo = """{"errorCode":"unsafe_exception_blocked","exceptionId":"sha1_leer","activable":true,""" +
+            """"blockKey":"excepciones.sha1_leer.bloqueo","settingKey":"excepciones.sha1_leer.ajuste",""" +
+            """"titleKey":"excepciones.sha1_leer.titulo","riskKey":"excepciones.sha1_leer.riesgo",""" +
+            """"acceptanceKey":"excepciones.sha1_leer.aceptacion","helpKey":"excepciones.sha1_leer.ayuda",""" +
+            """"organizationKey":"excepciones.sha1_leer.organizacion","acceptanceVersion":"2026-11-15.2"}"""
+        val parsed = UnsafeExceptions.block(RuntimeException(fromGo))!!
+        assertEquals("sha1_leer", parsed.id)
+        assertTrue(parsed.activable)
+        assertEquals("2026-11-15.2", parsed.acceptanceVersion)
+        // Un nombre de certificado con la marca antigua no es un bloqueo.
+        assertNull(UnsafeExceptions.block(RuntimeException("CN=Ana [sha1_leer; excepciones.sha1_leer.bloqueo]")))
+    }
 }

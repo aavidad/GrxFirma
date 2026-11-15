@@ -723,7 +723,8 @@
                             android:textIsSelectable="true"
                             android:visibility="gone" />
 
-                        <!-- Cada comprobación con su resultado en palabras («Integridad: válida») y un «?»; con poco ancho pasan a otra línea. -->
+                        <!-- Cada comprobación con su resultado en palabras («Integridad: válida») y un «?»; con poco ancho pasan a otra línea.
+                             La etiqueta tiene peso 1: con letra grande se ajusta en varias líneas y el «?» de 48 dp no sale de la fila. -->
                         <com.google.android.material.chip.ChipGroup
                             android:id="@+id/verificationHelpGroup"
                             android:layout_width="match_parent"
@@ -742,8 +743,9 @@
                                 <TextView
                                     android:id="@+id/verificationIntegrityLabel"
                                     style="@style/TextAppearance.Material3.BodyMedium"
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
+                                    android:layout_weight="1"
                                     android:text="@string/ayuda_tema_integridad"
                                     android:textColor="@color/on_surface" />
 
@@ -763,8 +765,9 @@
                                 <TextView
                                     android:id="@+id/verificationTrustLabel"
                                     style="@style/TextAppearance.Material3.BodyMedium"
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
+                                    android:layout_weight="1"
                                     android:text="@string/ayuda_tema_confianza"
                                     android:textColor="@color/on_surface" />
 
@@ -784,8 +787,9 @@
                                 <TextView
                                     android:id="@+id/verificationCoverageLabel"
                                     style="@style/TextAppearance.Material3.BodyMedium"
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
+                                    android:layout_weight="1"
                                     android:text="@string/ayuda_tema_cobertura"
                                     android:textColor="@color/on_surface" />
 
