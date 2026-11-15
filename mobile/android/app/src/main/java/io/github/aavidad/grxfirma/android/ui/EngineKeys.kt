@@ -17,7 +17,7 @@ object EngineKeys {
     // firma.sha1_corresponde y firma.lt.crl_no_aplicable: avisos del motor
     // tras firmar (lote 17b, 3b).
     private val CATALOGUE_KEY = Regex("""(verifactu|eni\.validacion|eni\.codigo|csv\.error|firma\.cofirma_sin_original|firma\.sha1_corresponde|firma\.lt\.crl_no_aplicable|factura\.revision\.incidencias)\.[A-Za-z0-9_]{1,40}""")
-	private val BLOCK_MARKER = Regex("""\[([a-z0-9_]{1,40}); (excepciones\.[a-z0-9_]{1,40}\.bloqueo)\]$""")
+    private val BLOCK_MARKER = Regex("""\[([a-z0-9_]{1,40}); (excepciones\.[a-z0-9_]{1,40}\.bloqueo)\]$""")
     private val EXCEPTION_IDS = io.github.aavidad.grxfirma.android.core.UnsafeExceptions.ids.toSet()
 
     private val LOCAL = mapOf(
@@ -37,22 +37,22 @@ object EngineKeys {
 
     fun isClosed(key: String): Boolean {
         if (key.startsWith("android.inseguro.") && key in UnsafeExceptionTexts.keys) return true
-		if (key in setOf("excepciones.aceptacion_requerida", "excepciones.version_aceptacion_invalida", "excepciones.canal_no_local", "excepciones.activar_continuar", "excepciones.cancelar", "excepciones.mas_informacion", "excepciones.reintento_caducado", "excepciones.reintento_no_disponible")) return true
-		if (CATALOGUE_KEY.matches(key)) return true
-		val parts = key.split('.')
-		return parts.size == 3 && parts[0] == "excepciones" && parts[1] in EXCEPTION_IDS &&
-			parts[2] in setOf("aviso", "bloqueo", "ajuste", "titulo", "riesgo", "aceptacion", "ayuda", "organizacion")
-	}
+        if (key in setOf("excepciones.aceptacion_requerida", "excepciones.version_aceptacion_invalida", "excepciones.canal_no_local", "excepciones.activar_continuar", "excepciones.cancelar", "excepciones.mas_informacion", "excepciones.reintento_caducado", "excepciones.reintento_no_disponible")) return true
+        if (CATALOGUE_KEY.matches(key)) return true
+        val parts = key.split('.')
+        return parts.size == 3 && parts[0] == "excepciones" && parts[1] in EXCEPTION_IDS &&
+            parts[2] in setOf("aviso", "bloqueo", "ajuste", "titulo", "riesgo", "aceptacion", "ayuda", "organizacion")
+    }
 
-	fun blockKey(message: String): String? {
-		val marker = BLOCK_MARKER.find(message) ?: return null
-		val id = marker.groupValues[1]
-		val key = marker.groupValues[2]
-		if (id !in EXCEPTION_IDS || key != "excepciones.$id.bloqueo") return null
+    fun blockKey(message: String): String? {
+        val marker = BLOCK_MARKER.find(message) ?: return null
+        val id = marker.groupValues[1]
+        val key = marker.groupValues[2]
+        if (id !in EXCEPTION_IDS || key != "excepciones.$id.bloqueo") return null
         val organizationKey = "excepciones.$id.organizacion"
         if (message.contains("[$id; $organizationKey]")) return organizationKey
         return key
-	}
+    }
 
     @StringRes
     fun localResource(key: String): Int? = LOCAL[key]
