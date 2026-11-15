@@ -32,6 +32,7 @@ const (
 // Config contiene la configuración completa de GrxFirma.
 // Los valores por defecto garantizan el modelo Zero Server: sin puertos abiertos al arrancar.
 type Config struct {
+	ExcepcionesInseguras map[string]bool `json:"excepciones_inseguras,omitempty"`
 	// Red — desactivados por defecto (modelo Zero Server)
 	WebsocketHabilitado bool `json:"websocket_habilitado"`
 	// WebsocketPermitido corta tanto el servicio residente como las sesiones

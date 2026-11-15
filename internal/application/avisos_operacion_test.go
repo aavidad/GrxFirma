@@ -90,3 +90,39 @@ func TestAvisosOperacion_SinRegistroNoHaceNadaYNoRepite(t *testing.T) {
 		t.Fatalf("Claves = %q", claves)
 	}
 }
+
+// Los adaptadores también avisan al aprobar y abrir una clave, antes del motor.
+type aprobadorQueAvisa struct{}
+
+func (aprobadorQueAvisa) Request(ctx context.Context, _ string) (bool, error) {
+	domain.AnotarAviso(ctx, "excepciones.aprobacion_automatica.aviso")
+	return true, nil
+}
+
+type proveedorQueAvisa struct{ base ports.SigningKeyProvider }
+
+func (p proveedorQueAvisa) KeyFor(ctx context.Context, c domain.CertificateRef) (ports.SigningKey, error) {
+	domain.AnotarAviso(ctx, "excepciones.pkcs11_experimental.aviso")
+	return p.base.KeyFor(ctx, c)
+}
+func TestSignAndBatchCarryApprovalAndKeyWarnings(t *testing.T) {
+	catalog := &catalogoMock{certs: []domain.CertificateRef{certPrueba()}}
+	keys := proveedorQueAvisa{&proveedorClavesMock{clave: claveMock{"clave-001"}}}
+	engine := &motorQueAvisa{conAviso: map[string]string{"b.pdf": domain.AvisoCRLNoAplicable}}
+	sign := application.NuevoSignDocumentUseCase(catalog, keys, engine, aprobadorQueAvisa{}, nil, nil)
+	result, err := sign.Execute(context.Background(), application.SignCommand{Document: docPrueba(), Format: domain.FormatCAdES, Action: domain.ActionSign})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Warnings) != 2 {
+		t.Fatalf("firma pierde avisos previos: %v", result.Warnings)
+	}
+	batch := application.NuevoProcessBatchUseCase(catalog, keys, engine, aprobadorQueAvisa{}, nil, nil)
+	out, err := batch.Execute(context.Background(), lotePrueba())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(out.Results) != 2 || len(out.Results[0].Warnings) != 2 || len(out.Results[1].Warnings) != 3 {
+		t.Fatalf("lote pierde avisos o mezcla hermanos: %+v", out.Results)
+	}
+}

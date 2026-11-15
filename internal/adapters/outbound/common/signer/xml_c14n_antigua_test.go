@@ -7,12 +7,15 @@ package signer
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 // Las firmas de testdata/grxfirma_anterior las generó el código de 80e7dd5
@@ -51,6 +54,7 @@ func exigirCompatibilidadHistorica(t *testing.T, nombre string, result domain.Ve
 // estilo fuera de la raíz, salía con error («digest de referencia no
 // coincide»). Ahora es compatibilidad histórica con su aviso.
 func TestXAdES_FirmaDeGrxFirmaAnteriorEsCompatibilidadHistorica(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	for _, caso := range []struct {
 		fichero string
 		avisos  []string
@@ -70,6 +74,16 @@ func TestXAdES_FirmaDeGrxFirmaAnteriorEsCompatibilidadHistorica(t *testing.T) {
 	}
 }
 
+func TestXAdESC14NAntiguaNoSeEvaluaSinAjuste(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", false)
+	var block *excepciones.Block
+	_, _, err := verificarXAdESBytes(leerFirmaGrxFirmaAnterior(t, "atributos_tab_lf.xsig"))
+	if !errors.As(err, &block) || block.ID != "xml_c14n_antigua" {
+		t.Fatalf("C14N antigua debe detenerse antes del cálculo heredado: %v", err)
+	}
+}
+
 // El DOCTYPE con subconjunto interno sigue rechazado (E1-07), aunque la firma
 // sea de una versión anterior.
 func TestXAdES_FirmaAnteriorConDTDInternaSigueRechazada(t *testing.T) {
@@ -83,6 +97,7 @@ func TestXAdES_FirmaAnteriorConDTDInternaSigueRechazada(t *testing.T) {
 // añadida después nunca sale válida (como mucho, compatibilidad con el aviso
 // de que esa instrucción no estaba firmada).
 func TestXAdES_C14NAntiguaNoAbreAtaques(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	antigua := string(leerFirmaGrxFirmaAnterior(t, "atributos_tab_lf.xsig"))
 	for nombre, alterado := range map[string]string{
 		"contenido": strings.Replace(antigua, "Pago de 120 euros", "Pago de 920 euros", 1),

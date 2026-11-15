@@ -15,6 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"grxfirma/internal/appdirs"
+	"grxfirma/internal/security/excepciones"
 	"io"
 	"os"
 	"path/filepath"
@@ -213,6 +214,7 @@ type configCLI struct {
 	tipoConfianza         string
 	huellaConfianza       string
 	aceptoAvisoConfianza  bool
+	excepcionInsegura     string
 	programaFirmaWeb      string
 	ficheroAutoseleccion  string
 	ficheroP12            string
@@ -471,6 +473,10 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 
 	cfg, err := parsearArgs(args)
 	if err != nil {
+		if errors.Is(err, errCLIActivationFlag) {
+			fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), a.excepcionLocalizador().T("excepciones.cli.id_requerido"))
+			return 1
+		}
 		var inputErr *secretinput.Error
 		if errors.As(err, &inputErr) {
 			fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), secretinput.UserMessage(err, a.translateSecret))
@@ -575,6 +581,8 @@ func (a *Adaptador) Run(ctx context.Context, args []string) int {
 		return a.ejecutarConfianzaForzadaAceptar(ctx, cfg)
 	case "forced-trust-remove":
 		return a.ejecutarConfianzaForzadaQuitar(ctx, cfg)
+	case "unsafe-exception-activate":
+		return a.ejecutarActivarExcepcion(ctx, cfg)
 	case "web-signing-program-status":
 		return a.ejecutarProgramaFirmaWebVer(ctx, cfg)
 	case "web-signing-program-set":
@@ -768,6 +776,8 @@ func parsearArgs(args []string) (configCLI, error) {
 	fs.StringVar(&cfg.huellaConfianza, "fingerprint", "", "")
 	fs.BoolVar(&cfg.aceptoAvisoConfianza, "acepto-el-aviso", false, "")
 	fs.BoolVar(&cfg.aceptoAvisoConfianza, "accept-warning", false, "")
+	fs.StringVar(&cfg.excepcionInsegura, "activar-excepcion", "", "")
+	fs.StringVar(&cfg.excepcionInsegura, "enable-unsafe-exception", "", "")
 	fs.BoolVar(&opVerProgramaFirmaWeb, "ver-programa-firma-web", false, "")
 	fs.BoolVar(&opVerProgramaFirmaWeb, "web-signing-program", false, "")
 	fs.StringVar(&cfg.programaFirmaWeb, "elegir-programa-firma-web", "", "")
@@ -883,6 +893,24 @@ func parsearArgs(args []string) (configCLI, error) {
 	if err := fs.Parse(args); err != nil {
 		return configCLI{}, err
 	}
+	activationFlag := false
+	activationInvalidFlag := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "activar-excepcion" || f.Name == "enable-unsafe-exception" {
+			activationFlag = true
+		}
+		switch f.Name {
+		case "activar-excepcion", "enable-unsafe-exception", "acepto-el-aviso", "accept-warning", "cli", "modo-cli", "timeout", "t", "tiempo-espera":
+		default:
+			activationInvalidFlag = true
+		}
+	})
+	if activationFlag {
+		if strings.TrimSpace(cfg.excepcionInsegura) == "" || strings.TrimSpace(cfg.operacion) != "" || activationInvalidFlag {
+			return configCLI{}, errCLIActivationFlag
+		}
+		cfg.operacion = "activar-excepcion"
+	}
 	timeout, err := time.ParseDuration(timeoutRaw)
 	if err != nil {
 		return configCLI{}, fmt.Errorf("tiempo de espera invalido: %w", err)
@@ -979,7 +1007,7 @@ func parsearArgs(args []string) (configCLI, error) {
 	if cfg.entrada == "" && cfg.lote == "" && !cfg.listarCerts && !cfg.comprobarCerts && !cfg.mostrarAyuda {
 		switch normalizarOperacion(cfg.operacion, cfg.accion, cfg.lote, cfg.entrada) {
 		case "domains-list", "domains-add", "domains-remove", "domains-import", "domains-export", "domains-clear", "diagnostics-report",
-			"forced-trust-list", "forced-trust-accept", "forced-trust-remove",
+			"forced-trust-list", "forced-trust-accept", "forced-trust-remove", "unsafe-exception-activate",
 			"web-signing-program-status", "web-signing-program-set",
 			"protect-recipients-list",
 			"import-p12", "cert-selection-list", "cert-selection-remove", "cert-selection-reset", "cert-selection-export", "cert-selection-import", "cert-selection-clear", "tls-store-status", "tls-store-clear", "tls-trust-status", "tls-generate-certs", "tls-install-trust",
@@ -2593,12 +2621,14 @@ func (a *Adaptador) ejecutarDominiosGestion(ctx context.Context, cfg configCLI, 
 		fmt.Fprintln(a.Stderr, "error: debe indicar -domain o -dominio")
 		return 1
 	}
-	if _, err := a.GestionDominios.Execute(ctx, application.ManageTrustedDomainCommand{
+	if result, err := a.GestionDominios.Execute(ctx, application.ManageTrustedDomainCommand{
 		Origin: origen,
 		Action: accion,
 	}); err != nil {
 		fmt.Fprintln(a.Stderr, "error gestionando dominio:", err)
 		return 1
+	} else {
+		a.escribirAvisosCLI("", result.Warnings)
 	}
 	return a.ejecutarDominiosListar(ctx, cfg)
 }
@@ -2624,20 +2654,24 @@ func (a *Adaptador) ejecutarDominiosImportar(ctx context.Context, cfg configCLI)
 		return 1
 	}
 	added := 0
+	var warnings []string
 	for _, dominio := range dominios {
-		if _, err := a.GestionDominios.Execute(ctx, application.ManageTrustedDomainCommand{
+		if result, err := a.GestionDominios.Execute(ctx, application.ManageTrustedDomainCommand{
 			Origin: dominio,
 			Action: application.TrustActionAllow,
 		}); err == nil {
 			added++
+			warnings = domain.UnirAvisos(warnings, result.Warnings...)
 		}
 	}
+	a.escribirAvisosCLI("", warnings)
 	if cfg.json {
 		payload := map[string]any{
-			"exito":      true,
-			"fichero":    ruta,
-			"procesados": len(dominios),
-			"anadidos":   added,
+			"exito":        true,
+			"advertencias": warnings,
+			"fichero":      ruta,
+			"procesados":   len(dominios),
+			"anadidos":     added,
 		}
 		if err := escribirJSON(a.Stdout, payload); err != nil {
 			fmt.Fprintln(a.Stderr, "error escribiendo JSON:", err)
@@ -3085,8 +3119,10 @@ func (a *Adaptador) ejecutarTLSAlmacenLimpiar(ctx context.Context, cfg configCLI
 	return 0
 }
 
-func (a *Adaptador) ejecutarTLSGenerarCerts(_ context.Context, cfg configCLI) int {
-	certFile, keyFile, rootFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificate(a.directorioTLS(), resttls.ManagedLocalhostPrefix)
+func (a *Adaptador) ejecutarTLSGenerarCerts(ctx context.Context, cfg configCLI) int {
+	ctx, notices := domain.ConAvisosOperacion(ctx)
+	defer func() { a.escribirAvisosCLI("", notices.Claves()) }()
+	certFile, keyFile, rootFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(ctx, a.directorioTLS(), resttls.ManagedLocalhostPrefix)
 	if err != nil {
 		fmt.Fprintln(a.Stderr, "error generando certificados TLS:", err)
 		return 1
@@ -3096,6 +3132,7 @@ func (a *Adaptador) ejecutarTLSGenerarCerts(_ context.Context, cfg configCLI) in
 		"certificado_tls": certFile,
 		"clave_tls":       keyFile,
 		"ca_tls":          rootFile,
+		"advertencias":    notices.Claves(),
 	}
 	if cfg.json {
 		if err := escribirJSON(a.Stdout, payload); err != nil {
@@ -3109,7 +3146,9 @@ func (a *Adaptador) ejecutarTLSGenerarCerts(_ context.Context, cfg configCLI) in
 }
 
 func (a *Adaptador) ejecutarTLSInstalarConfianza(ctx context.Context, cfg configCLI) int {
-	_, _, certFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificate(a.directorioTLS(), resttls.ManagedLocalhostPrefix)
+	ctx, notices := domain.ConAvisosOperacion(ctx)
+	defer func() { a.escribirAvisosCLI("", notices.Claves()) }()
+	_, _, certFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(ctx, a.directorioTLS(), resttls.ManagedLocalhostPrefix)
 	if err != nil {
 		fmt.Fprintln(a.Stderr, "error generando el certificado TLS local:", err)
 		return 1
@@ -3133,6 +3172,7 @@ func (a *Adaptador) ejecutarTLSInstalarConfianza(ctx context.Context, cfg config
 		"estado":          estado,
 		"detalle":         detalle,
 		"certificado_tls": certFile,
+		"advertencias":    notices.Claves(),
 	}
 	if cfg.json {
 		if err := escribirJSON(a.Stdout, payload); err != nil {
@@ -3476,6 +3516,8 @@ func (a *Adaptador) escribirAyuda() {
 	b.WriteString("    Tiempo máximo de ejecución del comando.\n")
 	b.WriteString(a.t("cli.help.forced_trust", "cli.help.forced_trust"))
 	b.WriteString("\n")
+	b.WriteString(a.excepcionLocalizador().T("excepciones.cli.ayuda"))
+	b.WriteString("\n")
 	b.WriteString(a.t("cli.help.web_signing_program", "cli.help.web_signing_program"))
 	b.WriteString("\n")
 	b.WriteString("  -operacion listar-dominios|añadir-dominio|eliminar-dominio|importar-dominios|exportar-dominios|limpiar-dominios\n")
@@ -3679,6 +3721,8 @@ func normalizarOperacion(op, accion, lote, entrada string) string {
 		return "forced-trust-accept"
 	case "quitar-confianza-aceptada":
 		return "forced-trust-remove"
+	case "activar-excepcion", "enable-unsafe-exception":
+		return "unsafe-exception-activate"
 	case "ver-programa-firma-web":
 		return "web-signing-program-status"
 	case "elegir-programa-firma-web":
@@ -4648,14 +4692,18 @@ func (a *Adaptador) errorFirmaNoCorresponde() error {
 // firma SHA-1 que corresponde se envuelve con aviso, salvo que la política de
 // máquina prohíba SHA-1 legado; cualquier otro fallo es «no corresponde».
 func (a *Adaptador) resolverCotejoENI(cotejo error) ([]string, error) {
+	var block *excepciones.Block
+	if errors.As(cotejo, &block) {
+		return nil, cotejo
+	}
 	aviso, err := commonsigner.AdmitirCotejoSHA1(cotejo, "eni")
 	switch {
 	case errors.Is(err, commonsigner.ErrCotejoSHA1Prohibido):
-		return nil, errors.New(a.t("firma.sha1_corresponde.prohibido", "La firma usa SHA-1 y la política de este equipo no admite ese algoritmo, así que no se ha hecho la operación."))
+		return nil, err
 	case err != nil:
 		return nil, a.errorFirmaNoCorresponde()
 	case aviso:
-		return []string{commonsigner.AvisoFirmaSHA1Corresponde}, nil
+		return []string{commonsigner.AvisoFirmaSHA1Corresponde, "excepciones.sha1_conservar.aviso"}, nil
 	}
 	return nil, nil
 }
@@ -4778,7 +4826,7 @@ func (a *Adaptador) ejecutarGenerarExpediente(ctx context.Context, cfg configCLI
 	}
 	defer ports.CloseSigningKey(clave)
 	firmar := func(nodo []byte, id string) ([]byte, error) {
-		return commonsigner.FirmarNodoXAdES(nodo, id, clave, cfg.opciones)
+		return commonsigner.FirmarNodoXAdES(nodo, id, clave, cfg.opciones, ctx)
 	}
 	xmlExp, err := eni.GenerarExpediente(meta, docs, firmar, commonsigner.CanonicalizarExclusivo, time.Now())
 	if err != nil {

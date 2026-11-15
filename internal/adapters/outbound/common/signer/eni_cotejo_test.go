@@ -14,6 +14,8 @@ import (
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 func TestCotejarCAdESExplicitaConElOriginal(t *testing.T) {
@@ -41,6 +43,8 @@ func TestCotejarCAdESExplicitaConElOriginal(t *testing.T) {
 }
 
 func TestCotejarXAdESSeparadaConElOriginal(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", true)
 	priv, cert := generarCertRSAPrueba(t)
 	casos := map[string]struct {
 		nombre, mime string

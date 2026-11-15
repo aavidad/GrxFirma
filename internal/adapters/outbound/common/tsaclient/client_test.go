@@ -18,16 +18,25 @@ import (
 	"testing"
 
 	"github.com/digitorus/timestamp"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/internal/testsupport/tsatest"
 )
 
 type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func permitirTSAHTTP(t *testing.T) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+	excepciones.SetForTest(t, "tsa_http", true)
+}
 
 func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
 }
 
 func TestClient_RequestTimestamp_Mock(t *testing.T) {
+	permitirTSAHTTP(t)
 	responder := tsatest.NewResponder(t)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -52,6 +61,7 @@ func TestClient_RequestTimestamp_Mock(t *testing.T) {
 }
 
 func TestClient_RequestTimestamp_RechazaTokenNoLigadoALaPeticion(t *testing.T) {
+	permitirTSAHTTP(t)
 	tests := []struct {
 		name   string
 		mutate func(*timestamp.Timestamp)
@@ -114,6 +124,7 @@ func TestClient_RequestTimestamp_RechazaTokenNoLigadoALaPeticion(t *testing.T) {
 }
 
 func TestClient_RequestTimestamp_ErrorHTTP(t *testing.T) {
+	permitirTSAHTTP(t)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -128,6 +139,7 @@ func TestClient_RequestTimestamp_ErrorHTTP(t *testing.T) {
 }
 
 func TestClient_RequestTimestamp_ContextoCancelado(t *testing.T) {
+	permitirTSAHTTP(t)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))

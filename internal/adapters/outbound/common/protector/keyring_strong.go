@@ -26,6 +26,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 )
 
 // strongIdentityLegacyVersion guardaba la clave privada en claro en el
@@ -95,13 +96,10 @@ type strongRecipientFile struct {
 // bajo ConfigDir, se migran al leerlas: la clave pasa al almacén y el fichero
 // antiguo se sobrescribe y se borra.
 //
-// Retrocompatibilidad (lote 19): sin almacén (Secrets nil o Store que falla)
-// la identidad v1 sigue sirviendo con la clave leída de su propio fichero 0600,
-// y la identidad por defecto se crea en ese mismo formato v1 bajo ConfigDir
-// para que la migración la suba sola cuando aparezca el almacén. Cada vez que
-// se crea o se usa una identidad así se anota AvisoProteccionAltoSinAlmacen y
-// se deja eventoClaveAltoEnFichero en el registro. El fichero v1 solo se borra
-// cuando la migración al almacén ha ido bien.
+// Sin almacén, el uso de una identidad v1 exige el ajuste de lectura y la
+// creación de una nueva exige también el de creación. Cada operación admitida
+// anota un aviso y conserva el registro. La migración al almacén retira el
+// fichero v1 solo después de proteger y comprobar la clave.
 type LocalStrongKeyring struct {
 	// ConfigDir guarda los destinatarios fuertes importados (material
 	// público) y es donde estaban las identidades v1.
@@ -121,6 +119,9 @@ func NuevoLocalStrongKeyring(configDir, dataDir string, secrets ports.SecureStor
 }
 
 func (k *LocalStrongKeyring) List(ctx context.Context) ([]domain.ProtectionRecipient, error) {
+	if k != nil {
+		ctx = excepciones.WithConfigDir(ctx, k.ConfigDir)
+	}
 	recipients, _, err := k.loadRecipients(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -131,11 +132,31 @@ func (k *LocalStrongKeyring) List(ctx context.Context) ([]domain.ProtectionRecip
 // Resolve se usa al proteger: avisa si alguna identidad propia elegida tiene
 // la clave en fichero.
 func (k *LocalStrongKeyring) Resolve(ctx context.Context, recipientIDs []string) ([]domain.ProtectionRecipient, error) {
+	// Los ID x509 pertenecen al catálogo público; no abrimos claves fuertes
+	// privadas para resolver una protección del perfil de compatibilidad.
+	if len(recipientIDs) > 0 {
+		onlyPublic := true
+		for _, id := range recipientIDs {
+			if !strings.HasPrefix(id, "x509-") {
+				onlyPublic = false
+				break
+			}
+		}
+		if onlyPublic {
+			return nil, nil
+		}
+	}
+	if k != nil {
+		ctx = excepciones.WithConfigDir(ctx, k.ConfigDir)
+	}
 	recipients, enFichero, err := k.resolve(ctx, recipientIDs)
 	if err != nil {
 		return nil, err
 	}
 	for _, identity := range enFichero {
+		if err := excepciones.Require(ctx, "alto_clave_fichero_crear"); err != nil {
+			return nil, err
+		}
 		avisarClaveAltoEnFichero(ctx, "protect", identity.id)
 	}
 	return recipients, nil
@@ -154,6 +175,9 @@ func (k *LocalStrongKeyring) resolve(ctx context.Context, recipientIDs []string)
 // DecryptionKeys devuelve solo las identidades fuertes que el sobre .afp
 // nombra como destinatarias.
 func (k *LocalStrongKeyring) DecryptionKeys(ctx context.Context, protected domain.Document) ([]domain.ProtectionKeyMaterial, error) {
+	if k != nil {
+		ctx = excepciones.WithConfigDir(ctx, k.ConfigDir)
+	}
 	destinatarios := destinatariosDe(protected)
 	identities, err := k.loadIdentities(ctx)
 	if err != nil {
@@ -166,6 +190,10 @@ func (k *LocalStrongKeyring) DecryptionKeys(ctx context.Context, protected domai
 		}
 		material, enFichero, err := k.loadPrivateMaterial(ctx, identity)
 		if err != nil {
+			var block *excepciones.Block
+			if errors.As(err, &block) {
+				return nil, err
+			}
 			continue
 		}
 		if enFichero {
@@ -177,6 +205,9 @@ func (k *LocalStrongKeyring) DecryptionKeys(ctx context.Context, protected domai
 }
 
 func (k *LocalStrongKeyring) Export(ctx context.Context, recipientID string) (domain.ProtectionRecipient, []byte, error) {
+	if k != nil {
+		ctx = excepciones.WithConfigDir(ctx, k.ConfigDir)
+	}
 	recipients, enFichero, err := k.resolve(ctx, []string{recipientID})
 	if err != nil {
 		return domain.ProtectionRecipient{}, nil, err
@@ -187,6 +218,9 @@ func (k *LocalStrongKeyring) Export(ctx context.Context, recipientID string) (do
 	recipient := recipients[0]
 	for _, identity := range enFichero {
 		if identity.id == recipient.ID {
+			if err := excepciones.Require(ctx, "alto_clave_fichero_crear"); err != nil {
+				return domain.ProtectionRecipient{}, nil, err
+			}
 			avisarClaveAltoEnFichero(ctx, "export", identity.id)
 		}
 	}
@@ -260,6 +294,7 @@ type strongIdentity struct {
 	// identidad solo v1 es su única fuente; para una v2 que conserva su v1
 	// (la migración no pudo borrarlo) solo se usa si el almacén no responde.
 	legacyPath string
+	sourcePath string
 }
 
 // claveEnFichero dice si la clave privada de la identidad se lee de su
@@ -321,7 +356,11 @@ func (k *LocalStrongKeyring) loadIdentities(ctx context.Context) ([]strongIdenti
 	if err := k.prepareIdentityDir(); err != nil {
 		return nil, err
 	}
-	migrateErr := k.migrateLegacyIdentities(ctx)
+	known, err := k.readIdentities(ctx)
+	if err != nil {
+		return nil, err
+	}
+	migrateErr := k.migrateLegacyIdentities(ctx, publicIdentityPaths(known))
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -353,7 +392,7 @@ func (k *LocalStrongKeyring) readAllIdentities(ctx context.Context) ([]strongIde
 	if err != nil {
 		return nil, err
 	}
-	legacy, err := k.readLegacyIdentities(ctx)
+	legacy, err := k.readLegacyIdentities(ctx, publicIdentityPaths(identities))
 	if err != nil {
 		return nil, err
 	}
@@ -378,9 +417,19 @@ func (k *LocalStrongKeyring) readAllIdentities(ctx context.Context) ([]strongIde
 	return identities, nil
 }
 
+func publicIdentityPaths(identities []strongIdentity) map[string]bool {
+	paths := make(map[string]bool, len(identities))
+	for _, identity := range identities {
+		if identity.sourcePath != "" {
+			paths[identity.sourcePath] = true
+		}
+	}
+	return paths
+}
+
 // readLegacyIdentities lee la parte pública de las identidades v1 que quedan
 // en disco, derivándola de su clave privada, que no se guarda en memoria.
-func (k *LocalStrongKeyring) readLegacyIdentities(ctx context.Context) ([]strongIdentity, error) {
+func (k *LocalStrongKeyring) readLegacyIdentities(ctx context.Context, skip map[string]bool) ([]strongIdentity, error) {
 	var out []strongIdentity
 	seen := map[string]struct{}{}
 	for _, dir := range k.legacyDirs() {
@@ -395,7 +444,14 @@ func (k *LocalStrongKeyring) readLegacyIdentities(ctx context.Context) ([]strong
 			if entry.IsDir() || !strings.HasSuffix(strings.ToLower(entry.Name()), ".json") {
 				continue
 			}
-			identity, err := legacyIdentityPublic(filepath.Join(dir, entry.Name()))
+			path := filepath.Join(dir, entry.Name())
+			if skip[path] {
+				continue
+			}
+			if err := excepciones.Require(ctx, "alto_clave_fichero_leer"); err != nil {
+				return nil, err
+			}
+			identity, err := legacyIdentityPublic(path)
 			if err != nil {
 				continue
 			}
@@ -463,6 +519,7 @@ func (k *LocalStrongKeyring) readIdentities(ctx context.Context) ([]strongIdenti
 			continue
 		}
 		identity.enAlmacen = true
+		identity.sourcePath = filepath.Join(k.dir(), entry.Name())
 		out = append(out, identity)
 	}
 	sortStrongIdentities(out)
@@ -527,8 +584,14 @@ func (k *LocalStrongKeyring) createDefaultIdentity(ctx context.Context) error {
 	if err == nil || !errors.Is(err, ErrAlmacenSeguroNoDisponible) || ctx.Err() != nil {
 		return err
 	}
-	// Sin almacén: se guarda como en la 0.0.125 para no dejar a la persona sin
-	// perfil alto. La migración la pasará al almacén cuando exista.
+	// Sin almacén, ambos ajustes deben estar activos antes de escribir el
+	// fichero. La siguiente lectura necesita el ajuste de lectura.
+	if err := excepciones.Require(ctx, "alto_clave_fichero_crear"); err != nil {
+		return err
+	}
+	if err := excepciones.Require(ctx, "alto_clave_fichero_leer"); err != nil {
+		return err
+	}
 	id, err := k.persistLegacyIdentity(label, mlkemSeed, x25519Key)
 	if err != nil {
 		return err
@@ -619,7 +682,7 @@ func (k *LocalStrongKeyring) persistIdentity(ctx context.Context, label string, 
 // guardaban la clave privada en claro, escribe su versión pública y
 // sobrescribe y borra el fichero antiguo. Si el almacén no está disponible deja
 // el fichero antiguo intacto: se sigue usando con aviso y se migra más tarde.
-func (k *LocalStrongKeyring) migrateLegacyIdentities(ctx context.Context) error {
+func (k *LocalStrongKeyring) migrateLegacyIdentities(ctx context.Context, skip map[string]bool) error {
 	var errs []error
 	for _, dir := range k.legacyDirs() {
 		entries, err := os.ReadDir(dir)
@@ -637,6 +700,12 @@ func (k *LocalStrongKeyring) migrateLegacyIdentities(ctx context.Context) error 
 				continue
 			}
 			path := filepath.Join(dir, entry.Name())
+			if skip[path] {
+				continue
+			}
+			if err := excepciones.Require(ctx, "alto_clave_fichero_leer"); err != nil {
+				return err
+			}
 			legacy, ok := readLegacyIdentityFile(path)
 			if !ok {
 				continue
@@ -764,6 +833,9 @@ func readIdentityFile(path string) (strongIdentity, error) {
 // fichero v1, cae a ese fichero. enFichero dice si la clave salió del fichero.
 func (k *LocalStrongKeyring) loadPrivateMaterial(ctx context.Context, identity strongIdentity) (domain.ProtectionKeyMaterial, bool, error) {
 	if !identity.enAlmacen {
+		if err := excepciones.Require(ctx, "alto_clave_fichero_leer"); err != nil {
+			return domain.ProtectionKeyMaterial{}, false, err
+		}
 		material, err := legacyPrivateMaterial(identity)
 		return material, err == nil, err
 	}
@@ -784,6 +856,9 @@ func (k *LocalStrongKeyring) loadPrivateMaterial(ctx context.Context, identity s
 		err = fmt.Errorf("%w: %v", ErrAlmacenSeguroNoDisponible, err)
 	}
 	if identity.legacyPath == "" {
+		return domain.ProtectionKeyMaterial{}, false, err
+	}
+	if err := excepciones.Require(ctx, "alto_clave_fichero_leer"); err != nil {
 		return domain.ProtectionKeyMaterial{}, false, err
 	}
 	material, legacyErr := legacyPrivateMaterial(identity)

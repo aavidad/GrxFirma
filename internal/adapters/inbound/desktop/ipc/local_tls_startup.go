@@ -11,8 +11,11 @@ import "context"
 // Qt traduce State y Changed con su catálogo; no transportamos rutas de perfiles
 // ni detalles del error por el canal de presentación.
 type LocalTLSStartupStatus struct {
-	State   string `json:"state"` // unknown, ready o error
-	Changed bool   `json:"changed"`
+	State       string   `json:"state"` // unknown, ready o error
+	Changed     bool     `json:"changed"`
+	ExceptionID string   `json:"exceptionId,omitempty"`
+	BlockKey    string   `json:"blockKey,omitempty"`
+	Warnings    []string `json:"warnings,omitempty"`
 }
 
 // SetLocalTLSStartupStatus publica el resultado antes de abrir el IPC. También

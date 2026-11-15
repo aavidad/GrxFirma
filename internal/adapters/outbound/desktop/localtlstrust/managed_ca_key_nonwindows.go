@@ -24,6 +24,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/keyringstore"
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 )
 
 // En Linux y macOS la clave de la CA se cifra con AES-256-GCM y la clave de
@@ -33,14 +34,11 @@ import (
 //
 // Sin almacén seguro:
 //   - macOS: no se guarda la clave de la CA (fallo cerrado).
-//   - Linux: se guarda sin cifrar en un fichero 0600 dentro del directorio TLS
-//     0700, sin seguir enlaces, y se registra una vez el aviso
-//     eventoClaveCAEnFichero. Decisión de dirección: muchos escritorios de las
-//     sedes no tienen gnome-keyring ni kwallet, y sin la CA no hay canal TLS
-//     local para firmar. El daño de leer esa clave queda acotado porque la CA
-//     solo vale para servidor TLS en localhost, 127.0.0.0/8 y ::1 (B-01).
-//     Cuando el almacén aparece, la clave se migra a él al leerla y el fichero
-//     en claro se sobrescribe y se borra.
+//   - Linux: solo con el ajuste expreso se guarda sin cifrar en un fichero
+//     0600 dentro del directorio TLS 0700, sin seguir enlaces. Cada uso
+//     permitido anota un aviso de operación. La CA sigue limitada a loopback.
+//     Cuando aparece el almacén, la clave se migra a él y el fichero en claro
+//     se sobrescribe y se borra.
 var managedCAKeyringHeader = []byte("GRXFIRMA-CA-KEYRING-1\x00")
 
 // eventoClaveCAEnFichero identifica en el registro el aviso de que la clave de
@@ -76,10 +74,10 @@ func UseManagedCAKeyStorage(storage ports.SecureStorage) {
 	managedCAKeyOverride = storage != nil
 }
 
-// managedCAKeyStorage devuelve el almacén del sistema. En los binarios de
-// prueba sin almacén inyectado devuelve nil y la clave se guarda como antes
-// (0600 en un directorio 0700): así las pruebas nunca escriben en el almacén
-// real de quien las ejecuta.
+// managedCAKeyStorage devuelve el almacén del sistema. En pruebas usa un
+// almacén privado en memoria: los ensayos TLS no dependen del sistema ni
+// activan implícitamente la excepción de clave en claro. Las pruebas de
+// fallback inyectan de forma expresa un almacén que falla.
 func managedCAKeyStorage() ports.SecureStorage {
 	managedCAKeySecretsMu.RLock()
 	defer managedCAKeySecretsMu.RUnlock()
@@ -87,14 +85,21 @@ func managedCAKeyStorage() ports.SecureStorage {
 		return managedCAKeySecrets
 	}
 	if testing.Testing() {
-		return nil
+		return managedCATestStorage
 	}
 	return keyringstore.New()
 }
 
-func protectManagedCAKey(key []byte) ([]byte, error) {
+func protectManagedCAKey(ctx context.Context, key []byte) ([]byte, error) {
 	storage := managedCAKeyStorage()
 	if storage == nil {
+		if !managedCAKeyFileFallback {
+			return nil, errManagedCAKeyStorageUnavailable
+		}
+		if err := excepciones.Require(ctx, "ca_clave_fichero"); err != nil {
+			return nil, err
+		}
+		warnManagedCAKeyInFile(errManagedCAKeyStorageUnavailable)
 		return append([]byte(nil), key...), nil
 	}
 	sealed, err := sealManagedCAKey(storage, key)
@@ -102,6 +107,9 @@ func protectManagedCAKey(key []byte) ([]byte, error) {
 		return sealed, nil
 	}
 	if !managedCAKeyFileFallback || !errors.Is(err, errManagedCAKeyStorageUnavailable) {
+		return nil, err
+	}
+	if err := excepciones.Require(ctx, "ca_clave_fichero"); err != nil {
 		return nil, err
 	}
 	warnManagedCAKeyInFile(err)
@@ -248,4 +256,47 @@ func newManagedCAKeyAEAD(kek []byte) (cipher.AEAD, error) {
 		return nil, err
 	}
 	return cipher.NewGCM(block)
+}
+
+func checkManagedCAKeyRead(ctx context.Context, path string, stored, key []byte) error {
+	if bytes.HasPrefix(stored, managedCAKeyringHeader) {
+		return nil
+	}
+	migrateManagedCAKeyToStorage(path, stored, key)
+	migrated, err := securefile.ReadFileLimit(path, maxManagedCAKeyBytes*2)
+	if err == nil && bytes.HasPrefix(migrated, managedCAKeyringHeader) {
+		return nil
+	}
+	return excepciones.Require(ctx, "ca_clave_fichero")
+}
+
+// El almacén privado solo existe dentro del proceso de pruebas. Cada clave
+// temporal tiene un ID aleatorio y no se comparte con otros procesos.
+type caTestStorage struct {
+	mu     sync.Mutex
+	values map[string][]byte
+}
+
+var managedCATestStorage = &caTestStorage{values: map[string][]byte{}}
+
+func (s *caTestStorage) Store(_ context.Context, name string, value []byte) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.values[name] = bytes.Clone(value)
+	return nil
+}
+func (s *caTestStorage) Load(_ context.Context, name string) ([]byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.values[name]
+	if !ok {
+		return nil, errors.New("clave de prueba no encontrada")
+	}
+	return bytes.Clone(v), nil
+}
+func (s *caTestStorage) Delete(_ context.Context, name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.values, name)
+	return nil
 }

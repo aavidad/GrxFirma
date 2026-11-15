@@ -29,6 +29,18 @@ func preguntarFalloReenvioPlataforma(ctx context.Context) (bool, error) {
 	return mostrarFalloReenvio(ctx)
 }
 
+func presentProtocolNoticePlatform(ctx context.Context, message string) {
+	if !wintaskdialog.Available() {
+		return
+	}
+	_, _, _ = wintaskdialog.Show(ctx, wintaskdialog.Spec{
+		Title:         tl("afirma.elegir.titulo"),
+		Instruction:   message,
+		Buttons:       []wintaskdialog.Choice{{ID: wintaskdialog.IDCancel, Label: tl("Cerrar")}},
+		DefaultButton: wintaskdialog.IDCancel,
+	})
+}
+
 // mostrarEleccionProgramaFirmaWeb pregunta con qué programa firmar. Cerrar el
 // diálogo equivale a GrxFirma sin recordar, que es lo que pasaba antes.
 func mostrarEleccionProgramaFirmaWeb(ctx context.Context, puedeRecordar bool) (eleccionProgramaFirmaWeb, error) {

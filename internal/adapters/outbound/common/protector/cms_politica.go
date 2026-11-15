@@ -7,6 +7,7 @@ package protector
 
 import (
 	"bytes"
+	"context"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
@@ -18,7 +19,7 @@ import (
 
 	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
 	"grxfirma/internal/domain"
-	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/security/excepciones"
 )
 
 var (
@@ -28,11 +29,8 @@ var (
 	oidCMSAES128GCM     = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 1, 6}
 	oidCMSAES192GCM     = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 1, 26}
 	oidCMSRSAPKCS1v15   = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 1}
-	cifradosCMSAbiertos = []asn1.ObjectIdentifier{
-		oidCMSAES128GCM, oidCMSAES192GCM, oidCMSAES256GCM,
-		// AES-CBC es lo que emite `openssl cms -encrypt` por defecto.
-		oidCMSAES128CBC, oidCMSAES192CBC, oidCMSAES256CBC,
-	}
+	cifradosCMSAbiertos = []asn1.ObjectIdentifier{oidCMSAES128GCM, oidCMSAES192GCM, oidCMSAES256GCM}
+	cifradosCMSCBC      = []asn1.ObjectIdentifier{oidCMSAES128CBC, oidCMSAES192CBC, oidCMSAES256CBC}
 )
 
 type cmsEncryptedContentInfoAlgoritmos struct {
@@ -67,10 +65,7 @@ func comprobarAnidamientoCMS(data []byte) error {
 	return nil
 }
 
-// Aviso visible (clave de los catálogos) y prefijo del detalle de auditoría
-// cuando se descifra un CMS con un cifrado heredado.
 const (
-	avisoCMSCifradoHeredado   = "Este archivo se cifró con un algoritmo antiguo que hoy no se considera seguro. Se ha descifrado para que no pierda el acceso, pero quien se lo envió debería protegerlo de nuevo con uno actual."
 	detalleCMSCifradoHeredado = "cifrado_cms_heredado="
 )
 
@@ -91,6 +86,8 @@ var tiposDestinatarioAjeno = map[int]string{1: "kari", 2: "kekri", 3: "pwri", 4:
 type revisionCMS struct {
 	// heredado es el OID del cifrado heredado, si lo es.
 	heredado asn1.ObjectIdentifier
+	cbc      bool
+	rsaV15   bool
 	// ajenos son los tipos de destinatario que se han quitado del sobre.
 	ajenos []string
 	// sinAjenos es el ContentInfo (DER) sin esos destinatarios; nil si no
@@ -98,29 +95,43 @@ type revisionCMS struct {
 	sinAjenos []byte
 }
 
+func (r revisionCMS) excepciones() []string {
+	var ids []string
+	if len(r.heredado) != 0 {
+		ids = append(ids, "cms_cifrado_heredado")
+	}
+	if r.cbc {
+		ids = append(ids, "cms_cbc")
+	}
+	if r.rsaV15 {
+		ids = append(ids, "cms_rsa_v15_leer")
+	}
+	return ids
+}
+
 // validarAlgoritmosCMS es revisarCMS quedándose solo con el cifrado heredado.
-func validarAlgoritmosCMS(data []byte) (heredado asn1.ObjectIdentifier, err error) {
-	revision, err := revisarCMS(data)
+func validarAlgoritmosCMS(data []byte, contexts ...context.Context) (heredado asn1.ObjectIdentifier, err error) {
+	revision, err := revisarCMS(data, contexts...)
 	return revision.heredado, err
 }
 
 // revisarCMS comprueba, antes de pasar el contenedor a las bibliotecas, el
 // cifrado del contenido y el transporte de clave (F-06).
-// AES-GCM y AES-CBC se aceptan sin más. Cualquier otro cifrado que la
-// biblioteca sepa descifrar (DES, 3DES, AES-ECB/OFB/CFB/CCM, RC2, RC5,
-// SM4…) se acepta por compatibilidad con lo que GrxFirma abría antes y se
-// devuelve su OID para avisar y registrarlo (lote 13b), salvo que la
-// política de máquina prohibir_cifrado_cms_heredado lo impida. Un cifrado
-// desconocido se rechaza siempre. El transporte de clave debe ser RSA
-// (PKCS#1 v1.5 u OAEP) en cada destinatario ktri. Los destinatarios de otro
+// AES-GCM se admite directamente. AES-CBC y los cifrados antiguos que
+// entiende la biblioteca requieren excepciones distintas, y la directiva
+// prohibir_cifrado_cms_heredado prevalece en ambos casos. Un cifrado
+// desconocido se rechaza siempre. El transporte RSA PKCS#1 v1.5 requiere
+// su propia excepción de lectura; RSA-OAEP no la requiere. Los destinatarios de otro
 // tipo (kari, kekri, pwri, ori) se quitan del sobre, con aviso, si queda al
 // menos uno ktri (lote 17a): ninguna de las dos bibliotecas los sabe leer y,
 // con ellos dentro, el sobre entero no se abriría.
-func revisarCMS(data []byte) (revisionCMS, error) {
+func revisarCMS(data []byte, contexts ...context.Context) (revisionCMS, error) {
 	if err := comprobarAnidamientoCMS(data); err != nil {
 		return revisionCMS{}, err
 	}
+	cmsCryptobinParseMu.Lock()
 	der, err := ber.Ber2der(data)
+	cmsCryptobinParseMu.Unlock()
 	if err != nil {
 		return revisionCMS{}, fmt.Errorf("contenedor CMS no valido: %w", err)
 	}
@@ -145,6 +156,7 @@ func revisarCMS(data []byte) (revisionCMS, error) {
 			return revisionCMS{}, err
 		}
 		cifrado = sobre.cifrado
+		revision.rsaV15 = sobre.rsaV15
 		if len(sobre.ajenos) > 0 {
 			revision.ajenos = sobre.ajenos
 			if revision.sinAjenos, err = contentInfoCMS(info.ContentType, sobre.sinAjenos); err != nil {
@@ -154,14 +166,30 @@ func revisarCMS(data []byte) (revisionCMS, error) {
 	default:
 		return revisionCMS{}, errors.New("tipo CMS no soportado")
 	}
+	return evaluarAlgoritmosCMS(cifrado, revision, contexts...)
+}
+
+func evaluarAlgoritmosCMS(cifrado pkix.AlgorithmIdentifier, revision revisionCMS, contexts ...context.Context) (revisionCMS, error) {
+	if !contieneOID(cifradosCMSAbiertos, cifrado.Algorithm) && !contieneOID(cifradosCMSCBC, cifrado.Algorithm) && !cifradoCMSConocido(cifrado) {
+		return revisionCMS{}, fmt.Errorf("algoritmo de cifrado CMS no permitido: %s", cifrado.Algorithm)
+	}
+	if revision.rsaV15 {
+		if err := excepciones.Check("cms_rsa_v15_leer", contexts...); err != nil {
+			return revisionCMS{}, err
+		}
+	}
 	if contieneOID(cifradosCMSAbiertos, cifrado.Algorithm) {
 		return revision, nil
 	}
-	if !cifradoCMSConocido(cifrado) {
-		return revisionCMS{}, fmt.Errorf("algoritmo de cifrado CMS no permitido: %s", cifrado.Algorithm)
+	if contieneOID(cifradosCMSCBC, cifrado.Algorithm) {
+		if err := excepciones.Check("cms_cbc", contexts...); err != nil {
+			return revisionCMS{}, err
+		}
+		revision.cbc = true
+		return revision, nil
 	}
-	if machinepolicy.OptIn(machinepolicy.ProhibirCifradoCMSHeredado) {
-		return revisionCMS{}, fmt.Errorf("cifrado CMS heredado %s: lo prohibe la politica de maquina %s", cifrado.Algorithm, machinepolicy.ProhibirCifradoCMSHeredado)
+	if err := excepciones.Check("cms_cifrado_heredado", contexts...); err != nil {
+		return revisionCMS{}, err
 	}
 	revision.heredado = cifrado.Algorithm
 	return revision, nil
@@ -194,7 +222,7 @@ func conAvisoCifradoHeredado(out domain.UnprotectedPayload, heredado asn1.Object
 	if len(heredado) == 0 {
 		return out
 	}
-	out.Avisos = append(out.Avisos, avisoCMSCifradoHeredado)
+	out.Avisos = append(out.Avisos, excepciones.Warning("cms_cifrado_heredado"))
 	out.Detalles = append(out.Detalles, detalleCMSCifradoHeredado+heredado.String())
 	return out
 }
@@ -203,6 +231,12 @@ func conAvisoCifradoHeredado(out domain.UnprotectedPayload, heredado asn1.Object
 // encontró al revisar el CMS: cifrado heredado y destinatarios ignorados.
 func conAvisosRevisionCMS(out domain.UnprotectedPayload, revision revisionCMS) domain.UnprotectedPayload {
 	out = conAvisoCifradoHeredado(out, revision.heredado)
+	if revision.cbc {
+		out.Avisos = append(out.Avisos, excepciones.Warning("cms_cbc"))
+	}
+	if revision.rsaV15 {
+		out.Avisos = append(out.Avisos, excepciones.Warning("cms_rsa_v15_leer"))
+	}
 	if len(revision.ajenos) > 0 {
 		out.Avisos = append(out.Avisos, avisoCMSDestinatariosAjenos)
 		out.Detalles = append(out.Detalles, detalleCMSDestinatariosAjenos+strings.Join(revision.ajenos, ","))
@@ -216,6 +250,7 @@ func conAvisosRevisionCMS(out domain.UnprotectedPayload, revision revisionCMS) d
 // sobreEnvelopedData es lo que se lee de EnvelopedData antes de descifrar.
 type sobreEnvelopedData struct {
 	cifrado pkix.AlgorithmIdentifier
+	rsaV15  bool
 	ajenos  []string
 	// sinAjenos es el EnvelopedData (DER) solo con los destinatarios ktri;
 	// nil si no había ajenos.
@@ -248,7 +283,7 @@ func algoritmosEnvelopedData(content []byte) (sobreEnvelopedData, error) {
 	if campo.Class != asn1.ClassUniversal || campo.Tag != asn1.TagSet {
 		return sobreEnvelopedData{}, errors.New("destinatarios CMS EnvelopedData no validos")
 	}
-	ktri, ajenos, err := validarDestinatariosCMS(campo.Bytes)
+	ktri, ajenos, rsaV15, err := validarDestinatariosCMS(campo.Bytes)
 	if err != nil {
 		return sobreEnvelopedData{}, err
 	}
@@ -256,7 +291,7 @@ func algoritmosEnvelopedData(content []byte) (sobreEnvelopedData, error) {
 	if _, err := asn1.Unmarshal(resto, &eci); err != nil {
 		return sobreEnvelopedData{}, errors.New("contenido cifrado CMS EnvelopedData no valido")
 	}
-	out := sobreEnvelopedData{cifrado: eci.ContentEncryptionAlgorithm, ajenos: ajenos}
+	out := sobreEnvelopedData{cifrado: eci.ContentEncryptionAlgorithm, ajenos: ajenos, rsaV15: rsaV15}
 	if len(ajenos) > 0 {
 		// La versión y originatorInfo, tal cual; el SET, solo con los ktri (un
 		// subconjunto de un SET OF en DER sigue ordenado); lo que sigue, tal
@@ -277,18 +312,18 @@ func algoritmosEnvelopedData(content []byte) (sobreEnvelopedData, error) {
 // validarDestinatariosCMS devuelve los destinatarios ktri (DER) y el tipo de
 // los demás. Cada ktri tiene que usar RSA; si no hay ninguno ktri, el error
 // es el de siempre.
-func validarDestinatariosCMS(conjunto []byte) (ktri [][]byte, ajenos []string, err error) {
+func validarDestinatariosCMS(conjunto []byte) (ktri [][]byte, ajenos []string, rsaV15 bool, err error) {
 	if len(conjunto) == 0 {
-		return nil, nil, errors.New("CMS EnvelopedData sin destinatarios")
+		return nil, nil, false, errors.New("CMS EnvelopedData sin destinatarios")
 	}
 	for len(conjunto) > 0 {
 		if len(ktri)+len(ajenos) >= maxDestinatariosCMS {
-			return nil, nil, fmt.Errorf("CMS EnvelopedData con más de %d destinatarios", maxDestinatariosCMS)
+			return nil, nil, false, fmt.Errorf("CMS EnvelopedData con más de %d destinatarios", maxDestinatariosCMS)
 		}
 		var destinatario asn1.RawValue
 		rest, err := asn1.Unmarshal(conjunto, &destinatario)
 		if err != nil {
-			return nil, nil, errors.New("destinatario CMS EnvelopedData no valido")
+			return nil, nil, false, errors.New("destinatario CMS EnvelopedData no valido")
 		}
 		conjunto = rest
 		if tipo, ok := tiposDestinatarioAjeno[destinatario.Tag]; ok && destinatario.Class == asn1.ClassContextSpecific && destinatario.IsCompound {
@@ -296,22 +331,25 @@ func validarDestinatariosCMS(conjunto []byte) (ktri [][]byte, ajenos []string, e
 			continue
 		}
 		if destinatario.Class != asn1.ClassUniversal || destinatario.Tag != asn1.TagSequence {
-			return nil, nil, errors.New("solo se admiten destinatarios CMS con transporte de clave RSA")
+			return nil, nil, false, errors.New("solo se admiten destinatarios CMS con transporte de clave RSA")
 		}
 		var info cmsKeyTransAlgoritmos
 		if rest, err := asn1.Unmarshal(destinatario.FullBytes, &info); err != nil || len(rest) != 0 {
-			return nil, nil, errors.New("destinatario CMS EnvelopedData no valido")
+			return nil, nil, false, errors.New("destinatario CMS EnvelopedData no valido")
 		}
 		alg := info.KeyEncryptionAlgorithm.Algorithm
 		if !alg.Equal(oidCMSRSAPKCS1v15) && !alg.Equal(oidCMSRSAESOAEP) {
-			return nil, nil, fmt.Errorf("transporte de clave CMS no permitido: %s", alg)
+			return nil, nil, false, fmt.Errorf("transporte de clave CMS no permitido: %s", alg)
+		}
+		if alg.Equal(oidCMSRSAPKCS1v15) {
+			rsaV15 = true
 		}
 		ktri = append(ktri, destinatario.FullBytes)
 	}
 	if len(ktri) == 0 {
-		return nil, nil, errors.New("solo se admiten destinatarios CMS con transporte de clave RSA")
+		return nil, nil, false, errors.New("solo se admiten destinatarios CMS con transporte de clave RSA")
 	}
-	return ktri, ajenos, nil
+	return ktri, ajenos, rsaV15, nil
 }
 
 func contieneOID(lista []asn1.ObjectIdentifier, oid asn1.ObjectIdentifier) bool {
@@ -321,4 +359,71 @@ func contieneOID(lista []asn1.ObjectIdentifier, oid asn1.ObjectIdentifier) bool 
 		}
 	}
 	return false
+}
+
+// revisarSignedEnvelopedCMS inspecciona destinatarios y cifrado de contenido
+// antes de que la biblioteca descifre un SignedAndEnvelopedData moderno. El
+// lector V1 tiene su parser y su ajuste histórico cubre el sobre completo.
+func revisarSignedEnvelopedCMS(data []byte, ctx context.Context) (revisionCMS, error) {
+	cmsCryptobinParseMu.Lock()
+	der, err := ber.Ber2der(data)
+	cmsCryptobinParseMu.Unlock()
+	if err != nil {
+		return revisionCMS{}, err
+	}
+	var wrapper cmsContentInfo
+	if rest, err := asn1.Unmarshal(der, &wrapper); err != nil || len(rest) != 0 || !wrapper.ContentType.Equal(oidCMSSignedEnvelopedData) {
+		return revisionCMS{}, errors.New("estructura SignedAndEnvelopedData no válida")
+	}
+	var sobre asn1.RawValue
+	if rest, err := asn1.Unmarshal(wrapper.Content.Bytes, &sobre); err != nil || len(rest) != 0 || sobre.Tag != asn1.TagSequence {
+		return revisionCMS{}, errors.New("estructura SignedAndEnvelopedData no válida")
+	}
+	var version int
+	resto, err := asn1.Unmarshal(sobre.Bytes, &version)
+	if err != nil {
+		return revisionCMS{}, err
+	}
+	var set asn1.RawValue
+	resto, err = asn1.Unmarshal(resto, &set)
+	if err != nil || set.Tag != asn1.TagSet {
+		return revisionCMS{}, errors.New("destinatarios SignedAndEnvelopedData no válidos")
+	}
+	var revision revisionCMS
+	for conjunto := set.Bytes; len(conjunto) > 0; {
+		var raw asn1.RawValue
+		conjunto, err = asn1.Unmarshal(conjunto, &raw)
+		if err != nil {
+			return revisionCMS{}, err
+		}
+		if raw.Class != asn1.ClassUniversal || raw.Tag != asn1.TagSequence {
+			continue
+		}
+		var recipient cmsKeyTransAlgoritmos
+		if tail, err := asn1.Unmarshal(raw.FullBytes, &recipient); err != nil || len(tail) != 0 {
+			return revisionCMS{}, errors.New("destinatario SignedAndEnvelopedData no válido")
+		}
+		if recipient.KeyEncryptionAlgorithm.Algorithm.Equal(oidCMSRSAPKCS1v15) {
+			revision.rsaV15 = true
+		}
+	}
+	var digests, eci asn1.RawValue
+	resto, err = asn1.Unmarshal(resto, &digests)
+	if err != nil || digests.Tag != asn1.TagSet {
+		return revisionCMS{}, errors.New("resúmenes SignedAndEnvelopedData no válidos")
+	}
+	_, err = asn1.Unmarshal(resto, &eci)
+	if err != nil || eci.Tag != asn1.TagSequence {
+		return revisionCMS{}, errors.New("contenido SignedAndEnvelopedData no válido")
+	}
+	var contentType asn1.ObjectIdentifier
+	fields, err := asn1.Unmarshal(eci.Bytes, &contentType)
+	if err != nil {
+		return revisionCMS{}, err
+	}
+	var cipher pkix.AlgorithmIdentifier
+	if _, err := asn1.Unmarshal(fields, &cipher); err != nil {
+		return revisionCMS{}, err
+	}
+	return evaluarAlgoritmosCMS(cipher, revision, ctx)
 }

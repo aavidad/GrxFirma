@@ -12,8 +12,10 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/hex"
+	"grxfirma/internal/security/machinepolicy"
 	"math/big"
 	"strings"
 	"testing"
@@ -208,6 +210,8 @@ func TestMobileEncryptedDataWithTransientKey(t *testing.T) {
 }
 
 func TestMobileProtectAndSignWithSessionIdentity(t *testing.T) {
+	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_crear", false)
+	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", false)
 	facade := newAndroidFacadeForTest(t)
 	p12, _ := encipheringPKCS12(t, "remitente")
 	id := importPKCS12(t, facade, p12, "remitente")
@@ -219,6 +223,10 @@ func TestMobileProtectAndSignWithSessionIdentity(t *testing.T) {
 	}
 	var protected protectResponse
 	decodeResponse(t, raw, &protected)
+	if len(protected.Warnings) != 0 {
+		t.Fatalf("ruta segura con aviso heredado: %v", protected.Warnings)
+	}
+	assertMobileSignedEnvelopeOAEP256(t, protected.ContentBase64)
 	if protected.Container != "signedandenvelopeddata" || protected.CertificateID != id {
 		t.Fatalf("proteger y firmar inesperado: %+v", protected)
 	}
@@ -347,4 +355,69 @@ func encipheringPKCS12(t *testing.T, password string) ([]byte, *x509.Certificate
 		t.Fatal(err)
 	}
 	return p12, certificate
+}
+
+func assertMobileSignedEnvelopeOAEP256(t *testing.T, encoded string) {
+	t.Helper()
+	blob, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wrapper struct {
+		Type    asn1.ObjectIdentifier
+		Content asn1.RawValue `asn1:"explicit,tag:0"`
+	}
+	if rest, err := asn1.Unmarshal(blob, &wrapper); err != nil || len(rest) != 0 {
+		t.Fatalf("CMS inválido: %v", err)
+	}
+	if !wrapper.Type.Equal(asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 7, 4}) {
+		t.Fatal("no conserva SignedAndEnvelopedData")
+	}
+	var sequence asn1.RawValue
+	if _, err = asn1.Unmarshal(wrapper.Content.Bytes, &sequence); err != nil {
+		t.Fatal(err)
+	}
+	var version int
+	rest, err := asn1.Unmarshal(sequence.Bytes, &version)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var recipients asn1.RawValue
+	if _, err = asn1.Unmarshal(rest, &recipients); err != nil || recipients.Tag != asn1.TagSet {
+		t.Fatal("destinatarios inválidos")
+	}
+	if len(recipients.Bytes) == 0 {
+		t.Fatal("sobre sin destinatario")
+	}
+	for data := recipients.Bytes; len(data) > 0; {
+		var recipient struct {
+			Version         int
+			IssuerAndSerial asn1.RawValue
+			Algorithm       pkix.AlgorithmIdentifier
+			EncryptedKey    []byte
+		}
+		data, err = asn1.Unmarshal(data, &recipient)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !recipient.Algorithm.Algorithm.Equal(asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 7}) {
+			t.Fatalf("transporte distinto de OAEP: %s", recipient.Algorithm.Algorithm)
+		}
+		var parameters struct {
+			Hash   pkix.AlgorithmIdentifier `asn1:"explicit,tag:0"`
+			MGF    pkix.AlgorithmIdentifier `asn1:"explicit,tag:1"`
+			Source pkix.AlgorithmIdentifier `asn1:"optional,explicit,tag:2"`
+		}
+		if _, err = asn1.Unmarshal(recipient.Algorithm.Parameters.FullBytes, &parameters); err != nil {
+			t.Fatal(err)
+		}
+		sha256OID := asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1}
+		var mgfHash pkix.AlgorithmIdentifier
+		if _, err = asn1.Unmarshal(parameters.MGF.Parameters.FullBytes, &mgfHash); err != nil {
+			t.Fatal(err)
+		}
+		if !parameters.Hash.Algorithm.Equal(sha256OID) || !parameters.MGF.Algorithm.Equal(asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 8}) || !mgfHash.Algorithm.Equal(sha256OID) {
+			t.Fatal("OAEP o su máscara no usan SHA-256")
+		}
+	}
 }

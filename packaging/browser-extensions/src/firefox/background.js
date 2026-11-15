@@ -217,12 +217,16 @@ function handleNativeResponse(response) {
                 totalChunks,
                 totalChars: 0,
                 chunks: new Array(totalChunks),
+                warnings: Array.isArray(response.warnings) ? response.warnings : [],
                 identityProof: response.identityProof,
                 identityProofFingerprint
             });
         }
 
         const buffer = chunkBuffers.get(requestId);
+        if (Array.isArray(response.warnings) && chunk === 0) {
+            buffer.warnings = response.warnings;
+        }
         if (buffer.totalChunks !== totalChunks ||
             buffer.identityProofFingerprint !== identityProofFingerprint) {
             chunkBuffers.delete(requestId);
@@ -260,6 +264,7 @@ function handleNativeResponse(response) {
 
         if (receivedCount === totalChunks) {
             response.signature = buffer.chunks.join('');
+            response.warnings = buffer.warnings;
             response.identityProof = buffer.identityProof;
             chunkBuffers.delete(requestId);
             console.log(`[Native] Reassembly complete for ${requestId}. Total length: ${response.signature.length}`);

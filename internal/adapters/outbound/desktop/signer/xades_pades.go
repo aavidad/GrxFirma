@@ -42,7 +42,7 @@ func (m *MotorFirmaGo) firmarPAdES(ctx context.Context, job domain.SignatureJob,
 	if clave == nil || clave.cert == nil || clave.priv == nil {
 		return domain.SignatureResult{}, errors.New("PAdES-Basic: clave local incompleta")
 	}
-	if err := comprobarPDFCifrado(job.Document.Content, job.Options); err != nil {
+	if err := comprobarPDFCifrado(ctx, job.Document.Content, job.Options); err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("PAdES: %w", err)
 	}
 	if valorBoolOpcionPAdES(job.Options, "allowInvalidPDF", false) {

@@ -21,6 +21,8 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 type almacenProteccionPrueba map[string][]byte
@@ -40,6 +42,10 @@ func (a almacenProteccionPrueba) Delete(_ context.Context, k string) error { del
 // Usa el keyring y el motor reales: el aviso no bloquea la operación y deja
 // de aparecer cuando la migración al almacén vuelve a estar disponible.
 func TestProteccionYExportacion_AvisoSinAlmacenYMigracion(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", true)
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 	for _, conAlmacen := range []bool{false, true} {
 		nombre := "sin_almacen"
 		if conAlmacen {
@@ -77,12 +83,18 @@ func TestProteccionYExportacion_AvisoSinAlmacenYMigracion(t *testing.T) {
 				if err != nil || len(exp.Data) == 0 {
 					t.Fatalf("Export = %+v, %v", exp, err)
 				}
-				var want []string
 				if quiereAviso {
-					want = []string{protector.AvisoProteccionAltoSinAlmacen}
-				}
-				if !slices.Equal(res.Warnings, want) || !slices.Equal(exp.Warnings, want) {
-					t.Fatalf("avisos proteger=%q exportar=%q; want %q", res.Warnings, exp.Warnings, want)
+					for _, key := range []string{protector.AvisoProteccionAltoSinAlmacen, excepciones.Warning("alto_clave_fichero_crear"), excepciones.Warning("alto_clave_fichero_leer")} {
+						if !slices.Contains(res.Warnings, key) || !slices.Contains(exp.Warnings, key) {
+							t.Fatalf("avisos proteger=%q exportar=%q; falta %s", res.Warnings, exp.Warnings, key)
+						}
+					}
+				} else if !conAlmacen {
+					if !slices.Equal(res.Warnings, []string{excepciones.Warning("alto_clave_fichero_leer")}) || len(exp.Warnings) != 0 {
+						t.Fatalf("avisos de migración proteger=%q exportar=%q", res.Warnings, exp.Warnings)
+					}
+				} else if len(res.Warnings) != 0 || len(exp.Warnings) != 0 {
+					t.Fatalf("avisos inesperados proteger=%q exportar=%q", res.Warnings, exp.Warnings)
 				}
 				if quiereAviso && !slices.Contains(avisosPadre.Claves(), protector.AvisoProteccionAltoSinAlmacen) {
 					t.Fatal("se perdió el aviso en el contexto padre")
@@ -116,6 +128,10 @@ func TestProteccionYExportacion_AvisoSinAlmacenYMigracion(t *testing.T) {
 }
 
 func TestProteccionNormal_NoLlevaAvisoDelPerfilAlto(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", true)
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 	for _, conAlmacen := range []bool{false, true} {
 		nombre := "sin_almacen"
 		if conAlmacen {

@@ -11,12 +11,16 @@ import (
 	"crypto"
 	"errors"
 	"testing"
+
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 // Revisión del lote 17a: una firma PDF antigua (adbe.x509.rsa_sha1) cuyo
 // documento se alteró después, con otra firma encima, solo deja el PDF «no
 // verificado» al verificar; el cotejo previo al ENI tiene que rechazarlo.
 func TestComprobarIntegridadPAdESRechazaFirmaAntiguaAlterada(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	priv, cert := certForTest(t, "PDF-PKCS1")
 	primera := pdfFirmaHeredadaPrueba(t, subFiltroX509RSASHA1, certHexPDF(cert), firmaPKCS1Prueba(priv, crypto.SHA1))
 	primera = bytes.Replace(primera, []byte("D:20140101120000Z"), []byte("D:20150101120000Z"), 1)
@@ -44,9 +48,21 @@ func TestComprobarIntegridadPAdESRechazaFirmaAntiguaAlterada(t *testing.T) {
 
 // La firma antigua íntegra sigue pasando el cotejo, con el aviso de SHA-1.
 func TestComprobarIntegridadPAdESFirmaAntiguaIntegraAvisaSHA1(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	priv, cert := certForTest(t, "PDF-PKCS1")
 	pdf := pdfFirmaHeredadaPrueba(t, subFiltroX509RSASHA1, certHexPDF(cert), firmaPKCS1Prueba(priv, crypto.SHA1))
 	if err := ComprobarIntegridadPAdES(context.Background(), pdf); !errors.Is(err, ErrFirmaCorrespondeConSHA1) {
 		t.Fatalf("err=%v, quiere ErrFirmaCorrespondeConSHA1", err)
+	}
+}
+
+func TestComprobarIntegridadPAdESSHA1SinAjusteNoProduceENI(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_sha1_leer")
+	excepciones.SetForTest(t, "sha1_leer", false)
+	priv, cert := certForTest(t, "PDF-PKCS1")
+	pdf := pdfFirmaHeredadaPrueba(t, subFiltroX509RSASHA1, certHexPDF(cert), firmaPKCS1Prueba(priv, crypto.SHA1))
+	var block *excepciones.Block
+	if err := ComprobarIntegridadPAdES(context.Background(), pdf); !errors.As(err, &block) || block.ID != "sha1_leer" {
+		t.Fatalf("el cotejo ENI debe bloquear la firma no evaluada: %v", err)
 	}
 }

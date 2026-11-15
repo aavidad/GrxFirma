@@ -7,6 +7,8 @@ package localtlstrust
 
 import (
 	"bytes"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -14,6 +16,8 @@ import (
 )
 
 func TestManagedCAKey_ProteccionYLectura(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_clave_fichero")
+	excepciones.SetForTest(t, "ca_clave_fichero", true)
 	dir := filepath.Join(t.TempDir(), "tls")
 	if err := os.Mkdir(dir, 0o755); err != nil {
 		t.Fatal(err)

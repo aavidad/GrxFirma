@@ -26,6 +26,8 @@ import (
 	"grxfirma/internal/adapters/outbound/common/keyringstore"
 	"grxfirma/internal/adapters/outbound/common/protector"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 // almacenMemoria simula el almacén de secretos del sistema.
@@ -162,6 +164,8 @@ func TestLocalStrongKeyring_ClavePrivadaNoQuedaEnDisco(t *testing.T) {
 }
 
 func TestLocalStrongKeyring_MigraIdentidadEnClaro(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 	t.Parallel()
 
 	ctx := context.Background()

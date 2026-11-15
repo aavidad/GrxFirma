@@ -136,6 +136,9 @@ func runRESTSoloVerificacion(ctx context.Context, logger *slog.Logger, cfg restF
 		fmt.Fprintln(os.Stderr, loc.T("rest.verify_only.error.listen", err))
 		return 1
 	}
+	for _, warning := range srv.Warnings {
+		fmt.Fprintln(os.Stderr, loc.T(warning))
+	}
 	fmt.Fprintln(os.Stdout, loc.T("rest.verify_only.output.active", srv.Addr))
 	fmt.Fprintln(os.Stdout, loc.T("rest.verify_only.output.routes"))
 	if cfg.tlsCert != "" {

@@ -11,6 +11,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"grxfirma/internal/security/excepciones"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -79,6 +80,8 @@ func generarENISHA1(t *testing.T, cms []byte) (rc int, stderr string, destino st
 // Lote 16c (KD-05 y SHA-1): la CLI envuelve una CAdES implícita SHA-1 que
 // corresponde y lo avisa en la salida de error con el texto del catálogo.
 func TestRunGenerarENI_CAdESSHA1QueCorrespondeAvisa(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_sha1_legacy")
+	excepciones.SetForTest(t, "sha1_conservar", true)
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
 	rc, stderr, destino := generarENISHA1(t, cadesImplicitaSHA1Prueba(t, []byte("acta de la sesión de 2012")))
 	aviso := localizador.Para("es").T(commonsigner.AvisoFirmaSHA1Corresponde)
@@ -110,7 +113,8 @@ func TestRunGenerarENI_CAdESSHA1AlteradaSeRechaza(t *testing.T) {
 func TestRunGenerarENI_CAdESSHA1LoCierraLaPolitica(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, false)
 	rc, stderr, destino := generarENISHA1(t, cadesImplicitaSHA1Prueba(t, []byte("acta de la sesión de 2012")))
-	if rc == 0 || !strings.Contains(stderr, localizador.Para("es").T("firma.sha1_corresponde.prohibido")) {
+	if rc == 0 || !strings.Contains(stderr, localizador.Para("es").T("excepciones.sha1_conservar.organizacion")) ||
+		!strings.Contains(stderr, "[sha1_conservar; excepciones.sha1_conservar.bloqueo]") {
 		t.Fatalf("rc=%d stderr=%s", rc, stderr)
 	}
 	if _, err := os.Stat(destino); err == nil {

@@ -22,6 +22,7 @@ import (
 
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/signingpolicy"
 )
 
 var (
@@ -58,6 +59,9 @@ func (e *CAdESBESDetached) Sign(ctx context.Context, job domain.SignatureJob, ke
 	}
 	clave, err := requireLocalSigningKey(key)
 	if err != nil {
+		return domain.SignatureResult{}, err
+	}
+	if err := signingpolicy.CheckRSAKey(ctx, clave.Certificate); err != nil {
 		return domain.SignatureResult{}, err
 	}
 

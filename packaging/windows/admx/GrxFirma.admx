@@ -194,5 +194,119 @@
       <enabledValue><decimal value="1" /></enabledValue>
       <disabledValue><decimal value="0" /></disabledValue>
     </policy>
+    <policy name="Permitir_CmsCifradoHeredado" class="Machine" displayName="$(string.Permitir_CmsCifradoHeredado)" explainText="$(string.Permitir_CmsCifradoHeredado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_cms_cifrado_heredado">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_CmsCbc" class="Machine" displayName="$(string.Permitir_CmsCbc)" explainText="$(string.Permitir_CmsCbc_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_cms_cbc">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_CmsRsaV15Crear" class="Machine" displayName="$(string.Permitir_CmsRsaV15Crear)" explainText="$(string.Permitir_CmsRsaV15Crear_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_cms_rsa_v15_crear">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_CmsRsaV15Leer" class="Machine" displayName="$(string.Permitir_CmsRsaV15Leer)" explainText="$(string.Permitir_CmsRsaV15Leer_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_cms_rsa_v15_leer">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_AfpAadAmbigua" class="Machine" displayName="$(string.Permitir_AfpAadAmbigua)" explainText="$(string.Permitir_AfpAadAmbigua_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_afp_aad_ambigua">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_AltoClaveFicheroCrear" class="Machine" displayName="$(string.Permitir_AltoClaveFicheroCrear)" explainText="$(string.Permitir_AltoClaveFicheroCrear_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_alto_clave_fichero_crear">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_AltoClaveFicheroLeer" class="Machine" displayName="$(string.Permitir_AltoClaveFicheroLeer)" explainText="$(string.Permitir_AltoClaveFicheroLeer_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_alto_clave_fichero_leer">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_CaClaveFichero" class="Machine" displayName="$(string.Permitir_CaClaveFichero)" explainText="$(string.Permitir_CaClaveFichero_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_ca_clave_fichero">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_Sha1Leer" class="Machine" displayName="$(string.Permitir_Sha1Leer)" explainText="$(string.Permitir_Sha1Leer_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_sha1_leer">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_XmlC14NAntigua" class="Machine" displayName="$(string.Permitir_XmlC14NAntigua)" explainText="$(string.Permitir_XmlC14NAntigua_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_xml_c14n_antigua">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_PdfCifradoHeredado" class="Machine" displayName="$(string.Permitir_PdfCifradoHeredado)" explainText="$(string.Permitir_PdfCifradoHeredado_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_pdf_cifrado_heredado">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_RsaCorta" class="Machine" displayName="$(string.Permitir_RsaCorta)" explainText="$(string.Permitir_RsaCorta_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_rsa_corta">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_TsaHttp" class="Machine" displayName="$(string.Permitir_TsaHttp)" explainText="$(string.Permitir_TsaHttp_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_tsa_http">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_ProxyHttp" class="Machine" displayName="$(string.Permitir_ProxyHttp)" explainText="$(string.Permitir_ProxyHttp_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_proxy_http">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_TrifasicaHttp" class="Machine" displayName="$(string.Permitir_TrifasicaHttp)" explainText="$(string.Permitir_TrifasicaHttp_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_trifasica_http">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_CaInstalacionAutomatica" class="Machine" displayName="$(string.Permitir_CaInstalacionAutomatica)" explainText="$(string.Permitir_CaInstalacionAutomatica_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_ca_instalacion_automatica">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_CofirmaSinOriginal" class="Machine" displayName="$(string.Permitir_CofirmaSinOriginal)" explainText="$(string.Permitir_CofirmaSinOriginal_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_cofirma_sin_original">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_LlamanteDesarrollo" class="Machine" displayName="$(string.Permitir_LlamanteDesarrollo)" explainText="$(string.Permitir_LlamanteDesarrollo_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_llamante_desarrollo">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+    <policy name="Permitir_Pkcs11Experimental" class="Machine" displayName="$(string.Permitir_Pkcs11Experimental)" explainText="$(string.Permitir_Pkcs11Experimental_Help)" key="SOFTWARE\Policies\GrxFirma" valueName="permitir_pkcs11_experimental">
+      <parentCategory ref="Compatibilidad" />
+      <supportedOn ref="SUPPORTED_GrxFirma_0_0_126" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
   </policies>
 </policyDefinitions>

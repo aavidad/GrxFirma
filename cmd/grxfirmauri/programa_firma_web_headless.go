@@ -9,6 +9,8 @@ package main
 
 import "context"
 
+func presentProtocolNoticePlatform(context.Context, string) {}
+
 // Sin interfaz gráfica no se pregunta: firma GrxFirma, como antes.
 func mostrarEleccionProgramaFirmaWeb(context.Context, bool) (eleccionProgramaFirmaWeb, error) {
 	return eleccionProgramaFirmaWeb{}, errDialogoNoDisponible

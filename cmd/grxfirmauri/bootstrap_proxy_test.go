@@ -17,12 +17,16 @@ import (
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"grxfirma/internal/adapters/outbound/common/revocationclient"
+	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/internal/testsupport/tsatest"
 )
 
@@ -115,7 +119,11 @@ func TestResolverClienteHTTPRuntime_UsaClienteExistenteSinReleerSettings(t *test
 }
 
 func TestConstruirTSAClienteRuntime_E2EUsaProxySeguroCompartido(t *testing.T) {
-	t.Parallel()
+	for _, id := range []string{"tsa_http", "proxy_http"} {
+		e, _ := excepciones.Find(id)
+		machinepolicy.UnsetForTest(t, e.PolicyKey)
+		excepciones.SetForTest(t, id, true)
+	}
 
 	var (
 		proxySeen bool
@@ -160,8 +168,14 @@ func TestConstruirTSAClienteRuntime_E2EUsaProxySeguroCompartido(t *testing.T) {
 	client := construirClienteTrifasicoConDependencias("/tmp/config", loader, secrets)
 	tsa := construirTSAClienteRuntime(targetURL, client)
 	hash := crypto.SHA256.New().Sum(nil)
-	if _, err := tsa.RequestTimestamp(context.Background(), hash, crypto.SHA256); err != nil {
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	if _, err := tsa.RequestTimestamp(ctx, hash, crypto.SHA256); err != nil {
 		t.Fatalf("RequestTimestamp() error = %v", err)
+	}
+	for _, id := range []string{"tsa_http", "proxy_http"} {
+		if !slices.Contains(warnings.Claves(), excepciones.Warning(id)) {
+			t.Fatalf("falta aviso de %s en resultado: %v", id, warnings.Claves())
+		}
 	}
 
 	if !proxySeen {

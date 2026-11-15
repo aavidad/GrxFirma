@@ -17,6 +17,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/config"
 	"grxfirma/internal/adapters/outbound/desktop/afirmahandler"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
 )
 
 // Lote 15: con «Preguntar cada vez» (o la política de máquina que lo fija),
@@ -72,6 +73,13 @@ func decidirProgramaFirmaWeb(ctx context.Context, rawURI string) (bool, int) {
 		slog.WarnContext(ctx, "afirma_programa_firma_web_estado_fallido", "error", err)
 		return false, 0
 	}
+	if estado.PoliticaIlegible {
+		message := tl("excepciones.politica_ilegible.aviso")
+		avisos.Registrar(message, "")
+		setStartupTLSTrustNotice(detailWithStartupTLSTrustNotice(message))
+		_, _ = fmt.Fprintln(os.Stderr, message)
+		presentProtocolNoticePlatform(ctx, message)
+	}
 	switch estado.Efectiva {
 	case ports.ProgramaAfirmaAutoFirma:
 		return reenviarOFirmarConGrxFirma(ctx, sel, rawURI, "preferencia")
@@ -113,6 +121,11 @@ func reenviarOFirmarConGrxFirma(ctx context.Context, sel ports.ProtocoloAfirma, 
 	}
 	if err == nil {
 		slog.InfoContext(ctx, "afirma_reenviado_a_autofirma", "motivo", motivo)
+		message := tl("excepciones.autofirma.aviso")
+		avisos.Registrar(message, "")
+		setStartupTLSTrustNotice(detailWithStartupTLSTrustNotice(message))
+		_, _ = fmt.Fprintln(os.Stderr, message)
+		presentProtocolNoticePlatform(ctx, message)
 		return true, 0
 	}
 	slog.WarnContext(ctx, "afirma_reenvio_no_realizado", "motivo", motivo, "error", err)

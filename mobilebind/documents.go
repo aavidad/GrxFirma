@@ -123,7 +123,7 @@ func (f *Facade) ValidateVeriFactuJSON(payload string) (out string, err error) {
 		}
 		files[uniqueName(files, file.Name)] = data
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	result := commonsigner.ValidarRegistrosVeriFactu(ctx, files)
 	response := veriFactuValidateResponse{
@@ -238,7 +238,7 @@ func (f *Facade) CreateENIDocumentJSON(payload string) (out string, err error) {
 	if len(signature)+len(original) > maxENIInputBytes {
 		return "", newFacadeError("original_base64 supera el limite permitido")
 	}
-	doc, avisos, err := eniDocumentFromSignature(signature, original, req)
+	doc, avisos, err := eniDocumentFromSignature(signature, original, req, f.operationContext())
 	if err != nil {
 		return "", err
 	}
@@ -260,14 +260,18 @@ func (f *Facade) CreateENIDocumentJSON(payload string) (out string, err error) {
 
 // eniDocumentFromSignature reproduce DocumentoENIDesdeFirma de la CLI sin
 // arrastrar sus dependencias de escritorio y con errores cerrados.
-func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest) (doc eni.Documento, avisos []string, err error) {
+func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest, contexts ...context.Context) (doc eni.Documento, avisos []string, err error) {
+	cotejoCtx := context.Background()
+	if len(contexts) > 0 && contexts[0] != nil {
+		cotejoCtx = contexts[0]
+	}
 	trimmed := bytes.TrimLeft(signature, " \t\r\n\ufeff")
 	switch {
 	case bytes.HasPrefix(trimmed, []byte("%PDF-")):
 		if !bytes.Contains(signature, []byte("/ByteRange")) {
 			return doc, nil, newFacadeError(eniErrorUnsignedPDF)
 		}
-		if avisos, err = resolverCotejoMovil(commonsigner.ComprobarIntegridadPAdES(context.Background(), signature), "eni", eniErrorMismatch); err != nil {
+		if avisos, err = resolverCotejoMovil(commonsigner.ComprobarIntegridadPAdES(cotejoCtx, signature), "eni", eniErrorMismatch, contexts...); err != nil {
 			return doc, nil, err
 		}
 		doc.Contenido, doc.NombreFormato = signature, "PDF"
@@ -281,7 +285,7 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 			// El contenido sale del propio CMS: se coteja con el messageDigest
 			// y la firma de cada firmante para no envolver un eContent cambiado
 			// después de firmar (KD-05).
-			if avisos, err = resolverCotejoMovil(commonsigner.CotejarCAdESExplicita(signature, content), "eni", eniErrorMismatch); err != nil {
+			if avisos, err = resolverCotejoMovil(commonsigner.CotejarCAdESExplicita(signature, content), "eni", eniErrorMismatch, contexts...); err != nil {
 				return doc, nil, err
 			}
 			doc.Contenido = content
@@ -290,7 +294,7 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 			if len(original) == 0 {
 				return doc, nil, newFacadeError(eniErrorExplicitCAdES)
 			}
-			if avisos, err = resolverCotejoMovil(commonsigner.CotejarCAdESExplicita(signature, original), "eni", eniErrorMismatch); err != nil {
+			if avisos, err = resolverCotejoMovil(commonsigner.CotejarCAdESExplicita(signature, original), "eni", eniErrorMismatch, contexts...); err != nil {
 				return doc, nil, err
 			}
 			doc.Contenido = original
@@ -298,7 +302,7 @@ func eniDocumentFromSignature(signature, original []byte, req eniDocumentRequest
 		}
 	case bytes.HasPrefix(trimmed, []byte("<")) && bytes.Contains(signature, []byte("http://www.w3.org/2000/09/xmldsig#")):
 		if len(original) > 0 {
-			if avisos, err = resolverCotejoMovil(commonsigner.CotejarXAdESSeparada(signature, original), "eni", eniErrorMismatch); err != nil {
+			if avisos, err = resolverCotejoMovil(commonsigner.CotejarXAdESSeparada(signature, original, cotejoCtx), "eni", eniErrorMismatch, contexts...); err != nil {
 				return doc, nil, err
 			}
 			doc.Contenido = original

@@ -19,6 +19,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 )
 
 // Cofirma y contrafirma CAdES como las hace AutoFirma Java (AOCAdESSigner):
@@ -79,6 +80,11 @@ func cosignCAdES(existing, original []byte, key *LocalSigningKey, spec cmsHashSp
 // original que puede usar la cofirma, o nil si no lo hay o no hace falta.
 func originalCofirmaCotejado(ctx context.Context, existing, original []byte) ([]byte, error) {
 	if len(original) == 0 {
+		if _, implicita, err := ContenidoCAdESImplicito(existing); err == nil && !implicita {
+			if err := excepciones.Require(ctx, "cofirma_sin_original"); err != nil {
+				return nil, err
+			}
+		}
 		return nil, nil
 	}
 	if _, implicita, err := ContenidoCAdESImplicito(existing); err != nil || implicita {
@@ -86,13 +92,13 @@ func originalCofirmaCotejado(ctx context.Context, existing, original []byte) ([]
 		// después con su propio error): el original no se usa.
 		return nil, nil
 	}
-	aviso, err := AdmitirCotejoSHA1(CotejarCAdESExplicita(existing, original), "cofirma")
+	aviso, err := AdmitirCotejoSHA1(CotejarCAdESExplicita(existing, original), "cofirma", ctx)
 	if err != nil {
 		slog.Warn("cofirma_original_no_corresponde", "error", err)
 		return nil, err
 	}
 	if aviso {
-		domain.AnotarAviso(ctx, AvisoFirmaSHA1Corresponde)
+		domain.AnotarAviso(ctx, excepciones.Warning("sha1_conservar"))
 	}
 	return original, nil
 }
@@ -113,9 +119,8 @@ func avisarCofirmaSinDocumento(ctx context.Context, existing []byte) {
 		return
 	}
 	slog.Warn("cofirma_cades_sin_documento")
-	domain.AnotarAviso(ctx, domain.AvisoCofirmaSinOriginal)
 	t := localizador.Detectar()
-	avisos.Registrar(t.T("firma.cofirma_sin_original.aviso_titulo"), t.T(domain.AvisoCofirmaSinOriginal))
+	avisos.Registrar(t.T("firma.cofirma_sin_original.aviso_titulo"), t.T(excepciones.Warning("cofirma_sin_original")))
 }
 
 func countersignCAdES(existing []byte, key *LocalSigningKey, spec cmsHashSpec, now time.Time) ([]byte, error) {

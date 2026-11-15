@@ -18,6 +18,8 @@ import (
 	"strings"
 
 	"grxfirma/internal/adapters/outbound/common/logging"
+	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 )
 
 // Llamantes integrados en el binario. El inventario, con su titular y lo que
@@ -149,9 +151,15 @@ func nativeCallerFromArgs(args []string, policy nativeCallerPolicy) (string, err
 		return "", errors.New("el navegador no proporcionó la identidad de la extensión")
 	}
 	if caller, ok := chromiumCaller(args, policy); ok {
+		if !policy.isOfficialCaller(caller) {
+			avisos.Registrar(excepciones.Warning("llamante_desarrollo"), "")
+		}
 		return caller, nil
 	}
 	if caller, ok := firefoxCaller(args, policy); ok {
+		if !policy.isOfficialCaller(caller) {
+			avisos.Registrar(excepciones.Warning("llamante_desarrollo"), "")
+		}
 		return caller, nil
 	}
 	return "", errors.New("la identidad de la extensión no está autorizada")
@@ -215,7 +223,7 @@ func firefoxCaller(args []string, policy nativeCallerPolicy) (string, bool) {
 
 func nativeCallerDevelopmentAllowed() bool {
 	return envBool("GRXFIRMA_NATIVEHOST_ALLOW_DEVELOPMENT_CALLER", false) &&
-		logging.DebugAllowed()
+		logging.DebugAllowed() && excepciones.Enabled("llamante_desarrollo")
 }
 
 func installedChromiumIDCandidates(executable string) []string {

@@ -151,8 +151,9 @@ type NotifyUserResult struct {
 
 // ManageTrustedDomainResult resume la operacion aplicada sobre un origen.
 type ManageTrustedDomainResult struct {
-	Origin string
-	Action TrustAction
+	Warnings []string
+	Origin   string
+	Action   TrustAction
 }
 
 // ImportCertificateResult resume el certificado importado correctamente.

@@ -8,6 +8,8 @@ package regression_test
 import (
 	"context"
 	"encoding/json"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -217,7 +219,8 @@ func TestXAdES_QA_IntegridadVerificablePorV2(t *testing.T) {
 // @firma o VALIDe la rechazarían. Debe verificarse como compatibilidad
 // histórica, nunca como íntegra, y sin dejar de identificar al firmante.
 func TestXAdES_QA_FirmaHistoricaNoEstandarSeMarca(t *testing.T) {
-	t.Parallel()
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", true)
 	fixturePath := filepath.Join("fixtures", "v1", "samples", "2_xml_signed.xsig")
 	data, err := os.ReadFile(fixturePath)
 	if err != nil {
@@ -231,7 +234,7 @@ func TestXAdES_QA_FirmaHistoricaNoEstandarSeMarca(t *testing.T) {
 	if err != nil {
 		t.Fatalf("la verificación no debe fallar: %v", err)
 	}
-	if result.Valid || result.Integrity.Status != domain.VerificationStatusWarning || !strings.Contains(result.Integrity.Reason, "Compatibilidad histórica") {
+	if result.Valid || result.Integrity.Status != domain.VerificationStatusWarning || result.Integrity.Reason != excepciones.Warning("xml_c14n_antigua") {
 		t.Fatalf("se esperaba compatibilidad histórica, obtenido valid=%v integridad=%+v", result.Valid, result.Integrity)
 	}
 	if len(signers) == 0 {

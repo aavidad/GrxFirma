@@ -97,6 +97,7 @@ func (p *ProveedorAnclas) Anchors(ctx context.Context) (domain.CertificateChain,
 	if p == nil {
 		return domain.CertificateChain{}, nil
 	}
+	domain.AnotarAviso(ctx, "excepciones.anclas_locales.aviso")
 	copia := make([][]byte, len(p.der))
 	for i := range p.der {
 		copia[i] = bytes.Clone(p.der[i])

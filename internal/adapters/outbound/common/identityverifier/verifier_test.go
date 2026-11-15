@@ -12,6 +12,8 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"math/big"
 	"testing"
 	"time"
@@ -87,6 +89,8 @@ func TestVerificadorRechazaCAdESImplicitoSobreOtroContenido(t *testing.T) {
 // Lote 13b: el verificador CAdES admite SHA-1 para leer firmas antiguas, pero
 // una prueba de identidad con SHA-1 se sigue rechazando.
 func TestVerificadorRechazaPruebaConSHA1(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_sha1_leer")
+	excepciones.SetForTest(t, "sha1_leer", true)
 	fixture := nuevaFixtureVerificador(t, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, []asn1.ObjectIdentifier{oidPoliticaPrueba})
 	datos, err := pkcs7.NewSignedData(fixture.reto.ContenidoCanonico)
 	if err != nil {

@@ -18,6 +18,7 @@ import (
 	"grxfirma/internal/adapters/outbound/desktop/pkcs11worker"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 )
 
 var (
@@ -147,6 +148,9 @@ func (r *Runtime) KeyFor(ctx context.Context, ref domain.CertificateRef) (ports.
 	r.mu.Unlock()
 	if !ok || !strings.EqualFold(selected.reference.Fingerprint, ref.Fingerprint) {
 		return nil, ErrIdentityUnknown
+	}
+	if err := excepciones.Require(ctx, "pkcs11_experimental"); err != nil {
+		return nil, err
 	}
 	// Use the catalog's original ref, never a subject or label submitted by a
 	// web client. The PIN source is bound to exactly this module and identity.

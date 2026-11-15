@@ -55,6 +55,7 @@ func TestXAdESVerifier_VerificaFirmaGeneradaPorV2(t *testing.T) {
 }
 
 func TestXAdESVerifier_VerificaFixtureQA(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	fixturePath := filepath.Join("..", "..", "..", "..", "..", "test", "regression", "fixtures", "v1", "samples", "2_xml_signed.xsig")
 	xmlData, err := os.ReadFile(fixturePath)
 	if err != nil {

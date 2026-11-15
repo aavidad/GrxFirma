@@ -199,7 +199,7 @@ func NewWithOptions(configDir string, opts Options) (*GestorConfianza, error) {
 //  1. Allowlist del sistema → TrustAllowed
 //  2. Decisiones persistidas del usuario → TrustAllowed o TrustDenied
 //  3. Origen desconocido → TrustPending (o error en modo headless / TOFU deshabilitado)
-func (g *GestorConfianza) Evaluate(_ context.Context, origin string) (domain.TrustDecision, error) {
+func (g *GestorConfianza) Evaluate(ctx context.Context, origin string) (domain.TrustDecision, error) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -212,6 +212,9 @@ func (g *GestorConfianza) Evaluate(_ context.Context, origin string) (domain.Tru
 	}
 
 	if patron, status, ok := g.findUserDecision(origin); ok {
+		if status == domain.TrustAllowed {
+			domain.AnotarAviso(ctx, "excepciones.origen_usuario.aviso")
+		}
 		reason := "decision persistida del usuario"
 		return domain.TrustDecision{
 			Origin: origin,
@@ -297,12 +300,16 @@ func (g *GestorConfianza) DecisionsSnapshot() []domain.TrustDecision {
 }
 
 // Allow persiste la decision de confianza "allowed" para el origen y la guarda en disco.
-func (g *GestorConfianza) Allow(_ context.Context, origin string) error {
+func (g *GestorConfianza) Allow(ctx context.Context, origin string) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
 	g.userDecisions[origin] = domain.TrustAllowed
-	return g.saveUserDecisions()
+	if err := g.saveUserDecisions(); err != nil {
+		return err
+	}
+	domain.AnotarAviso(ctx, "excepciones.origen_usuario.aviso")
+	return nil
 }
 
 // Deny persiste la decision de confianza "denied" para el origen y la guarda en disco.

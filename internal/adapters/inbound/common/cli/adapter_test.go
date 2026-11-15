@@ -152,7 +152,7 @@ type dominiosMock struct {
 
 func (m *dominiosMock) Execute(_ context.Context, cmd application.ManageTrustedDomainCommand) (application.ManageTrustedDomainResult, error) {
 	m.llamadas = append(m.llamadas, cmd)
-	return application.ManageTrustedDomainResult(cmd), nil
+	return application.ManageTrustedDomainResult{Origin: cmd.Origin, Action: cmd.Action}, nil
 }
 
 type dirHashCheckMock struct{}

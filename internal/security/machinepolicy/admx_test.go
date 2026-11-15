@@ -61,6 +61,12 @@ func TestPlantillaADMXCoherente(t *testing.T) {
 		PermitirOrigenVacio, PermitirDESLegacy, PermitirRutasDirectas, AprobacionAutomaticaHost,
 		PermitirSHA1Legacy, PermitirCMSAESECBLegacy, FirmaRemotaCSC, FirmaRemotaCSCOAuth, FirmaRemotaCSCServicios,
 		ProhibirCifradoCMSHeredado, TSAPermitidas,
+		"permitir_cms_cifrado_heredado", "permitir_cms_cbc", "permitir_cms_rsa_v15_crear", "permitir_cms_rsa_v15_leer",
+		"permitir_afp_aad_ambigua", "permitir_alto_clave_fichero_crear", "permitir_alto_clave_fichero_leer",
+		"permitir_ca_clave_fichero", "permitir_sha1_leer", "permitir_xml_c14n_antigua",
+		"permitir_pdf_cifrado_heredado", "permitir_rsa_corta", "permitir_tsa_http", "permitir_proxy_http",
+		"permitir_trifasica_http", "permitir_ca_instalacion_automatica", "permitir_cofirma_sin_original",
+		"permitir_llamante_desarrollo", "permitir_pkcs11_experimental",
 	}
 	for _, v := range esperados {
 		if !cubiertos[v] {
@@ -113,7 +119,7 @@ func TestPlantillaADMXCoherente(t *testing.T) {
 				t.Errorf("%s: falta la presentación %s", idioma, id)
 			}
 		}
-		if strings.Count(string(adml), "REBAJA LA SEGURIDAD")+strings.Count(string(adml), "LOWERS SECURITY") != 6 {
+		if strings.Count(string(adml), "REBAJA LA SEGURIDAD")+strings.Count(string(adml), "LOWERS SECURITY") != 25 {
 			t.Errorf("%s: cada excepción de compatibilidad debe advertir que rebaja la seguridad", idioma)
 		}
 	}

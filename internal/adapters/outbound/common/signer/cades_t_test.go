@@ -124,6 +124,7 @@ func verificaTimestampEnSignerInfo(t *testing.T, cmsData []byte) {
 }
 
 func TestCAdESTPreservesCoSignersAndCounterSignatures(t *testing.T) {
+	activarExcepcionPrueba(t, "cofirma_sin_original")
 	original := []byte("documento de prueba")
 	first, _ := firmarCAdESParaPrueba(t, original, domain.ActionSign, "A", nil)
 	co, _ := firmarCAdESParaPrueba(t, first, domain.ActionCoSign, "B", nil)

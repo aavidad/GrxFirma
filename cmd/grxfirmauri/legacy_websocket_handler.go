@@ -38,7 +38,7 @@ import (
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/cryptopolicy"
-	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/presentation/desktop/certpicker"
 )
 
@@ -1170,6 +1170,10 @@ func legacyRemoteBatchErrorResult(err error) string {
 	if err == nil {
 		return "SAF_27: Error en la firma por lotes"
 	}
+	var blocked *excepciones.Block
+	if errors.As(err, &blocked) {
+		return "SAF_27: " + blocked.Error()
+	}
 	if isLegacySHA1Failure(err) {
 		return legacySHA1BlockedResponse
 	}
@@ -1202,6 +1206,12 @@ func presentLegacySHA1Failure(action string, err error) bool {
 	if presentLegacyDocumentoNoPDF(action, err) {
 		return true
 	}
+	var blocked *excepciones.Block
+	if errors.As(err, &blocked) {
+		setProtocolPhase("sign_execute", tl(legacySHA1BlockedTitleID), blocked.Error())
+		protocolDiagnosticPersistFailure(action, err)
+		return true
+	}
 	if !isLegacySHA1Failure(err) {
 		return false
 	}
@@ -1217,8 +1227,11 @@ func presentLegacySHA1Failure(action string, err error) bool {
 func (h *legacyWebSocketHandler) handleLoad(ctx context.Context, solicitud afirmauri.Solicitud) string {
 	paths := splitLegacyLoadPaths(legacyQueryParam(solicitud.LegacyParams, "filePath", "filepath", "file", "fileName"))
 	elegidasPorUsuario := false
-	if len(paths) > 0 && !legacyDirectPathsEnabled() {
-		return "SAF_25: Las rutas directas del protocolo están deshabilitadas"
+	if len(paths) > 0 {
+		if err := excepciones.Require(ctx, "rutas_directas"); err != nil {
+			return "SAF_25: " + err.Error()
+		}
+		avisos.Registrar(tl("excepciones.rutas_directas.aviso"), "")
 	}
 	if len(paths) == 0 {
 		multiload := parseLegacyBool(legacyQueryParam(solicitud.LegacyParams, "multiload", "multiLoad", "multiple", "multi"))
@@ -1593,23 +1606,17 @@ func buildSafeLegacyTargetPath(values url.Values, defaultName, fallbackExt strin
 	if !filepath.IsAbs(cleanExplicit) {
 		return filepath.Join(downloads, sanitizeLegacyFilename(cleanExplicit, fallbackExt)), nil
 	}
-	if !legacyDirectPathsEnabled() {
-		return "", fmt.Errorf("las rutas directas del protocolo están deshabilitadas")
+	if err := excepciones.Check("rutas_directas"); err != nil {
+		return "", err
 	}
 	if isPathWithinAllowedRoots(cleanExplicit, home, os.TempDir()) {
+		avisos.Registrar(tl("excepciones.rutas_directas.aviso"), "")
 		if filepath.Ext(cleanExplicit) == "" && fallbackExt != "" {
 			cleanExplicit += fallbackExt
 		}
 		return cleanExplicit, nil
 	}
 	return filepath.Join(downloads, sanitizeLegacyFilename(filepath.Base(cleanExplicit), fallbackExt)), nil
-}
-
-// legacyDirectPathsEnabled permite que el portal indique rutas locales
-// concretas. Solo un administrador puede habilitarlo mediante la política de
-// máquina; GRXFIRMA_ENABLE_LEGACY_DIRECT_PATHS no basta.
-func legacyDirectPathsEnabled() bool {
-	return machinepolicy.OptIn(machinepolicy.PermitirRutasDirectas)
 }
 
 func sanitizeLegacyFilename(name, fallbackExt string) string {

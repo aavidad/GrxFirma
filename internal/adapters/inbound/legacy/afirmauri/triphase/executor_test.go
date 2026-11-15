@@ -12,17 +12,52 @@ import (
 	"crypto/aes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
+
+func permitirHTTPTrifasica(t *testing.T) {
+	t.Helper()
+	machinepolicy.UnsetForTest(t, "permitir_trifasica_http")
+	excepciones.SetForTest(t, "trifasica_http", true)
+}
+
+func assertHTTPTrifasicaWarning(t *testing.T, warnings *domain.AvisosOperacion) {
+	t.Helper()
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("trifasica_http")) {
+		t.Fatalf("falta aviso HTTP en resultado de operación: %v", warnings.Claves())
+	}
+}
+
+func assertNoHTTPTrifasicaWarning(t *testing.T, warnings *domain.AvisosOperacion) {
+	t.Helper()
+	if slices.Contains(warnings.Claves(), excepciones.Warning("trifasica_http")) {
+		t.Fatalf("se avisó de HTTP sin iniciar la operación: %v", warnings.Claves())
+	}
+}
+
+func TestExecuteCanceladoAntesDeRedNoAnotaAvisoHTTP(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, warnings := domain.ConAvisosOperacion(context.Background())
+	ctx, cancel := context.WithCancel(operationCtx)
+	cancel()
+	session := sesionTest("http://servidor.example/retrieve", "http://servidor.example/upload", "")
+	if _, err := New(nil).Execute(ctx, session, jobTest()); !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancelación previa: %v", err)
+	}
+	assertNoHTTPTrifasicaWarning(t, warnings)
+}
 
 // ---- Mocks ----------------------------------------------------------------
 
@@ -35,7 +70,7 @@ type mockSigningKey struct {
 
 func (k *mockSigningKey) KeyID() string { return k.id }
 func (k *mockSigningKey) CertificateChainDER() [][]byte {
-	return [][]byte{[]byte("cert-der")}
+	return [][]byte{validTriphaseTestCertificateDER()}
 }
 func (k *mockSigningKey) SignDigest(digest []byte, hash crypto.Hash) ([]byte, error) {
 	if k.signErr != nil {
@@ -106,6 +141,8 @@ func presignResponseJSON(hashB64 string) []byte {
 
 // TestFlujoCompletoSinCifrado verifica el flujo completo con datos en claro.
 func TestFlujoCompletoSinCifrado(t *testing.T) {
+	permitirHTTPTrifasica(t)
+
 	docOriginal := []byte("documento original de prueba")
 	docB64 := base64.StdEncoding.EncodeToString(docOriginal)
 	hashB64 := base64.StdEncoding.EncodeToString([]byte("hash-del-documento"))
@@ -151,11 +188,15 @@ func TestFlujoCompletoSinCifrado(t *testing.T) {
 
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, "")
-	ctx := ContextWithSigningKey(context.Background(), &mockSigningKey{id: "test"})
+	operationCtx, warnings := domain.ConAvisosOperacion(context.Background())
+	ctx := ContextWithSigningKey(operationCtx, &mockSigningKey{id: "test"})
 
 	result, err := executor.Execute(ctx, sesion, jobTest())
 	if err != nil {
 		t.Fatalf("Execute: error inesperado: %v", err)
+	}
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("trifasica_http")) {
+		t.Fatalf("falta aviso por operación HTTP: %v", warnings.Claves())
 	}
 
 	if !retrieveCalled {
@@ -295,7 +336,8 @@ func TestUploadCertificateSinClaveHaceFallbackLegacyConCert(t *testing.T) {
 }
 
 func TestDoLegacyBatchPOST_ReintentaConClienteFallbackAnteErrorDeProtocolo(t *testing.T) {
-	t.Parallel()
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
 
 	var fallbackVisto bool
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -315,7 +357,7 @@ func TestDoLegacyBatchPOST_ReintentaConClienteFallbackAnteErrorDeProtocolo(t *te
 	}
 	executor.fallbackHTTPClient = srv.Client()
 
-	body, status, err := executor.doLegacyBatchPOST(context.Background(), srv.URL+"/StorageService", strings.NewReader("op=put&id=req-batch&dat=%23WAIT"))
+	body, status, err := executor.doLegacyBatchPOST(operationCtx, srv.URL+"/StorageService", strings.NewReader("op=put&id=req-batch&dat=%23WAIT"))
 	if err != nil {
 		t.Fatalf("doLegacyBatchPOST: error inesperado: %v", err)
 	}
@@ -331,6 +373,7 @@ func TestDoLegacyBatchPOST_ReintentaConClienteFallbackAnteErrorDeProtocolo(t *te
 	if got := strings.TrimSpace(string(body)); got != "OK" {
 		t.Fatalf("body=%q, want %q", got, "OK")
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestRetrieveRaw_ReintentaConClienteFallbackAnteEOF(t *testing.T) {
@@ -370,6 +413,9 @@ func TestRetrieveRaw_ReintentaConClienteFallbackAnteEOF(t *testing.T) {
 }
 
 func TestFlujoCompletoUsaClaveDelContexto(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	docB64 := base64.StdEncoding.EncodeToString([]byte("documento"))
 	hashB64 := base64.StdEncoding.EncodeToString([]byte("hash"))
 
@@ -405,18 +451,22 @@ func TestFlujoCompletoUsaClaveDelContexto(t *testing.T) {
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, "")
 
-	ctx := ContextWithSigningKey(context.Background(), clave)
+	ctx := ContextWithSigningKey(operationCtx, clave)
 	if _, err := executor.Execute(ctx, sesion, jobTest()); err != nil {
 		t.Fatalf("Execute con clave en contexto: error inesperado: %v", err)
 	}
 	if len(digestRecibido) == 0 {
 		t.Fatal("la clave de contexto no fue usada para firmar el presign")
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 // TestFlujoCompletoConCifrado verifica que los datos se descifran correctamente
 // cuando la sesión tiene una clave AES.
 func TestFlujoCompletoConCifrado(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	docOriginal := []byte("documento cifrado de prueba")
 	docB64 := base64.StdEncoding.EncodeToString(docOriginal)
 	hashB64 := base64.StdEncoding.EncodeToString([]byte("hash"))
@@ -451,12 +501,13 @@ func TestFlujoCompletoConCifrado(t *testing.T) {
 
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, claveSessionHex)
-	ctx := ContextWithSigningKey(context.Background(), &mockSigningKey{id: "test"})
+	ctx := ContextWithSigningKey(operationCtx, &mockSigningKey{id: "test"})
 
 	_, err = executor.Execute(ctx, sesion, jobTest())
 	if err != nil {
 		t.Fatalf("Execute con cifrado: error inesperado: %v", err)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestRequiereDescifradoSesion_NoConfundeCiphertextConTextoPlano(t *testing.T) {
@@ -475,6 +526,9 @@ func TestRequiereDescifradoSesion_NoConfundeCiphertextConTextoPlano(t *testing.T
 
 // TestRetrieveError500 verifica que un HTTP 500 en retrieve devuelve error controlado.
 func TestRetrieveError500(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error interno del servidor", http.StatusInternalServerError)
 	}))
@@ -483,7 +537,7 @@ func TestRetrieveError500(t *testing.T) {
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, "")
 
-	_, err := executor.Execute(context.Background(), sesion, jobTest())
+	_, err := executor.Execute(operationCtx, sesion, jobTest())
 	if err == nil {
 		t.Fatal("Execute: deberia fallar con HTTP 500 en retrieve")
 	}
@@ -493,11 +547,15 @@ func TestRetrieveError500(t *testing.T) {
 	if !strings.Contains(err.Error(), "500") {
 		t.Errorf("el error deberia mencionar el codigo HTTP 500: %v", err)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 // TestCancelacionPorContexto verifica que la cancelación del contexto durante
 // el retrieve propaga correctamente el error de contexto.
 func TestCancelacionPorContexto(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	// Servidor que cuelga indefinidamente.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Bloquear hasta que el test cancele.
@@ -508,7 +566,7 @@ func TestCancelacionPorContexto(t *testing.T) {
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, "")
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(operationCtx)
 	// Cancelar el contexto inmediatamente.
 	cancel()
 
@@ -519,6 +577,7 @@ func TestCancelacionPorContexto(t *testing.T) {
 	if !strings.Contains(err.Error(), "context") && !strings.Contains(err.Error(), "canceled") && !strings.Contains(err.Error(), "cancel") {
 		t.Errorf("el error deberia indicar cancelacion de contexto: %v", err)
 	}
+	assertNoHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 // TestDescifradoAES128CBC verifica que el descifrado AES produce los datos originales.
@@ -543,6 +602,9 @@ func TestDescifradoAES128CBC(t *testing.T) {
 // TestSinSessionKeySinDescifrado verifica que con SessionKey vacía los datos
 // se usan directamente sin intentar descifrar.
 func TestSinSessionKeySinDescifrado(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	docB64 := base64.StdEncoding.EncodeToString([]byte("documento en claro"))
 	hashB64 := base64.StdEncoding.EncodeToString([]byte("hash"))
 
@@ -569,16 +631,20 @@ func TestSinSessionKeySinDescifrado(t *testing.T) {
 	executor := New(srv.Client())
 	// SessionKey vacía: datos en claro.
 	sesion := sesionTest(srv.URL, srv.URL, "")
-	ctx := ContextWithSigningKey(context.Background(), &mockSigningKey{id: "test"})
+	ctx := ContextWithSigningKey(operationCtx, &mockSigningKey{id: "test"})
 
 	_, err := executor.Execute(ctx, sesion, jobTest())
 	if err != nil {
 		t.Fatalf("Execute sin clave de sesion: error inesperado: %v", err)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 // TestPresignError400 verifica que un HTTP 400 en presign devuelve error controlado.
 func TestPresignError400(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	docB64 := base64.StdEncoding.EncodeToString([]byte("doc"))
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -594,17 +660,21 @@ func TestPresignError400(t *testing.T) {
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, "")
 
-	_, err := executor.Execute(context.Background(), sesion, jobTest())
+	_, err := executor.Execute(operationCtx, sesion, jobTest())
 	if err == nil {
 		t.Fatal("Execute: deberia fallar con HTTP 400 en presign")
 	}
 	if !strings.Contains(err.Error(), "presign") {
 		t.Errorf("el error deberia mencionar 'presign': %v", err)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 // TestSignerErrorPropagado verifica que un error del motor de firma se propaga.
 func TestSignerErrorPropagado(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	docB64 := base64.StdEncoding.EncodeToString([]byte("doc"))
 	hashB64 := base64.StdEncoding.EncodeToString([]byte("hash"))
 
@@ -625,7 +695,7 @@ func TestSignerErrorPropagado(t *testing.T) {
 	}
 	executor := New(srv.Client())
 	sesion := sesionTest(srv.URL, srv.URL, "")
-	ctx := ContextWithSigningKey(context.Background(), claveConError)
+	ctx := ContextWithSigningKey(operationCtx, claveConError)
 
 	_, err := executor.Execute(ctx, sesion, jobTest())
 	if err == nil {
@@ -634,9 +704,13 @@ func TestSignerErrorPropagado(t *testing.T) {
 	if !strings.Contains(err.Error(), "firma local") {
 		t.Errorf("el error deberia mencionar 'firma local': %v", err)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestFlujoCompleto_TrasladaExtraParamsRetrieveALaFirmaLocal(t *testing.T) {
+	permitirHTTPTrifasica(t)
+	operationCtx, operationWarnings := domain.ConAvisosOperacion(context.Background())
+
 	docB64 := base64.StdEncoding.EncodeToString([]byte("documento"))
 	hashB64 := base64.StdEncoding.EncodeToString([]byte("hash"))
 
@@ -673,7 +747,7 @@ func TestFlujoCompleto_TrasladaExtraParamsRetrieveALaFirmaLocal(t *testing.T) {
 	// directa. El formato indicado por el retrieve (XAdES) se usa en el resultado
 	// final pero NO se pasa al motor de formato porque el ensamblado lo hace el servidor.
 	executor := New(srv.Client())
-	ctx := ContextWithSigningKey(context.Background(), &mockSigningKey{id: "test"})
+	ctx := ContextWithSigningKey(operationCtx, &mockSigningKey{id: "test"})
 
 	result, err := executor.Execute(ctx, sesionTest(srv.URL, srv.URL, ""), jobTest())
 	if err != nil {
@@ -682,6 +756,7 @@ func TestFlujoCompleto_TrasladaExtraParamsRetrieveALaFirmaLocal(t *testing.T) {
 	if result.Format != domain.SignatureFormat("XAdES") {
 		t.Fatalf("formato incorrecto: esperado XAdES, obtenido %s", result.Format)
 	}
+	assertHTTPTrifasicaWarning(t, operationWarnings)
 }
 
 func TestUploadCertificateConClaveNoEnviaClaveNiCertificadoEnClaro(t *testing.T) {

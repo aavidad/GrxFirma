@@ -85,6 +85,7 @@ func requireCompatibility(t *testing.T, result domain.VerificationResult) {
 }
 
 func TestXMLAssessment_DeclaredRawAndHistoricalCompatibility(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	key, cert := certForTest(t, "XML assessment synthetic")
 	// XML sin canonicalizar: el raw normativo difiere de C14N (autocierre y
 	// namespace no usado). No debe degradarse por ser el último candidato viejo.
@@ -179,6 +180,7 @@ func TestXMLAssessment_DoesNotOmitIncompleteAdditionalSignature(t *testing.T) {
 }
 
 func TestXMLAssessment_ASiCKeepsHistoricalDiagnosisAndRejectsTampering(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	key, cert := certForTest(t, "ASiC compatibility synthetic")
 	payload := []byte(`<payload xmlns:unused="urn:unused"><item/></payload>`)
 	signed, err := buildASiCXAdESSignatureXML(&LocalSigningKey{Signer: key, Certificate: cert}, "payload.xml", payload, "application/xml", time.Now())
@@ -233,6 +235,7 @@ func TestXMLAssessment_ASiCKeepsHistoricalDiagnosisAndRejectsTampering(t *testin
 }
 
 func TestXMLAssessment_OOXMLSeparateSignatureEntriesAggregateCompatibility(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	key, cert := certForTest(t, "OOXML separate synthetic")
 	payload := []byte("synthetic")
 	entries := map[string][]byte{
@@ -505,6 +508,7 @@ func TestXMLAssessment_InheritedAlternativeNamespacePrefix(t *testing.T) {
 }
 
 func TestXMLAssessment_OfficeMultiSignatureContextAndCompatibility(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	key, cert := certForTest(t, "Office multi synthetic")
 	payload := []byte(`<payload><item/></payload>`)
 	for _, format := range []string{"ODF", "OOXML"} {

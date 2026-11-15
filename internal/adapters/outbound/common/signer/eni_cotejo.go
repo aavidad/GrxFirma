@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"grxfirma/internal/domain"
-	"grxfirma/internal/security/cryptopolicy"
+	"grxfirma/internal/security/excepciones"
 )
 
 // ErrFirmaNoCorrespondeOriginal indica que la firma no cubre el documento
@@ -35,27 +35,33 @@ var ErrFirmaCorrespondeConSHA1 = errors.New("la firma corresponde al documento, 
 
 // ErrCotejoSHA1Prohibido indica que la firma corresponde, usa SHA-1 y la
 // política de máquina lo prohíbe (permitir_sha1_legacy deshabilitada).
-var ErrCotejoSHA1Prohibido = errors.New("la firma usa SHA-1 y la política de este equipo no lo admite")
+var ErrCotejoSHA1Prohibido = errors.New("excepciones.sha1_conservar.bloqueo")
 
 // AvisoFirmaSHA1Corresponde es la clave de catálogo del aviso que acompaña a
 // un cotejo admitido con SHA-1.
-const AvisoFirmaSHA1Corresponde = "firma.sha1_corresponde.aviso"
+var AvisoFirmaSHA1Corresponde = excepciones.Warning("sha1_conservar")
 
 // AdmitirCotejoSHA1 resuelve el resultado de un cotejo. Con
 // ErrFirmaCorrespondeConSHA1 devuelve aviso=true y err=nil, salvo que la
 // política lo prohíba (ErrCotejoSHA1Prohibido); deja constancia en el
 // registro. Cualquier otro error se devuelve tal cual.
-func AdmitirCotejoSHA1(err error, operacion string) (aviso bool, errFinal error) {
+func AdmitirCotejoSHA1(err error, operacion string, contexts ...context.Context) (aviso bool, errFinal error) {
 	if !errors.Is(err, ErrFirmaCorrespondeConSHA1) {
 		return false, err
 	}
-	if cryptopolicy.LegacySHA1Prohibited() {
+	if err := excepciones.Check("sha1_conservar", contexts...); err != nil {
 		slog.Warn("cotejo_firma_sha1_prohibido", "operacion", operacion)
-		return false, ErrCotejoSHA1Prohibido
+		return false, cotejoSHA1Bloqueado{err}
 	}
 	slog.Warn("cotejo_firma_sha1_admitido", "operacion", operacion)
 	return true, nil
 }
+
+type cotejoSHA1Bloqueado struct{ causa error }
+
+func (e cotejoSHA1Bloqueado) Error() string        { return e.causa.Error() }
+func (e cotejoSHA1Bloqueado) Unwrap() error        { return e.causa }
+func (e cotejoSHA1Bloqueado) Is(target error) bool { return target == ErrCotejoSHA1Prohibido }
 
 // CotejarCAdESExplicita comprueba que el atributo messageDigest de cada
 // firmante coincide con el resumen del original y que la firma de los
@@ -110,17 +116,25 @@ func CotejarCAdESExplicita(cmsDER, original []byte) error {
 // tomando el original para las referencias externas. Si la firma lleva el
 // documento dentro de CONTENT (modo compatible con AutoFirma Java), exige que
 // alguna referencia lo cubra y que su contenido sea el original.
-func CotejarXAdESSeparada(firma, original []byte) error {
+func CotejarXAdESSeparada(firma, original []byte, contexts ...context.Context) error {
 	if len(original) == 0 {
 		return ErrFirmaNoCorrespondeOriginal
+	}
+	ctx := context.Background()
+	if len(contexts) > 0 && contexts[0] != nil {
+		ctx = contexts[0]
 	}
 	externa := false
 	resolver := func(string) ([]byte, error) {
 		externa = true
 		return original, nil
 	}
-	verificacion, err := verifyXMLSignatureDocument(context.Background(), firma, false, resolver, domain.CertificateChain{}, string(domain.FormatXAdES), "", nil, coberturaDelContenedor)
+	verificacion, err := verifyXMLSignatureDocument(ctx, firma, false, resolver, domain.CertificateChain{}, string(domain.FormatXAdES), "", nil, coberturaDelContenedor)
 	if err != nil {
+		var block *excepciones.Block
+		if errors.As(err, &block) {
+			return err
+		}
 		return ErrFirmaNoCorrespondeOriginal
 	}
 	if !externa && !contenidoInternoCoincide(firma, original) {
@@ -265,6 +279,13 @@ func ComprobarIntegridadPAdES(ctx context.Context, pdf []byte) error {
 		return ErrFirmaNoCorrespondeOriginal
 	}
 	result, _, err := verifier.Verify(ctx, doc, domain.CertificateChain{})
+	if err == nil {
+		for _, mensaje := range append(append([]string{result.Reason}, result.Errors...), result.Warnings...) {
+			if block := excepciones.FromText(mensaje); block != nil && block.ID == "sha1_leer" {
+				return block
+			}
+		}
+	}
 	if err != nil || result.Integrity.Status == domain.VerificationStatusInvalid {
 		return ErrFirmaNoCorrespondeOriginal
 	}

@@ -15,6 +15,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"grxfirma/internal/domain"
 	"math/big"
 	"net"
 	"net/http"
@@ -27,6 +28,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/secmem"
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
+	"grxfirma/internal/security/excepciones"
 )
 
 const (
@@ -40,6 +42,7 @@ const (
 
 // TLSServer expone el servidor y los artefactos del certificado local.
 type TLSServer struct {
+	Warnings []string
 	Server   *http.Server
 	Addr     string
 	CertFile string
@@ -84,7 +87,8 @@ func ManagedLocalhostCAFile(certDir string) string {
 }
 
 func startTLSServer(ctx context.Context, addr string, handler http.Handler, certDir string, minVersion uint16) (*TLSServer, error) {
-	reloader, err := newLocalLeafReloader(certDir)
+	ctx, notices := domain.ConAvisosOperacion(ctx)
+	reloader, err := newLocalLeafReloader(certDir, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +101,11 @@ func startTLSServer(ctx context.Context, addr string, handler http.Handler, cert
 	// en caliente cuando entra en el margen de renovación.
 	tlsCfg.Certificates = nil
 	tlsCfg.GetCertificate = reloader.getCertificate
-	return serveTLSConfig(ctx, addr, handler, tlsCfg, reloader.certFile, reloader.keyFile)
+	server, err := serveTLSConfig(ctx, addr, handler, tlsCfg, reloader.certFile, reloader.keyFile)
+	if server != nil {
+		server.Warnings = notices.Claves()
+	}
+	return server, err
 }
 
 // localLeafReloader sirve la hoja TLS local y la renueva antes de que caduque.
@@ -110,11 +118,15 @@ type localLeafReloader struct {
 	ensure   func() (string, string, error)
 }
 
-func newLocalLeafReloader(certDir string) (*localLeafReloader, error) {
+func newLocalLeafReloader(certDir string, contexts ...context.Context) (*localLeafReloader, error) {
+	ctx := context.Background()
+	if len(contexts) > 0 && contexts[0] != nil {
+		ctx = contexts[0]
+	}
 	r := &localLeafReloader{
 		now: time.Now,
 		ensure: func() (string, string, error) {
-			certFile, keyFile, _, source, err := EnsureBrowserCompatibleLocalhostCertificate(certDir, defaultCertPrefix)
+			certFile, keyFile, _, source, err := EnsureBrowserCompatibleLocalhostCertificateContext(ctx, certDir, defaultCertPrefix)
 			if err != nil {
 				return "", "", err
 			}
@@ -268,6 +280,10 @@ func EnsureLocalhostCertificate(dir, prefix string) (string, string, error) {
 // EnsureLocalhostCertificateWithLocalCA crea o reutiliza una CA local y un
 // certificado de servidor para localhost firmado por esa CA.
 func EnsureLocalhostCertificateWithLocalCA(dir, prefix string) (string, string, string, error) {
+	return EnsureLocalhostCertificateWithLocalCAContext(context.Background(), dir, prefix)
+}
+
+func EnsureLocalhostCertificateWithLocalCAContext(ctx context.Context, dir, prefix string) (string, string, string, error) {
 	if prefix == "" {
 		prefix = defaultCertPrefix
 	}
@@ -287,7 +303,10 @@ func EnsureLocalhostCertificateWithLocalCA(dir, prefix string) (string, string, 
 	rootKeyFile := filepath.Join(dir, prefix+"-root.key.pem")
 	certFile := filepath.Join(dir, prefix+".crt.pem")
 	keyFile := filepath.Join(dir, prefix+".key.pem")
-	rootCert, rootKey := managedLocalCAForRenewal(rootCertFile, rootKeyFile)
+	rootCert, rootKey, renewalErr := managedLocalCAForRenewal(ctx, rootCertFile, rootKeyFile)
+	if renewalErr != nil {
+		return "", "", "", renewalErr
+	}
 	if rootCert != nil && certValidoLocalhostFirmadoPorCA(certFile, keyFile, rootCertFile) {
 		return certFile, keyFile, rootCertFile, nil
 	}
@@ -358,7 +377,7 @@ func EnsureLocalhostCertificateWithLocalCA(dir, prefix string) (string, string, 
 
 	if newRoot {
 		rootKeyDER := x509.MarshalPKCS1PrivateKey(rootKey)
-		err := localtlstrust.SaveManagedCAKey(rootKeyFile, rootKeyDER)
+		err := localtlstrust.SaveManagedCAKey(rootKeyFile, rootKeyDER, ctx)
 		secmem.Zeroize(rootKeyDER)
 		if err != nil {
 			return "", "", "", fmt.Errorf("rest: no se pudo guardar la clave CA TLS: %w", err)
@@ -381,12 +400,16 @@ func EnsureLocalhostCertificateWithLocalCA(dir, prefix string) (string, string, 
 // el par sea criptográficamente válido, instalar su raíz desde V2 impediría
 // distinguir después si la confianza era preexistente o fue añadida por V2.
 func EnsureBrowserCompatibleLocalhostCertificate(dir, prefix string) (string, string, string, string, error) {
+	return EnsureBrowserCompatibleLocalhostCertificateContext(context.Background(), dir, prefix)
+}
+
+func EnsureBrowserCompatibleLocalhostCertificateContext(ctx context.Context, dir, prefix string) (string, string, string, string, error) {
 	if prefix == ManagedLocalhostPrefix {
-		if err := retireLegacyRESTCertificate(context.Background(), dir); err != nil {
+		if err := retireLegacyRESTCertificate(ctx, dir); err != nil {
 			return "", "", "", "", err
 		}
 	}
-	certFile, keyFile, rootCertFile, err := EnsureLocalhostCertificateWithLocalCA(dir, prefix)
+	certFile, keyFile, rootCertFile, err := EnsureLocalhostCertificateWithLocalCAContext(ctx, dir, prefix)
 	return certFile, keyFile, rootCertFile, "grxfirma-local-ca", err
 }
 
@@ -467,29 +490,33 @@ func certValidoLocalhostFirmadoPorCA(certFile, keyFile, rootCertFile string) boo
 	return err == nil
 }
 
-func managedLocalCAForRenewal(certFile, keyFile string) (*x509.Certificate, *rsa.PrivateKey) {
+func managedLocalCAForRenewal(ctx context.Context, certFile, keyFile string) (*x509.Certificate, *rsa.PrivateKey, error) {
 	root, ok := cargarCertificadoLocal(certFile)
 	if !ok || !localtlstrust.IsManagedLocalCA(root) || !localCANameConstraintsValid(root) {
-		return nil, nil
+		return nil, nil, nil
 	}
 	now := time.Now()
 	if now.Before(root.NotBefore) || now.Add(localServerCertLifetime).After(root.NotAfter) {
-		return nil, nil
+		return nil, nil, nil
 	}
-	keyDER, err := localtlstrust.LoadManagedCAKey(keyFile)
+	keyDER, err := localtlstrust.LoadManagedCAKey(keyFile, ctx)
 	if err != nil {
-		return nil, nil
+		var block *excepciones.Block
+		if errors.As(err, &block) {
+			return nil, nil, err
+		}
+		return nil, nil, nil
 	}
 	defer secmem.Zeroize(keyDER)
 	key, err := x509.ParsePKCS1PrivateKey(keyDER)
 	if err != nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 	public, ok := root.PublicKey.(*rsa.PublicKey)
 	if !ok || key.PublicKey.E != public.E || key.PublicKey.N.Cmp(public.N) != 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
-	return root, key
+	return root, key, nil
 }
 
 func localCANameConstraintsValid(cert *x509.Certificate) bool {

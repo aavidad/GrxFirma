@@ -132,6 +132,7 @@ func TestCMSProtector_LegacyV1ExigeConfianzaAdemasDeOptIn(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewDocument() error = %v", err)
 	}
+	machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirCMSAESECBLegacy, true)
 	result, err := newTrustedCMSTestProtector(otherRoot).Unprotect(context.Background(), protected, []domain.ProtectionKeyMaterial{{
 		RecipientID:               "legacy-v1",

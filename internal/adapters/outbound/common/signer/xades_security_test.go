@@ -6,6 +6,7 @@
 package signer
 
 import (
+	"context"
 	"crypto"
 	"errors"
 	"testing"
@@ -16,7 +17,7 @@ import (
 
 func TestResolveXAdESAlgorithmOptions_RechazaSHA1SinOptIn(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, false)
-	_, err := resolveXAdESAlgorithmOptions(map[string]string{"algorithm": "SHA1withRSA"})
+	err := requireXAdESAlgorithm(context.Background(), map[string]string{"algorithm": "SHA1withRSA"})
 	if !errors.Is(err, cryptopolicy.ErrSHA1Disabled) {
 		t.Fatalf("resolveXAdESAlgorithmOptions() error = %v", err)
 	}
@@ -24,6 +25,9 @@ func TestResolveXAdESAlgorithmOptions_RechazaSHA1SinOptIn(t *testing.T) {
 
 func TestResolveXAdESAlgorithmOptions_AdmiteSHA1ConOptIn(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, true)
+	if err := requireXAdESAlgorithm(context.Background(), map[string]string{"algorithm": "SHA1withRSA"}); err != nil {
+		t.Fatal(err)
+	}
 	options, err := resolveXAdESAlgorithmOptions(map[string]string{"algorithm": "SHA1withRSA"})
 	if err != nil {
 		t.Fatalf("resolveXAdESAlgorithmOptions() error = %v", err)

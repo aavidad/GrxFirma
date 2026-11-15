@@ -63,6 +63,8 @@ func clavesVeriFactu(problemas []vfProblem) map[string]string {
 // La integridad se comprueba; por defecto no se da por bueno, y el usuario
 // puede aceptarlo en su equipo (CLI y escritorio). Antes salía «perfil».
 func TestVeriFactuSHA1MismoCriterioQueLaVerificacion(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	priv, cert := certForTest(t, "VeriFactuSHA1")
 	data := vfTestXML("RegistroAlta", "12345678/G33", "", time.Now().UTC().Format(time.RFC3339))
 	firmado := firmarVeriFactuSHA1(t, data, priv, cert)
