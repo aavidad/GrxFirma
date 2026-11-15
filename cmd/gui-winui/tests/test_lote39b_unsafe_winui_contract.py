@@ -123,5 +123,25 @@ class StaleNotice(unittest.TestCase):
         self.assertLess(send.index("ClearNotice?.Invoke()"), send.index("await inner.SendAsync"))
 
 
+class DialogFromSettings(unittest.TestCase):
+    def test_primary_is_highlighted_without_being_default(self):
+        dialog = read(UI / "Controls/UnsafeExceptionDialog.cs")
+        self.assertIn('TryGetValue("AccentButtonStyle"', dialog)
+        self.assertIn("PrimaryButtonStyle =", dialog)
+        # Intro sobre la casilla sigue sin activar nada.
+        self.assertIn("DefaultButton = ContentDialogButton.None", dialog)
+        self.assertIn("Localizer.Text(model.PrimaryButtonKey)", dialog)
+        self.assertIn("Localizer.Text(model.TitleKey(helpOnly))", dialog)
+        self.assertNotIn('"excepciones.activar_continuar"', dialog)
+
+    def test_keys_exist_in_every_catalog(self):
+        for path in sorted(LOCALES.glob("*.json")):
+            catalog = json.loads(read(path))
+            for key in ("excepciones.pantalla.activar", "excepciones.activar_continuar",
+                        "excepciones.pantalla.aceptar_titulo", "excepciones.pantalla.titulo",
+                        "La interfaz y el motor local usan versiones incompatibles."):
+                self.assertTrue(catalog.get(key), f"{path.name}: {key}")
+
+
 if __name__ == "__main__":
     unittest.main()

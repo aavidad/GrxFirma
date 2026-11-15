@@ -63,7 +63,7 @@ internal static class UnsafeExceptionDialog
         {
             XamlRoot = root,
             RequestedTheme = theme,
-            Title = Localizer.Text(helpOnly ? "excepciones.mas_informacion" : item.OperationPending ? "excepciones.pantalla.titulo" : "excepciones.pantalla.aceptar_titulo"),
+            Title = Localizer.Text(model.TitleKey(helpOnly)),
             Content = new ScrollViewer
             {
                 Content = body,
@@ -73,8 +73,12 @@ internal static class UnsafeExceptionDialog
                 MaxHeight = Math.Max(120, root.Size.Height * 0.6),
             },
             CloseButtonText = Localizer.Text(helpOnly ? "excepciones.pantalla.cerrar" : "excepciones.cancelar"),
-            PrimaryButtonText = !helpOnly && item.Activable ? Localizer.Text("excepciones.activar_continuar") : string.Empty,
+            PrimaryButtonText = !helpOnly && item.Activable ? Localizer.Text(model.PrimaryButtonKey) : string.Empty,
             IsPrimaryButtonEnabled = false,
+            // El botón principal se distingue por su estilo, no por ser el
+            // predeterminado: Intro sobre la casilla no debe activar nada.
+            PrimaryButtonStyle = Application.Current.Resources.TryGetValue("AccentButtonStyle", out var accent)
+                ? accent as Style : null,
             DefaultButton = ContentDialogButton.None,
         };
         AutomationProperties.SetName(dialog, dialog.Title as string ?? string.Empty);

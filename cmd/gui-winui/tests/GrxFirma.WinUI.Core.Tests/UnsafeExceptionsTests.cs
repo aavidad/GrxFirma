@@ -131,6 +131,18 @@ public sealed class UnsafeExceptionsTests
     }
 
     [TestMethod]
+    public void Dialog_FromSettingsDoesNotTalkAboutABlock_AndSaysActivar()
+    {
+        var fromSettings = new UnsafeExceptionConsentViewModel(Item());
+        Assert.AreEqual("excepciones.pantalla.aceptar_titulo", fromSettings.TitleKey(helpOnly: false));
+        Assert.AreEqual("excepciones.pantalla.activar", fromSettings.PrimaryButtonKey);
+        Assert.AreEqual("excepciones.mas_informacion", fromSettings.TitleKey(helpOnly: true));
+        var blocked = new UnsafeExceptionConsentViewModel(Item() with { OperationPending = true });
+        Assert.AreEqual("excepciones.pantalla.titulo", blocked.TitleKey(helpOnly: false));
+        Assert.AreEqual("excepciones.activar_continuar", blocked.PrimaryButtonKey);
+    }
+
+    [TestMethod]
     public async Task RetryWarnings_ReachOperationNotice()
     {
         var transport = new Fake();

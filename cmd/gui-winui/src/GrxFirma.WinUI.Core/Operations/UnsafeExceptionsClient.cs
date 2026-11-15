@@ -47,6 +47,15 @@ public sealed class UnsafeExceptionConsentViewModel(UnsafeExceptionState item)
     public bool Busy { get; set; }
     public bool CanActivate => Item.Activable && !Item.Fixed &&
         !string.IsNullOrWhiteSpace(Item.AcceptanceVersion) && Accepted && !Busy;
+
+    // Solo se habla de bloqueo y de continuar cuando el diálogo nace de una
+    // operación detenida. Desde Configuración no hay nada que continuar: el
+    // título invita a activar y el botón dice «Activar».
+    public string TitleKey(bool helpOnly) => helpOnly ? "excepciones.mas_informacion"
+        : Item.OperationPending ? "excepciones.pantalla.titulo" : "excepciones.pantalla.aceptar_titulo";
+
+    public string PrimaryButtonKey => Item.OperationPending
+        ? "excepciones.activar_continuar" : "excepciones.pantalla.activar";
 }
 
 public sealed record UnsafeActivationParameters(
