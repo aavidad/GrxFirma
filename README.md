@@ -39,18 +39,18 @@ Las capturas usan el certificado de pruebas público de la FNMT o uno sintético
 - Android 8.0 (API 26) o posterior: aplicación nativa en Kotlin. No hay
   paquete público. La receta de F-Droid está en `packaging/fdroid` y apunta a
   la versión 0.0.127 ([distribución Android](docs/distribucion/ANDROID.md)).
-- macOS: no hay versión publicada. El 14/11/2026 el responsable decidió no
-  seguir desarrollándola por ahora, y su paquete `.pkg` falla hoy en la
-  integración continua. El motor y el acceso al llavero existen, pero nunca se
-  han probado en un Mac real ni se han firmado o notarizado con Apple. No hay
-  fecha prevista.
-- iOS: no hay versión publicada. Existe una aplicación básica de firma y
-  verificación con extensión para compartir, que la integración continua no
-  compila. Faltan las funciones que ya tiene la de Android (lotes, DNIe por
-  NFC, sello visible, preferencias), probarla en un iPhone y publicarla.
-
-No se dispone de un Mac ni de un iPhone para probar macOS e iOS. Quien quiera
-ayudar con un equipo puede escribir a <avidad@dipgra.es>.
+- macOS e iOS: no hay versiones publicadas. No dispongo de un Mac ni de un
+  iPhone para compilarlas y probarlas. Si quieres que existan, préstame o
+  regálame uno y me pongo con ello 😄 (avidad@dipgra.es). Hay trabajo hecho,
+  pero sin probar ni terminar:
+  - macOS: desde el 14/11/2026 no la sigo desarrollando por ahora. El motor y
+    el acceso al llavero existen, pero el paquete `.pkg` falla hoy en la
+    integración continua, nunca se ha probado en un Mac real ni se ha firmado
+    o notarizado con Apple.
+  - iOS: hay una aplicación básica de firma y verificación con extensión para
+    compartir, que la integración continua no compila. Falta ponerla al nivel
+    de la de Android (lotes, DNIe por NFC, sello visible, preferencias),
+    probarla en un iPhone y publicarla en la App Store.
 
 ## Funciones principales
 
