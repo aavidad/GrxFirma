@@ -90,6 +90,13 @@ MSG_070	  Certificates: @1@
 PACKAGE_DETAIL	CLI, desktop interface, afirma:// handler and Native Messaging host.
 PACKAGE_TITLE	GrxFirma for Linux
 REINSTALLING	Reinstalling GrxFirma @1@...
+RTD_INSTALL_HINT	Error: install the Qt6/QML libraries listed above using your system's package manager, or use the .deb package.
+RTD_LIBS_MISSING	Error: @1@ is missing some libraries:
+RTD_LIBS_UNRESOLVED	Error: the libraries of @1@ could not be checked:
+RTD_NO_LDD	Error: the ldd tool is missing, so the package libraries cannot be checked.
+RTD_QML_INVALID	Error: the package contains an invalid QML module name: @1@
+RTD_QML_MISSING	Error: the QML module @1@ is missing.
+RTD_VERIFIED	All the libraries the package needs are installed.
 TAR_INCOMPLETE	Incomplete tar archive:
 UNKNOWN_VERSION	unknown
 UPDATING	Updating GrxFirma: @1@ -> @2@...

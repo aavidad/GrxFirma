@@ -23,9 +23,9 @@ class InstallerCatalogs(unittest.TestCase):
                 self.assertTrue(value.strip(), (locale, key))
                 self.assertEqual(sorted(re.findall(r'@\d+@', value)),
                                  sorted(re.findall(r'@\d+@', catalogs['es'][key])), (locale, key))
-        for name in ('build-suite.sh', 'configure-browsers.sh', 'install-suite.sh', 'installer-i18n.sh'):
+        for name in ('build-suite.sh', 'configure-browsers.sh', 'install-suite.sh', 'installer-i18n.sh', 'runtime-dependencies.sh'):
             source = (LINUX / name).read_text()
-            for key in re.findall(r'grx_message(?:_in en)? ([A-Z_0-9]+)', source):
+            for key in re.findall(r'(?:grx_message(?:_in en)?|rtd_message) ([A-Z_0-9]+)', source):
                 self.assertIn(key, catalogs['es'])
         subprocess.run(['python3', str(LINUX / 'i18n/generate.py'), '--check'], check=True)
 
@@ -49,6 +49,17 @@ class InstallerCatalogs(unittest.TestCase):
                     for value in literals:
                         if ' ' in value:
                             self.assertFalse(re.search('[A-Za-z]{3} [A-Za-z]{3}', value), f'{name}:{number}: {value}')
+
+    def test_runtime_check_has_no_prose(self):
+        # Lo que se ejecuta en el equipo de la persona usuaria no lleva texto propio.
+        source = (LINUX / 'runtime-dependencies.sh').read_text()
+        start = source.index('rtd_message() {')
+        end = source.index('runtime_dependencies_main() {')
+        for line in source[start:end].splitlines():
+            if line.lstrip().startswith('#'):
+                continue
+            self.assertIsNone(re.search(r'\b(?:echo|printf)\b.*"[^"$%]*[a-z]{3} [a-z]{3}', line), line)
+            self.assertIsNone(re.search(r'[áéíóúñ]|\berror:', line), line)
 
 
 if __name__ == '__main__':

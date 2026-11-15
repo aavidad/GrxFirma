@@ -93,5 +93,12 @@
   "AFIRMA_GRXFIRMA": "  1) GrxFirma",
   "ARTIFACTS_TITLE": "# Linux suite artifacts",
   "ARTIFACTS_TABLE": "| File | Size (bytes) | SHA-256 |",
-  "TAR_INCOMPLETE": "Incomplete tar archive:"
+  "TAR_INCOMPLETE": "Incomplete tar archive:",
+  "RTD_NO_LDD": "Error: the ldd tool is missing, so the package libraries cannot be checked.",
+  "RTD_LIBS_UNRESOLVED": "Error: the libraries of @1@ could not be checked:",
+  "RTD_LIBS_MISSING": "Error: @1@ is missing some libraries:",
+  "RTD_QML_INVALID": "Error: the package contains an invalid QML module name: @1@",
+  "RTD_QML_MISSING": "Error: the QML module @1@ is missing.",
+  "RTD_INSTALL_HINT": "Error: install the Qt6/QML libraries listed above using your system's package manager, or use the .deb package.",
+  "RTD_VERIFIED": "All the libraries the package needs are installed."
 }

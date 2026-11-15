@@ -90,6 +90,13 @@ MSG_070	  证书：@1@
 PACKAGE_DETAIL	命令行、桌面界面、afirma:// 处理程序和原生消息主机。
 PACKAGE_TITLE	适用于 Linux 的 GrxFirma
 REINSTALLING	正在重新安装 GrxFirma @1@…
+RTD_INSTALL_HINT	错误：请安装系统提示的 Qt6/QML 库，或使用 .deb 安装包。
+RTD_LIBS_MISSING	错误：@1@ 缺少一些库文件：
+RTD_LIBS_UNRESOLVED	错误：无法检查 @1@ 的库文件：
+RTD_NO_LDD	错误：缺少 ldd 工具，因此无法检查软件包的库文件。
+RTD_QML_INVALID	错误：软件包中包含无效的 QML 模块名称：@1@
+RTD_QML_MISSING	错误：缺少 QML 模块 @1@。
+RTD_VERIFIED	软件包所需的全部库文件均已安装。
 TAR_INCOMPLETE	tar 归档不完整：
 UNKNOWN_VERSION	未知
 UPDATING	正在更新 GrxFirma：@1@ -> @2@…

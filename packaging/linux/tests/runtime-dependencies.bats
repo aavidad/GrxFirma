@@ -8,6 +8,7 @@
 # shellcheck disable=SC2317,SC2329
 
 setup() {
+  export GRXFIRMA_INSTALLER_LANG=es
   export FIXTURE_ROOT="${BATS_TEST_TMPDIR}/runtime-dependencies"
   export TEST_BIN="${FIXTURE_ROOT}/bin"
   export PACKAGE_ROOT="${FIXTURE_ROOT}/package"
@@ -200,7 +201,7 @@ EOF
   run grxfirma_check_bundle_runtime "${FIXTURE_ROOT}"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Dependencias runtime del bundle verificadas."* ]]
+  [[ "$output" == *"Todas las bibliotecas que necesita el paquete están instaladas."* ]]
 }
 
 @test "bundle preflight accepts a static Go binary" {
@@ -220,7 +221,7 @@ EOF
   run grxfirma_check_bundle_runtime "${FIXTURE_ROOT}"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Dependencias runtime del bundle verificadas."* ]]
+  [[ "$output" == *"Todas las bibliotecas que necesita el paquete están instaladas."* ]]
 }
 
 @test "dependency workspace rejects a broad cleanup parent" {
@@ -258,4 +259,20 @@ EOF
     _ "${BATS_TEST_DIRNAME}/../runtime-dependencies.sh"
   [ "$status" -eq 0 ]
   [[ "$output" == *"${QML_ROOT}"* ]]
+}
+
+@test "install-user stage carries the i18n catalogs so the preflight prints sentences" {
+  local root stage
+  root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  stage="${BATS_TEST_TMPDIR}/install-user-stage"
+  mkdir -p "${stage}"
+  # Ejecuta solo el bloque que prepara el stage de install-user.sh.
+  run env ROOT_DIR="${root}" STAGE_DIR="${stage}" RAW_VERSION=test bash -euo pipefail -c \
+    "$(sed -n '/Preparando stage local/,/chmod 755 "\${STAGE_DIR}\/check-runtime-dependencies.sh"/p' "${root}/packaging/linux/install-user.sh")"
+  [ "$status" -eq 0 ]
+  : > "${stage}/runtime-dependencies.qml"
+  run env -u LC_ALL -u LANGUAGE -u GRXFIRMA_INSTALLER_LANG LANG=fr_FR.UTF-8 \
+    "${stage}/check-runtime-dependencies.sh" --check-bundle "${stage}"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Toutes les bibliothèques dont le paquet a besoin sont installées."* ]]
 }

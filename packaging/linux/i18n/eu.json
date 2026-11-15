@@ -93,5 +93,12 @@
   "AFIRMA_GRXFIRMA": "  1) GrxFirma",
   "ARTIFACTS_TITLE": "# Linux suitearen artefaktuak",
   "ARTIFACTS_TABLE": "| Fitxategia | Tamaina (byte) | SHA-256 |",
-  "TAR_INCOMPLETE": "Tar artxiboa osatu gabe dago:"
+  "TAR_INCOMPLETE": "Tar artxiboa osatu gabe dago:",
+  "RTD_NO_LDD": "Errorea: ldd tresna falta da, beraz ezin dira paketeko liburutegiak egiaztatu.",
+  "RTD_LIBS_UNRESOLVED": "Errorea: ezin izan dira @1@(r)en liburutegiak egiaztatu:",
+  "RTD_LIBS_MISSING": "Errorea: @1@(r)i liburutegi batzuk falta zaizkio:",
+  "RTD_QML_INVALID": "Errorea: paketeak baliozkoa ez den QML modulu-izen bat dauka: @1@",
+  "RTD_QML_MISSING": "Errorea: @1@ QML modulua falta da.",
+  "RTD_INSTALL_HINT": "Errorea: instalatu sistemak adierazten dituen Qt6/QML liburutegiak edo erabili .deb paketea.",
+  "RTD_VERIFIED": "Paketeak behar dituen liburutegi guztiak instalatuta daude."
 }

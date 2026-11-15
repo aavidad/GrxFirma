@@ -90,6 +90,13 @@ MSG_070	  Certificats: @1@
 PACKAGE_DETAIL	CLI, interfície d’escriptori, gestor d’afirma:// i amfitrió de missatgeria nativa.
 PACKAGE_TITLE	GrxFirma per a Linux
 REINSTALLING	S’està reinstal·lant el GrxFirma @1@...
+RTD_INSTALL_HINT	Error: instal·leu les biblioteques Qt6/QML que indica el sistema o utilitzeu el paquet .deb.
+RTD_LIBS_MISSING	Error: a @1@ li falten biblioteques:
+RTD_LIBS_UNRESOLVED	Error: no s’han pogut comprovar les biblioteques de @1@:
+RTD_NO_LDD	Error: falta l’eina ldd, de manera que no es poden comprovar les biblioteques del paquet.
+RTD_QML_INVALID	Error: el paquet conté un nom de mòdul QML que no és vàlid: @1@
+RTD_QML_MISSING	Error: falta el mòdul QML @1@.
+RTD_VERIFIED	Totes les biblioteques que necessita el paquet estan instal·lades.
 TAR_INCOMPLETE	Arxiu tar incomplet:
 UNKNOWN_VERSION	desconeguda
 UPDATING	S’està actualitzant el GrxFirma: @1@ -> @2@...
