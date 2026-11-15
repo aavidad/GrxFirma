@@ -236,7 +236,7 @@
       "allOf": [
         {
           "if": {"properties": {"errorCode": {"const": "unsafe_exception_blocked"}}, "required": ["errorCode"]},
-          "then": {"required": ["exceptionId", "blockKey", "settingKey", "exception", "activable", "titleKey", "riskKey", "acceptanceKey", "helpKey", "acceptanceVersion"]}
+          "then": {"required": ["exceptionId", "blockKey", "settingKey", "exception", "activable", "titleKey", "riskKey", "acceptanceKey", "helpKey", "acceptanceVersion"], "properties": {"ok": {"const": false}, "outcome": {"const": "failure"}}, "not": {"required": ["data"]}, "description": "Un bloqueo de excepción insegura es siempre un fallo, también al verificar: nunca llega ok:true con este errorCode ni datos de la operación."}
         },
         {
           "if": {"properties": {"action": {"enum": ["unsafe_exceptions_list", "unsafe_exceptions_set"]}, "ok": {"const": true}}, "required": ["action", "ok"]},
