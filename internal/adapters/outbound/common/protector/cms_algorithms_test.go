@@ -394,7 +394,7 @@ func TestCMSFallbackCBCExigeAmbosAjustes(t *testing.T) {
 	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", true)
 	machinepolicy.UnsetForTest(t, "permitir_cms_cbc")
 	machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
-	if _, err := NuevoCMSProtector().Unprotect(context.Background(), doc, keys); err == nil || excepciones.FromText(err.Error()) == nil {
+	if _, err := NuevoCMSProtector().Unprotect(context.Background(), doc, keys); err == nil || bloqueoTipadoV38(err) == nil {
 		t.Fatalf("CBC sin ajuste debe bloquear: %v", err)
 	}
 	excepciones.SetForTest(t, "cms_cbc", true)

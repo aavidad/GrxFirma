@@ -251,7 +251,8 @@ func TestLegacyDESDesactivadoExplicaComoReactivarlo(t *testing.T) {
 	if err == nil {
 		t.Fatal("se esperaba error")
 	}
-	if !strings.Contains(err.Error(), "[des_intercambio; excepciones.des_intercambio.bloqueo]") ||
+	var block *excepciones.Block
+	if !errors.As(err, &block) || block.ID != "des_intercambio" || strings.Contains(err.Error(), "[des_intercambio;") ||
 		!strings.Contains(err.Error(), localizador.Detectar().T("excepciones.des_intercambio.bloqueo")) ||
 		strings.Contains(err.Error(), "-activar-excepcion") || strings.Contains(err.Error(), "-acepto-el-aviso") {
 		t.Fatalf("el error debe dar preferencias y el identificador sin instrucciones de terminal: %v", err)

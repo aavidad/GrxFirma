@@ -89,7 +89,8 @@ func TestLegacyWebSocketErrorText_ClaveNoDisponibleEsErrorFirma(t *testing.T) {
 func TestLegacyWebSocketErrorText_PreservaBloqueoDeExcepcion(t *testing.T) {
 	blocked := &excepciones.Block{ID: "sha1_crear", BlockKey: "excepciones.sha1_crear.bloqueo"}
 	got := legacyWebSocketErrorText(fmt.Errorf("firma: %w", blocked))
-	if !strings.Contains(got, "[sha1_crear; excepciones.sha1_crear.bloqueo]") || !strings.Contains(got, blocked.Error()) {
+	// Lote 38: el portal recibe la explicación, sin la marca interna «[id; clave]».
+	if strings.Contains(got, "[sha1_crear;") || !strings.Contains(got, blocked.Error()) {
 		t.Fatalf("el portal perdió la explicación del bloqueo: %q", got)
 	}
 }
@@ -101,7 +102,9 @@ func TestStorageServiceOrigenVacioDevuelveIdentificadorDeBloqueo(t *testing.T) {
 	req.RemoteAddr = "127.0.0.1:1234"
 	recorder := httptest.NewRecorder()
 	handleStorageService(nil, recorder, req, nil, nil)
-	if recorder.Code != http.StatusForbidden || !strings.Contains(recorder.Body.String(), "[origen_vacio; excepciones.origen_vacio.bloqueo]") {
+	explicacion := excepciones.DescribeAt(t.TempDir(), "origen_vacio").Error()
+	if recorder.Code != http.StatusForbidden || !strings.Contains(recorder.Body.String(), explicacion) ||
+		strings.Contains(recorder.Body.String(), "[origen_vacio;") {
 		t.Fatalf("el bloqueo perdió identificador: código=%d cuerpo=%q", recorder.Code, recorder.Body.String())
 	}
 }
@@ -119,7 +122,8 @@ func TestAutomaticTrustRequiresExceptionWithoutStoppingServer(t *testing.T) {
 	if err := ensureAutomaticTrustIfAllowed(ctx, "ca.pem", installer); err != nil || installed != 0 {
 		t.Fatalf("sin ajuste no debe instalar ni detener servidor: instalaciones=%d err=%v", installed, err)
 	}
-	if !strings.Contains(avisos.Texto(), "[ca_instalacion_automatica;") {
+	if !strings.Contains(avisos.Texto(), excepciones.DescribeAt(t.TempDir(), "ca_instalacion_automatica").Error()) ||
+		strings.Contains(avisos.Texto(), "[ca_instalacion_automatica;") {
 		t.Fatalf("falta bloqueo visible: %q", avisos.Texto())
 	}
 	excepciones.SetForTest(t, "ca_instalacion_automatica", true)

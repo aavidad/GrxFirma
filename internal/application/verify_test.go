@@ -175,7 +175,7 @@ func TestVerifyBlockedLegacyReturnsUnevaluated(t *testing.T) {
 	block := &excepciones.Block{ID: "sha1_leer", BlockKey: "excepciones.sha1_leer.bloqueo", SettingKey: "excepciones.sha1_leer.ajuste"}
 	uc := application.NuevoVerifySignatureUseCase(&trustAnchorMock{}, &verifierMock{err: block}, nil)
 	out, err := uc.Execute(context.Background(), application.VerifyCommand{SignedDocument: docFirmadoPrueba()})
-	if err != nil || out.Verification.Valid || out.Verification.Integrity.Status != domain.VerificationStatusUnknown || excepciones.FromText(out.Verification.Reason) == nil {
+	if err != nil || out.Verification.Valid || out.Verification.Integrity.Status != domain.VerificationStatusUnknown || bloqueoTipadoV38(out.Verification.PolicyError()) == nil {
 		t.Fatalf("bloqueo perdido: valid=%v integrity=%s err=%v", out.Verification.Valid, out.Verification.Integrity.Status, err)
 	}
 }

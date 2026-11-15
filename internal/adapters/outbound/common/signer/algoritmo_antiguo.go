@@ -37,8 +37,9 @@ func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result do
 		result.Integrity.Status = domain.VerificationStatusUnknown
 		result.Integrity.Reason = err.Error()
 		result.Trust.Status = domain.VerificationStatusUnknown
+		// El texto va en el motivo y en Errors (Normalize lo exige para un
+		// resultado no válido); repetido como advertencia salía tres veces.
 		result.Errors = []string{err.Error()}
-		result.Warnings = appendUniqueString(result.Warnings, err.Error())
 		return anotarAlgoritmoAntiguo(result, algoritmos, contexts...)
 	}
 	result.Warnings = appendUniqueString(result.Warnings, excepciones.Warning("sha1_leer"))
@@ -70,7 +71,6 @@ func anotarAlgoritmoAntiguo(result domain.VerificationResult, algoritmos []strin
 			result.Integrity.Reason = err.Error()
 			result.Trust.Status = domain.VerificationStatusUnknown
 			result.Errors = []string{err.Error()}
-			result.Warnings = appendUniqueString(result.Warnings, err.Error())
 		} else {
 			result.Warnings = appendUniqueString(result.Warnings, excepciones.Warning("sha1_leer"))
 		}
@@ -116,6 +116,5 @@ func bloqueoSHA1Previo(ctx context.Context, formato string) (domain.Verification
 	result.Coverage = domain.CoberturaNoAcreditada
 	result.Integrity.Status = domain.VerificationStatusUnknown
 	result.Integrity.Reason = err.Error()
-	result.Warnings = append(result.Warnings, err.Error())
 	return result.Normalize(), true
 }

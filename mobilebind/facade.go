@@ -628,7 +628,18 @@ func (f *Facade) VerifyJSON(payload string) (out string, err error) {
 	}
 	result, err := f.verifyService.Execute(ctx, verifyCmd)
 	if err != nil {
+		var block *excepciones.Block
+		if errors.As(err, &block) {
+			return "", err
+		}
 		return "", safeOperationError("verificacion")
+	}
+	// Un resultado bloqueado no es una firma no válida: la app abre el mismo
+	// diálogo que en las demás operaciones y vuelve a verificar al activarlo.
+	// La causa es la tipada del motor; nunca se lee del texto del resultado.
+	var block *excepciones.Block
+	if errors.As(result.Verification.PolicyError(), &block) {
+		return "", block
 	}
 	signerCount := min(len(result.Firmantes), 64)
 	signers := make([]string, 0, signerCount)
@@ -653,7 +664,11 @@ func (f *Facade) VerifyJSON(payload string) (out string, err error) {
 	trustStatus := result.Verification.Trust.Status
 	if !f.systemTrustAnchors {
 		trustStatus = domain.VerificationStatusUnknown
-		warnings = append(warnings, textoMotor("movil.verificacion.cadena_no_evaluada"))
+		// Clave cerrada: la app la traduce con su catálogo. Solo se dice que la
+		// integridad está comprobada cuando lo está.
+		if result.Verification.Normalize().Integrity.Status == domain.VerificationStatusValid {
+			warnings = append(warnings, "movil.verificacion.cadena_no_evaluada")
+		}
 	}
 	reportHTML := ""
 	if req.IncludeHTMLReport {
@@ -1050,11 +1065,17 @@ func marshal(v any) (string, error) {
 // Java o Swift: sin esto, un documento que haga entrar en pánico a un
 // analizador del núcleo cierra la app (H-10). Debe llamarse con defer
 // directamente, para que recover funcione.
+//
+// También entrega tipado el bloqueo de una excepción insegura (lote 38): todas
+// las operaciones de la fachada lo difieren, así que ninguna llega a la app
+// como texto.
 func recuperarPanicoFachada(operacion string, out *string, err *error) {
 	if recover() != nil {
 		*out = ""
 		*err = safeOperationError(operacion)
+		return
 	}
+	*err = errorTipado(*err)
 }
 
 func errNoConfigurado(operacion string) error {

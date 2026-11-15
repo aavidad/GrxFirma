@@ -690,7 +690,6 @@ func markXMLCompatibilityConDecision(result domain.VerificationResult, compatibi
 			result.Integrity.Reason = err.Error()
 			result.Trust.Status = domain.VerificationStatusUnknown
 			result.Errors = []string{err.Error()}
-			result.Warnings = appendUniqueString(result.Warnings, err.Error())
 			return result.Normalize()
 		}
 	}

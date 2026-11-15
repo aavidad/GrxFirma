@@ -65,7 +65,8 @@ func TestPrepareStartupLocalTLSTrustSinAjusteNoInstala(t *testing.T) {
 	if err := prepareStartupLocalTLSTrust(context.Background(), t.TempDir(), &stderr); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(stderr.String(), "ca_instalacion_automatica") {
+	if !strings.Contains(stderr.String(), excepciones.DescribeAt(t.TempDir(), "ca_instalacion_automatica").Error()) ||
+		strings.Contains(stderr.String(), "[ca_instalacion_automatica;") {
 		t.Fatalf("falta identificador en el bloqueo: %q", stderr.String())
 	}
 }

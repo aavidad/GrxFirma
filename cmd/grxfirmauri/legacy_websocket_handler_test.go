@@ -30,6 +30,7 @@ import (
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/cryptopolicy"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/presentation/desktop/certpicker"
 )
@@ -363,7 +364,8 @@ func TestLegacyWebSocketHandler_LoadRechazaRutaDirectaPorDefecto(t *testing.T) {
 			"filePath": path,
 		}),
 	})
-	if !strings.HasPrefix(resp, "SAF_25: ") || !strings.Contains(resp, "[rutas_directas; excepciones.rutas_directas.bloqueo]") {
+	if !strings.HasPrefix(resp, "SAF_25: ") || !strings.Contains(resp, excepciones.DescribeAt(t.TempDir(), "rutas_directas").Error()) ||
+		strings.Contains(resp, "[rutas_directas;") {
 		t.Fatalf("handleLoad() = %q, want rechazo de ruta directa", resp)
 	}
 }

@@ -125,7 +125,7 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, false)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, false)
 	for _, caso := range heredados {
-		if _, err := abrir(caso.doc, caso.claves); err == nil || excepciones.FromText(err.Error()) == nil {
+		if _, err := abrir(caso.doc, caso.claves); err == nil || bloqueoTipadoV38(err) == nil {
 			t.Fatalf("el lector heredado debe bloquear sin ajuste: %v", err)
 		}
 		break
@@ -180,7 +180,7 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.PermitirDESLegacy, true)
 	for nombre, caso := range heredados {
 		_, err := abrir(caso.doc, caso.claves)
-		if err == nil || excepciones.FromText(err.Error()) == nil {
+		if err == nil || bloqueoTipadoV38(err) == nil {
 			t.Errorf("%s: la política prohibir_cifrado_cms_heredado debe impedirlo: %v", nombre, err)
 		}
 	}
@@ -188,7 +188,7 @@ func TestCMSUnprotect_ListaDeAlgoritmosPermitidos(t *testing.T) {
 		if !strings.Contains(nombre, "CBC") {
 			continue
 		}
-		if _, err := abrir(caso.doc, caso.claves); err == nil || excepciones.FromText(err.Error()) == nil {
+		if _, err := abrir(caso.doc, caso.claves); err == nil || bloqueoTipadoV38(err) == nil {
 			t.Errorf("%s: política debe impedir CBC: %v", nombre, err)
 		}
 	}

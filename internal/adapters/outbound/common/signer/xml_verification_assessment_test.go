@@ -118,7 +118,7 @@ func TestXMLAssessment_SegundaFirmaAlteradaNoSugiereAjustePorPrimeraHistorica(t 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if block := excepciones.FromText(resultado.Reason); block == nil || block.ID != "xml_c14n_antigua" || resultado.Valid {
+	if block := bloqueoTipadoV38(resultado.PolicyError()); block == nil || block.ID != "xml_c14n_antigua" || resultado.Valid {
 		t.Fatalf("dos firmas íntegras con una histórica deben ofrecer el ajuste sin declararse válidas: valid=%v motivo=%q", resultado.Valid, resultado.Reason)
 	}
 	firmaSegunda = bytes.Clone(firmaSegunda)
