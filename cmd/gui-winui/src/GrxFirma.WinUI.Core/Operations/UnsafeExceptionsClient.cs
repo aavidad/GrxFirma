@@ -47,6 +47,15 @@ public sealed class UnsafeExceptionConsentViewModel(UnsafeExceptionState item)
     public bool Busy { get; set; }
     public bool CanActivate => Item.Activable && !Item.Fixed &&
         !string.IsNullOrWhiteSpace(Item.AcceptanceVersion) && Accepted && !Busy;
+
+    // Solo se habla de bloqueo y de continuar cuando el diálogo nace de una
+    // operación detenida. Desde Configuración no hay nada que continuar: el
+    // título invita a activar y el botón dice «Activar».
+    public string TitleKey(bool helpOnly) => helpOnly ? "excepciones.mas_informacion"
+        : Item.OperationPending ? "excepciones.pantalla.titulo" : "excepciones.pantalla.aceptar_titulo";
+
+    public string PrimaryButtonKey => Item.OperationPending
+        ? "excepciones.activar_continuar" : "excepciones.pantalla.activar";
 }
 
 public sealed record UnsafeActivationParameters(
@@ -62,7 +71,25 @@ public sealed class UnsafeExceptionsClient(IIpcClient inner) : IIpcClient
     public Func<UnsafeExceptionState, CancellationToken, Task<bool>>? RequestAcceptance { get; set; }
     public Action<string>? Notice { get; set; }
     public Action<IReadOnlyList<string>>? Warnings { get; set; }
+    /// <summary>Retira el aviso común de la operación anterior.</summary>
+    public Action? ClearNotice { get; set; }
     public IpcHello? ServerHello => inner.ServerHello;
+
+    // Operaciones con documento cuyo resultado puede llevar el aviso común
+    // («…porque usted lo permitió»). Al empezar una, el aviso de la anterior
+    // ya no describe lo que hay en pantalla. Las consultas de fondo (ajustes,
+    // certificados, estado) no lo retiran.
+    public static IReadOnlySet<string> NoticeOperations { get; } = new HashSet<string>(StringComparer.Ordinal)
+    {
+        DesktopOperationActions.Sign, DesktopOperationActions.CosignOriginalCheck,
+        DesktopOperationActions.SignMultiCosign, DesktopOperationActions.SignBatch,
+        DesktopOperationActions.Verify, DesktopOperationActions.Protect,
+        DesktopOperationActions.ProtectAndSign, DesktopOperationActions.Unprotect,
+        DesktopOperationActions.HashCreate, DesktopOperationActions.HashCheck,
+        DesktopOperationActions.ValidateInvoice, DesktopOperationActions.ValidateVeriFactu,
+        DesktopOperationActions.FacturaeCreate, DesktopOperationActions.GenerateEniDocument,
+        DesktopOperationActions.GenerateEniFile,
+    };
 
     public Task<IpcCallResult<IReadOnlyList<UnsafeExceptionState>>> ListAsync(CancellationToken ct = default) =>
         inner.SendAsync<object, IReadOnlyList<UnsafeExceptionState>>("unsafe_exceptions_list", new { }, ct);
@@ -70,8 +97,17 @@ public sealed class UnsafeExceptionsClient(IIpcClient inner) : IIpcClient
     public Task<IpcCallResult<IReadOnlyList<UnsafeExceptionState>>> DisableAsync(UnsafeExceptionState item, CancellationToken ct = default)
     {
         if (item.Fixed) throw new InvalidOperationException();
-        return inner.SendAsync<object, IReadOnlyList<UnsafeExceptionState>>(
-            "unsafe_exceptions_set", new { id = item.Id, enabled = false }, ct);
+        return DisableCoreAsync(item, ct);
+    }
+
+    private async Task<IpcCallResult<IReadOnlyList<UnsafeExceptionState>>> DisableCoreAsync(
+        UnsafeExceptionState item, CancellationToken ct)
+    {
+        var result = await inner.SendAsync<object, IReadOnlyList<UnsafeExceptionState>>(
+            "unsafe_exceptions_set", new { id = item.Id, enabled = false }, ct).ConfigureAwait(false);
+        // Tras desactivar, el aviso de que se usó lo inseguro ya no es cierto.
+        if (result.IsSuccess) ClearNotice?.Invoke();
+        return result;
     }
 
     public async Task<bool> ActivateAsync(UnsafeExceptionState item, string? retryId = null, CancellationToken ct = default)
@@ -82,13 +118,15 @@ public sealed class UnsafeExceptionsClient(IIpcClient inner) : IIpcClient
         ct.ThrowIfCancellationRequested();
         var result = await inner.SendAsync<UnsafeActivationParameters, JsonElement>("unsafe_exceptions_activate",
             new(item.Id, true, item.AcceptanceVersion, retryId), ct).ConfigureAwait(false);
-        if (!result.IsSuccess) Notice?.Invoke("excepciones.pantalla.error");
+        if (result.IsSuccess) ClearNotice?.Invoke();
+        else Notice?.Invoke("excepciones.pantalla.error");
         return result.IsSuccess;
     }
 
     public async Task<IpcCallResult<TData>> SendAsync<TParameters, TData>(string action,
         TParameters parameters, CancellationToken cancellationToken = default)
     {
+        if (NoticeOperations.Contains(action)) ClearNotice?.Invoke();
         var result = await inner.SendAsync<TParameters, TData>(action, parameters, cancellationToken).ConfigureAwait(false);
         // Multiple independent gates (e.g. old encryption and old key transport)
         // each need their own explicit acceptance. Never automatically accept.

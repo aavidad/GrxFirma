@@ -292,6 +292,7 @@ public partial class App : Application
             RequestAcceptance = RequestUnsafeAcceptanceAsync,
             Notice = key => EnqueueOnUi(() => _window?.ShowUnsafeNotice([key])),
             Warnings = keys => EnqueueOnUi(() => _window?.ShowUnsafeNotice(keys)),
+            ClearNotice = () => EnqueueOnUi(() => _window?.ClearUnsafeNotice()),
         };
         UnsafeExceptions = unsafeClient;
         return unsafeClient;

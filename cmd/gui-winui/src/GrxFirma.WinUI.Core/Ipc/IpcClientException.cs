@@ -14,10 +14,12 @@ public sealed class IpcClientException : Exception
         string userMessage,
         string phase,
         string likelyOwner,
-        bool retryable = false)
+        bool retryable = false,
+        string? reason = null)
         : base(CatalogLocalizer.Shared.TranslateVisibleText(userMessage))
     {
         Code = code;
+        Reason = reason;
         UserMessage = Message;
         Phase = phase;
         LikelyOwner = likelyOwner;
@@ -29,6 +31,13 @@ public sealed class IpcClientException : Exception
     public string Phase { get; }
     public string LikelyOwner { get; }
     public bool Retryable { get; }
+
+    /// <summary>
+    /// Código técnico de lo que no cuadró en la respuesta (solo ASCII, sin
+    /// datos de la operación). Llega al diagnóstico como código del fallo para
+    /// que soporte sepa qué forma recibió la interfaz.
+    /// </summary>
+    public string? Reason { get; }
 
     internal static IpcClientException Configuration() =>
         new(
@@ -58,6 +67,17 @@ public sealed class IpcClientException : Exception
             "El motor local devolvió una respuesta no válida.",
             "protocol",
             "app_local");
+
+    // La respuesta llega bien formada y correlacionada, pero sus campos se
+    // contradicen (p. ej. ok:true con errorCode). Suele ser un motor de otra
+    // versión: se dice así y se conserva el motivo técnico.
+    internal static IpcClientException InconsistentResponse(string reason) =>
+        new(
+            "protocol_violation",
+            "La interfaz y el motor local usan versiones incompatibles.",
+            "protocol",
+            "app_local",
+            reason: reason);
 
     internal static IpcClientException ProtocolVersion() =>
         new(

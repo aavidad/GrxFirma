@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Runtime.CompilerServices;
+using GrxFirma.WinUI.Core.Layout;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
@@ -35,28 +36,51 @@ public static class ThemeBrushes
     private static readonly ConditionalWeakTable<FrameworkElement, BrushSet> s_sets = new();
     private static readonly BrushSet s_default = new(null);
     private static readonly List<WeakReference<BrushSet>> s_liveSets = [new(s_default)];
-    private static Windows.UI.ViewManagement.AccessibilitySettings? s_accessibility;
+    // Se guardan para que las suscripciones no se pierdan con el recolector.
+    private static readonly List<object> s_systemSignals = [];
+    private static bool s_systemSignalsRequested;
+    private static Microsoft.UI.Dispatching.DispatcherQueue? s_windowDispatcherQueue;
 
     public static void SetThemeRoot(FrameworkElement root)
     {
         if (s_themeRoot?.TryGetTarget(out var previous) == true)
             previous.ActualThemeChanged -= OnRootThemeChanged;
         s_themeRoot = new(root);
+        s_windowDispatcherQueue = root.DispatcherQueue;
         root.ActualThemeChanged += OnRootThemeChanged;
-        if (s_accessibility is null)
+        if (!s_systemSignalsRequested)
         {
-            s_accessibility = new();
-            s_accessibility.HighContrastChanged += (_, _) => QueueRefresh();
+            s_systemSignalsRequested = true;
+            // Las dos señales son opcionales. En Windows 10 22H2 la de alto
+            // contraste lanza COMException 0x80070490 al suscribirse; entonces
+            // quedan ColorValuesChanged, el cambio de tema de la raíz y el
+            // repintado al volver a la ventana (RefreshFromSystem).
+            OptionalSystemSignal.TrySubscribe(() =>
+            {
+                var accessibility = new Windows.UI.ViewManagement.AccessibilitySettings();
+                accessibility.HighContrastChanged += (_, _) => QueueRefresh();
+                s_systemSignals.Add(accessibility);
+            });
+            OptionalSystemSignal.TrySubscribe(() =>
+            {
+                var uiSettings = new Windows.UI.ViewManagement.UISettings();
+                uiSettings.ColorValuesChanged += (_, _) => QueueRefresh();
+                s_systemSignals.Add(uiSettings);
+            });
         }
         QueueRefresh();
     }
 
+    /// <summary>Repinta los pinceles de código, p. ej. al volver a la ventana.</summary>
+    public static void RefreshFromSystem() => QueueRefresh();
+
     private static void OnRootThemeChanged(FrameworkElement sender, object args) => QueueRefresh();
 
+    // Las señales del sistema llegan en otro hilo: se repinta en el de la ventana.
     private static void QueueRefresh()
     {
-        if (s_themeRoot?.TryGetTarget(out var root) == true)
-            root.DispatcherQueue.TryEnqueue(RefreshAll);
+        if (s_windowDispatcherQueue is { } windowDispatcherQueue)
+            windowDispatcherQueue.TryEnqueue(RefreshAll);
     }
 
     private static void RefreshAll()
