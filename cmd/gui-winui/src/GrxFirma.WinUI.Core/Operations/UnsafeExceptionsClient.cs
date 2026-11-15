@@ -14,8 +14,14 @@ public sealed record UnsafeExceptionState
     [JsonPropertyName("activable")] public bool Activable { get; init; }
     [JsonPropertyName("acceptance_version")] public string AcceptanceVersion { get; init; } = string.Empty;
     [JsonPropertyName("last_acceptance")] public UnsafeAcceptance? LastAcceptance { get; init; }
+    // Claves del catálogo que envía el motor (excepciones.Exception en Go).
+    // La interfaz no compone claves: solo presenta las que el motor nombra.
+    [JsonPropertyName("setting_key")] public string SettingKey { get; init; } = string.Empty;
+    [JsonPropertyName("risk_key")] public string RiskKey { get; init; } = string.Empty;
+    [JsonPropertyName("acceptance_key")] public string AcceptanceKey { get; init; } = string.Empty;
+    [JsonPropertyName("help_key")] public string HelpKey { get; init; } = string.Empty;
+    [JsonPropertyName("organization_key")] public string OrganizationKey { get; init; } = string.Empty;
     [JsonIgnore] public bool OperationPending { get; init; }
-    public string Key(string suffix) => $"excepciones.{Id}.{suffix}";
     public string StatusKey => PolicyUnreadable ? "excepciones.pantalla.directiva_ilegible" : Fixed
         ? Enabled ? "excepciones.pantalla.fijada_activa" : "excepciones.pantalla.fijada_inactiva"
         : !Enabled ? "excepciones.pantalla.desactivada"

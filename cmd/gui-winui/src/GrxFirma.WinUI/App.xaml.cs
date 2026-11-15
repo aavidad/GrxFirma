@@ -15,7 +15,7 @@ public partial class App : Application
 {
     private static readonly TimeSpan IpcCloseTimeout = TimeSpan.FromSeconds(3);
     private MainWindow? _window;
-    internal GrxFirma.WinUI.Core.Operations.UnsafeExceptionsClient? UnsafeExceptions { get; private set; }
+    internal UnsafeExceptionsClient? UnsafeExceptions { get; private set; }
     private ReconnectingIpcClient? _ipcClient;
     private readonly CancellationTokenSource _lifetimeCancellation = new();
     private int _windowClosed;
@@ -29,7 +29,7 @@ public partial class App : Application
     private SingleInstanceSignal? _singleInstance;
     private PortalSealSession? _portalSealSession;
 
-    internal DesktopOperationSession OperationSession { get; } = new();
+    internal DesktopOperationSession OperationSession { get; }
     internal WindowsRestServer RestServer { get; } = new();
     internal IFilePickerService FilePickerService { get; private set; } = null!;
     internal ISecurePasswordPromptService SecurePasswordPromptService
@@ -51,6 +51,9 @@ public partial class App : Application
 
     public App()
     {
+        // Todas las operaciones pasan por la puerta de excepciones inseguras.
+        // La sesión se publica y se retira con el mismo cliente del motor.
+        OperationSession = new DesktopOperationSession(CreateUnsafeExceptionsClient);
         // Antes de cargar recursos: los controles propios de WinUI toman el
         // idioma de PrimaryLanguageOverride al crearse.
         StartupLanguage.Apply();
@@ -244,7 +247,7 @@ public partial class App : Application
 
             EnqueueOnUi(() =>
             {
-                AttachUnsafeClient(client);
+                OperationSession.Attach(client);
                 _window?.ViewModel.SetConnected(client.ServerHello);
                 _ = _window?.RefreshFacturaeToolsAvailabilityAsync();
 
@@ -280,20 +283,22 @@ public partial class App : Application
     }
 
 
-    private void AttachUnsafeClient(ReconnectingIpcClient client)
+    // DesktopOperationSession la llama al publicar un transporte nuevo, también
+    // tras recuperar el motor; Preferencias usa la misma puerta.
+    private IIpcClient CreateUnsafeExceptionsClient(IIpcClient transport)
     {
-        var unsafeClient = new GrxFirma.WinUI.Core.Operations.UnsafeExceptionsClient(client)
+        var unsafeClient = new UnsafeExceptionsClient(transport)
         {
             RequestAcceptance = RequestUnsafeAcceptanceAsync,
             Notice = key => EnqueueOnUi(() => _window?.ShowUnsafeNotice([key])),
             Warnings = keys => EnqueueOnUi(() => _window?.ShowUnsafeNotice(keys)),
         };
         UnsafeExceptions = unsafeClient;
-        OperationSession.Attach(unsafeClient);
+        return unsafeClient;
     }
 
     private Task<bool> RequestUnsafeAcceptanceAsync(
-        GrxFirma.WinUI.Core.Operations.UnsafeExceptionState item, CancellationToken ct)
+        UnsafeExceptionState item, CancellationToken ct)
     {
         var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         EnqueueOnUi(async () =>
@@ -348,7 +353,7 @@ public partial class App : Application
             {
                 if (recovered && client.ServerHello is not null)
                 {
-                    AttachUnsafeClient(client);
+                    OperationSession.Attach(client);
                     _window?.ViewModel.SetConnected(client.ServerHello);
                     return;
                 }

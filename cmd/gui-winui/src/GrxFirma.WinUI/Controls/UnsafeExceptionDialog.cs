@@ -13,6 +13,12 @@ internal static class UnsafeExceptionDialog
     // ContentDialog supplies focus containment, Escape, UIA dialog semantics and
     // focus restoration. The whole body scrolls; action buttons stay reachable.
     private static readonly SemaphoreSlim DisplayGate = new(1, 1);
+
+    // Solo se presentan claves del catálogo. Si el motor no envía una clave o
+    // el catálogo no la tiene, no se muestra nada en lugar de la clave cruda.
+    internal static string CatalogText(string key) =>
+        !string.IsNullOrWhiteSpace(key) && Localizer.Has(key) ? Localizer.Text(key) : string.Empty;
+
     public static async Task<bool> ShowAsync(UnsafeExceptionState item, XamlRoot root,
         ElementTheme theme, bool helpOnly = false, CancellationToken cancellationToken = default)
     {
@@ -25,24 +31,28 @@ internal static class UnsafeExceptionDialog
     {
         var model = new UnsafeExceptionConsentViewModel(item);
         var body = new StackPanel { Spacing = 16, MaxWidth = 680 };
-        TextBlock Prose(string key) => new() { Text = Localizer.Text(key), TextWrapping = TextWrapping.Wrap };
-        var heading = Prose(item.Key("ajuste"));
+        TextBlock Prose(string key) => new() { Text = CatalogText(key), TextWrapping = TextWrapping.Wrap };
+        var acceptanceText = CatalogText(item.AcceptanceKey);
+        var heading = Prose(item.SettingKey);
         heading.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold;
         AutomationProperties.SetHeadingLevel(heading, AutomationHeadingLevel.Level2);
         body.Children.Add(heading);
-        var risk = Prose(item.Key(helpOnly ? "ayuda" : "riesgo"));
+        var risk = Prose(helpOnly ? item.HelpKey : item.RiskKey);
         body.Children.Add(risk);
-        var organization = Prose(item.Key("organizacion"));
-        organization.Visibility = !helpOnly && !item.Activable ? Visibility.Visible : Visibility.Collapsed;
+        var organization = Prose(item.OrganizationKey);
+        organization.Visibility = !helpOnly && !item.Activable && organization.Text.Length > 0
+            ? Visibility.Visible : Visibility.Collapsed;
         body.Children.Add(organization);
         var acceptance = new CheckBox
         {
-            Content = Prose(item.Key("aceptacion")),
+            Content = Prose(item.AcceptanceKey),
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             MinHeight = 44,
-            Visibility = !helpOnly && item.Activable ? Visibility.Visible : Visibility.Collapsed,
+            // Sin el texto de aceptación no hay nada que aceptar: la casilla no
+            // aparece y el botón de activar sigue desactivado.
+            Visibility = !helpOnly && item.Activable && acceptanceText.Length > 0 ? Visibility.Visible : Visibility.Collapsed,
         };
-        AutomationProperties.SetName(acceptance, Localizer.Text(item.Key("aceptacion")));
+        AutomationProperties.SetName(acceptance, acceptanceText);
         AutomationProperties.SetHelpText(acceptance, Localizer.Fill("excepciones.pantalla.version", ("version", item.AcceptanceVersion)));
         body.Children.Add(acceptance);
         var dialog = new ContentDialog
@@ -64,7 +74,7 @@ internal static class UnsafeExceptionDialog
             DefaultButton = ContentDialogButton.None,
         };
         AutomationProperties.SetName(dialog, dialog.Title as string ?? string.Empty);
-        AutomationProperties.SetHelpText(dialog, Localizer.Text(item.Key("riesgo")));
+        AutomationProperties.SetHelpText(dialog, CatalogText(item.RiskKey));
         acceptance.Checked += (_, _) => { model.Accepted = true; dialog.IsPrimaryButtonEnabled = model.CanActivate; };
         acceptance.Unchecked += (_, _) => { model.Accepted = false; dialog.IsPrimaryButtonEnabled = false; };
         if (!helpOnly)
@@ -72,7 +82,7 @@ internal static class UnsafeExceptionDialog
             var help = new Button { Content = Localizer.Text("excepciones.mas_informacion"), MinHeight = 44 };
             help.Click += (_, _) =>
             {
-                risk.Text = Localizer.Text(item.Key("ayuda"));
+                risk.Text = CatalogText(item.HelpKey);
                 help.Visibility = Visibility.Collapsed;
                 risk.StartBringIntoView();
             };
@@ -80,11 +90,15 @@ internal static class UnsafeExceptionDialog
         }
         dialog.Opened += (_, _) =>
         {
+            // La cola común de diálogos puede abrirlo cuando ya se ha cancelado.
+            if (cancellationToken.IsCancellationRequested) { dialog.Hide(); return; }
             if (acceptance.Visibility == Visibility.Visible) acceptance.Focus(FocusState.Programmatic);
             else dialog.Focus(FocusState.Programmatic);
         };
         cancellationToken.ThrowIfCancellationRequested();
         using var cancellation = cancellationToken.Register(() => dialog.DispatcherQueue.TryEnqueue(() => dialog.Hide()));
-        return await dialog.ShowAsync() == ContentDialogResult.Primary && model.CanActivate && !cancellationToken.IsCancellationRequested;
+        // Localizer.ShowAsync comparte la cola de diálogos de toda la app:
+        // WinUI no admite dos ContentDialog abiertos a la vez.
+        return await Localizer.ShowAsync(dialog) == ContentDialogResult.Primary && model.CanActivate && !cancellationToken.IsCancellationRequested;
     }
 }

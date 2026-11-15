@@ -86,7 +86,7 @@ public sealed partial class MainWindow : Window
     {
         var texts = keys.Where(Localizer.Has).Select(Localizer.Text).Distinct().ToArray();
         if (texts.Length == 0) return;
-        UnsafeResultNotice.Title = Localizer.Text("Advertencias");
+        UnsafeResultNotice.Title = Localizer.Text("excepciones.pantalla.advertencias");
         UnsafeResultNotice.Message = string.Join(Environment.NewLine, texts);
         UnsafeResultNotice.IsOpen = true;
     }

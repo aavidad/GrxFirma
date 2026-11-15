@@ -54,6 +54,33 @@ public sealed class DesktopOperationSessionTests
         Assert.AreEqual(2, notifications);
     }
 
+    // Regresión del lote 31: la app publicaba la puerta de excepciones y
+    // retiraba el cliente del motor. Detach no la encontraba y, al recuperar
+    // el motor tras reiniciarse, Attach lanzaba «Ya existe otro transporte».
+    [TestMethod]
+    public void GatedSession_DetachesAndReattachesTheEngineClient()
+    {
+        var engine = new FakeIpcClient("hello", "verify");
+        var gated = new List<IIpcClient>();
+        var session = new DesktopOperationSession(transport =>
+        {
+            gated.Add(transport);
+            return new FakeIpcClient("hello", "verify");
+        });
+
+        session.Attach(engine);
+        session.Attach(engine);
+        Assert.AreEqual(1, gated.Count);
+        Assert.AreSame(engine, gated[0]);
+
+        session.Detach(engine);
+        Assert.IsFalse(session.IsConnected);
+
+        session.Attach(engine);
+        Assert.IsTrue(session.IsConnected);
+        Assert.AreEqual(2, gated.Count);
+    }
+
     [TestMethod]
     public void Attach_RejectsTransportWithoutNegotiatedHello()
     {
