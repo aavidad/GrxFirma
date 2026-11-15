@@ -1,3 +1,8 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 # Excepciones inseguras
 
 Todas las excepciones empiezan desactivadas para cada usuario, también al actualizar desde 0.0.127. No se importa ningún valor antiguo como activado. Leer o verificar material histórico requiere el ajuste correspondiente. Cada uso permitido devuelve la clave de aviso de la operación. Las comprobaciones restantes, como contraseña, autorización de origen o consentimiento por operación, siguen siendo obligatorias.
