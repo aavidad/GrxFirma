@@ -678,10 +678,10 @@ public sealed class VerifyPageViewModel
             .Concat(data.Trust.VisibleDetails)
             .Select(static line => VerificationDetailText.Detail(line))
             .Concat(data.VisibleEvidence.Select(
-                item => Localizer.Format("{0}: {1}",
+                item => Localizer.LabelValue(
                     VerificationDetailText.EvidenceType(SafeIpcText.Clean(item.Type, 80,
                         Localizer.Text("winui.verificar.evidencia"))),
-                    Localizer.VisibleText(SafeIpcText.Clean(item.Summary, 320,
+                    VerificationDetailText.EvidenceSummary(SafeIpcText.Clean(item.Summary, 320,
                         Localizer.Text("winui.verificar.sin_detalle"))))))
             .Where(static item => !string.IsNullOrWhiteSpace(item))
             .Distinct(StringComparer.Ordinal)

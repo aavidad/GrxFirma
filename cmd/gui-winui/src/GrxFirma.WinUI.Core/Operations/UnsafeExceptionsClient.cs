@@ -15,6 +15,8 @@ public sealed record UnsafeExceptionState
     [JsonPropertyName("enabled")] public bool Enabled { get; init; }
     [JsonPropertyName("fixed")] public bool Fixed { get; init; }
     [JsonPropertyName("policy_unreadable")] public bool PolicyUnreadable { get; init; }
+    // El directorio de ajustes no está disponible: no lo decide la organización.
+    [JsonPropertyName("config_unavailable")] public bool ConfigUnavailable { get; init; }
     [JsonPropertyName("activable")] public bool Activable { get; init; }
     [JsonPropertyName("acceptance_version")] public string AcceptanceVersion { get; init; } = string.Empty;
     [JsonPropertyName("last_acceptance")] public UnsafeAcceptance? LastAcceptance { get; init; }

@@ -106,7 +106,8 @@ class SettingsRows(unittest.TestCase):
 
     def test_change_is_confirmed_in_the_live_region(self):
         load = block_after(self.code, "private async Task LoadUnsafeExceptionsAsync(")
-        self.assertIn('Localizer.Format("{0}: {1}", changed.Title.Text, changed.Status.Text)', load)
+        # La puntuación «etiqueta: valor» sale del catálogo de cada idioma (lote 39h).
+        self.assertIn('Localizer.LabelValue(changed.Title.Text, changed.Status.Text)', load)
         xaml = read(UI / "Views/SettingsPage.xaml")
         self.assertRegex(xaml, r'x:Name="UnsafeMessage"\s+AutomationProperties.LiveSetting="Polite"')
 
