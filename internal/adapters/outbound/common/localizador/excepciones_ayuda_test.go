@@ -55,7 +55,7 @@ func TestExceptionConsentAndHelpCatalogues(t *testing.T) {
 
 func TestExceptionAcceptanceIsReadyForPeople(t *testing.T) {
 	forbidden := []string{"settings.json", "config.json", "policy.json", "tokens.json", "trusted-domains", "excepciones_inseguras", "permitir_", "%APPDATA%", "~/.config", "cuando esté disponible", "cuando la sección esté disponible", "when available", "once available"}
-	acronyms := regexp.MustCompile(`(?i)\b(?:AES(?:-(?:CBC|GCM))?|RSA|SHA-(?:1|256|384|512)|DES|CMS|PDF|TSA|HTTPS?|PKCS)\b`)
+	acronyms := regexp.MustCompile(`(?i)\b(?:AES(?:-(?:CBC|GCM))?|RSA|SHA-(?:1|256|384|512)|CMS|PDF|TSA|HTTPS?|PKCS)\b`)
 	for _, lang := range []string{"es", "en", "ca", "de", "eu", "fr", "gl", "it", "pt", "va", "zh"} {
 		raw, err := os.ReadFile(filepath.Join("locales", lang+".json"))
 		if err != nil {
@@ -70,10 +70,15 @@ func TestExceptionAcceptanceIsReadyForPeople(t *testing.T) {
 		json.Unmarshal(mobile, &android)
 		for _, e := range excepciones.Catalog() {
 			text := cat[e.AcceptanceKey]
-			if lang != "en" && (!strings.HasPrefix(text, "Puedo activarlo bajo mi responsabilidad. Sé que ") || !strings.HasSuffix(text, ". Se puede volver a desactivar en Preferencias, Seguridad.")) {
+			// El patrón literal solo se exige en castellano; los demás idiomas
+			// se traducen de verdad y se comprueban en TestI18nNoQuedanTextosSinTraducir.
+			if lang == "es" && (!strings.HasPrefix(text, "Puedo activarlo bajo mi responsabilidad. Sé que ") || !strings.HasSuffix(text, ". Se puede volver a desactivar en el apartado Seguridad.")) {
 				t.Errorf("patrón incorrecto: %s/%s", lang, e.ID)
 			}
-			if lang == "en" && (!strings.HasPrefix(text, "I can enable this at my own risk. I understand that ") || !strings.HasSuffix(text, ". I can turn it off again in Preferences, Security.")) {
+			if lang != "es" && strings.TrimSpace(text) == "" {
+				t.Errorf("aceptación vacía: %s/%s", lang, e.ID)
+			}
+			if lang == "en" && (!strings.HasPrefix(text, "I can enable this at my own risk. I understand that ") || !strings.HasSuffix(text, ". I can turn it off again in the Security section.")) {
 				t.Errorf("aceptación inglesa incompleta: %s", e.ID)
 			}
 			for _, key := range []string{e.AcceptanceKey, e.HelpKey, e.BlockKey} {
