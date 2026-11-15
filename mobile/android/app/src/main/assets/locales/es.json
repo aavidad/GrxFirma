@@ -82,7 +82,7 @@
   "el certificado firmante no está destinado a firmar documentos": "El certificado con el que se firmó no sirve para firmar documentos (puede ser, por ejemplo, el de un servidor web). La firma no se considera válida.",
   "verify.forced_trust.hint": "Si confía en esta firma, puede aceptarla en la configuración de este equipo.",
   "verify.forced_trust.forbidden": "La política de este equipo no permite aceptar estas firmas a mano. Si las necesita, hable con quien administra el equipo.",
-  "verify.forced_trust.error.unknown_type": "Ese caso no existe. Usa ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1.",
+  "verify.forced_trust.error.unknown_type": "Ese caso no existe. Use ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable o algoritmo_sha1.",
   "verify.forced_trust.error.fingerprint": "La huella tiene que ser la SHA-256 del certificado, en hexadecimal (64 caracteres).",
   "verify.forced_trust.error.global_type": "Este caso se acepta para todas las firmas y no lleva huella.",
   "cadena verificada hasta una raíz del almacén del sistema; no acredita que el certificado sea cualificado": "El certificado depende de una raíz de confianza del sistema. Eso no garantiza que sea un certificado cualificado.",

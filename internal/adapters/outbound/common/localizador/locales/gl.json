@@ -58,11 +58,11 @@
   "identity.local.selector.no_expiry": "caducidade non dispoñible",
   "identity.local.selector.use": "Usar certificado",
   "identity.local.selector.cancel": "Cancelar",
-  "approval.question.sign": "Queres asinar co certificado «%s»?",
-  "approval.question.cosign": "Queres engadir a túa sinatura (cosinatura) co certificado «%s»?",
-  "approval.question.countersign": "Queres asinar sobre unha sinatura existente (contrasinatura) co certificado «%s»?",
-  "approval.question.batch": "Queres asinar %d documentos co certificado «%s»?",
-  "approval.question.batch_unknown": "Queres asinar un lote de documentos co certificado «%s»?",
+  "approval.question.sign": "Quere asinar co certificado «%s»?",
+  "approval.question.cosign": "Quere engadir a súa sinatura (cosinatura) co certificado «%s»?",
+  "approval.question.countersign": "Quere asinar sobre unha sinatura existente (contrasinatura) co certificado «%s»?",
+  "approval.question.batch": "Quere asinar %d documentos co certificado «%s»?",
+  "approval.question.batch_unknown": "Quere asinar un lote de documentos co certificado «%s»?",
   "approval.certificate.unknown": "sen nome",
   "approval.requester.origin": "Web que o pide: %s",
   "approval.requester.application": "Aplicación que o pide: %s",
@@ -72,14 +72,14 @@
   "approval.documents.more": "%s e %d máis",
   "approval.format": "Formato de sinatura: %s",
   "approval.destinations": "Servidores que recibirán o documento ou a sinatura: %s",
-  "approval.origin.unverifiable": "GrxFirma non pode comprobar que web pediu esta sinatura. Os servidores da lista escolleunos esa web. Continúa só se os recoñeces.",
-  "approval.session.unidentified": "Esta web usa un sistema antigo que non identifica a sesión con GrxFirma. Continúa só se acabas de comezar ti esta sinatura na web.",
+  "approval.origin.unverifiable": "GrxFirma non pode comprobar que web pediu esta sinatura. Os servidores da lista escolleunos esa web. Continúe só se os recoñece.",
+  "approval.session.unidentified": "Esta web usa un sistema antigo que non identifica a sesión con GrxFirma. Continúe só se acaba de comezar vostede esta sinatura na web.",
   "approval.triphase.server_multiple": "O servidor da web prepara esta sinatura e pode pedir máis dunha con esta soa confirmación.",
-  "approval.destination.unencrypted": "Algún servidor da lista usa unha conexión sen cifrar (http): o que se envíe pódese ler polo camiño. Continúa só se é un servidor da túa organización.",
+  "approval.destination.unencrypted": "Algún servidor da lista usa unha conexión sen cifrar (http): o que se envíe pódese ler polo camiño. Continúe só se é un servidor da súa organización.",
   "approval.size.bytes": "%d bytes",
   "approval.size.kb": "%d KB",
-  "approval.save.extension": "A web pide gardar un ficheiro %s en %s. As sinaturas e os documentos adoitan ser .pdf, .xml, .csig ou .xsig. Gárdao só se sabes que é. Queres gardalo?",
-  "approval.save.extension.risky": "A web pide gardar un ficheiro %s en %s. Este tipo de ficheiro pode levar macros ou código que se executa ao abrilo. Gárdao só se esperabas recibilo desta web. Queres gardalo?",
+  "approval.save.extension": "A web pide gardar un ficheiro %s en %s. As sinaturas e os documentos adoitan ser .pdf, .xml, .csig ou .xsig. Gárdeo só se sabe que é. Quere gardalo?",
+  "approval.save.extension.risky": "A web pide gardar un ficheiro %s en %s. Este tipo de ficheiro pode levar macros ou código que se executa ao abrilo. Gárdeo só se esperaba recibilo desta web. Quere gardalo?",
   "approval.save.title": "Confirmar o gardado",
   "escritorio.sin_escritorio": "Esta sesión non ten escritorio (por exemplo, unha conexión SSH, un servizo ou unha tarefa programada) e GrxFirma non pode mostrar a xanela na que vostede decide. Non se fixo nada. Repita a operación desde unha sesión con escritorio.",
   "cli.error.no_operation": "non se indicou ningunha operación CLI",
@@ -92,17 +92,17 @@
   "cli.error.unsupported_operation": "operación CLI non compatible: %s",
   "cli.help.examples": "Exemplos:",
   "Documento ENI": "Documento ENI",
-  "Indica la firma con -entrada.": "Indica a sinatura con -entrada.",
+  "Indica la firma con -entrada.": "Indique a sinatura con -entrada.",
   "El PDF no está firmado.": "O PDF non está asinado.",
-  "La firma CAdES es explícita: indica el documento firmado con -original.": "A sinatura CAdES é explícita: indica o documento asinado con -original.",
+  "La firma CAdES es explícita: indica el documento firmado con -original.": "A sinatura CAdES é explícita: indique o documento asinado con -original.",
   "El fichero no es una firma PAdES, CAdES o XAdES reconocida.": "O ficheiro non é unha sinatura PAdES, CAdES ou XAdES recoñecida.",
   "No se reconoce el formato del contenido: indícalo con -opcion eni.formato=PDF.": "Non se recoñece o formato do contido: indícao con -opcion eni.formato=PDF.",
-  "Indica el origen con -opcion eni.origen=ciudadano o administracion.": "Indica a orixe con -opcion eni.origen=ciudadano ou administracion.",
+  "Indica el origen con -opcion eni.origen=ciudadano o administracion.": "Indique a orixe con -opcion eni.origen=ciudadano ou administracion.",
   "cli.help.eni_usage": "-operacion generar-eni -entrada <firma> [-original <documento>] -opcion eni.organo=<DIR3> -opcion eni.origen=ciudadano|administracion",
   "cli.help.eni": "Xera un documento electrónico ENI (NTI de Documento Electrónico) co contido, os metadatos obrigatorios e a sinatura PAdES, CAdES ou XAdES. Opcións: eni.tipoDocumental (TD99 por defecto), eni.estado (EE01 por defecto), eni.identificador, eni.documentoOrigen, eni.fechaCaptura e eni.formato.",
   "La fecha de captura (eni.fechaCaptura) debe tener el formato 2026-09-26T10:00:00+02:00.": "A data de captura (eni.fechaCaptura) debe ter o formato 2026-09-26T10:00:00+02:00.",
   "Expediente ENI": "Expediente ENI",
-  "Indica con -lote la carpeta con los documentos ENI del expediente.": "Indica con -lote o cartafol cos documentos ENI do expediente.",
+  "Indica con -lote la carpeta con los documentos ENI del expediente.": "Indique con -lote o cartafol cos documentos ENI do expediente.",
   "La fecha de apertura (exp.fechaApertura) debe tener el formato 2026-09-26T10:00:00+02:00.": "A data de apertura (exp.fechaApertura) debe ter o formato 2026-09-26T10:00:00+02:00.",
   "cli.help.eni_file_usage": "-operacion generar-expediente -lote <carpeta> -opcion exp.organo=<DIR3> -opcion exp.clasificacion=<SIA>",
   "cli.help.eni_file": "Xera un expediente electrónico ENI cos documentos ENI do cartafol (en orde alfabética) e asina o seu índice co certificado escollido. Opcións: exp.estado (E01 aberto por defecto, E02 pechado, E03 índice para remisión pechado), exp.interesado, exp.identificador e exp.fechaApertura.",
@@ -111,7 +111,7 @@
   "Los registros más antiguos se retiraron por la política de retención; la cadena se comprueba desde el primero conservado.": "Os rexistros máis antigos retiráronse pola política de retención; a cadea compróbase desde o primeiro conservado.",
   "%d registros son anteriores a la cadena de huellas y no pueden comprobarse.": "%d rexistros son anteriores á cadea de resumos (hash) e non se poden comprobar.",
   "cli.help.audit_usage": "-operacion verificar-auditoria [-entrada <audit.jsonl>]",
-  "cli.help.audit": "Comproba a cadea de resumos (hash) do rexistro de auditoría: detecta modificacións accidentais; non protexe fronte a quen pode escribir o ficheiro. Para acreditar tamén que non se recortou o final, asina o ficheiro co teu certificado ao entregalo.",
+  "cli.help.audit": "Comproba a cadea de resumos (hash) do rexistro de auditoría: detecta modificacións accidentais; non protexe fronte a quen pode escribir o ficheiro. Para acreditar tamén que non se recortou o final, asine o ficheiro co seu certificado ao entregalo.",
   "cli.help.report_usage": "-informe <informe.html>",
   "cli.help.report": "Coa verificación, garda un informe de validación en HTML imprimible co veredicto, as comprobacións, os asinantes e o resumo SHA-256 do ficheiro verificado.",
   "cli.help.verify_exit": "Códigos de saída da verificación: 0 se a sinatura é válida; 2 se non é válida; 1 se non se puido comprobar (ficheiro ilexible, formato descoñecido ou outro erro).",
@@ -123,7 +123,7 @@
   "cli.help.batch_usage": "-lote <manifiesto.json|carpeta>",
   "cli.help.batch": "Asina varios documentos cun único certificado. Cun cartafol asina os seus ficheiros (máximo 128, sen subcartafoles nin ocultos) e garda cada sinatura xunto ao orixinal ou en -salida; os fallos indícanse por documento.",
   "cli.help.facturae_check_usage": "-operacion validar-factura -entrada ...",
-  "Indica la factura con -entrada.": "Indica a factura con -entrada.",
+  "Indica la factura con -entrada.": "Indique a factura con -entrada.",
   "La factura no presenta incidencias.": "A factura non presenta incidencias.",
   "Incidencias: %d (errores: %d).": "Incidencias: %d (erros: %d).",
   "Factura": "Factura",
@@ -253,7 +253,7 @@
   "Acceso concedido a configuración de dominios.": "Acceso concedido á configuración do dominio.",
   "Accesos directos": "Atallos",
   "Acción": "Acción",
-  "Activa la preferencia y selecciona un certificado para reutilizarlo en la siguiente sesión.": "Activa a preferencia e selecciona un certificado para reutilizalo na seguinte sesión.",
+  "Activa la preferencia y selecciona un certificado para reutilizarlo en la siguiente sesión.": "Active a preferencia e seleccione un certificado para reutilizalo na seguinte sesión.",
   "Activa perfiles de firma más restrictivos para maximizar la compatibilidad con administraciones públicas y plataformas heredadas.": "Activa perfís de sinatura máis restritivos para maximizar a compatibilidade con administracións públicas e plataformas herdadas.",
   "Activar sello visible": "Activar selo visible",
   "Activar sello visible (PAdES)": "Activar selo visible (PAdES)",
@@ -267,14 +267,14 @@
   "Adobe PKCS#7 detached": "Adobe PKCS#7 detached",
   "Adoptado del firmador web anterior. Esta vista usa el mismo contrato de sello visible que el backend actual.": "Adoptado do asinador web anterior. Esta vista usa o mesmo contrato de selo visible que o backend actual.",
   "Advertencias": "Avisos",
-  "Ahora mismo no hay certificados disponibles. Revisa tu almacén, tu fichero P12 o el acceso al dispositivo.": "Agora mesmo non hai certificados dispoñibles. Revisa o teu almacén, o teu ficheiro P12 ou o acceso ao dispositivo.",
-  "Ahora mismo no hay certificados visibles en la app. Revisa el almacén, el P12 o el acceso al dispositivo.": "Agora mesmo non hai certificados visibles na aplicación. Revisa o almacén, o P12 ou o acceso ao dispositivo.",
+  "Ahora mismo no hay certificados disponibles. Revisa tu almacén, tu fichero P12 o el acceso al dispositivo.": "Agora mesmo non hai certificados dispoñibles. Revise o seu almacén, o seu ficheiro P12 ou o acceso ao dispositivo.",
+  "Ahora mismo no hay certificados visibles en la app. Revisa el almacén, el P12 o el acceso al dispositivo.": "Agora mesmo non hai certificados visibles na aplicación. Revise o almacén, o P12 ou o acceso ao dispositivo.",
   "Ajustes": "Axustes",
   "Ajustes cargados.": "Axustes cargados.",
   "Ajustes guardados": "Axustes gardados",
   "Ajustes guardados correctamente": "Axustes gardados correctamente",
   "Ajustes guardados.": "Axustes gardados.",
-  "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "Ao desactivar a cosinatura múltiple guiada restauraranse as túas preferencias previas de saída.",
+  "Al desactivar la cofirma múltiple guiada se restaurarán tus preferencias previas de salida.": "Ao desactivar a cosinatura múltiple guiada restauraranse as súas preferencias previas de saída.",
   "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "No inicio, selecciona automaticamente o último certificado utilizado para a sinatura.",
   "Algoritmo": "Algoritmo",
   "Algoritmo de huella por defecto": "Algoritmo de resumo por defecto",
@@ -291,7 +291,7 @@
   "Ana, representante, sello...": "Ana, representante, selo...",
   "Ancho (0..1)": "Ancho (0..1)",
   "Android": "Android",
-  "Antes de guardar o enviar nada, este es el paquete de soporte que se preparará para ti.": "Antes de gardar ou enviar nada, este é o paquete de soporte que se preparará para ti.",
+  "Antes de guardar o enviar nada, este es el paquete de soporte que se preparará para ti.": "Antes de gardar ou enviar nada, este é o paquete de soporte que se preparará para vostede.",
   "Aplica a PAdES, CAdES y XAdES. LT/LTA solo tiene efecto real en CAdES.": "Aplícase a PAdES, CAdES e XAdES. LT/LTA só ten efecto real en CAdES.",
   "Aplica perfiles de firma más restrictivos para maximizar la compatibilidad con administraciones públicas.": "Aplicar perfís de sinatura máis restritivos para maximizar a compatibilidade coas administracións públicas.",
   "Aplica un estilo rápido al sello visible sin tener que recolocar todos los campos a mano.": "Aplica un estilo rápido ao selo visible sen ter que recolocar todos os campos á man.",
@@ -311,8 +311,8 @@
   "Archivos del paquete": "Arquivos do paquete",
   "Arrancando GrxFirma...": "Iniciando GrxFirma...",
   "Arrancar": "Arrincar",
-  "Arrastra aquí un fichero o pulsa para seleccionarlo": "Arrastra aquí un ficheiro ou preme para seleccionalo",
-  "Arrastra aquí uno o varios ficheros o pulsa para seleccionarlos": "Arrastra aquí un ou varios ficheiros ou preme para seleccionalos",
+  "Arrastra aquí un fichero o pulsa para seleccionarlo": "Arrastre aquí un ficheiro ou prema para seleccionalo",
+  "Arrastra aquí uno o varios ficheros o pulsa para seleccionarlos": "Arrastre aquí un ou varios ficheiros ou prema para seleccionalos",
   "Arrastra o selecciona documentos": "Arrastre ou seleccione documentos",
   "Arrastra o selecciona un PDF": "Arrastra ou selecciona un PDF",
   "Arrastra un archivo firmado para verificar": "Arrastra un ficheiro asinado para verificalo",
@@ -351,8 +351,8 @@
   "Avisos:": "Avisos:",
   "Ayuda": "Axuda",
   "Ayuda paso a paso para la operación actual": "Axuda paso a paso para a operación actual",
-  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Engade polo menos un cosinante adicional para completar a cosinatura múltiple guiada.",
-  "Añade el original solo si la firma es detached o la validación lo pide.": "Engade o orixinal só se a sinatura é detached ou a validación o pide.",
+  "Añade al menos un cofirmante adicional para completar la cofirma múltiple guiada.": "Engada polo menos un cosinante adicional para completar a cosinatura múltiple guiada.",
+  "Añade el original solo si la firma es detached o la validación lo pide.": "Engada o orixinal só se a sinatura é detached ou a validación o pide.",
   "Añadiendo nuevo dominio a la lista...": "Engadindo un novo dominio á lista...",
   "Añadir Dominio": "Engadir dominio",
   "Añadir dominio": "Engadir dominio",
@@ -401,7 +401,7 @@
   "Caducado": "Caducado",
   "Caducados": "Caducados",
   "Caducidad": "Caducidade",
-  "Cambia a PAdES o desactiva el sello visible para evitar una configuración incompatible.": "Cambia a PAdES ou desactiva o selo visible para evitar unha configuración incompatible.",
+  "Cambia a PAdES o desactiva el sello visible para evitar una configuración incompatible.": "Cambie a PAdES ou desactive o selo visible para evitar unha configuración incompatible.",
   "Cambiar": "Cambiar",
   "Cambiar a Cofirmar": "Cambiar a Cosinar",
   "Cambiar clave": "Cambiar clave",
@@ -426,7 +426,7 @@
   "Cerrar": "Pechar",
   "Cerrar ventana tras firmar": "Pecha a xanela despois de asinar",
   "Certificado": "Certificado",
-  "Certificado TLS local generado. Revisa o reinstala la confianza si el navegador sigue advirtiendo.": "Certificado TLS local xerado. Revisa ou reinstala a confianza se o navegador segue advertindo.",
+  "Certificado TLS local generado. Revisa o reinstala la confianza si el navegador sigue advirtiendo.": "Certificado TLS local xerado. Revise ou reinstale a confianza se o navegador segue advertindo.",
   "Certificado TLS local no generado. La consola segura puede no funcionar hasta generarlo e instalar su confianza.": "Certificado TLS local non xerado. A consola segura pode non funcionar ata xeralo e instalar a súa confianza.",
   "Certificado TLS local: %s": "Certificado TLS local: %s",
   "Certificado con incidencias": "Certificado con incidencias",
@@ -503,9 +503,9 @@
   "Comprobar Certs": "Verificar certificados",
   "Comprobar huella": "Comprobar resumo",
   "Comprobar revocación online": "Comprobar revogación en liña",
-  "Comprueba advertencias de confianza, integridad o certificado.": "Comproba advertencias de confianza, integridade ou certificado.",
-  "Comprueba si falta el original o si aparece algún aviso sobre confianza o certificado.": "Comproba se falta o orixinal ou se aparece algún aviso sobre confianza ou certificado.",
-  "Comprueba si hay certificados cargados en la columna derecha.": "Comproba se hai certificados cargados na columna dereita.",
+  "Comprueba advertencias de confianza, integridad o certificado.": "Comprobe advertencias de confianza, integridade ou certificado.",
+  "Comprueba si falta el original o si aparece algún aviso sobre confianza o certificado.": "Comprobe se falta o orixinal ou se aparece algún aviso sobre confianza ou certificado.",
+  "Comprueba si hay certificados cargados en la columna derecha.": "Comprobe se hai certificados cargados na columna dereita.",
   "Comprueba una firma ya existente desde fichero cargado o ruta local usando el mismo backend de verificación avanzada.": "Comproba unha sinatura xa existente desde un ficheiro cargado ou unha ruta local usando o mesmo backend de verificación avanzada.",
   "Con advertencias": "Con avisos",
   "Con incidencias": "Con incidencias",
@@ -537,7 +537,7 @@
   "Configuración manual del proxy": "Configuración manual do proxy",
   "Configurando el canal de compatibilidad": "Configurando a canle de compatibilidade",
   "Configurando el canal seguro con el navegador": "Configurando a canle segura co navegador",
-  "Confirma que el documento y el certificado siguen seleccionados.": "Confirma que o documento e o certificado seguen seleccionados.",
+  "Confirma que el documento y el certificado siguen seleccionados.": "Confirme que o documento e o certificado seguen seleccionados.",
   "Confirmar antes de firmar": "Confirmar antes de asinar",
   "Confirmar firma": "Confirmar sinatura",
   "Confirmo que quiero enviar esta incidencia al destino indicado.": "Confirmo que quero enviar esta incidencia ao destino indicado.",
@@ -556,9 +556,9 @@
   "Contraseña": "Contrasinal",
   "Contraseña del Certificado": "Contrasinal do certificado",
   "Contraseña...": "Contrasinal...",
-  "Copia o exporta el diagnóstico solo después de revisar el resumen amigable.": "Copia ou exporta o diagnóstico só despois de revisar o resumo amigable.",
-  "Copia o guarda el resumen después de revisarlo.": "Copia ou garda o resumo despois de revisalo.",
-  "Copia o guarda el resumen solo después de revisarlo.": "Copia ou garda o resumo só despois de revisalo.",
+  "Copia o exporta el diagnóstico solo después de revisar el resumen amigable.": "Copie ou exporte o diagnóstico só despois de revisar o resumo amigable.",
+  "Copia o guarda el resumen después de revisarlo.": "Copie ou garde o resumo despois de revisalo.",
+  "Copia o guarda el resumen solo después de revisarlo.": "Copie ou garde o resumo só despois de revisalo.",
   "Copiar Diag.": "Copiar Diag.",
   "Copiar JSON de verificación": "Copiar JSON da verificación",
   "Copiar JSON del certificado": "Copiar JSON do certificado",
@@ -733,7 +733,7 @@
   "El firmado y el original parecen de tipos distintos.": "O asinado e o orixinal parecen de tipos distintos.",
   "El firmante principal se aplicará primero. Los certificados marcados aquí se aplicarán después como cofirmas secuenciales.": "O asinante principal aplicarase primeiro. Os certificados marcados aquí engadiranse despois como cosinaturas secuenciais.",
   "El flujo de documentos ya firmados se ha ido afinando para redirigir hacia cofirma.": "O fluxo de documentos xa asinados foi axustándose para redirixir cara á cosinatura.",
-  "El flujo de firma está preparado. Revisa operación, formato y certificado antes de continuar.": "O fluxo de sinatura está preparado. Revisa a operación, o formato e o certificado antes de continuar.",
+  "El flujo de firma está preparado. Revisa operación, formato y certificado antes de continuar.": "O fluxo de sinatura está preparado. Revise a operación, o formato e o certificado antes de continuar.",
   "El navegador no permite copiar el resumen automáticamente en este contexto.": "O navegador non permite copiar o resumo automaticamente neste contexto.",
   "El navegador ya está comunicándose con GrxFirma": "O navegador xa se está comunicando con GrxFirma",
   "El perfil alto usa siempre contenedor json (.afp).": "O perfil alto usa sempre contedor json (.afp).",
@@ -744,13 +744,13 @@
   "El último estado visible indica: %1": "O último estado visible indica: %1",
   "Elegir imagen…": "Escolle imaxe...",
   "Elementos descargables": "Elementos descargables",
-  "Elige el certificado con el que quieres continuar para firmar": "Elixe o certificado co que queres continuar para asinar",
-  "Elige un certificado adecuado y revisa el formato de firma.": "Escolle un certificado axeitado e revisa o formato de sinatura.",
+  "Elige el certificado con el que quieres continuar para firmar": "Elixa o certificado co que quere continuar para asinar",
+  "Elige un certificado adecuado y revisa el formato de firma.": "Escolla un certificado axeitado e revise o formato de sinatura.",
   "Emisor": "Emisor",
   "Emisor no reconocido": "Emisor non recoñecido",
   "Emisor: ": "Emisor: ",
   "Emparejamiento": "Emparellamento",
-  "Empieza seleccionando un documento o un lote de documentos para firmar.": "Comeza seleccionando un documento ou un lote de documentos para asinar.",
+  "Empieza seleccionando un documento o un lote de documentos para firmar.": "Comece seleccionando un documento ou un lote de documentos para asinar.",
   "Empleado público": "Empregado público",
   "En este modo guiado la salida final se mantiene en memoria/descarga; la persistencia en disco específica requiere un endpoint nativo de cofirma múltiple.": "Neste modo guiado a saída final mantense en memoria/descarga; a persistencia en disco específica require un endpoint nativo de cosinatura múltiple.",
   "En lote cargado desde navegador, la salida se entregara por respuesta web; para persistencia en disco hacen falta rutas por elemento.": "Nun lote cargado desde o navegador, a saída entregarase pola resposta web; para a persistencia en disco fan falta rutas por elemento.",
@@ -813,7 +813,7 @@
   "Esperada: ": "Esperada: ",
   "Esperando a la web...": "Agardando pola web...",
   "Esta clave solo bloquea visualmente esta sección durante la sesión actual; no se guarda ni sustituye la seguridad del sistema.": "Esta clave só bloquea visualmente esta sección durante a sesión actual; non se garda nin substitúe a seguridade do sistema.",
-  "Esta consola usa los endpoints REST ya existentes del backend local de GrxFirma. Si un endpoint requiere autenticación, introduce el token Bearer arriba.": "Esta consola usa os endpoints REST xa existentes do backend local de GrxFirma. Se un endpoint require autenticación, introduce arriba o token Bearer.",
+  "Esta consola usa los endpoints REST ya existentes del backend local de GrxFirma. Si un endpoint requiere autenticación, introduce el token Bearer arriba.": "Esta consola usa os endpoints REST xa existentes do backend local de GrxFirma. Se un endpoint require autenticación, introduza arriba o token Bearer.",
   "Esta funcionalidad permite restringir qué páginas web pueden solicitar firmas.\nPor defecto se permiten dominios de confianza de la administración.\n\nReglas activas:\n• *.gob.es (Permitido)\n• *.dipgra.es (Permitido)\n• localhost:* (Solo desarrollo)": "Esta funcionalidade permite restrinxir que páxinas web poden solicitar sinaturas.\nPor defecto permítense dominios de confianza da administración.\n\nRegras activas:\n• *.gob.es (Permitido)\n• *.dipgra.es (Permitido)\n• localhost:* (Só desenvolvemento)",
   "Esta funcionalidad permite restringir qué páginas web pueden solicitar firmas.\\nPor defecto se permiten dominios de confianza de la administración.\\n\\nReglas activas:\\n• *.gob.es (Permitido)\\n• *.dipgra.es (Permitido)\\n• localhost:* (Solo desarrollo)": "Esta funcionalidade permítelle restrinxir que páxinas web poden solicitar sinaturas.\\nPor defecto, permítense dominios de confianza da administración.\\n\\nRegras activas:\\n• *.gob.es (Permitido)\\n• *.dipgra.es (Permitido)__PH5_• Só desenvolvemento local)",
   "Estado": "Estado",
@@ -982,7 +982,7 @@
   "Hay certificados visibles que caducan en los próximos 30 días: ": "Hai certificados visibles que caducan nos próximos 30 días: ",
   "Hay un destinatario seleccionado.": "Hai un destinatario seleccionado.",
   "Hay varios destinatarios seleccionados: ": "Hai varios destinatarios seleccionados: ",
-  "Haz la operación y vuelve aquí si algo no queda claro.": "Fai a operación e volve aquí se algo non queda claro.",
+  "Haz la operación y vuelve aquí si algo no queda claro.": "Faga a operación e volva aquí se algo non queda claro.",
   "Hexadecimal": "Hexadecimal",
   "Host / IP:": "Host/IP:",
   "Huella": "Resumo",
@@ -1025,8 +1025,8 @@
   "Iniciando...": "Iniciando...",
   "Iniciar servidor": "Iniciar servidor",
   "Inserta un sello gráfico en el PDF indicando que ha sido firmado digitalmente.": "Insire un selo gráfico no PDF que indica que foi asinado dixitalmente.",
-  "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Instala o motor de sinatura como servizo do teu usuario (non de sistema),\npara que arrinque automaticamente e teña acceso aos teus certificados persoais.",
-  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Instala o motor de sinatura como servizo do teu usuario (non de sistema),\npara que arrinque automaticamente e teña acceso aos teus certificados persoais.",
+  "Instala el motor de firma como servicio de tu usuario (no de sistema),\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Instala o motor de sinatura como servizo do seu usuario (non de sistema),\npara que arrinque automaticamente e teña acceso aos seus certificados persoais.",
+  "Instala el motor de firma como servicio de tu usuario (no de sistema),\\npara que arranque automáticamente y tenga acceso a tus certificados personales.": "Instala o motor de sinatura como servizo do seu usuario (non de sistema),\npara que arrinque automaticamente e teña acceso aos seus certificados persoais.",
   "Instala la confianza del certificado HTTPS local para abrir la consola web REST sin avisos del navegador.": "Instala a confianza do certificado HTTPS local para abrir a consola web REST sen avisos do navegador.",
   "Instalar confianza TLS local": "Instalar confianza TLS local",
   "Instalar raíces públicas": "Instalar confianza TLS local",
@@ -1091,14 +1091,14 @@
   "La validación ha encontrado problemas. Revisa el motivo y comprueba si falta el original o necesitas ayuda.": "A validación atopou problemas. Revisa o motivo e comproba se falta o orixinal ou necesitas axuda.",
   "La validación ha fallado": "A validación fallou",
   "La validación ha fallado o tiene incidencias: %1": "A validación fallou ou ten incidencias: %1",
-  "La validación tiene incidencias. Revisa la razón mostrada y decide si necesitas el original, otro certificado o soporte.": "A validación ten incidencias. Revisa a razón mostrada e decide se precisas o orixinal, outro certificado ou soporte.",
+  "La validación tiene incidencias. Revisa la razón mostrada y decide si necesitas el original, otro certificado o soporte.": "A validación ten incidencias. Revise a razón mostrada e decida se precisa o orixinal, outro certificado ou soporte.",
   "La ventana se cerrará automáticamente al terminar la sesión del portal.": "A xanela pecharase automaticamente ao terminar a sesión do portal.",
   "La verificación ha devuelto incidencias.": "A verificación devolveu incidencias.",
   "La vista previa muestra el PDF activo del lote. De momento la misma posición del sello se aplica al resto del lote.": "A vista previa mostra o PDF activo do lote. Nestes momentos a mesma posición do selo aplícase ao resto do lote.",
-  "Lanza la operación y usa este asistente si algo no queda claro.": "Lanza a operación e usa este asistente se algo non queda claro.",
+  "Lanza la operación y usa este asistente si algo no queda claro.": "Lance a operación e use este asistente se algo non queda claro.",
   "Lanza la validación con el fichero actual.": "Lanza a validación co ficheiro actual.",
-  "Lanza la validación y revisa razón, firmantes y advertencias.": "Lanza a validación e revisa a razón, asinantes e advertencias.",
-  "Lanza la validación y revisa si falta el original o aparece algún aviso.": "Lanza a validación e revisa se falta o orixinal ou aparece algún aviso.",
+  "Lanza la validación y revisa razón, firmantes y advertencias.": "Lance a validación e revise a razón, asinantes e advertencias.",
+  "Lanza la validación y revisa si falta el original o aparece algún aviso.": "Lance a validación e revise se falta o orixinal ou aparece algún aviso.",
   "Leyendo firmantes previos para completar el sello...": "Lendo os asinantes anteriores para completar o selo...",
   "Limpiar": "Limpar",
   "Limpiar Log": "Borrar rexistro",
@@ -1183,7 +1183,7 @@
   "No hay ningún certificado seleccionado.": "Non hai ningún certificado seleccionado.",
   "No hay original de referencia: se validará solo el artefacto firmado.": "Non hai orixinal de referencia: validarase só o artefacto asinado.",
   "No hay proveedor de claves configurado para comprobar el certificado.": "Non hai provedor de claves configurado para comprobar o certificado.",
-  "No hay un fallo de firma concreto registrado todavía. Selecciona documento y certificado para reproducirlo.": "Aínda non hai un fallo de sinatura concreto rexistrado. Selecciona documento e certificado para reproducilo.",
+  "No hay un fallo de firma concreto registrado todavía. Selecciona documento y certificado para reproducirlo.": "Aínda non hai un fallo de sinatura concreto rexistrado. Seleccione documento e certificado para reproducilo.",
   "No se encontró el certificado indicado.": "Non se atopou o certificado indicado.",
   "No se encontró un gestor de certificados disponible.": "Non se atopou ningún xestor de certificados dispoñible.",
   "No se encuentra el servidor de firma interno.": "Non se atopa o servidor de sinatura interno.",
@@ -1319,8 +1319,8 @@
   "Parece un problema de conexión o de un servicio externo.": "Parece un problema de conexión ou dun servizo externo.",
   "Parece un problema interno de la aplicación en este equipo.": "Parece un problema interno da aplicación neste equipo.",
   "Parece un problema local de la aplicación o del motor de firma.": "Parece un problema local da aplicación ou do motor de sinatura.",
-  "Parece un problema que no depende solo de tu equipo.": "Parece un problema que non depende só do teu equipo.",
-  "Parece un problema que puedes revisar desde este equipo.": "Parece un problema que podes revisar desde este equipo.",
+  "Parece un problema que no depende solo de tu equipo.": "Parece un problema que non depende só do seu equipo.",
+  "Parece un problema que puedes revisar desde este equipo.": "Parece un problema que pode revisar desde este equipo.",
   "Pareja de validación PDF/original detectada.": "Parella de validación PDF/orixinal detectada.",
   "Pareja de validación XML/original detectada.": "Parella de validación XML/orixinal detectada.",
   "Participación": "Participación",
@@ -1403,7 +1403,7 @@
   "Procesando firma...": "Procesando a sinatura...",
   "Procesando solicitud...": "Procesando a solicitude...",
   "Protección completada correctamente.": "A protección completouse correctamente.",
-  "Protege un fichero para uno o varios destinatarios. También puedes protegerlo y firmarlo con el certificado seleccionado.": "Protexe un ficheiro para un ou varios destinatarios. Tamén podes protexelo e asinalo co certificado seleccionado.",
+  "Protege un fichero para uno o varios destinatarios. También puedes protegerlo y firmarlo con el certificado seleccionado.": "Protexe un ficheiro para un ou varios destinatarios. Tamén pode protexelo e asinalo co certificado seleccionado.",
   "Proteger": "Protexer",
   "Proteger / Desproteger": "Protexer / Desprotexer",
   "Proteger y firmar": "Protexer e asinar",
@@ -1416,10 +1416,10 @@
   "Proxy del sistema": "Proxy do sistema",
   "Proxy manual con credenciales protegidas": "Proxy manual con credenciais protexidas",
   "Proxy obligatorio para esta conexión": "Proxy obrigatorio para esta conexión",
-  "Puedes arrastrar documentos al área superior o indicar una ruta local sin subir el fichero al navegador.": "Podes arrastrar documentos á área superior ou indicar unha ruta local sen subir o ficheiro ao navegador.",
-  "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "Podes arrastrar e redimensionar o selo. O backend recibirá coordenadas seguras e normalizadas.",
-  "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Podes lanzar a operación agora ou seguir afinando o selo visible, o perfil ou os metadatos antes de asinar.",
-  "Puedes pedir al backend que seleccione automáticamente el certificado más adecuado según los filtros visibles.": "Podes pedirlle ao backend que seleccione automaticamente o certificado máis axeitado segundo os filtros visibles.",
+  "Puedes arrastrar documentos al área superior o indicar una ruta local sin subir el fichero al navegador.": "Pode arrastrar documentos á área superior ou indicar unha ruta local sen subir o ficheiro ao navegador.",
+  "Puedes arrastrar y redimensionar el sello. El backend recibirá coordenadas seguras y normalizadas.": "Pode arrastrar e redimensionar o selo. O backend recibirá coordenadas seguras e normalizadas.",
+  "Puedes lanzar la operación ahora o seguir afinando sello visible, perfil o metadatos antes de firmar.": "Pode lanzar a operación agora ou seguir afinando o selo visible, o perfil ou os metadatos antes de asinar.",
+  "Puedes pedir al backend que seleccione automáticamente el certificado más adecuado según los filtros visibles.": "Pode pedirlle ao backend que seleccione automaticamente o certificado máis axeitado segundo os filtros visibles.",
   "Puedes usar un PNG/JPG como fondo del sello. Si mantienes el texto, se dibujará encima como marca de agua.": "Podes usar un PNG/JPG como fondo do selo. Se mantés o texto, debuxarase enriba como marca de auga.",
   "Puerto:": "Porto:",
   "Página": "Páxina",
@@ -1451,7 +1451,7 @@
   "Qué está pasando: %1": "Que está a pasar: %1",
   "Qué hacer ahora: %1": "Que facer agora: %1",
   "Qué incluirá la incidencia": "Que incluirá a incidencia",
-  "Qué puede hacer por ti ahora": "Que pode facer por ti agora",
+  "Qué puede hacer por ti ahora": "Que pode facer por vostede agora",
   "RED Y SEGURIDAD": "REDE E SEGURIDADE",
   "REST local": "REST local",
   "REST: ": "REST: ",
@@ -1522,12 +1522,12 @@
   "Resumen del almacén": "Resumo do almacén",
   "Resumen del catálogo": "Resumo do catálogo",
   "Resumen para soporte copiado al portapapeles.": "Resumo para soporte copiado ao portapapeis.",
-  "Revisa el último mensaje visible y si el fallo es local, de certificado o de red.": "Revisa a última mensaxe visible e se o fallo é local, do certificado ou da rede.",
-  "Revisa el último mensaje y comprueba si el problema parece de conexión, del certificado o de la app.": "Revisa a última mensaxe e comproba se o problema parece de conexión, do certificado ou da app.",
-  "Revisa filtros activos, vigencia y aptitud para firma.": "Revisa filtros activos, vixencia e aptitude para a sinatura.",
-  "Revisa la razón de validación y si falta el original.": "Revisa a razón de validación e se falta o orixinal.",
-  "Revisa la selección de páginas del sello visible antes de firmar.": "Revisa a selección de páxinas do selo visible antes de asinar.",
-  "Revisa los filtros, la vigencia y si el certificado sirve para firmar.": "Revisa os filtros, a vixencia e se o certificado serve para asinar.",
+  "Revisa el último mensaje visible y si el fallo es local, de certificado o de red.": "Revise a última mensaxe visible e se o fallo é local, do certificado ou da rede.",
+  "Revisa el último mensaje y comprueba si el problema parece de conexión, del certificado o de la app.": "Revise a última mensaxe e comprobe se o problema parece de conexión, do certificado ou da app.",
+  "Revisa filtros activos, vigencia y aptitud para firma.": "Revise filtros activos, vixencia e aptitude para a sinatura.",
+  "Revisa la razón de validación y si falta el original.": "Revise a razón de validación e se falta o orixinal.",
+  "Revisa la selección de páginas del sello visible antes de firmar.": "Revise a selección de páxinas do selo visible antes de asinar.",
+  "Revisa los filtros, la vigencia y si el certificado sirve para firmar.": "Revise os filtros, a vixencia e se o certificado serve para asinar.",
   "Revisar certificado": "Revisar certificado",
   "Revisar certificados": "Revisar certificados",
   "Revocación online: ": "Revogación en liña: ",
@@ -1592,33 +1592,33 @@
   "Secret Service": "Secret Service",
   "Secretos, tokens y cabeceras sensibles": "Segredos, tokens e cabeceiras sensibles",
   "Seguridad y Dominios": "Seguridade e dominios",
-  "Selecciona al menos un destinatario de protección.": "Selecciona polo menos un destinatario de protección.",
-  "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Selecciona polo menos un asinante adicional para a cosinatura múltiple.",
+  "Selecciona al menos un destinatario de protección.": "Seleccione polo menos un destinatario de protección.",
+  "Selecciona al menos un firmante adicional para la cofirma múltiple.": "Seleccione polo menos un asinante adicional para a cosinatura múltiple.",
   "Selecciona el fichero firmado antes de reintentar la validación.": "Selecciona o ficheiro asinado antes de reintentar a validación.",
   "Selecciona el fichero firmado que quieres validar.": "Selecciona o ficheiro asinado que queres validar.",
-  "Selecciona exactamente un destinatario de protección.": "Selecciona exactamente un destinatario de protección.",
-  "Selecciona la operación que aparecerá elegida al preparar una firma nueva.": "Selecciona a operación que aparecerá elixida ao preparar unha sinatura nova.",
-  "Selecciona primero el certificado principal.": "Selecciona primeiro o certificado principal.",
+  "Selecciona exactamente un destinatario de protección.": "Seleccione exactamente un destinatario de protección.",
+  "Selecciona la operación que aparecerá elegida al preparar una firma nueva.": "Seleccione a operación que aparecerá elixida ao preparar unha sinatura nova.",
+  "Selecciona primero el certificado principal.": "Seleccione primeiro o certificado principal.",
   "Selecciona primero el fichero que quieres validar.": "Selecciona primeiro o ficheiro que queres validar.",
-  "Selecciona primero un artefacto firmado o indica una ruta local.": "Selecciona primeiro un artefacto asinado ou indica unha ruta local.",
-  "Selecciona primero un certificado.": "Selecciona primeiro un certificado.",
-  "Selecciona primero un fichero, una carpeta o una ruta local para preparar la operación.": "Selecciona primeiro un ficheiro, un cartafol ou unha ruta local para preparar a operación.",
-  "Selecciona primero un fichero.": "Selecciona primeiro un ficheiro.",
-  "Selecciona primero uno o varios ficheros.": "Selecciona primeiro un ou varios ficheiros.",
-  "Selecciona un archivo o indica una ruta local.": "Selecciona un ficheiro ou indica unha ruta local.",
-  "Selecciona un certificado": "Selecciona un certificado",
-  "Selecciona un certificado antes de firmar o validar la participación del firmante.": "Selecciona un certificado antes de asinar ou validar a participación do asinante.",
-  "Selecciona un certificado para exportar su resumen visible como JSON.": "Selecciona un certificado para exportar o seu resumo visible como JSON.",
-  "Selecciona un certificado para ver cómo participará en la operación elegida.": "Selecciona un certificado para ver como participará na operación elixida.",
-  "Selecciona un documento firmado o indica una ruta local.": "Selecciona un documento asinado ou indica unha ruta local.",
-  "Selecciona un fichero P12 o PFX.": "Selecciona un ficheiro P12 ou PFX.",
-  "Selecciona un fichero de destinatario fuerte.": "Selecciona un ficheiro de destinatario forte.",
-  "Selecciona un fichero local o arrástralo aquí. Para PDF se recomienda PAdES.": "Selecciona un ficheiro local ou arrástrao aquí. Para PDF recoméndase PAdES.",
-  "Selecciona un fichero para proteger o indica una ruta local.": "Selecciona un ficheiro para protexer ou indica unha ruta local.",
-  "Selecciona un fichero protegido o indica una ruta local.": "Selecciona un ficheiro protexido ou indica unha ruta local.",
-  "Selecciona uno o varios destinatarios.": "Selecciona un ou varios destinatarios.",
-  "Selecciona uno o varios documentos.": "Selecciona un ou varios documentos.",
-  "Selecciona varios ficheros sueltos, una carpeta completa, arrástralos aquí o usa una ruta local. Para PDFs con sello visible se recomienda PAdES.": "Selecciona varios ficheiros soltos, un cartafol completo, arrástraos aquí ou usa unha ruta local. Para PDF con selo visible recoméndase PAdES.",
+  "Selecciona primero un artefacto firmado o indica una ruta local.": "Seleccione primeiro un artefacto asinado ou indique unha ruta local.",
+  "Selecciona primero un certificado.": "Seleccione primeiro un certificado.",
+  "Selecciona primero un fichero, una carpeta o una ruta local para preparar la operación.": "Seleccione primeiro un ficheiro, un cartafol ou unha ruta local para preparar a operación.",
+  "Selecciona primero un fichero.": "Seleccione primeiro un ficheiro.",
+  "Selecciona primero uno o varios ficheros.": "Seleccione primeiro un ou varios ficheiros.",
+  "Selecciona un archivo o indica una ruta local.": "Seleccione un ficheiro ou indique unha ruta local.",
+  "Selecciona un certificado": "Seleccione un certificado",
+  "Selecciona un certificado antes de firmar o validar la participación del firmante.": "Seleccione un certificado antes de asinar ou validar a participación do asinante.",
+  "Selecciona un certificado para exportar su resumen visible como JSON.": "Seleccione un certificado para exportar o seu resumo visible como JSON.",
+  "Selecciona un certificado para ver cómo participará en la operación elegida.": "Seleccione un certificado para ver como participará na operación elixida.",
+  "Selecciona un documento firmado o indica una ruta local.": "Seleccione un documento asinado ou indique unha ruta local.",
+  "Selecciona un fichero P12 o PFX.": "Seleccione un ficheiro P12 ou PFX.",
+  "Selecciona un fichero de destinatario fuerte.": "Seleccione un ficheiro de destinatario forte.",
+  "Selecciona un fichero local o arrástralo aquí. Para PDF se recomienda PAdES.": "Seleccione un ficheiro local ou arrástreo aquí. Para PDF recoméndase PAdES.",
+  "Selecciona un fichero para proteger o indica una ruta local.": "Seleccione un ficheiro para protexer ou indique unha ruta local.",
+  "Selecciona un fichero protegido o indica una ruta local.": "Seleccione un ficheiro protexido ou indique unha ruta local.",
+  "Selecciona uno o varios destinatarios.": "Seleccione un ou varios destinatarios.",
+  "Selecciona uno o varios documentos.": "Seleccione un ou varios documentos.",
+  "Selecciona varios ficheros sueltos, una carpeta completa, arrástralos aquí o usa una ruta local. Para PDFs con sello visible se recomienda PAdES.": "Seleccione varios ficheiros soltos, un cartafol completo, arrástreos aquí ou use unha ruta local. Para PDF con selo visible recoméndase PAdES.",
   "Seleccionados": "Seleccionados",
   "Seleccionando certificado automáticamente...": "Seleccionando certificado automaticamente...",
   "Seleccionar": "Seleccionar",
@@ -1673,16 +1673,16 @@
   "Servidor de firma no alcanzable en la red local.": "Servidor de sinatura non alcanzable na rede local.",
   "Sesión %s activa en %s": "Sesión %s activa en %s",
   "Si activas el modo residente, al cerrar la ventana se ocultará a la bandeja y la sesión seguirá viva.": "Se activas o modo residente, ao pechar a xanela ocultarase na bandexa e a sesión seguirá viva.",
-  "Si el fallo depende de un servicio externo, documenta la incidencia y reintenta más tarde.": "Se o fallo depende dun servizo externo, documenta a incidencia e inténtao de novo máis tarde.",
+  "Si el fallo depende de un servicio externo, documenta la incidencia y reintenta más tarde.": "Se o fallo depende dun servizo externo, documente a incidencia e inténteo de novo máis tarde.",
   "Si el formato y la operacion aprovechan un original de referencia, se usara automaticamente cuando este disponible.": "Se o formato e a operación aproveitan un orixinal de referencia, usarase automaticamente cando estea dispoñible.",
-  "Si estás en modo experto, añade detalles técnicos útiles para soporte.": "Se estás en modo experto, engade detalles técnicos útiles para o soporte.",
-  "Si hace falta, importa tu certificado o abre el gestor de certificados.": "Se fai falta, importa o teu certificado ou abre o xestor de certificados.",
-  "Si hace falta, importa un P12 o abre el gestor de certificados.": "Se fai falta, importa un P12 ou abre o xestor de certificados.",
+  "Si estás en modo experto, añade detalles técnicos útiles para soporte.": "Se está en modo experto, engada detalles técnicos útiles para o soporte.",
+  "Si hace falta, importa tu certificado o abre el gestor de certificados.": "Se fai falta, importe o seu certificado ou abra o xestor de certificados.",
+  "Si hace falta, importa un P12 o abre el gestor de certificados.": "Se fai falta, importe un P12 ou abra o xestor de certificados.",
   "Si indicas una ruta local, el firmador usará el backend sobre ese fichero sin necesidad de subirlo al navegador.": "Se indicas unha ruta local, o asinador usará o backend sobre ese ficheiro sen necesidade de subilo ao navegador.",
   "Si no eliges un formato manualmente, esta preferencia se usará al preparar la firma.": "Se non eliges un formato manualmente, esta preferencia usarase ao preparar a sinatura.",
-  "Si parece un fallo externo, anota lo ocurrido y vuelve a intentarlo más tarde.": "Se parece un fallo externo, anota o ocorrido e volve intentalo máis tarde.",
-  "Si persiste, abre ayuda o exporta diagnóstico para soporte.": "Se persiste, abre a axuda ou exporta un diagnóstico para o soporte.",
-  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "Se queres engadir outra sinatura sobre o mesmo documento, o normal é usar Cosinar.",
+  "Si parece un fallo externo, anota lo ocurrido y vuelve a intentarlo más tarde.": "Se parece un fallo externo, anote o ocorrido e volva intentalo máis tarde.",
+  "Si persiste, abre ayuda o exporta diagnóstico para soporte.": "Se persiste, abra a axuda ou exporte un diagnóstico para o soporte.",
+  "Si quieres añadir otra firma sobre el mismo documento, lo correcto normalmente es usar Cofirmar.": "Se quere engadir outra sinatura sobre o mesmo documento, o normal é usar Cosinar.",
   "Si se activa y solo hay un certificado disponible, la aplicación lo seleccionará automáticamente al cargar el catálogo.": "Se se activa e só hai un certificado dispoñible, a aplicación seleccionarao automaticamente ao cargar o catálogo.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación intentará guardarlas y cerrará sin mostrar el diálogo de confirmación.": "Se se activa, ao pechar con preferencias pendentes a aplicación tentará gardalas e pechará sen mostrar o diálogo de confirmación.",
   "Si se activa, al cerrar con preferencias pendientes la aplicación las guardará y continuará sin mostrar el diálogo de confirmación.": "Se se activa, ao pechar con preferencias pendentes a aplicación gardaraas e continuará sen mostrar o diálogo de confirmación.",
@@ -1698,7 +1698,7 @@
   "Si se activa, el texto del buscador de certificados se conservará entre sesiones. Si se desactiva, el filtro se limpiará al salir.": "Se se activa, o texto do buscador de certificados conservarase entre sesións. Se se desactiva, o filtro limparase ao saír.",
   "Si se activa, los certificados no caducados se mostrarán antes que los caducados dentro de la lista visible.": "Se se activa, os certificados non caducados mostraranse antes que os caducados dentro da lista visible.",
   "Si se activa, los certificados válidos para firma se mostrarán antes que los no utilizables dentro de la lista visible.": "Se se activa, os certificados válidos para asinar mostraranse antes que os non utilizables dentro da lista visible.",
-  "Si sigue fallando, abre ayuda o guarda un resumen para soporte.": "Se segue fallando, abre a axuda ou garda un resumo para o soporte.",
+  "Si sigue fallando, abre ayuda o guarda un resumen para soporte.": "Se segue fallando, abra a axuda ou garde un resumo para o soporte.",
   "Siguiente acción recomendada: %1": "Seguinte acción recomendada: %1",
   "Siguiente paso": "Seguinte paso",
   "Siguiente paso sugerido": "Seguinte paso suxerido",
@@ -1779,8 +1779,8 @@
   "Todas las páginas": "Todas as páxinas",
   "Todas las páginas por defecto en firma visible": "Todas as páxinas por defecto na sinatura visible",
   "Todavía no está claro dónde está el problema.": "Aínda non está claro onde está o problema.",
-  "Todavía no está claro si depende de tu equipo o de un servicio externo.": "Aínda non está claro se depende do teu equipo ou dun servizo externo.",
-  "Todavía no hay una razón de validación disponible. Ejecuta la validación para obtener contexto.": "Aínda non hai unha razón de validación dispoñible. Executa a validación para obter contexto.",
+  "Todavía no está claro si depende de tu equipo o de un servicio externo.": "Aínda non está claro se depende do seu equipo ou dun servizo externo.",
+  "Todavía no hay una razón de validación disponible. Ejecuta la validación para obtener contexto.": "Aínda non hai unha razón de validación dispoñible. Execute a validación para obter contexto.",
   "Todavía no se ha lanzado la comprobación online.": "Aínda non se lanzou a comprobación en liña.",
   "Todo listo para firmar con la configuración actual.": "Todo listo para asinar coa configuración actual.",
   "Todos": "Todos",
@@ -1805,7 +1805,7 @@
   "VERIFICAR": "VALIDAR",
   "Vaciar Almacén TLS": "Baleirar almacén TLS",
   "Vaciar almacén TLS local": "Baleirar o almacén TLS local",
-  "Valida el documento y revisa si falta el original o aparece algún aviso.": "Valida o documento e revisa se falta o orixinal ou aparece algún aviso.",
+  "Valida el documento y revisa si falta el original o aparece algún aviso.": "Valide o documento e revise se falta o orixinal ou aparece algún aviso.",
   "Validación completada": "Validación completada",
   "Validación con original de referencia aportado.": "Validación con orixinal de referencia achegado.",
   "Validación finalizada.": "Validación finalizada.",
@@ -1857,8 +1857,8 @@
   "XML original": "XML orixinal",
   "XMLdSig": "XMLdSig",
   "Y (0..1)": "Y (0..1)",
-  "Ya tienes documento, pero falta seleccionar un certificado adecuado para firmar.": "Xa tes documento, pero falta seleccionar un certificado adecuado para asinar.",
-  "Ya tienes preparado el flujo de validación. El siguiente paso es lanzar la comprobación.": "Xa tes preparado o fluxo de validación. O seguinte paso é lanzar a comprobación.",
+  "Ya tienes documento, pero falta seleccionar un certificado adecuado para firmar.": "Xa ten documento, pero falta seleccionar un certificado adecuado para asinar.",
+  "Ya tienes preparado el flujo de validación. El siguiente paso es lanzar la comprobación.": "Xa ten preparado o fluxo de validación. O seguinte paso é lanzar a comprobación.",
   "[data-copy-certificate-fingerprint]": "[data-copy-certificate-fingerprint]",
   "[data-copy-certificate-json]": "[data-copy-certificate-json]",
   "[data-copy-diagnostics-report]": "[data-copy-diagnostics-report]",
@@ -2061,19 +2061,19 @@
   "guidedAssistantReadyHelp": "guidedAssistantReadyHelp",
   "guidedAssistantTitle": "guidedAssistantTitle",
   "height": "height",
-  "help.certs.body": "O panel dereito mostra os certificados dispoñibles. Podes inspeccionar os seus datos, comprobar a validez e usalos para asinar ou autenticarte segundo o fluxo. Se non aparece ningún, podes usar un P12/PFX só durante a sesión ou importalo expresamente nun almacén do sistema ou do navegador.",
+  "help.certs.body": "O panel dereito mostra os certificados dispoñibles. Pode inspeccionar os seus datos, comprobar a validez e usalos para asinar ou autenticarse segundo o fluxo. Se non aparece ningún, pode usar un P12/PFX só durante a sesión ou importalo expresamente nun almacén do sistema ou do navegador.",
   "help.certs.title": "Certificados",
-  "help.more.body": "Para operacións avanzadas tamén podes usar a consola web local e a liña de ordes de GrxFirma.",
+  "help.more.body": "Para operacións avanzadas tamén pode usar a consola web local e a liña de ordes de GrxFirma.",
   "help.more.title": "Máis información",
-  "help.security.body": "Revisa sempre o sitio que solicita sinatura ou certificado. Non confirmes operacións que non agardabas. Usa o modo residente e a compatibilidade web só cando sexa necesario.",
+  "help.security.body": "Revise sempre o sitio que solicita sinatura ou certificado. Non confirme operacións que non agardaba. Use o modo residente e a compatibilidade web só cando sexa necesario.",
   "help.security.title": "Seguridade",
-  "help.sign.body": "Usa a lapela Asinar para asinar un ficheiro, varios ficheiros ou un cartafol completo. Para PDF en formato PAdES podes activar selo visible, rotación, QR, metadatos e páxinas específicas ou todas as páxinas. Podes manter abertos os selectores ou colocar o selo con calma: a canle conectada admite ata 30 minutos de inactividade.",
+  "help.sign.body": "Use a lapela Asinar para asinar un ficheiro, varios ficheiros ou un cartafol completo. Para PDF en formato PAdES pode activar selo visible, rotación, QR, metadatos e páxinas específicas ou todas as páxinas. Pode manter abertos os selectores ou colocar o selo con calma: a canle conectada admite ata 30 minutos de inactividade.",
   "help.sign.title": "Asinar documentos",
   "help.subtitle": "Guía rápida de uso da aplicación.",
   "help.title": "Axuda de GrxFirma",
-  "help.verify.body": "En Verificar podes validar documentos asinados e revisar formato, asinantes, razón e detalles técnicos. Despois de asinar, a aplicación verifica automaticamente o resultado.",
+  "help.verify.body": "En Verificar pode validar documentos asinados e revisar formato, asinantes, razón e detalles técnicos. Despois de asinar, a aplicación verifica automaticamente o resultado.",
   "help.verify.title": "Verificar sinaturas",
-  "help.web.body": "A API REST local e a compatibilidade web permiten integrar GrxFirma con portais e coa consola web local. Mantén estes servizos limitados ao equipo local.",
+  "help.web.body": "A API REST local e a compatibilidade web permiten integrar GrxFirma con portais e coa consola web local. Manteña estes servizos limitados ao equipo local.",
   "help.web.title": "Integración web local",
   "http://www.facturae.gob.es/politica_de_firma_formato_facturae/": "http://www.facturae.gob.es/politica_de_firma_formato_facturae/",
   "https://soporte.ejemplo/incidents": "https://soporte.ejemplo/incidents",
@@ -2396,7 +2396,7 @@
   "xAxis": "xAxis",
   "yAxis": "yAxis",
   "yes": "yes",
-  "¿Quieres guardar los cambios antes de cerrar?": "Queres gardar os cambios antes de pechar?",
+  "¿Quieres guardar los cambios antes de cerrar?": "Quere gardar os cambios antes de pechar?",
   "Ámbito de resolución: %1": "Ámbito de resolución: %1",
   "Última incidencia guardada: %1": "Última incidencia gardada: %1",
   "Última página": "Última páxina",
@@ -2440,7 +2440,7 @@
   "⚙️  Preferencias Generales": "Preferencias xerais",
   "⚙️ Modo administrador habilitado.": "Modo administrador activado.",
   "⚠ Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "Desconectado da interface IPC local (modo REST exclusivo ou motor parado).",
-  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Importante: instálase como servizo da túa sesión de usuario (non como servizo do sistema), para que teña acceso aos teus certificados do almacén persoal. Os servizos do sistema non poden acceder aos certificados de usuario.",
+  "⚠ Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Importante: instálase como servizo da súa sesión de usuario (non como servizo do sistema), para que teña acceso aos seus certificados do almacén persoal. Os servizos do sistema non poden acceder aos certificados de usuario.",
   "⚠️": "Advertencia",
   "⚠️ Conexión IPC cerrada.": "Conexión IPC pechada.",
   "⚠️ No hay conexión con el motor.": "Non hai conexión co motor.",
@@ -2502,13 +2502,13 @@
   "🛡️ Instalar Certificados Raíz de Administraciones Públicas": "Instalar a confianza TLS local",
   "🛡️ Instalar confianza TLS local": "Instalar a confianza TLS local",
   "🌐  Navegadores y certificados locales": "Navegadores e certificados locais",
-  "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "Repara a integración con Chrome, Chromium, Edge, Brave e Firefox, incluíndo perfís Snap ou Flatpak cando existan. Usa estas opcións se unha web non consegue abrir GrxFirma ou se o navegador non confía na conexión local.",
+  "Repara la integración con Chrome, Chromium, Edge, Brave y Firefox, incluyendo perfiles Snap o Flatpak cuando existan. Usa estas opciones si una web no consigue abrir GrxFirma o si el navegador no confía en la conexión local.": "Repara a integración con Chrome, Chromium, Edge, Brave e Firefox, incluíndo perfís Snap ou Flatpak cando existan. Use estas opcións se unha web non consegue abrir GrxFirma ou se o navegador non confía na conexión local.",
   "Reinstalar conectores de navegadores": "Reinstalar conectores dos navegadores",
-  "Vuelve a registrar afirma://, Native Messaging y perfiles Firefox detectados. Después reinicia el navegador.": "Volve rexistrar afirma://, Native Messaging e os perfís de Firefox detectados. Despois reinicia o navegador.",
+  "Vuelve a registrar afirma://, Native Messaging y perfiles Firefox detectados. Después reinicia el navegador.": "Volve rexistrar afirma://, Native Messaging e os perfís de Firefox detectados. Despois reinicie o navegador.",
   "Reinstalar certificados locales": "Reinstalar certificados locais",
   "Reinstala la confianza TLS local usada por la app para comunicarse con navegadores y servicios locales.": "Reinstala a confianza TLS local que usa a aplicación para comunicarse con navegadores e servizos locais.",
   "Diagnóstico TLS": "Diagnóstico TLS",
-  "Conectores de navegador reinstalados. Reinicia el navegador.": "Conectores de navegador reinstalados. Reinicia o navegador.",
+  "Conectores de navegador reinstalados. Reinicia el navegador.": "Conectores de navegador reinstalados. Reinicie o navegador.",
   "Error reinstalando conectores de navegador": "Erro reinstalando conectores de navegador",
   "❌ No se encontró el instalador de conectores de navegador.": "Non se atopou o instalador de conectores de navegador.",
   "No se encontraron conectores para reinstalar": "Non se atoparon conectores para reinstalar",
@@ -2546,11 +2546,11 @@
   "Importar en navegador o sistema": "Importar no navegador ou sistema",
   "Importar o abrir gestor": "Importar ou abrir o xestor",
   "La credencial se mantendrá solo en memoria mientras esta aplicación esté abierta. No se copiará al navegador ni al sistema.": "A credencial manterase só na memoria mentres esta aplicación estea aberta. Non se copiará ao navegador nin ao sistema.",
-  "Los certificados encontrados están caducados, no son aptos para firma o están ocultos por los filtros. Puedes cambiar los filtros o añadir otro certificado.": "Os certificados atopados caducaron, non son aptos para asinar ou están ocultos polos filtros. Cambia os filtros ou engade outro certificado.",
+  "Los certificados encontrados están caducados, no son aptos para firma o están ocultos por los filtros. Puedes cambiar los filtros o añadir otro certificado.": "Os certificados atopados caducaron, non son aptos para asinar ou están ocultos polos filtros. Pode cambiar os filtros ou engadir outro certificado.",
   "Navegador detectado: %1": "Navegador detectado: %1",
   "No hay certificados disponibles": "Non hai certificados dispoñibles",
   "No hay certificados utilizables con los filtros actuales": "Non hai certificados utilizables cos filtros actuais",
-  "No se encontró un almacén compatible. Puedes abrir el gestor e importar el P12/PFX manualmente.": "Non se atopou un almacén compatible. Podes abrir o xestor e importar o P12/PFX manualmente.",
+  "No se encontró un almacén compatible. Puedes abrir el gestor e importar el P12/PFX manualmente.": "Non se atopou un almacén compatible. Pode abrir o xestor e importar o P12/PFX manualmente.",
   "No se pudo detectar un navegador preferido.": "Non se puido detectar un navegador preferido.",
   "Puedes usar un P12/PFX o un bundle PEM solo durante esta sesión, importarlo de forma explícita o abrir el gestor del navegador o del sistema.": "Podes usar un P12/PFX ou un paquete PEM só durante esta sesión, importalo explicitamente ou abrir o xestor do navegador ou do sistema.",
   "Retirar temporal": "Retirar o temporal",
@@ -2559,12 +2559,12 @@
   "Usar certificado solo durante esta sesión": "Usar o certificado só durante esta sesión",
   "Validación avanzada": "Validación avanzada",
   "Comprueba firmas, certificados y huellas sin enviar documentos fuera de este equipo.": "Comproba sinaturas, certificados e resumos (hash) sen enviar documentos fóra deste equipo.",
-  "Selecciona un certificado del catálogo local para revisar su vigencia y estado de revocación.": "Selecciona un certificado do catálogo local para revisar a súa vixencia e o estado de revogación.",
+  "Selecciona un certificado del catálogo local para revisar su vigencia y estado de revocación.": "Seleccione un certificado do catálogo local para revisar a súa vixencia e o estado de revogación.",
   "Entrada": "Entrada",
   "No válido": "Non válido",
   "La operación no se pudo completar.": "Non se puido completar a operación.",
   "El fichero supera el tamaño máximo permitido.": "O ficheiro supera o tamaño máximo permitido.",
-  "Selecciona primero los ficheros necesarios.": "Selecciona primeiro os ficheiros necesarios.",
+  "Selecciona primero los ficheros necesarios.": "Seleccione primeiro os ficheiros necesarios.",
   "informe-validacion.json": "informe-validacion.json",
   "informe-certificado.json": "informe-certificado.json",
   "informe-huella.json": "informe-resumo.json",
@@ -2610,7 +2610,7 @@
   "Ejecutando diagnóstico activo acotado...": "Executando un diagnóstico activo acoutado...",
   "El resultado es orientativo y no se presenta como una certeza.": "O resultado é orientativo e non se presenta como unha certeza.",
   "El resultado usará categorías limitadas y se añadirá como bloque separado a una nueva versión de la incidencia local.": "O resultado usará categorías limitadas e engadirase como bloque separado a unha nova versión da incidencia local.",
-  "La operación ya ha fallado. Si aceptas, GrxFirma hará ahora comprobaciones acotadas para orientar la causa probable.": "A operación xa fallou. Se aceptas, GrxFirma fará agora comprobacións acoutadas para orientar a causa probable.",
+  "La operación ya ha fallado. Si aceptas, GrxFirma hará ahora comprobaciones acotadas para orientar la causa probable.": "A operación xa fallou. Se acepta, GrxFirma fará agora comprobacións acoutadas para orientar a causa probable.",
   "Negociación TLS": "Negociación TLS",
   "No se enviarán documentos, certificados, rutas, direcciones IP, credenciales ni errores crudos.": "Non se enviarán documentos, certificados, rutas, enderezos IP, credenciais nin erros sen tratar.",
   "No se pudo iniciar el diagnóstico activo.": "Non se puido iniciar o diagnóstico activo.",
@@ -2644,8 +2644,8 @@
   ,"Introduzca la misma clave AES-256 en Base64 usada al proteger. Se enviará una sola vez al motor local y no se guardará.": "Introduza a mesma clave AES-256 en Base64 usada ao protexer. Enviarase unha soa vez ao motor local e non se gardará."
   ,"La clave transitoria debe ser Base64 canónico de 32 bytes (44 caracteres).": "A clave transitoria debe ser Base64 canónico de 32 bytes (44 caracteres)."
   ,"Calculando huella...": "Calculando o resumo..."
-  ,"Indica una ruta local de directorio para generar el manifiesto.": "Indica unha ruta local de directorio para xerar o manifesto."
-  ,"Selecciona un fichero o indica una ruta local.": "Selecciona un ficheiro ou indica unha ruta local."
+  ,"Indica una ruta local de directorio para generar el manifiesto.": "Indique unha ruta local de directorio para xerar o manifesto."
+  ,"Selecciona un fichero o indica una ruta local.": "Seleccione un ficheiro ou indique unha ruta local."
   ,"Descargar manifiesto": "Baixar manifesto"
   ,"Entradas": "Entradas"
   ,"Manifiesto hash de directorio generado.": "Manifesto de resumos do directorio xerado."
@@ -2654,8 +2654,8 @@
   ,"Huella generada.": "Resumo xerado."
   ,"Error al generar huella: ": "Erro ao xerar o resumo: "
   ,"Comprobando integridad...": "Comprobando a integridade..."
-  ,"Indica una ruta local de directorio para comprobar el manifiesto.": "Indica unha ruta local de directorio para comprobar o manifesto."
-  ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "Selecciona un ficheiro de resumo ou manifesto, ou indica a súa ruta."
+  ,"Indica una ruta local de directorio para comprobar el manifiesto.": "Indique unha ruta local de directorio para comprobar o manifesto."
+  ,"Selecciona un fichero de huella/manifiesto o indica su ruta.": "Seleccione un ficheiro de resumo ou manifesto, ou indique a súa ruta."
   ,"Esperada": "Esperada"
   ,"Error al comprobar huella: ": "Erro ao comprobar o resumo: "
   ,"ACERCA DE": "ACERCA DE"
@@ -2691,7 +2691,7 @@
   ,"help.updates.title": "Novas versións"
   ,"help.updates.body": "En Configuración pode activar ou desactivar o aviso automático. Ao iniciar, GrxFirma consulta unha vez a última GitHub Release mediante HTTPS; non envía documentos, certificados nin datos de sinatura e nunca descarga ou executa instaladores. Tamén pode usar Acerca de > Comprobar actualizacións. Se a consulta falla, revise Internet ou o proxy e ténteo de novo; a sinatura local segue dispoñible."
   ,"Abre la página oficial de renovación de certificado de persona física de la FNMT.": "Abre a páxina oficial da FNMT para renovar o certificado de persoa física."
-  ,"Abre la vista del PDF y elige una página para preparar el sello.": "Abre a vista previa do PDF e escolle unha páxina para preparar o selo."
+  ,"Abre la vista del PDF y elige una página para preparar el sello.": "Abra a vista previa do PDF e escolla unha páxina para preparar o selo."
   ,"Arrastra el recuadro sobre el PDF para colocar el sello. Usa la esquina para cambiar su tamaño; la vista se actualiza automáticamente.": "Arrastra o recadro sobre o PDF para colocar o selo. Usa a esquina para cambiar o seu tamaño; a vista previa actualízase automaticamente."
   ,"Añadir destinatario público…": "Engadir destinatario público…"
   ,"Caduca pronto": "Caduca axiña"
@@ -2700,36 +2700,36 @@
   ,"El QR necesita una dirección HTTPS completa sin usuario ni contraseña.": "O QR precisa un enderezo HTTPS completo sen usuario nin contrasinal."
   ,"Emisor: %1": "Emisor: %1"
   ,"Emisor: %1. Vence: %2": "Emisor: %1. Vence: %2"
-  ,"Este certificado caduca en %1 días. Comprueba si debes renovarlo antes de firmar.": "Este certificado caduca en %1 días. Comproba se debes renovalo antes de asinar."
+  ,"Este certificado caduca en %1 días. Comprueba si debes renovarlo antes de firmar.": "Este certificado caduca en %1 días. Comprobe se debe renovalo antes de asinar."
   ,"Giro horario del sello, de 0 a 359 grados": "Xiro horario do selo, de 0 a 359 graos"
   ,"Giros rápidos": "Xiros rápidos"
   ,"Grados en sentido horario": "Graos en sentido horario"
   ,"Imagen propia": "Imaxe propia"
   ,"Importa solo un certificado X.509 público; no se importa ninguna clave privada.": "Importa só un certificado X.509 público; non se importa ningunha clave privada."
   ,"Importar certificado público del destinatario": "Importar certificado público do destinatario"
-  ,"Introduce una dirección HTTPS completa sin usuario ni contraseña.": "Introduce un enderezo HTTPS completo sen usuario nin contrasinal."
+  ,"Introduce una dirección HTTPS completa sin usuario ni contraseña.": "Introduza un enderezo HTTPS completo sen usuario nin contrasinal."
   ,"La vista real del sello requiere el motor IPC local.": "A vista real do selo require o motor IPC local."
-  ,"Lector detectado sin tarjeta. Introduce el DNIe o tarjeta y vuelve a consultar.": "Lector detectado sen tarxeta. Introduce o DNIe ou a tarxeta e volve consultar."
+  ,"Lector detectado sin tarjeta. Introduce el DNIe o tarjeta y vuelve a consultar.": "Lector detectado sen tarxeta. Introduza o DNIe ou a tarxeta e volva consultar."
   ,"Libro de destinatarios actualizado. La clave privada no se ha importado.": "Libro de destinatarios actualizado. Non se importou a clave privada."
   ,"No indicada": "Non indicada"
-  ,"No se detectan lectores. Comprueba que pcscd esté activo, conecta el lector y configura el módulo PKCS#11.": "Non se detectan lectores. Comproba que pcscd estea activo, conecta o lector e configura o módulo PKCS#11."
+  ,"No se detectan lectores. Comprueba que pcscd esté activo, conecta el lector y configura el módulo PKCS#11.": "Non se detectan lectores. Comprobe que pcscd estea activo, conecte o lector e configure o módulo PKCS#11."
   ,"No se pudo cambiar el destinatario: %1": "Non se puido cambiar o destinatario: %1"
-  ,"No se pudo consultar la tarjeta: %1. Comprueba pcscd, el lector y el módulo PKCS#11.": "Non se puido consultar a tarxeta: %1. Comproba pcscd, o lector e o módulo PKCS#11."
+  ,"No se pudo consultar la tarjeta: %1. Comprueba pcscd, el lector y el módulo PKCS#11.": "Non se puido consultar a tarxeta: %1. Comprobe pcscd, o lector e o módulo PKCS#11."
   ,"No se pudo generar la vista del sello.": "Non se puido xerar a vista previa do selo."
   ,"No se pudo mostrar la imagen del sello.": "Non se puido mostrar a imaxe do selo."
   ,"Novedades de esta versión": "Novidades desta versión"
   ,"Novedades instaladas": "Novidades instaladas"
   ,"Novedades no disponibles en esta instalación.": "As novidades non están dispoñibles nesta instalación."
   ,"Nº Serie: ": "N.º de serie: "
-  ,"Opcional. Introduce la dirección HTTPS de comprobación; el QR aparecerá en el sello real.": "Opcional. Introduce o enderezo HTTPS de comprobación; o QR aparecerá no selo real."
+  ,"Opcional. Introduce la dirección HTTPS de comprobación; el QR aparecerá en el sello real.": "Opcional. Introduza o enderezo HTTPS de comprobación; o QR aparecerá no selo real."
   ,"Organización: ": "Organización: "
   ,"Origen: %1": "Orixe: %1"
   ,"Preparando vista real del sello…": "Preparando a vista real do selo…"
   ,"Preparando vista real…": "Preparando a vista real…"
   ,"Primera": "Primeira"
   ,"Renovar en la FNMT": "Renovar na FNMT"
-  ,"Selecciona una imagen PNG o JPEG para el sello.": "Selecciona unha imaxe PNG ou JPEG para o selo."
-  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "Selección de páxinas non válida. Usa 1, 1,3-5 ou todas."
+  ,"Selecciona una imagen PNG o JPEG para el sello.": "Seleccione unha imaxe PNG ou JPEG para o selo."
+  ,"Selección de páginas inválida. Usa 1, 1,3-5 o todas.": "Selección de páxinas non válida. Use 1, 1,3-5 ou todas."
   ,"Solo texto": "Só texto"
   ,"Tarjeta detectada. Se actualiza la lista de certificados; puede que necesites configurar el módulo PKCS#11.": "Tarxeta detectada. Actualízase a lista de certificados; pode que necesites configurar o módulo PKCS#11."
   ,"Todas": "Todas"
@@ -2751,7 +2751,7 @@
   ,"Ver documento firmado": "Ver o documento asinado"
   ,"Abrir carpeta": "Abrir o cartafol"
   ,"Reintentar firma": "Reintentar a sinatura"
-  ,"Comprueba que el documento siga disponible y que el certificado permita firmar; después vuelve a intentarlo.": "Comproba que o documento siga dispoñible e que o certificado permita asinar; despois inténtao de novo.",
+  ,"Comprueba que el documento siga disponible y que el certificado permita firmar; después vuelve a intentarlo.": "Comprobe que o documento siga dispoñible e que o certificado permita asinar; despois inténteo de novo.",
   "Caducado el %1": "Caducado o %1",
   "Ver todos los certificados": "Ver todos os certificados",
   "Certificado de firma": "Certificado de sinatura",
@@ -2813,33 +2813,33 @@
   ,"verify.forced_trust.applied.algoritmo_sha1": "Dáse por válida porque o aceptou na configuración: sinatura con SHA-1."
   ,"verify.forced_trust.hint": "Se confía nesta sinatura, pode aceptala na configuración deste equipo."
   ,"verify.forced_trust.forbidden": "A política deste equipo non permite aceptar estas sinaturas a man. Se as necesita, fale con quen administra o equipo."
-  ,"verify.forced_trust.error.unknown_type": "Ese caso non existe. Usa ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable ou algoritmo_sha1."
+  ,"verify.forced_trust.error.unknown_type": "Ese caso non existe. Use ca_desconocida, clave_rsa_corta, certificado_componente, revocacion_no_comprobable ou algoritmo_sha1."
   ,"verify.forced_trust.error.fingerprint": "A pegada ten que ser a SHA-256 do certificado, en hexadecimal (64 caracteres)."
   ,"verify.forced_trust.error.global_type": "Este caso acéptase para todas as sinaturas e non leva pegada."
   ,"verify.forced_trust.error.unavailable": "Esta opción só está na liña de ordes e na aplicación de escritorio."
   ,"verify.forced_trust.error.not_offered": "Só se pode aceptar o que GrxFirma acaba de mostrar ao verificar unha sinatura. Volva verificala."
   ,"verify.forced_trust.cli.hint_command": "Para aceptalo neste equipo despois de ler o aviso:"
-  ,"verify.forced_trust.cli.list_empty": "Non aceptaches nada neste equipo."
+  ,"verify.forced_trust.cli.list_empty": "Non aceptou nada neste equipo."
   ,"verify.forced_trust.cli.type": "Caso"
   ,"verify.forced_trust.cli.subject": "Certificado"
   ,"verify.forced_trust.cli.fingerprint": "Pegada SHA-256"
   ,"verify.forced_trust.cli.accepted_at": "Aceptado o"
   ,"verify.forced_trust.cli.nothing_to_accept": "Non hai nada que aceptar: a sinatura xa é válida ou ten outro problema que non se pode aceptar."
-  ,"verify.forced_trust.cli.error.missing_input": "Indica a sinatura con -entrada ou o caso con -tipo-confianza."
-  ,"verify.forced_trust.cli.error.needs_confirmation": "Sen terminal non se pode pedir confirmación. Le o aviso e engade -acepto-el-aviso para aceptalo."
+  ,"verify.forced_trust.cli.error.missing_input": "Indique a sinatura con -entrada ou o caso con -tipo-confianza."
+  ,"verify.forced_trust.cli.error.needs_confirmation": "Sen terminal non se pode pedir confirmación. Lea o aviso e engada -acepto-el-aviso para aceptalo."
   ,"verify.forced_trust.cli.confirm": "Acéptalo neste equipo? [s/N]: "
   ,"cli.confirm.yes_answers": "s,si,sí"
   ,"cli.confirm.cancelled": "Cancelouse a operación."
   ,"cli.autoselection.empty": "Non hai autoseleccións gardadas."
   ,"cli.autoselection.clear.summary": "Van borrarse as autoseleccións gardadas.\nPersistente: %d\nSesión: %d\n"
   ,"cli.autoselection.clear.confirm": "Queres continuar? [s/N]: "
-  ,"cli.domains.import.confirm": "Non hai dominios de confianza. Queres importar os dominios públicos iniciais? [s/N]: "
+  ,"cli.domains.import.confirm": "Non hai dominios de confianza. Quere importar os dominios públicos iniciais? [s/N]: "
   ,"cli.domains.import.done": "Importáronse %d dominios públicos iniciais."
   ,"verify.forced_trust.cli.cancelled": "Non se aceptou nada."
-  ,"verify.forced_trust.cli.accepted": "Aceptado. Podes quitalo con -quitar-confianza-aceptada."
+  ,"verify.forced_trust.cli.accepted": "Aceptado. Pode quitalo con -quitar-confianza-aceptada."
   ,"verify.forced_trust.cli.not_found": "Non había nada aceptado con ese caso e esa pegada."
   ,"verify.forced_trust.cli.removed": "Quitado. Esas sinaturas volven saír non válidas."
-  ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    Sinaturas que aceptas neste equipo aínda que GrxFirma non as dea por válidas: CA descoñecida, clave RSA curta, certificado de servidor, revogación sen comprobar ou SHA-1.\n    -aceptar-confianza -entrada <sinatura> [-tipo-confianza <caso>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <caso> [-huella <sha256>]"
+  ,"cli.help.forced_trust": "  -listar-confianza-aceptada | -aceptar-confianza | -quitar-confianza-aceptada\n    Sinaturas que acepta neste equipo aínda que GrxFirma non as dea por válidas: CA descoñecida, clave RSA curta, certificado de servidor, revogación sen comprobar ou SHA-1.\n    -aceptar-confianza -entrada <sinatura> [-tipo-confianza <caso>] [-acepto-el-aviso]\n    -quitar-confianza-aceptada -tipo-confianza <caso> [-huella <sha256>]"
   ,"cli.help.web_signing_program": "  -ver-programa-firma-web | -elegir-programa-firma-web <grxfirma|autofirma|preguntar>\n    Programa que abre as sinaturas que piden as webs (ligazóns afirma://). Con «preguntar», GrxFirma pregunta en cada sinatura; precisa AutoFirma instalado. Se o fixa a política do equipo, non se pode cambiar."
   ,"cli.web_signing.autofirma_at": "AutoFirma instalado en: %s"
   ,"cli.web_signing.autofirma_missing": "AutoFirma non está instalado neste equipo; só se pode elixir GrxFirma."
@@ -3981,8 +3981,8 @@
   ,"Linux: generador de facturas FacturaE, estado del lector de tarjetas y arranque automático con la sesión, como en Windows.": "Linux: xerador de facturas FacturaE, estado do lector de tarxetas e inicio automático coa sesión, como en Windows."
   ,"Linux: se retira la pestaña de pruebas internas, que mostraba resultados ficticios, y ya no aparece «Cambios sin guardar» al abrir la aplicación.": "Linux: retírase a lapela de probas internas, que mostraba resultados ficticios, e xa non aparece «Cambios sen gardar» ao abrir a aplicación."
   ,"Windows: abrir el lanzador directamente ya no busca la interfaz de Linux.": "Windows: abrir directamente o iniciador xa non busca a interface de Linux."
-  ,"Cuando una web pide que elijas dónde va la firma, GrxFirma abre el editor del sello sobre la página real del PDF: puedes moverlo, agrandarlo y girarlo, o firmar sin sello. Antes solo había seis posiciones fijas.": "Cando unha web lle pide onde debe ir a sinatura, GrxFirma abre o editor do selo sobre a páxina real do PDF: pode movelo, amplialo e xiralo, ou asinar sen selo. Antes só había seis posicións fixas."
-  ,"Android: firma con el DNIe por NFC. Introduce el CAN, acerca el DNIe al móvil y escribe el PIN; la clave nunca sale de la tarjeta y ni el CAN ni el PIN se guardan.": "Android: sinatura co DNIe por NFC. Introduza o CAN, achegue o DNIe ao móbil e escriba o PIN; a clave nunca sae da tarxeta e non se gardan nin o CAN nin o PIN."
+  ,"Cuando una web pide que elija dónde va la firma, GrxFirma abre el editor del sello sobre la página real del PDF: puede moverlo, agrandarlo y girarlo, o firmar sin sello. Antes solo había seis posiciones fijas.": "Cando unha web lle pide onde debe ir a sinatura, GrxFirma abre o editor do selo sobre a páxina real do PDF: pode movelo, amplialo e xiralo, ou asinar sen selo. Antes só había seis posicións fixas."
+  ,"Android: firma con el DNIe por NFC. Introduzca el CAN, acerque el DNIe al móvil y escriba el PIN; la clave nunca sale de la tarjeta y ni el CAN ni el PIN se guardan.": "Android: sinatura co DNIe por NFC. Introduza o CAN, achegue o DNIe ao móbil e escriba o PIN; a clave nunca sae da tarxeta e non se gardan nin o CAN nin o PIN."
   ,"Windows: si la aplicación se cierra por un error inesperado, deja un registro local para poder diagnosticarlo.": "Windows: se a aplicación se pecha por un erro inesperado, deixa un rexistro local para poder diagnosticalo."
   ,"Validador en servidor: admite un certificado y una clave TLS propios (-certificado-tls-rest y -clave-tls-rest) y acepta el nombre heredado AUTOFIRMAV2_REST_TOKEN para el token.": "Validador no servidor: admite un certificado e unha clave TLS propios (-certificado-tls-rest e -clave-tls-rest) e acepta o nome anterior AUTOFIRMAV2_REST_TOKEN para o token."
   ,"Verificación más completa de los PDF con varias firmas: el servicio REST ofrece en /v2/verify un informe por cada firma que indica qué parte del documento cubre y si el PDF cambió después de firmarlo.": "Verificación máis completa dos PDF con varias sinaturas: o servizo REST ofrece en /v2/verify un informe por cada sinatura que indica que parte do documento abrangue e se o PDF cambiou despois de asinalo."
@@ -4013,7 +4013,7 @@
   ,"Al firmar un documento aparece un aviso verde de «Firmado» con un botón para verlo.": "Ao asinar un documento aparece un aviso verde de «Asinado» cun botón para velo."
   ,"Los certificados que no sirven para firmar se muestran en rojo como «No válido», con el motivo debajo.": "Os certificados que non serven para asinar móstranse en vermello como «Non válido», co motivo debaixo."
   ,"El panel de certificados queda plegado; se abre con «Ver todos los certificados», junto al desplegable.": "O panel de certificados queda pregado; ábrese con «Ver todos os certificados», xunto ao despregable."
-  ,"Nuevo «Compartir mi certificado»: exporta tu certificado público para que otra persona pueda protegerte archivos.": "Novo «Compartir o meu certificado»: exporta o certificado público para que outra persoa lle poida enviar ficheiros protexidos."
+  ,"Nuevo «Compartir mi certificado»: exporta su certificado público para que otra persona pueda protegerle archivos.": "Novo «Compartir o meu certificado»: exporta o certificado público para que outra persoa lle poida enviar ficheiros protexidos."
   ,"Los botones «Examinar» quedan alineados con su campo en todas las pantallas.": "Os botóns «Examinar» quedan aliñados co seu campo en todas as pantallas."
   ,"En Windows, las ventanas que piden una acción durante la firma desde un portal salen al frente, y la instalación silenciosa ya no se queda parada.": "En Windows, as xanelas que piden unha acción durante a sinatura desde un portal aparecen diante e a instalación silenciosa xa non queda parada."
   ,"Extensión del navegador 1.1.0: apartado «Sitios de confianza» para añadir otros portales donde firmar PDF; el botón Firmar solo responde a clics reales; los PDF grandes abren el firmador sin bloquearse. En Linux, la extensión vuelve a conectar con GrxFirma.": "Extensión do navegador 1.1.0: sección «Sitios de confianza» para engadir outros portais onde asinar PDF; o botón Asinar só responde a clics reais; os PDF grandes abren o asinador sen bloquearse. En Linux, a extensión volve conectar con GrxFirma."
@@ -4048,29 +4048,29 @@
   ,"Se reforzó la lectura de PDF cifrados o dañados para evitar cierres inesperados.": "Reforzouse a lectura dos PDF cifrados ou danados para evitar peches inesperados."
   ,"Próxima versión (sin publicar)": "Próxima versión (sen publicar)"
   ,"Al firmar desde una web (afirma://), el selector de certificado ya no muestra «Recordar esta selección». La casilla no hacía nada: en la firma desde una web GrxFirma pide el certificado cada vez, igual que antes.": "Ao asinar desde unha web (afirma://), o selector de certificado xa non mostra «Lembrar esta selección». A caixa non facía nada: na sinatura desde unha web, GrxFirma pide o certificado cada vez, igual que antes."
-  ,"Al verificar, ahora se puede aceptar en tu equipo una firma que GrxFirma no da por válida solo por uno de estos motivos: la autoridad del certificado no es conocida, la clave RSA tiene menos de 2048 bits, es un certificado de servidor, no se pudo comprobar la revocación o la firma usa SHA-1. En la aplicación de escritorio aparece el botón «Aceptar en este equipo», que muestra un aviso antes de guardar nada; en la línea de órdenes, -aceptar-confianza. Desde entonces esas firmas salen válidas con el aviso «Se da por válida porque lo aceptaste en la configuración». Lo aceptado se quita en Configuración o con -quitar-confianza-aceptada. Las webs no pueden aceptar nada por ti, y un administrador puede impedirlo con la política prohibir_confianza_forzada.": "Ao verificar, agora pode aceptar no seu equipo unha sinatura que GrxFirma non dá por válida só por un destes motivos: a autoridade do certificado non é coñecida, a chave RSA ten menos de 2048 bits, é un certificado de servidor, non se puido comprobar a revogación ou a sinatura usa SHA-1. Na aplicación de escritorio aparece o botón «Aceptar neste equipo», que mostra un aviso antes de gardar nada; na liña de ordes, -aceptar-confianza. Desde entón esas sinaturas saen válidas co aviso «Dáse por válida porque o aceptaches na configuración». O aceptado retírase en Configuración ou con -quitar-confianza-aceptada. As webs non poden aceptar nada por vostede, e un administrador pode impedilo coa política prohibir_confianza_forzada."
-  ,"Sin conexión a internet, algunas firmas que antes salían válidas ahora salen «no concluyente», porque GrxFirma no puede comprobar si el certificado está revocado. Puedes aceptar ese caso en tu equipo como se explica en el punto anterior.": "Sen conexión a internet, algunhas sinaturas que antes saían válidas agora saen «non concluínte», porque GrxFirma non pode comprobar se o certificado está revogado. Pode aceptar ese caso no seu equipo como se explica no punto anterior."
-  ,"Los registros Veri*Factu firmados con SHA-1 se comprueban: si no han cambiado, el aviso dice que la firma usa SHA-1 en lugar de decir que no es del tipo que exige la AEAT. Si aceptas SHA-1 en tu equipo, salen válidos con un aviso.": "Os rexistros Veri*Factu asinados con SHA-1 compróbanse: se non cambiaron, o aviso di que a sinatura usa SHA-1 en lugar de dicir que non é do tipo que esixe a AEAT. Se acepta SHA-1 no seu equipo, saen válidos cun aviso."
-  ,"Si la CRL que publica la autoridad no cubre el certificado firmante, la firma longeva (LT) se sigue creando con esa CRL y GrxFirma te avisa al firmar. Al verificarla, la revocación sale como no comprobada.": "Se a CRL que publica a autoridade non cobre o certificado asinante, a sinatura lonxeva (LT) segue creándose con esa CRL e GrxFirma avísao ao asinar. Ao verificala, a revogación sae como non comprobada."
+  ,"Al verificar, ahora se puede aceptar en su equipo una firma que GrxFirma no da por válida solo por uno de estos motivos: la autoridad del certificado no es conocida, la clave RSA tiene menos de 2048 bits, es un certificado de servidor, no se pudo comprobar la revocación o la firma usa SHA-1. En la aplicación de escritorio aparece el botón «Aceptar en este equipo», que muestra un aviso antes de guardar nada; en la línea de órdenes, -aceptar-confianza. Desde entonces esas firmas salen válidas con el aviso «Se da por válida porque lo aceptó en la configuración». Lo aceptado se quita en Configuración o con -quitar-confianza-aceptada. Las webs no pueden aceptar nada por usted, y un administrador puede impedirlo con la política prohibir_confianza_forzada.": "Ao verificar, agora pode aceptar no seu equipo unha sinatura que GrxFirma non dá por válida só por un destes motivos: a autoridade do certificado non é coñecida, a chave RSA ten menos de 2048 bits, é un certificado de servidor, non se puido comprobar a revogación ou a sinatura usa SHA-1. Na aplicación de escritorio aparece o botón «Aceptar neste equipo», que mostra un aviso antes de gardar nada; na liña de ordes, -aceptar-confianza. Desde entón esas sinaturas saen válidas co aviso «Dáse por válida porque o aceptou na configuración». O aceptado retírase en Configuración ou con -quitar-confianza-aceptada. As webs non poden aceptar nada por vostede, e un administrador pode impedilo coa política prohibir_confianza_forzada."
+  ,"Sin conexión a internet, algunas firmas que antes salían válidas ahora salen «no concluyente», porque GrxFirma no puede comprobar si el certificado está revocado. Puede aceptar ese caso en su equipo como se explica en el punto anterior.": "Sen conexión a internet, algunhas sinaturas que antes saían válidas agora saen «non concluínte», porque GrxFirma non pode comprobar se o certificado está revogado. Pode aceptar ese caso no seu equipo como se explica no punto anterior."
+  ,"Los registros Veri*Factu firmados con SHA-1 se comprueban: si no han cambiado, el aviso dice que la firma usa SHA-1 en lugar de decir que no es del tipo que exige la AEAT. Si acepta SHA-1 en su equipo, salen válidos con un aviso.": "Os rexistros Veri*Factu asinados con SHA-1 compróbanse: se non cambiaron, o aviso di que a sinatura usa SHA-1 en lugar de dicir que non é do tipo que esixe a AEAT. Se acepta SHA-1 no seu equipo, saen válidos cun aviso."
+  ,"Si la CRL que publica la autoridad no cubre el certificado firmante, la firma longeva (LT) se sigue creando con esa CRL y GrxFirma le avisa al firmar. Al verificarla, la revocación sale como no comprobada.": "Se a CRL que publica a autoridade non cobre o certificado asinante, a sinatura lonxeva (LT) segue creándose con esa CRL e GrxFirma avísao ao asinar. Ao verificala, a revogación sae como non comprobada."
   ,"GrxFirma vuelve a abrir los archivos cifrados (sobres CMS) con algoritmos antiguos como DES o 3DES. Los abre y avisa de que el cifrado ya no se considera seguro; un administrador puede impedirlo con la directiva prohibir_cifrado_cms_heredado. El aviso se ve también en la aplicación, en la línea de órdenes y en la consola REST.": "GrxFirma volve abrir os ficheiros cifrados (sobres CMS) con algoritmos antigos como DES ou 3DES. Ábreos e avisa de que o cifrado xa non se considera seguro; un administrador pode impedilo coa directiva prohibir_cifrado_cms_heredado. O aviso vese tamén na aplicación, na liña de ordes e na consola REST."
   ,"Los archivos .afp que protege esta versión se abren también con las versiones anteriores de GrxFirma. El formato más nuevo sigue disponible si se pide expresamente.": "Os ficheiros .afp que protexe esta versión ábrense tamén coas versións anteriores de GrxFirma. O formato máis novo segue dispoñible se se pide expresamente."
   ,"Al firmar desde una web (afirma://), la ventana de aprobación dice qué web lo pide, qué documentos se firman y a qué servidores irá la firma. Avisa también si la web usa un sistema antiguo que no identifica la sesión, si algún servidor usa una conexión sin cifrar (http) o si el servidor de la web puede pedir varias firmas con una sola confirmación. «Confiar esta vez» vale durante cinco minutos, y si un portal abre varias peticiones a la vez se pregunta una sola vez. El lote que pide una web pasa por el selector de certificado, y el servidor de la web solo puede redirigir a otro servidor autorizado, nunca de https a http.": "Ao asinar desde unha web (afirma://), a xanela de aprobación indica que web o pide, que documentos se asinan e a que servidores irá a sinatura. Avisa tamén se a web usa un sistema antigo que non identifica a sesión, se algún servidor usa unha conexión sen cifrar (http) ou se o servidor da web pode pedir varias sinaturas cunha soa confirmación. «Confiar esta vez» vale durante cinco minutos, e se un portal abre varias peticións á vez pregúntase unha soa vez. O lote que pide unha web pasa polo selector de certificado, e o servidor da web só pode redirixir a outro servidor autorizado, nunca de https a http."
-  ,"Cuando una web pide guardar un fichero, los tipos habituales (PDF, XML, firmas, ZIP o texto) se guardan como siempre. Para los demás, GrxFirma pide confirmación y, si el tipo puede llevar macros o código que se ejecuta al abrirlo (por ejemplo .docm, .xlsm, .iso o .chm), te lo advierte. Los ejecutables (.exe, .bat, .js…) siguen sin guardarse. En Windows, lo guardado queda marcado como descargado de internet.": "Cando unha web pide gardar un ficheiro, os tipos habituais (PDF, XML, sinaturas, ZIP ou texto) gárdanse coma sempre. Para os demais, GrxFirma pide confirmación e, se o tipo pode levar macros ou código que se executa ao abrilo (por exemplo .docm, .xlsm, .iso ou .chm), advírteo diso. Os executables (.exe, .bat, .js…) seguen sen gardarse. En Windows, o gardado queda marcado como descargado de internet."
-  ,"Al cofirmar o contrafirmar una firma CAdES que no lleva dentro el documento, la aplicación de escritorio pregunta antes. Puedes elegir el documento original, y GrxFirma comprueba que es el que firmaron los demás, o bien firmar de todos modos o cancelar; la respuesta vale solo para ese intento. En Android, la firma pide el original con «Añadir el documento original» y el lote pide confirmación antes de cofirmar sin ver los documentos. La línea de órdenes firma como antes, con un aviso. Si aportas el original, también se pueden cofirmar firmas antiguas hechas solo con SHA-1.": "Ao cosinar ou contrasinar unha sinatura CAdES que non leva dentro o documento, a aplicación de escritorio pregunta antes. Pode escoller o documento orixinal, e GrxFirma comproba que é o que asinaron os demais, ou ben asinar igualmente ou cancelar; a resposta vale só para ese intento. En Android, a sinatura pide o orixinal con «Engadir o documento orixinal» e o lote pide confirmación antes de cosinar sen ver os documentos. A liña de ordes asina coma antes, cun aviso. Se achega o orixinal, tamén se poden cosinar sinaturas antigas feitas só con SHA-1."
+  ,"Cuando una web pide guardar un fichero, los tipos habituales (PDF, XML, firmas, ZIP o texto) se guardan como siempre. Para los demás, GrxFirma pide confirmación y, si el tipo puede llevar macros o código que se ejecuta al abrirlo (por ejemplo .docm, .xlsm, .iso o .chm), se lo advierte. Los ejecutables (.exe, .bat, .js…) siguen sin guardarse. En Windows, lo guardado queda marcado como descargado de internet.": "Cando unha web pide gardar un ficheiro, os tipos habituais (PDF, XML, sinaturas, ZIP ou texto) gárdanse coma sempre. Para os demais, GrxFirma pide confirmación e, se o tipo pode levar macros ou código que se executa ao abrilo (por exemplo .docm, .xlsm, .iso ou .chm), advírteo diso. Os executables (.exe, .bat, .js…) seguen sen gardarse. En Windows, o gardado queda marcado como descargado de internet."
+  ,"Al cofirmar o contrafirmar una firma CAdES que no lleva dentro el documento, la aplicación de escritorio pregunta antes. Puede elegir el documento original, y GrxFirma comprueba que es el que firmaron los demás, o bien firmar de todos modos o cancelar; la respuesta vale solo para ese intento. En Android, la firma pide el original con «Añadir el documento original» y el lote pide confirmación antes de cofirmar sin ver los documentos. La línea de órdenes firma como antes, con un aviso. Si aporta el original, también se pueden cofirmar firmas antiguas hechas solo con SHA-1.": "Ao cosinar ou contrasinar unha sinatura CAdES que non leva dentro o documento, a aplicación de escritorio pregunta antes. Pode escoller o documento orixinal, e GrxFirma comproba que é o que asinaron os demais, ou ben asinar igualmente ou cancelar; a resposta vale só para ese intento. En Android, a sinatura pide o orixinal con «Engadir o documento orixinal» e o lote pide confirmación antes de cosinar sen ver os documentos. A liña de ordes asina coma antes, cun aviso. Se achega o orixinal, tamén se poden cosinar sinaturas antigas feitas só con SHA-1."
   ,"Después de firmar, la aplicación de escritorio, Android, la línea de órdenes y la consola REST muestran los avisos de la firma, como el de haber cofirmado sin el documento original. En un lote, cada documento enseña los suyos.": "Despois de asinar, a aplicación de escritorio, Android, a liña de ordes e a consola REST mostran os avisos da sinatura, como o de ter cosinado sen o documento orixinal. Nun lote, cada documento amosa os seus."
   ,"Ahora se pueden verificar firmas que antes daban error: CAdES separadas sin el documento (se comprueba el resto y se pide el original para el contenido), CMS en codificación BER, XAdES-T con el sello de tiempo en XML, PDF firmados con los formatos antiguos adbe.x509.rsa_sha1 y adbe.pkcs7.sha1, FacturaE 3.0, 3.1 y 3.2, documentos ENI con firma XAdES y firmas XML de versiones anteriores de GrxFirma, que salen como compatibilidad histórica con un aviso. Si una XAdES apunta a documentos de fuera del fichero, esa parte queda sin comprobar, porque GrxFirma no descarga nada.": "Agora pódense verificar sinaturas que antes daban erro: CAdES separadas sen o documento (compróbase o resto e pídese o orixinal para o contido), CMS en codificación BER, XAdES-T co selo de tempo en XML, PDF asinados cos formatos antigos adbe.x509.rsa_sha1 e adbe.pkcs7.sha1, FacturaE 3.0, 3.1 e 3.2, documentos ENI con sinatura XAdES e sinaturas XML de versións anteriores de GrxFirma, que saen como compatibilidade histórica cun aviso. Se unha XAdES apunta a documentos de fóra do ficheiro, esa parte queda sen comprobar, porque GrxFirma non descarga nada."
-  ,"Las firmas con SHA-1 se tratan igual en todos los formatos (XAdES, CAdES, PAdES, Office, OpenDocument y FacturaE): si no han cambiado, salen íntegras pero no válidas, con un aviso que da el algoritmo como motivo. El informe HTML para imprimir lo dice igual y sale entero en tu idioma.": "As sinaturas con SHA-1 trátanse igual en todos os formatos (XAdES, CAdES, PAdES, Office, OpenDocument e FacturaE): se non cambiaron, saen íntegras pero non válidas, cun aviso que dá o algoritmo como motivo. O informe HTML para imprimir dio igual e sae enteiro no seu idioma."
+  ,"Las firmas con SHA-1 se tratan igual en todos los formatos (XAdES, CAdES, PAdES, Office, OpenDocument y FacturaE): si no han cambiado, salen íntegras pero no válidas, con un aviso que da el algoritmo como motivo. El informe HTML para imprimir lo dice igual y sale entero en su idioma.": "As sinaturas con SHA-1 trátanse igual en todos os formatos (XAdES, CAdES, PAdES, Office, OpenDocument e FacturaE): se non cambiaron, saen íntegras pero non válidas, cun aviso que dá o algoritmo como motivo. O informe HTML para imprimir dio igual e sae enteiro no seu idioma."
   ,"La verificación es más estricta. Una firma XML, de Office o de OpenDocument que cubre solo una parte del documento ya no sale como completa, y se dice qué queda fuera; los metadatos que Office y el ENI dejan fuera de la firma por norma aparecen en un aviso. Un PDF con una firma que GrxFirma no sabe comprobar ya no sale válido. Si un sello de tiempo no se puede comprobar, su fecha aparece como «fecha que declara un sello de tiempo que no se ha podido comprobar» y no salva un certificado caducado.": "A verificación é máis estrita. Unha sinatura XML, de Office ou de OpenDocument que cobre só unha parte do documento xa non sae como completa, e indícase que queda fóra; os metadatos que Office e o ENI deixan fóra da sinatura por norma aparecen nun aviso. Un PDF cunha sinatura que GrxFirma non sabe comprobar xa non sae válido. Se un selo de tempo non se pode comprobar, a súa data aparece como «data que declara un selo de tempo que non se puido comprobar» e non salva un certificado caducado."
   ,"Al crear un documento ENI a partir de una firma, GrxFirma comprueba que la firma corresponde al documento y rechaza la que no corresponde. Si corresponde pero usa SHA-1, el documento se crea con un aviso; un administrador puede impedirlo poniendo la directiva permitir_sha1_legacy en «Deshabilitada».": "Ao crear un documento ENI a partir dunha sinatura, GrxFirma comproba que a sinatura corresponde ao documento e rexeita a que non corresponde. Se corresponde pero usa SHA-1, o documento créase cun aviso; un administrador pode impedilo poñendo a directiva permitir_sha1_legacy en «Desactivada»."
-  ,"Archivos cifrados: un sobre CMS dirigido también a destinatarios de un tipo que GrxFirma no admite se abre con tu certificado y un aviso. Al desproteger, GrxFirma limpia el nombre que puso el remitente: si la extensión no es de un documento, el fichero se guarda como .bin y, al abrirlo, se abre su carpeta en lugar del fichero. La clave del perfil de protección «alto» pasa al almacén de secretos del sistema la primera vez que se usa. Si el equipo no tiene ese almacén, el perfil alto sigue funcionando con la clave guardada en un fichero de este equipo, y GrxFirma te avisa al abrir un archivo protegido con esa clave.": "Ficheiros cifrados: un sobre CMS dirixido tamén a destinatarios dun tipo que GrxFirma non admite ábrese co seu certificado e un aviso. Ao desprotexer, GrxFirma limpa o nome que puxo o remitente: se a extensión non é dun documento, o ficheiro gárdase como .bin e, ao abrilo, ábrese o seu cartafol en lugar do ficheiro. A chave do perfil de protección «alto» pasa ao almacén de segredos do sistema a primeira vez que se usa. Se o equipo non ten ese almacén, o perfil alto segue funcionando coa chave gardada nun ficheiro deste equipo, e GrxFirma avísao ao abrir un ficheiro protexido con esa chave."
-  ,"Firma con certificado remoto (CSC): el cuadro del PIN dice a qué servicio se envían el PIN y el código, y la línea de órdenes también lo dice. La firma remota solo funciona desde la aplicación que arrancó el motor de firma. Si arrancas el motor a mano con --server sin --ipc-client-pid, funciona con un aviso y firma con los certificados del equipo, pero sin firma remota. Si el prestador no indica cuándo caduca el acceso, caduca a las 24 horas.": "Sinatura con certificado remoto (CSC): o cadro do PIN indica a que servizo se envían o PIN e o código, e a liña de ordes tamén o indica. A sinatura remota só funciona desde a aplicación que arrincou o motor de sinatura. Se arrinca o motor a man con --server sen --ipc-client-pid, funciona cun aviso e asina cos certificados do equipo, pero sen sinatura remota. Se o prestador non indica cando caduca o acceso, caduca ás 24 horas."
+  ,"Archivos cifrados: un sobre CMS dirigido también a destinatarios de un tipo que GrxFirma no admite se abre con su certificado y un aviso. Al desproteger, GrxFirma limpia el nombre que puso el remitente: si la extensión no es de un documento, el fichero se guarda como .bin y, al abrirlo, se abre su carpeta en lugar del fichero. La clave del perfil de protección «alto» pasa al almacén de secretos del sistema la primera vez que se usa. Si el equipo no tiene ese almacén, el perfil alto sigue funcionando con la clave guardada en un fichero de este equipo, y GrxFirma le avisa al abrir un archivo protegido con esa clave.": "Ficheiros cifrados: un sobre CMS dirixido tamén a destinatarios dun tipo que GrxFirma non admite ábrese co seu certificado e un aviso. Ao desprotexer, GrxFirma limpa o nome que puxo o remitente: se a extensión non é dun documento, o ficheiro gárdase como .bin e, ao abrilo, ábrese o seu cartafol en lugar do ficheiro. A chave do perfil de protección «alto» pasa ao almacén de segredos do sistema a primeira vez que se usa. Se o equipo non ten ese almacén, o perfil alto segue funcionando coa chave gardada nun ficheiro deste equipo, e GrxFirma avísao ao abrir un ficheiro protexido con esa chave."
+  ,"Firma con certificado remoto (CSC): el cuadro del PIN dice a qué servicio se envían el PIN y el código, y la línea de órdenes también lo dice. La firma remota solo funciona desde la aplicación que arrancó el motor de firma. Si arranca el motor a mano con --server sin --ipc-client-pid, funciona con un aviso y firma con los certificados del equipo, pero sin firma remota. Si el prestador no indica cuándo caduca el acceso, caduca a las 24 horas.": "Sinatura con certificado remoto (CSC): o cadro do PIN indica a que servizo se envían o PIN e o código, e a liña de ordes tamén o indica. A sinatura remota só funciona desde a aplicación que arrincou o motor de sinatura. Se arrinca o motor a man con --server sen --ipc-client-pid, funciona cun aviso e asina cos certificados do equipo, pero sen sinatura remota. Se o prestador non indica cando caduca o acceso, caduca ás 24 horas."
   ,"Línea de órdenes: al verificar, el programa termina con el código 2 si la firma no es válida, con 0 si es válida y con 1 si no se pudo comprobar. Las preguntas de sí o no salen en el idioma elegido y aceptan su respuesta, por ejemplo «o» en francés, «j» en alemán o «b» en euskera. Si el fichero de salida es un enlace simbólico, la orden falla en vez de escribir en el destino del enlace.": "Liña de ordes: ao verificar, o programa remata co código 2 se a sinatura non é válida, con 0 se é válida e con 1 se non se puido comprobar. As preguntas de si ou non saen no idioma escollido e aceptan a súa resposta, por exemplo «o» en francés, «j» en alemán ou «b» en éuscaro. Se o ficheiro de saída é unha ligazón simbólica, a orde falla en vez de escribir no destino da ligazón."
   ,"Consola REST: el firmador web pide el token de acceso (Bearer), igual que la consola, y ninguno de los dos muestra ya los campos de ruta de fichero, que el servidor no aceptaba. El inicio de sesión con certificado rechaza las peticiones que llegan de otras webs. El certificado local del servidor se renueva solo antes de caducar, y las respuestas de firma llevan los avisos.": "Consola REST: o asinador web pide o token de acceso (Bearer), igual que a consola, e ningún dos dous mostra xa os campos de ruta de ficheiro, que o servidor non aceptaba. O inicio de sesión con certificado rexeita as peticións que chegan doutras webs. O certificado local do servidor renóvase só antes de caducar, e as respostas de sinatura levan os avisos."
   ,"Para administradores: la directiva nueva firma_remota_csc_servicios_permitidos limita los prestadores de firma remota a los que se puede conectar. Las webs ya no pueden usar una autoridad de sellado de tiempo (TSA) de la red interna salvo que figure en la directiva nueva tsa_permitidas; en la consola REST, si la lista existe, solo valen las que figuran en ella. Las dos están en la plantilla ADMX. aprobacion_automatica_nativehost vale ya solo para la extensión oficial. Un ajuste mal escrito en la política de máquina solo anula ese ajuste y, si es de los que limitan (REST, WebSocket o confianza al primer uso), lo deja desactivado. Si el fichero de política existe pero no se puede leer, se desactivan REST, WebSocket y la firma remota.": "Para administradores: a directiva nova firma_remota_csc_servicios_permitidos limita os prestadores de sinatura remota aos que se pode conectar. As webs xa non poden usar unha autoridade de selado de tempo (TSA) da rede interna salvo que figure na directiva nova tsa_permitidas; na consola REST, se a lista existe, só valen as que figuran nela. As dúas están no modelo ADMX. aprobacion_automatica_nativehost vale xa só para a extensión oficial. Un axuste mal escrito na política de máquina só anula ese axuste e, se é dos que limitan (REST, WebSocket ou confianza no primeiro uso), déixao desactivado. Se o ficheiro de política existe pero non se pode ler, desactívanse REST, WebSocket e a sinatura remota."
-  ,"Al instalar en Windows o en Linux, GrxFirma avisa de que los enlaces afirma:// se abrirán con GrxFirma en lugar de AutoFirma, salvo que en Configuración elijas AutoFirma. En Linux, al desinstalar vuelve el programa que abría esos enlaces antes, si no lo has cambiado tú. En macOS, el desinstalador quita del llavero el certificado local de GrxFirma.": "Ao instalar en Windows ou en Linux, GrxFirma avisa de que as ligazóns afirma:// se abrirán con GrxFirma en lugar de AutoFirma, salvo que en Configuración escolla AutoFirma. En Linux, ao desinstalar volve o programa que abría esas ligazóns antes, se non o cambiou vostede. En macOS, o desinstalador quita do chaveiro o certificado local de GrxFirma."
-  ,"Si tienes AutoFirma instalado, en Configuración, «Programa para firmar en las webs», eliges con qué programa firmar cuando una web lo pide: GrxFirma, AutoFirma o «Preguntar cada vez». Con esta última, GrxFirma te pregunta en cada firma y puede recordar tu respuesta. El instalador pregunta lo mismo si encuentra AutoFirma, y la instalación silenciosa mantiene lo que había. Los administradores pueden fijarlo con /AFIRMA= en Windows, --afirma-handler= en Linux o la directiva manejador_afirma. GrxFirma encuentra ahora AutoFirma aunque se instalara solo para tu usuario o con otro nombre de lanzador; antes, en esos casos, el ajuste decía que AutoFirma no estaba instalado.": "Se tes AutoFirma instalado, en Configuración, «Programa para asinar nas webs», escolles con que programa asinar cando unha web o pide: GrxFirma, AutoFirma ou «Preguntar cada vez». Con esta última, GrxFirma pregúntache en cada sinatura e pode lembrar a túa resposta. O instalador pregunta o mesmo se atopa AutoFirma, e a instalación silenciosa mantén o que había. Os administradores poden fixalo con /AFIRMA= en Windows, --afirma-handler= en Linux ou a directiva manejador_afirma. Agora GrxFirma atopa AutoFirma aínda que se instalase só para o teu usuario ou con outro nome de lanzador; antes, nestes casos, o axuste dicía que AutoFirma non estaba instalado."
+  ,"Al instalar en Windows o en Linux, GrxFirma avisa de que los enlaces afirma:// se abrirán con GrxFirma en lugar de AutoFirma, salvo que en Configuración elija AutoFirma. En Linux, al desinstalar vuelve el programa que abría esos enlaces antes, si no lo ha cambiado usted. En macOS, el desinstalador quita del llavero el certificado local de GrxFirma.": "Ao instalar en Windows ou en Linux, GrxFirma avisa de que as ligazóns afirma:// se abrirán con GrxFirma en lugar de AutoFirma, salvo que en Configuración escolla AutoFirma. En Linux, ao desinstalar volve o programa que abría esas ligazóns antes, se non o cambiou vostede. En macOS, o desinstalador quita do chaveiro o certificado local de GrxFirma."
+  ,"Si tiene AutoFirma instalado, en Configuración, «Programa para firmar en las webs», elige con qué programa firmar cuando una web lo pide: GrxFirma, AutoFirma o «Preguntar cada vez». Con esta última, GrxFirma le pregunta en cada firma y puede recordar su respuesta. El instalador pregunta lo mismo si encuentra AutoFirma, y la instalación silenciosa mantiene lo que había. Los administradores pueden fijarlo con /AFIRMA= en Windows, --afirma-handler= en Linux o la directiva manejador_afirma. GrxFirma encuentra ahora AutoFirma aunque se instalara solo para su usuario o con otro nombre de lanzador; antes, en esos casos, el ajuste decía que AutoFirma no estaba instalado.": "Se ten AutoFirma instalado, en Configuración, «Programa para asinar nas webs», escolle con que programa asinar cando unha web o pide: GrxFirma, AutoFirma ou «Preguntar cada vez». Con esta última, GrxFirma pregúntalle en cada sinatura e pode lembrar a súa resposta. O instalador pregunta o mesmo se atopa AutoFirma, e a instalación silenciosa mantén o que había. Os administradores poden fixalo con /AFIRMA= en Windows, --afirma-handler= en Linux ou a directiva manejador_afirma. Agora GrxFirma atopa AutoFirma aínda que se instalase só para o seu usuario ou con outro nome de lanzador; antes, nestes casos, o axuste dicía que AutoFirma non estaba instalado."
   ,"Más seguridad: la aplicación de escritorio Qt muestra como texto, sin interpretar marcado, los nombres de documentos, certificados y servidores, y el motor de firma que arranca se cierra con ella aunque la aplicación termine de forma inesperada. En Android, un documento dañado ya no cierra la aplicación: sale un error. La línea de órdenes, la consola REST y la extensión guardan ahora el registro de auditoría, que conserva 90 días.": "Máis seguridade: a aplicación de escritorio Qt mostra como texto, sen interpretar marcado, os nomes de documentos, certificados e servidores, e o motor de sinatura que arrinca péchase con ela aínda que a aplicación remate de forma inesperada. En Android, un documento danado xa non pecha a aplicación: sae un erro. A liña de ordes, a consola REST e a extensión gardan agora o rexistro de auditoría, que conserva 90 días."
-  ,"En Android, al seleccionar un documento se ven los primeros caracteres de su huella SHA-256. Si la app de la que viene lo cambia antes de firmar, GrxFirma no lo firma y te pide que lo vuelvas a seleccionar. En un lote, el fichero que ha cambiado sale como no firmado y el resto se firma.": "En Android, ao seleccionar un documento vense os primeiros caracteres da súa pegada SHA-256. Se a aplicación da que vén o cambia antes de asinar, GrxFirma non o asina e pídelle que o volva seleccionar. Nun lote, o ficheiro que cambiou aparece como non asinado e o resto asínase."
+  ,"En Android, al seleccionar un documento se ven los primeros caracteres de su huella SHA-256. Si la app de la que viene lo cambia antes de firmar, GrxFirma no lo firma y le pide que lo vuelva a seleccionar. En un lote, el fichero que ha cambiado sale como no firmado y el resto se firma.": "En Android, ao seleccionar un documento vense os primeiros caracteres da súa pegada SHA-256. Se a aplicación da que vén o cambia antes de asinar, GrxFirma non o asina e pídelle que o volva seleccionar. Nun lote, o ficheiro que cambiou aparece como non asinado e o resto asínase."
   ,"Si el nombre de un certificado o de su emisor lleva caracteres invisibles que cambian cómo se lee, como los que invierten el orden del texto, la aplicación de escritorio y la línea de órdenes los muestran como «?».": "Se o nome dun certificado ou do seu emisor leva caracteres invisibles que cambian como se le, como os que inverten a orde do texto, a aplicación de escritorio e a liña de ordes amósaos como «?»."
   ,"Histórico: nombre anterior AutoFirmaV2, versiones 2.0.x": "Histórico: nome anterior AutoFirmaV2, versións 2.0.x"
   ,"Contenido de firma": "Contido da sinatura"
@@ -4952,7 +4952,7 @@
   ,"validacion.proxy.puerto": "O porto do proxy debe estar entre 1 e 65535."
   ,"Toda la aplicación aparece en el idioma elegido: se han traducido más de mil textos que seguían en español o en inglés en los diez idiomas disponibles.": "Toda a aplicación aparece no idioma escollido: traducíronse máis de mil textos que seguían en castelán ou en inglés aos dez idiomas dispoñibles."
   ,"Windows: al cambiar de idioma en Configuración cambian también los textos fijos de todas las pantallas.": "Windows: ao cambiar de idioma en Configuración cambian tamén os textos fixos de todas as pantallas."
-  ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma te lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "Se un campo ten un erro, márcase en vermello co motivo debaixo e, ao asinar ou gardar, GrxFirma lévate a ese campo; o diagnóstico e o asistente ofrecen «Corrixir» para ir directamente. En Windows e Linux."
+  ,"Si un campo tiene un error, se marca en rojo con el motivo debajo y, al firmar o guardar, GrxFirma le lleva a ese campo; el diagnóstico y el asistente ofrecen «Corregir» para ir directamente. En Windows y Linux.": "Se un campo ten un erro, márcase en vermello co motivo debaixo e, ao asinar ou gardar, GrxFirma lévate a ese campo; o diagnóstico e o asistente ofrecen «Corrixir» para ir directamente. En Windows e Linux."
   ,"Leyenda CSV: cada problema tiene su propio mensaje (falta el código, la URL no es válida…) y la dirección puede escribirse sin https://.": "Lenda CSV: cada problema ten a súa propia mensaxe (falta o código, o URL non é válido…) e o enderezo pode escribirse sen https://."
   ,"Windows: se admiten servidores de sello de tiempo con dirección http://, como el de la FNMT, igual que en Linux y en AutoFirma Java.": "Windows: admítense servidores de selo de tempo con enderezo http://, como o da FNMT, igual que en Linux e en AutoFirma Java.",
   "eni.validacion.dir3": "Indique un ou varios códigos DIR3 (unha letra maiúscula e oito cifras), separados por comas. Exemplo: L01180877.",
@@ -5073,8 +5073,8 @@
   ,"verifactu.qr_technical": "Ver a resposta técnica"
   ,"verifactu.qr_technical_hide": "Ocultar a resposta técnica"
   ,"Veri*Factu: firma los registros de facturación que entrega un programa de facturación con el formato que exige la AEAT, y comprueba registros ya firmados: huella encadenada, firma y estructura. GrxFirma no genera, guarda ni envía registros.": "Veri*Factu: asina os rexistros de facturación que entrega un programa de facturación co formato que esixe a AEAT, e comproba rexistros xa asinados: resumo encadeado, sinatura e estrutura. GrxFirma non xera, garda nin envía rexistros."
-  ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pides, la coteja con el servicio público de la AEAT.": "Veri*Factu: le o URL do QR tributario dunha factura e amosa os seus datos; só se o pides, cotéxao co servizo público da AEAT."
-  ,"Sello visible: con «Dibujar área» marcas su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Selo visible: con «Debuxar área» marcas a súa posición e tamaño arrastrando sobre a páxina, como en AutoFirma. Tamén co teclado. En Windows e Linux, e no editor que abren os portais."
+  ,"Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pide, la coteja con el servicio público de la AEAT.": "Veri*Factu: le o URL do QR tributario dunha factura e amosa os seus datos; só se o pide, cotéxao co servizo público da AEAT."
+  ,"Sello visible: con «Dibujar área» marca su posición y tamaño arrastrando sobre la página, como en AutoFirma. También con teclado. En Windows y Linux, y en el editor que abren los portales.": "Selo visible: con «Debuxar área» marcas a súa posición e tamaño arrastrando sobre a páxina, como en AutoFirma. Tamén co teclado. En Windows e Linux, e no editor que abren os portais."
   ,"Android: cofirma y contrafirma, perfiles con sello de tiempo, verificación automática tras firmar, verificación detallada con informe exportable, los once idiomas con selector propio y pantalla «Acerca de».": "Android: cosinatura e contrasinatura, perfís con selo de tempo, verificación automática tras asinar, verificación detallada con informe exportable, os once idiomas con selector propio e pantalla «Acerca de»."
   ,"csc.help": "Sinatura remota CSC (prototipo, desactivada por defecto):\n  Actívase con \"firma_remota_csc\": true en config.json ou coa política da organización, que sempre prevalece.\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-listar-credenciales\n  grxfirma -csc-url <https://...> -csc-client-id <id> -csc-credencial <id> -entrada doc.pdf -salida firmado.pdf -formato pades\n  -csc-url <url>            Enderezo https do servizo de sinatura do prestador\n  -csc-client-id <id>       Identificador de cliente que facilita o prestador (sen segredo)\n  -csc-credencial <id>      Certificado remoto co que se asina\n  -csc-listar-credenciales  Amosa os certificados remotos da conta\n  A autorización faise no navegador, no mesmo host que o servizo, e o PIN ou o código OTP pídense pola entrada estándar. Do equipo só sae o resumo do documento."
   ,"csc.cli.opcion_invalida": "A opción %s non existe ou fáltalle o valor."
@@ -6885,7 +6885,7 @@
   ,"Preferencias Generales": "Preferencias xerais"
   ,"Modo administrador habilitado.": "Modo administrador activado."
   ,"Desconectado de la interfaz IPC local (modo REST exclusivo, o motor parado).": "Desconectado da interface IPC local (modo REST exclusivo ou motor parado)."
-  ,"Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Importante: instálase como servizo da túa sesión de usuario (non como servizo do sistema), para que teña acceso aos teus certificados do almacén persoal. Os servizos do sistema non poden acceder aos certificados de usuario."
+  ,"Importante: se instala como servicio de tu sesión de usuario (no como servicio de sistema), para que tenga acceso a tus certificados del almacén personal. Los servicios de sistema no pueden acceder a los certificados del usuario.": "Importante: instálase como servizo da súa sesión de usuario (non como servizo do sistema), para que teña acceso aos seus certificados do almacén persoal. Os servizos do sistema non poden acceder aos certificados de usuario."
   ,"Aviso": "Advertencia"
   ,"Conexión IPC cerrada.": "Conexión IPC pechada."
   ,"No hay conexión con el motor.": "Non hai conexión co motor."
@@ -7221,10 +7221,10 @@
   "excepciones.pantalla.directiva_ilegible": "Non se puido ler a directiva da organización. A excepción queda bloqueada. Fale co seu administrador."
   ,"Las opciones inseguras vienen desactivadas para todo el mundo, también al actualizar desde una versión anterior. Si una operación necesita una de ellas, GrxFirma la detiene, explica el riesgo y ofrece una ayuda más larga con la alternativa y la forma de deshacerlo.": "As opcións inseguras veñen desactivadas para todo o mundo, tamén ao actualizar desde unha versión anterior. Se unha operación necesita algunha delas, GrxFirma detena, explica o risco e ofrece unha axuda máis extensa coa alternativa e o xeito de desfacelo."
   ,"Sin el ajuste correspondiente ya no se puede, por ejemplo, firmar en portales antiguos que usan el intercambio DES de AutoFirma 1.x (aunque vayan por HTTPS), crear sobres CMS para destinatarios que solo abren el formato antiguo, firmar con SHA-1 o con claves RSA de menos de 2048 bits, pedir sellos de tiempo por HTTP, enviar el usuario y la contraseña a un proxy por HTTP ni hacer la firma trifásica por HTTP.": "Sen o axuste correspondente xa non se pode, por exemplo, asinar en portais antigos que usan o intercambio DES de AutoFirma 1.x (aínda que vaian por HTTPS), crear sobres CMS para destinatarios que só abren o formato antigo, asinar con SHA-1 ou con claves RSA de menos de 2048 bits, pedir selos de tempo por HTTP, enviar o usuario e o contrasinal a un proxy por HTTP nin facer a sinatura trifásica por HTTP."
-  ,"También hace falta el ajuste para abrir o comprobar material antiguo, como los sobres CMS cifrados con DES, 3DES o AES-CBC, las firmas SHA-1 y las firmas XML con la canonicalización antigua. Sin él, esas firmas quedan sin evaluar y no salen válidas, aunque las hubieras aceptado en tu equipo con la 0.0.126.": "Tamén fai falta o axuste para abrir ou comprobar material antigo, como os sobres CMS cifrados con DES, 3DES ou AES-CBC, as sinaturas SHA-1 e as sinaturas XML coa canonicalización antiga. Sen el, esas sinaturas quedan sen avaliar e non saen válidas, aínda que as aceptase no seu equipo coa 0.0.126."
+  ,"También hace falta el ajuste para abrir o comprobar material antiguo, como los sobres CMS cifrados con DES, 3DES o AES-CBC, las firmas SHA-1 y las firmas XML con la canonicalización antigua. Sin él, esas firmas quedan sin evaluar y no salen válidas, aunque las hubiera aceptado en su equipo con la 0.0.126.": "Tamén fai falta o axuste para abrir ou comprobar material antigo, como os sobres CMS cifrados con DES, 3DES ou AES-CBC, as sinaturas SHA-1 e as sinaturas XML coa canonicalización antiga. Sen el, esas sinaturas quedan sen avaliar e non saen válidas, aínda que as aceptase no seu equipo coa 0.0.126."
   ,"Lo mismo ocurre al cofirmar o contrafirmar sin el documento original y al guardar en un fichero la clave del perfil de protección «alto» cuando el equipo no tiene almacén de secretos. En Linux, sin ajuste, GrxFirma no instala por su cuenta el certificado local al abrir un enlace de firma ni guarda su clave en un fichero si falta ese almacén; la instalación desde el instalador o desde la línea de órdenes sigue disponible.": "O mesmo ocorre ao cosinar ou contrasinar sen o documento orixinal e ao gardar nun ficheiro a chave do perfil de protección «alto» cando o equipo non ten almacén de segredos. En Linux, sen o axuste, GrxFirma non instala pola súa conta o certificado local ao abrir unha ligazón de sinatura nin garda a súa chave nun ficheiro se falta ese almacén; a instalación desde o instalador ou desde a liña de ordes segue dispoñible."
-  ,"Para activar una opción, marca la casilla del aviso y pulsa «Activar y continuar», o hazlo en Configuración (Preferencias en Android), en el apartado de seguridad. La activas bajo tu responsabilidad. Una web no puede activarla por ti, y si tu organización la prohíbe, no se puede activar.": "Para activar unha opción, marque a caixa do aviso e prema «Activar e continuar», ou fágao en Configuración (Preferencias en Android), no apartado de seguranza. Actívaa baixo a súa responsabilidade. Unha web non pode activala por vostede e, se a súa organización a prohibe, non se pode activar."
-  ,"Cada uso de una opción activada muestra un aviso en el resultado. Se desactiva en el mismo apartado. Si cambia el texto que aceptaste, la opción vuelve a quedar desactivada hasta que aceptes el nuevo.": "Cada uso dunha opción activada mostra un aviso no resultado. Desactívase no mesmo apartado. Se cambia o texto que aceptou, a opción volve quedar desactivada ata que acepte o novo."
+  ,"Para activar una opción, marque la casilla del aviso y pulse «Activar y continuar», o hágalo en Configuración (Preferencias en Android), en el apartado de seguridad. La activa bajo su responsabilidad. Una web no puede activarla por usted, y si su organización la prohíbe, no se puede activar.": "Para activar unha opción, marque a caixa do aviso e prema «Activar e continuar», ou fágao en Configuración (Preferencias en Android), no apartado de seguranza. Actívaa baixo a súa responsabilidade. Unha web non pode activala por vostede e, se a súa organización a prohibe, non se pode activar."
+  ,"Cada uso de una opción activada muestra un aviso en el resultado. Se desactiva en el mismo apartado. Si cambia el texto que aceptó, la opción vuelve a quedar desactivada hasta que acepte el nuevo.": "Cada uso dunha opción activada mostra un aviso no resultado. Desactívase no mesmo apartado. Se cambia o texto que aceptou, a opción volve quedar desactivada ata que acepte o novo."
   ,"Para administradores: la directiva de máquina puede prohibir o fijar cada caso y manda sobre la elección de la persona; si la directiva no se puede leer, el caso queda bloqueado. En la línea de órdenes, grxfirma -activar-excepcion ID muestra el riesgo y pide confirmación (en un uso automatizado, con -acepto-el-aviso), y grxfirma -desactivar-excepcion ID la desactiva. Los identificadores y las directivas están en docs/seguridad/EXCEPCIONES_INSEGURAS.md, y la plantilla ADMX incluye las nuevas.": "Para administradores: a directiva de máquina pode prohibir ou fixar cada caso e prevalece sobre a elección da persoa; se a directiva non se pode ler, o caso queda bloqueado. Na liña de ordes, grxfirma -activar-excepcion ID mostra o risco e pide confirmación (nun uso automatizado, con -acepto-el-aviso), e grxfirma -desactivar-excepcion ID desactívaa. Os identificadores e as directivas están en docs/seguridad/EXCEPCIONES_INSEGURAS.md, e o modelo ADMX inclúe as novas."
   ,"Los sobres CMS cifrados nuevos protegen la clave con RSA-OAEP y SHA-256, también al firmar y cifrar. Puede que AutoFirma no los abra. Si un destinatario solo abre el formato antiguo, hay que activar su ajuste y pedir ese formato, por ejemplo con -opcion cms_key_transport=pkcs1v15 en la línea de órdenes.": "Os sobres CMS cifrados novos protexen a chave con RSA-OAEP e SHA-256, tamén ao asinar e cifrar. É posible que AutoFirma non os abra. Se un destinatario só abre o formato antigo, hai que activar o seu axuste e pedir ese formato, por exemplo con -opcion cms_key_transport=pkcs1v15 na liña de ordes."
   ,"Extensión del navegador 1.2.0: sale un solo botón «Firmar PDF» por documento, también cuando el PDF va dentro de varias páginas anidadas. La extensión no pide permisos nuevos.": "Extensión do navegador 1.2.0: aparece un só botón «Asinar PDF» por documento, tamén cando o PDF vai dentro de varias páxinas aniñadas. A extensión non pide permisos novos."
