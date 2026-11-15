@@ -1,0 +1,12 @@
+{
+  "Al iniciar, selecciona automáticamente el último certificado usado para firmar.": "Tercera persona: describe lo que hace el ajuste.",
+  "DESCRIPTION_WINUI": "Tercera persona: la interfaz «usa el motor compartido» (instalador de Windows).",
+  "Este CMS genérico es EncryptedData y usa una clave transitoria": "Tercera persona: «usa» tiene por sujeto el CMS.",
+  "Selecciona una credencial sin copiar su contenido ni su contraseña a controles de texto.": "Tercera persona: texto de ayuda accesible que describe el control.",
+  "Si tiene AutoFirma instalado, en Configuración, «Programa para firmar en las webs», elige con qué programa firmar cuando una web lo pide: GrxFirma, AutoFirma o «Preguntar cada vez». Con esta última, GrxFirma le pregunta en cada firma y puede recordar su respuesta. El instalador pregunta lo mismo si encuentra AutoFirma, y la instalación silenciosa mantiene lo que había. Los administradores pueden fijarlo con /AFIRMA= en Windows, --afirma-handler= en Linux o la directiva manejador_afirma. GrxFirma encuentra ahora AutoFirma aunque se instalara solo para su usuario o con otro nombre de lanzador; antes, en esos casos, el ajuste decía que AutoFirma no estaba instalado.": "Usted: «elige con qué programa firmar» es presente de usted, no imperativo.",
+  "Usa la geometría real obtenida del PDF y solo se habilita para PAdES o Automático.": "Tercera persona: describe la opción.",
+  "Veri*Factu: lee la URL del QR tributario de una factura y muestra sus datos; solo si lo pide, la coteja con el servicio público de la AEAT.": "Tercera persona: nota de versión que describe la función («lee la URL…»).",
+  "ayuda.formato.automatico": "Tercera persona: describe el formato Automático («elige el formato…»).",
+  "cli.help.facturae_check": "Tercera persona: describe la orden («Revisa una factura…»).",
+  "cli.help.pdf_password": "Tercera persona: describe la opción («Lee sin eco…»)."
+}
