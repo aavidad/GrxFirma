@@ -84,6 +84,15 @@
 
             <StackPanel Grid.Row="2" Spacing="20">
                 <Border Style="{StaticResource AppCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock x:Name="UnsafeHeading" AutomationProperties.HeadingLevel="Level2" TextWrapping="Wrap" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock x:Name="UnsafeDescription" TextWrapping="Wrap" />
+                        <Button x:Name="UnsafeRefresh" MinHeight="44" Click="OnUnsafeRefresh" />
+                        <TextBlock x:Name="UnsafeMessage" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                        <StackPanel x:Name="UnsafeRows" Spacing="24" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource AppCardStyle}">
                     <StackPanel Spacing="14">
                         <TextBlock
                             AutomationProperties.HeadingLevel="Level2"

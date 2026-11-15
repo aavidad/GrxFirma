@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 using System.Text.Json.Serialization;
+using GrxFirma.WinUI.Core.Operations;
 using GrxFirma.WinUI.Core.Diagnostics;
 
 using GrxFirma.WinUI.Core.Localization;
@@ -64,6 +65,19 @@ internal sealed record IpcWireResponse<TData>
     [JsonPropertyName("errorCode")]
     public string? ErrorCode { get; init; }
 
+    [JsonPropertyName("exceptionId")]
+    public string? ExceptionId { get; init; }
+    [JsonPropertyName("activable")]
+    public bool Activable { get; init; }
+    [JsonPropertyName("acceptanceVersion")]
+    public string? AcceptanceVersion { get; init; }
+    [JsonPropertyName("exception")]
+    public UnsafeExceptionState? UnsafeException { get; init; }
+    [JsonPropertyName("retryId")]
+    public string? RetryId { get; init; }
+    [JsonPropertyName("warnings")]
+    public IReadOnlyList<string> WarningKeys { get; init; } = [];
+
     [JsonPropertyName("phase")]
     public string? Phase { get; init; }
 
@@ -97,6 +111,9 @@ public sealed record IpcCallResult<TData>
     public string? Phase { get; init; }
     public bool Retryable { get; init; }
     public TData? Data { get; init; }
+    public UnsafeExceptionState? UnsafeException { get; init; }
+    public string? RetryId { get; init; }
+    public IReadOnlyList<string> WarningKeys { get; init; } = [];
     public OperationDiagnostic? Diagnostic { get; init; }
 
     public string SafeUserMessage =>

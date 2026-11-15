@@ -645,6 +645,7 @@ public sealed class VerifyPageViewModel
 
         var warnings = data.VisibleWarnings
             .Concat(data.VisibleErrors)
+            .Select(Localizer.VisibleText)
             .Where(static item => !string.IsNullOrWhiteSpace(item))
             .Take(MaximumVisibleItems)
             .ToList();

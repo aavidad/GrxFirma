@@ -82,6 +82,15 @@ public sealed partial class MainWindow : Window
         page.Loaded += OnLoaded;
     }
 
+    internal void ShowUnsafeNotice(IReadOnlyList<string> keys)
+    {
+        var texts = keys.Where(Localizer.Has).Select(Localizer.Text).Distinct().ToArray();
+        if (texts.Length == 0) return;
+        UnsafeResultNotice.Title = Localizer.Text("Advertencias");
+        UnsafeResultNotice.Message = string.Join(Environment.NewLine, texts);
+        UnsafeResultNotice.IsOpen = true;
+    }
+
     internal void ShowSettingsPage()
     {
         RootNavigation.SelectedItem = SettingsNavigationItem;

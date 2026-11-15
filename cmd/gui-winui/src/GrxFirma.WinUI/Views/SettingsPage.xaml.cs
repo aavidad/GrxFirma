@@ -230,6 +230,7 @@ public sealed partial class SettingsPage : Page
         ViewModel.Activate();
         await ViewModel.LoadAsync();
         await ViewModel.LoadForcedTrustAsync();
+        await LoadUnsafeExceptionsAsync();
         try
         {
             StartWithWindowsCheckBox.IsChecked =

@@ -15,6 +15,7 @@ public partial class App : Application
 {
     private static readonly TimeSpan IpcCloseTimeout = TimeSpan.FromSeconds(3);
     private MainWindow? _window;
+    internal GrxFirma.WinUI.Core.Operations.UnsafeExceptionsClient? UnsafeExceptions { get; private set; }
     private ReconnectingIpcClient? _ipcClient;
     private readonly CancellationTokenSource _lifetimeCancellation = new();
     private int _windowClosed;
@@ -243,7 +244,7 @@ public partial class App : Application
 
             EnqueueOnUi(() =>
             {
-                OperationSession.Attach(client);
+                AttachUnsafeClient(client);
                 _window?.ViewModel.SetConnected(client.ServerHello);
                 _ = _window?.RefreshFacturaeToolsAvailabilityAsync();
 
@@ -278,6 +279,36 @@ public partial class App : Application
         }
     }
 
+
+    private void AttachUnsafeClient(ReconnectingIpcClient client)
+    {
+        var unsafeClient = new GrxFirma.WinUI.Core.Operations.UnsafeExceptionsClient(client)
+        {
+            RequestAcceptance = RequestUnsafeAcceptanceAsync,
+            Notice = key => EnqueueOnUi(() => _window?.ShowUnsafeNotice([key])),
+            Warnings = keys => EnqueueOnUi(() => _window?.ShowUnsafeNotice(keys)),
+        };
+        UnsafeExceptions = unsafeClient;
+        OperationSession.Attach(unsafeClient);
+    }
+
+    private Task<bool> RequestUnsafeAcceptanceAsync(
+        GrxFirma.WinUI.Core.Operations.UnsafeExceptionState item, CancellationToken ct)
+    {
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        EnqueueOnUi(async () =>
+        {
+            try
+            {
+                if (ct.IsCancellationRequested || _window?.Content is not FrameworkElement root || root.XamlRoot is null)
+                { completion.TrySetResult(false); return; }
+                var accepted = await GrxFirma.WinUI.Controls.UnsafeExceptionDialog.ShowAsync(item, root.XamlRoot, root.ActualTheme, cancellationToken: ct);
+                completion.TrySetResult(accepted && !ct.IsCancellationRequested);
+            }
+            catch { completion.TrySetResult(false); }
+        });
+        return completion.Task.WaitAsync(ct);
+    }
 
     // Vigila el proceso del motor ya verificado al conectar. Si termina (por
     // ejemplo, porque el instalador lo detiene al actualizar), se avisa de que
@@ -317,7 +348,7 @@ public partial class App : Application
             {
                 if (recovered && client.ServerHello is not null)
                 {
-                    OperationSession.Attach(client);
+                    AttachUnsafeClient(client);
                     _window?.ViewModel.SetConnected(client.ServerHello);
                     return;
                 }

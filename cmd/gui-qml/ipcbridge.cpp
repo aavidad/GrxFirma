@@ -1165,6 +1165,8 @@ bool IpcBridge::queueDeferredRequest(const QString &action,
   if (m_serverRejected)
     return false;
   // Administrative configuration is explicit: never replay on reconnection.
+  if (action.startsWith(QStringLiteral("unsafe_")))
+    return false; // Consent and single-use retry tokens never survive reconnect.
   if (action == "get_token_settings" || action == "save_token_settings" ||
       action == "diagnose_token_settings")
     return false;
@@ -1286,7 +1288,24 @@ void IpcBridge::failPendingActionDueToConnection(const QString &message) {
 
 void IpcBridge::failActionDueToConnection(const QString &action,
                                           const QString &message) {
+  if (action == QStringLiteral("unsafe_operation_retry")) {
+    const QString original = m_unsafeRetryRequests.take(m_pendingRequestId);
+    const QString failedAction = original.isEmpty() ? m_unsafeRetryAction : original;
+    m_unsafeRetryAction.clear();
+    m_pendingAction.clear();
+    m_pendingRequestId.clear();
+    if (!failedAction.isEmpty()) failActionDueToConnection(failedAction, message);
+    return;
+  }
   const QString safeMessage = IncidentSanitizeText(message);
+  const auto unsafePending = m_unsafeRequests;
+  m_unsafeRequests.clear();
+  m_unsafeRetryTokens.clear();
+  for (const auto &pendingAction : unsafePending)
+    emit unsafeExceptionsFinished(pendingAction, false, QVariant());
+  if (action.startsWith(QStringLiteral("unsafe_exceptions_")) && unsafePending.isEmpty())
+    emit unsafeExceptionsFinished(action, false, QVariant());
+
   if (action == QStringLiteral("afirma_handler_status") ||
       action == QStringLiteral("afirma_handler_select")) {
     emit afirmaHandlerFinished(action, false, QVariantMap(),
@@ -2090,6 +2109,48 @@ void IpcBridge::onReadyRead() {
       }
     }
 
+    // All operation failures reach the same consent surface, before specialized
+    // dispatch. No parameters or secrets are retained by the UI for a replay.
+    if (action == QStringLiteral("unsafe_operation_retry")) {
+      action = m_unsafeRetryRequests.take(requestId);
+      if (action.isEmpty()) continue; // stale or unsolicited retry
+    }
+    const auto unsafeRequest = m_unsafeRequests.find(requestId);
+    if (unsafeRequest != m_unsafeRequests.end()) {
+      const QString expected = unsafeRequest.value();
+      if (action == expected && !obj.value("requestId").toString().isEmpty()) {
+        m_unsafeRequests.erase(unsafeRequest);
+        emit unsafeExceptionsFinished(action, ok, data.toVariant());
+        continue;
+      }
+    }
+    if (action.startsWith(QStringLiteral("unsafe_exceptions_"))) continue;
+    if (!ok && matchesPendingRequest && !obj.value("requestId").toString().isEmpty() &&
+        !obj.value("exceptionId").toString().isEmpty()) {
+      QVariantMap block = obj.value("exception").toObject().toVariantMap();
+      block.insert("id", obj.value("exceptionId").toString());
+      block.insert("activable", obj.value("activable").toBool(false));
+      block.insert("acceptance_version", obj.value("acceptanceVersion").toString());
+      block.insert("retryId", obj.value("retryId").toString());
+      block.insert("operationPending", true);
+      block.insert("operationAction", action);
+      const QString retryId = obj.value("retryId").toString();
+      if (!retryId.isEmpty()) {
+        if (m_unsafeRetryTokens.size() >= 4) m_unsafeRetryTokens.clear();
+        m_unsafeRetryTokens.insert(retryId, action);
+      }
+      emit unsafeExceptionBlocked(block);
+    }
+    if (ok) {
+      QJsonObject warningSource = data.toObject();
+      QJsonArray warnings = warningSource.value("warnings").toArray();
+      for (const auto &warning : obj.value("warnings").toArray())
+        if (!warnings.contains(warning)) warnings.append(warning);
+      warningSource.insert("warnings", warnings);
+      if (data.isObject()) data = warningSource;
+      emit unsafeOperationWarnings(ipcSigningWarnings(warningSource));
+    }
+
     if (action == "get_token_settings" || action == "save_token_settings" ||
         action == "diagnose_token_settings") {
       // Never accept a stale, unsolicited or uncorrelated administrative reply.
@@ -2654,6 +2715,17 @@ void IpcBridge::sendRequest(const QString &action, const QVariantMap &params) {
       IncidentFormatIpcLogEvent(
           req.toVariantMap(), QStringLiteral("ipc-request"),
           QStringLiteral("pending"), data.size()));
+  if (action == QStringLiteral("unsafe_operation_retry")) {
+    m_unsafeRetryRequests.insert(requestId, m_unsafeRetryAction);
+    m_unsafeRetryAction.clear();
+  }
+  if (action.startsWith(QStringLiteral("unsafe_exceptions_"))) {
+    m_unsafeRequests.insert(requestId, action);
+    QTimer::singleShot(20000, this, [this, requestId, action]() {
+      if (!m_unsafeRequests.remove(requestId)) return;
+      emit unsafeExceptionsFinished(action, false, QVariant());
+    });
+  }
   m_pendingAction = action;
   m_pendingRequestId = requestId;
   m_pendingTraceId = traceId;
@@ -3578,4 +3650,22 @@ void IpcBridge::selectAfirmaHandler(const QString &handler) {
   QVariantMap params;
   params.insert(QStringLiteral("handler"), handler);
   sendRequest(QStringLiteral("afirma_handler_select"), params);
+}
+
+void IpcBridge::loadUnsafeExceptions() {
+  sendRequest(QStringLiteral("unsafe_exceptions_list"));
+}
+void IpcBridge::activateUnsafeException(const QString &id, const QString &version,
+                                       const QString &retryId) {
+  QVariantMap params{{"id", id}, {"accepted", true}, {"acceptanceVersion", version}};
+  if (!retryId.isEmpty()) params.insert("retryId", retryId);
+  sendRequest(QStringLiteral("unsafe_exceptions_activate"), params);
+}
+void IpcBridge::disableUnsafeException(const QString &id) {
+  sendRequest(QStringLiteral("unsafe_exceptions_set"), {{"id", id}, {"enabled", false}});
+}
+void IpcBridge::retryUnsafeOperation(const QString &retryId) {
+  m_unsafeRetryAction = m_unsafeRetryTokens.take(retryId);
+  if (m_unsafeRetryAction.isEmpty()) return;
+  sendRequest(QStringLiteral("unsafe_operation_retry"), {{"retryId", retryId}});
 }

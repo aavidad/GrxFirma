@@ -46,7 +46,7 @@ def unthemed_dialogs(source):
     for kind, body, code in dialog_blocks(source):
         direct = direct_members(code)
         if kind == "ThemedDialog":
-            if not re.search(r"\btheme\s*:", direct):
+            if not re.search(r"\btheme\s*:|\brequired\s+theme\b", direct):
                 failures.append("ThemedDialog sin tema")
         elif re.search(r"\b(?:currentTheme|theme)\.(?:textColor|secondaryTextColor)", code):
             if not re.search(r"\bbackground\s*:", direct):

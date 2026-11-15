@@ -275,6 +275,12 @@ public sealed class NdjsonIpcClient : IIpcClient
                 Phase = phase,
                 Retryable = response.Retryable.Value,
                 Data = response.Data,
+                UnsafeException = (response.UnsafeException ?? (response.ExceptionId is { Length: > 0 } id
+                    ? new GrxFirma.WinUI.Core.Operations.UnsafeExceptionState
+                    { Id = id, Activable = response.Activable, AcceptanceVersion = response.AcceptanceVersion ?? string.Empty }
+                    : null)) is { } unsafeBlock ? unsafeBlock with { OperationPending = true } : null,
+                RetryId = response.RetryId,
+                WarningKeys = response.WarningKeys,
                 Diagnostic = SanitizeDiagnostic(response.Diagnostic),
             };
 
