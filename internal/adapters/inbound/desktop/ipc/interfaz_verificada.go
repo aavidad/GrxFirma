@@ -9,6 +9,7 @@ import (
 	"context"
 	"net"
 	"strings"
+	"sync"
 )
 
 // Estado del cliente IPC respecto a la interfaz que lanzó el motor. La firma
@@ -56,9 +57,35 @@ func conEstadoInterfaz(ctx context.Context, estado string) context.Context {
 	return context.WithValue(ctx, estadoInterfazContextKey{}, estado)
 }
 
+// estadoInterfazPerezoso calcula el estado solo si la operación lo necesita.
+// Cualquier acción puede terminar en un bloqueo de lo inseguro (por ejemplo,
+// cargar los destinatarios de Cifrar crea la identidad propia), y ese bloqueo
+// solo se ofrece activar a la interfaz vinculada (lote 39l). Antes, en las
+// acciones que no estaban en requiereEstadoInterfaz, el bloqueo llegaba
+// siempre como no activable y la interfaz lo pintaba como «la organización no
+// permite», aunque no hubiera directiva de máquina.
+type estadoInterfazPerezoso struct {
+	once   sync.Once
+	calc   func() string
+	estado string
+}
+
+func conEstadoInterfazPerezoso(ctx context.Context, calc func() string) context.Context {
+	return context.WithValue(ctx, estadoInterfazContextKey{}, &estadoInterfazPerezoso{calc: calc})
+}
+
 func estadoInterfazDe(ctx context.Context) string {
-	if estado, ok := ctx.Value(estadoInterfazContextKey{}).(string); ok {
+	switch estado := ctx.Value(estadoInterfazContextKey{}).(type) {
+	case string:
 		return estado
+	case *estadoInterfazPerezoso:
+		estado.once.Do(func() {
+			estado.estado = interfazNoVerificada
+			if estado.calc != nil {
+				estado.estado = estado.calc()
+			}
+		})
+		return estado.estado
 	}
 	return interfazNoVerificada
 }

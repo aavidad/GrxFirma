@@ -106,7 +106,9 @@ public:
   Q_INVOKABLE void acceptForcedTrust(const QVariantList &items);
   Q_INVOKABLE void removeForcedTrust(const QString &type,
                                      const QString &fingerprint);
-  Q_INVOKABLE void loadProtectionRecipients();
+  // userRequested: la persona lo pidió (lote 39l). Al entrar en Cifrar la
+  // carga es automática y un bloqueo no abre el aviso de seguridad.
+  Q_INVOKABLE void loadProtectionRecipients(bool userRequested = false);
   Q_INVOKABLE void importProtectionRecipient(const QString &path);
   Q_INVOKABLE void removeProtectionRecipient(const QString &id);
   Q_INVOKABLE void requestSmartcardStatus();
@@ -250,6 +252,9 @@ signals:
   void forcedTrustFinished(QString action, bool ok, QVariantMap data,
                            QString message);
   void protectionRecipientsLoaded(QVariantList recipients);
+  // La identidad propia no se pudo crear sin pedir permiso (sin almacén de
+  // secretos); la sección lo explica sin tratarlo como un fallo.
+  void protectionOwnIdentityUnavailable(const QString &exceptionId);
   void protectionRecipientChanged(bool ok, QString message);
   void smartcardStatusReceived(bool ok, QVariantList readers, QString message);
   void cscFinished(QString action, bool ok, QVariantMap data, QString message);
@@ -358,6 +363,7 @@ private:
   bool m_requestLocalTLSStartupAfterDeferred = false;
   bool m_refreshCertificatesAfterLocalTLSStartup = false;
   bool m_expertMode = false;
+  bool m_protectionRecipientsUserRequest = false;
   QString m_addr;
   QString m_token;
   QString m_socketPath; // For socket connection
