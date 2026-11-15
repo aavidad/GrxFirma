@@ -8,6 +8,7 @@
 
 #include <QElapsedTimer>
 #include <QJsonDocument>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QTemporaryFile>
 #include <QLocalServer>
@@ -19,6 +20,9 @@ class IpcBridgeTransientSecretTest : public QObject {
   Q_OBJECT
 
 private slots:
+  void unsafeVersionedActivation();
+  void unsafeBlockAndRetryRouting();
+  void unsafeDisconnectedNeverDeferred();
   void disconnectedProtectIsNotDeferred();
   void disconnectedUnprotectIsNotDeferred();
   void disconnectedRemoteProtectSignIsNotDeferred();
@@ -39,6 +43,79 @@ private slots:
 private:
   QLocalSocket *connectPeer(IpcBridge &bridge, QLocalServer &server);
 };
+
+void IpcBridgeTransientSecretTest::unsafeVersionedActivation() {
+  IpcBridge bridge;
+  QLocalServer server;
+  auto *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  peer->readAll();
+  QSignalSpy finished(&bridge, &IpcBridge::unsafeExceptionsFinished);
+  bridge.activateUnsafeException("cms_cbc", "2026-11-15.1", "fixture-token");
+  QTRY_VERIFY(peer->canReadLine());
+  const auto sent = QJsonDocument::fromJson(peer->readLine()).object();
+  QCOMPARE(sent.value("action").toString(), QStringLiteral("unsafe_exceptions_activate"));
+  const auto params = sent.value("params").toObject();
+  QCOMPARE(params.value("acceptanceVersion").toString(), QStringLiteral("2026-11-15.1"));
+  QCOMPARE(params.value("accepted").toBool(), true);
+  QCOMPARE(params.value("retryId").toString(), QStringLiteral("fixture-token"));
+  auto reply = [&](const QString &id) {
+    peer->write(QJsonDocument(QJsonObject{{"action", "unsafe_exceptions_activate"},
+        {"requestId", id}, {"ok", true}, {"data", QJsonObject{}}}).toJson(QJsonDocument::Compact) + '\n');
+    peer->flush();
+    QTest::qWait(25);
+  };
+  reply("unrelated");
+  QCOMPARE(finished.count(), 0);
+  reply(sent.value("requestId").toString());
+  QCOMPARE(finished.count(), 1);
+  reply(sent.value("requestId").toString());
+  QCOMPARE(finished.count(), 1);
+}
+
+void IpcBridgeTransientSecretTest::unsafeBlockAndRetryRouting() {
+  IpcBridge bridge;
+  QLocalServer server;
+  auto *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  peer->readAll();
+  QSignalSpy blocked(&bridge, &IpcBridge::unsafeExceptionBlocked);
+  QSignalSpy verified(&bridge, &IpcBridge::verificationFinished);
+  QSignalSpy warnings(&bridge, &IpcBridge::unsafeOperationWarnings);
+  bridge.verifyFile("/tmp/fixture.pdf");
+  QTRY_VERIFY(peer->canReadLine());
+  const auto sent = QJsonDocument::fromJson(peer->readLine()).object();
+  const QJsonObject block{{"action", "verify"}, {"requestId", sent.value("requestId")},
+      {"ok", false}, {"exceptionId", "cms_cbc"}, {"activable", false},
+      {"acceptanceVersion", "2026-11-15.1"}, {"retryId", "fixture-token"},
+      {"exception", QJsonObject{{"id", "cms_cbc"}}}};
+  peer->write(QJsonDocument(block).toJson(QJsonDocument::Compact) + '\n'); peer->flush();
+  QTRY_COMPARE(blocked.count(), 1);
+  QVERIFY(!blocked.at(0).at(0).toMap().value("activable").toBool());
+  QCOMPARE(verified.count(), 1);
+  bridge.retryUnsafeOperation("fixture-token");
+  QTRY_VERIFY(peer->canReadLine());
+  const auto retry = QJsonDocument::fromJson(peer->readLine()).object();
+  QCOMPARE(retry.value("action").toString(), QStringLiteral("unsafe_operation_retry"));
+  const QJsonObject reply{{"action", "unsafe_operation_retry"}, {"requestId", retry.value("requestId")},
+      {"ok", true}, {"warnings", QJsonArray{"excepciones.cms_cbc.aviso"}},
+      {"data", QJsonObject{{"valid", true}}}};
+  peer->write(QJsonDocument(reply).toJson(QJsonDocument::Compact) + '\n'); peer->flush();
+  QTRY_COMPARE(verified.count(), 2);
+  QVERIFY(verified.at(1).at(0).toBool());
+  QCOMPARE(warnings.last().at(0).toStringList(), QStringList{"excepciones.cms_cbc.aviso"});
+}
+
+void IpcBridgeTransientSecretTest::unsafeDisconnectedNeverDeferred() {
+  IpcBridge bridge;
+  QSignalSpy finished(&bridge, &IpcBridge::unsafeExceptionsFinished);
+  bridge.activateUnsafeException("cms_cbc", "2026-11-15.1");
+  QCOMPARE(finished.count(), 1);
+  QVERIFY(!finished.at(0).at(1).toBool());
+  QVERIFY(bridge.m_deferredRequest.isEmpty());
+  bridge.disableUnsafeException("cms_cbc");
+  QCOMPARE(finished.count(), 2);
+}
 
 static QString validTransientSecret() {
   return QString::fromLatin1(

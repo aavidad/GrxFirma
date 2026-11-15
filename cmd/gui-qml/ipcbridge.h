@@ -39,6 +39,11 @@ class IpcBridge : public QObject {
                  activeDiagnosticsRunningChanged)
 
 public:
+  Q_INVOKABLE void loadUnsafeExceptions();
+  Q_INVOKABLE void activateUnsafeException(const QString &id, const QString &version,
+                                           const QString &retryId = QString());
+  Q_INVOKABLE void disableUnsafeException(const QString &id);
+  Q_INVOKABLE void retryUnsafeOperation(const QString &retryId);
   explicit IpcBridge(QObject *parent = nullptr);
   ~IpcBridge();
 
@@ -228,6 +233,9 @@ public:
   void setExpertMode(bool v);
 
 signals:
+  void unsafeExceptionBlocked(QVariantMap block);
+  void unsafeExceptionsFinished(QString action, bool ok, QVariant data);
+  void unsafeOperationWarnings(QStringList warnings);
   void tokenSettingsFinished(QString action, bool ok, QVariantMap snapshot, QString message);
   void certificatesLoaded(QVariantList certs);
   void certificatePublicExportFinished(bool ok, QString message);
@@ -302,6 +310,10 @@ private slots:
   void onError(QLocalSocket::LocalSocketError error);
 
 private:
+  QString m_unsafeRetryAction;
+  QHash<QString, QString> m_unsafeRetryTokens;
+  QHash<QString, QString> m_unsafeRetryRequests;
+  QHash<QString, QString> m_unsafeRequests;
   void sendTokenSettingsRequest(const QString &action, const QVariantMap &params = QVariantMap());
   QString m_tokenSettingsRequestId;
   QString m_tokenSettingsAction;

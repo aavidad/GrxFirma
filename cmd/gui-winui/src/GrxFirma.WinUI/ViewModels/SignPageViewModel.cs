@@ -377,6 +377,10 @@ public sealed class SignPageViewModel
                 Action = action,
             },
             cancellationToken);
+        if (!check.IsSuccess && check.UnsafeException is not null)
+        {
+            return (false, null);
+        }
         if (!check.IsSuccess || check.Data is not { NeedsOriginal: true })
         {
             return (true, null);

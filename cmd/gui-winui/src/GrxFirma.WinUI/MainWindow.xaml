@@ -13,6 +13,12 @@
     Title="GrxFirma">
 
     <Grid x:Name="AppRoot" Background="{ThemeResource AppPageBackgroundBrush}">
+        <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <ScrollViewer Grid.Row="1" MaxHeight="240" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
+            <InfoBar x:Name="UnsafeResultNotice" IsOpen="False" IsClosable="True"
+                     Severity="Warning" AutomationProperties.LiveSetting="Assertive" />
+        </ScrollViewer>
         <NavigationView
             x:Name="RootNavigation"
             AutomationProperties.Name="Navegación principal"

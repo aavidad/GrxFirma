@@ -61,6 +61,87 @@ Window {
         } : ({})
         if (portalSeal.submit(action, placements, appearance)) portalSealDecision = true
     }
+    UnsafeExceptionDialog {
+        id: unsafeDialog
+        parent: window.contentItem
+        theme: currentTheme
+        bridge: backend
+        translate: function(key) { return window.tr(key) }
+        onActivated: function(item) {
+            unsafePanel.load()
+            if (item.operationPending === true && item.retryId) backend.retryUnsafeOperation(item.retryId)
+            else {
+                window.finishUnsafeInterruptedFlow(item)
+                window.unsafeNotice = [window.tr(item.operationPending === true
+                    ? "excepciones.pantalla.reenviar" : "excepciones.pantalla.activada_confirmacion")]
+            }
+        }
+        onActivationFailed: unsafePanel.load()
+        onCancelled: function(item) { window.finishUnsafeInterruptedFlow(item) }
+    }
+    function finishUnsafeInterruptedFlow(item) {
+        if (item.operationAction === "cosign_original_check") {
+            pendingCosignOriginalContext = null
+            resetCosignOriginalChoice()
+            return
+        }
+        if (item.operationAction !== "verify") return
+        // A cancelled preflight must not leave a context that a later, unrelated
+        // verification could consume. A safe retry keeps it until its result.
+        pendingSignedDocumentWarningContext = null
+        pendingSealSignerSummaryContext = null
+        skipSignedDocumentWarningOnce = false
+        if (autoVerificationContext !== null)
+            Qt.callLater(function() { window.handleAutoVerificationFinished(false, window.tr("Verificación incompleta"), {}) })
+    }
+    property var unsafeNotice: []
+    Connections {
+        target: typeof isIpcMode !== "undefined" && isIpcMode ? backend : null
+        ignoreUnknownSignals: true
+        function onUnsafeExceptionBlocked(block) { unsafeDialog.present(block, false) }
+        function onUnsafeOperationWarnings(warnings) {
+            // Settings/list replies must not erase the last operation warning.
+            const visible = window.visibleSigningWarnings(warnings)
+            if (visible.length) window.unsafeNotice = visible
+        }
+    }
+    Rectangle {
+        id: unsafeNoticeBanner
+        anchors.bottomMargin: statusBar.height
+        z: 90
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        visible: window.unsafeNotice.length > 0 && !window.portalSealMode
+        color: currentTheme.cardColor
+        border.color: currentTheme.secondaryTextColor
+        height: Math.min(window.height / 3, unsafeNoticeBody.implicitHeight + 24)
+        Accessible.role: Accessible.AlertMessage
+        Accessible.name: window.unsafeNotice.join("\n")
+        ScrollView {
+            anchors.fill: parent
+            anchors.margins: 12
+            contentWidth: availableWidth
+            clip: true
+            ColumnLayout {
+                id: unsafeNoticeBody
+                width: parent.width
+                Text {
+                    Layout.fillWidth: true
+                    text: window.unsafeNotice.join("\n")
+                    font.pixelSize: Typography.control
+                    textFormat: Text.PlainText
+                    wrapMode: Text.WordWrap
+                    color: currentTheme.textColor
+                }
+                ThemedButton {
+                    text: window.tr("excepciones.pantalla.cerrar")
+                    Layout.minimumHeight: 44
+                    onClicked: window.unsafeNotice = []
+                }
+            }
+        }
+    }
     property string ipcSocketPath: ""
     property string publicCertificateExportId: ""
     property string appLanguage: (typeof i18n !== "undefined" && i18n && i18n.locale) ? i18n.locale : "es"
@@ -828,7 +909,7 @@ Window {
         saveFileDialog.visible || verifyFileDialog.visible || verifyOriginalFileDialog.visible || protectFileDialog.visible ||
         unprotectFileDialog.visible || verifyReportSaveDialog.visible || verifySummarySaveDialog.visible || verifyHtmlReportSaveDialog.visible || hashInputFileDialog.visible ||
         hashInputDirectoryDialog.visible || hashReferenceDialog.visible || localTLSStartupNoticeDialog.visible || aboutDialog.visible || releaseNotesDialog.visible ||
-        signValidationErrorDialog.visible || signConfirmDialog.visible || multiCosignDialog.visible ||
+        unsafeDialog.visible || signValidationErrorDialog.visible || signConfirmDialog.visible || multiCosignDialog.visible ||
         signedDocumentWarningDialog.visible || cosignOriginalDialog.visible || cosignOriginalFileDialog.visible ||
         certificateValidationDialog.visible || certificateValidationSaveDialog.visible || supportIncidentSaveDialog.visible ||
         activeDiagnosticsConsentDialog.visible || supportIncidentSendDialog.visible || supportAssistantDialog.visible || unsavedSettingsDialog.visible ||
@@ -6253,6 +6334,7 @@ Window {
         enabled: isIpcMode
         ignoreUnknownSignals: true
         function onCosignOriginalChecked(ok, needsOriginal) {
+            if (!ok && unsafeDialog.visible) { window.signingInProgress = false; return }
             const ctx = window.pendingCosignOriginalContext
             window.pendingCosignOriginalContext = null
             if (!ctx || ctx.path !== window.currentFilePath)
@@ -8738,6 +8820,7 @@ Window {
             signMainOuterScroll.contentItem.contentY = 0
             Qt.callLater(function() {
                 if (resultGeneration !== window.signResultGeneration) return
+                if (unsafeDialog.visible) { unsafeDialog.contentItem.enter(); return }
                 signResultHeading.Accessible.announce(window.signResultAnnouncement())
                 if (window.signResultKind === "success" && window.signResultPath !== "")
                     openSignedResultButton.forceActiveFocus()
@@ -8784,6 +8867,10 @@ Window {
         }
         function onVerificationFinished(success, message, details) {
             window.verificationPendingCount = Math.max(0, window.verificationPendingCount - 1)
+            if (!success && unsafeDialog.visible) {
+                window.signingInProgress = false
+                return
+            }
             if (window.autoVerificationContext !== null) {
                 window.handleAutoVerificationFinished(success, message, details)
                 return
@@ -8870,6 +8957,7 @@ Window {
             window.statusMessage = message
         }
         function onCertificatePublicExportFinished(ok, message) {
+            if (!ok && unsafeDialog.visible) return
             window.statusMessage = message
             publicCertificateResultDialog.title = ok ? tr("Certificado público exportado") : tr("No se pudo exportar el certificado")
             publicCertificateResultText.text = message
@@ -9390,7 +9478,7 @@ Window {
         anchors.fill: parent
         anchors.topMargin: updateBanner.visible ? updateBanner.height : 0
         // El contenido termina encima de la barra de estado, sin quedar debajo de ella.
-        anchors.bottomMargin: statusBar.height
+        anchors.bottomMargin: statusBar.height + (unsafeNoticeBanner.visible ? unsafeNoticeBanner.height : 0)
         spacing: 0
 
         // SIDEBAR
@@ -15743,6 +15831,20 @@ Window {
                                     onClicked: discardBackendSettingsChanges(false)
                                 }
                             }
+                        }
+
+                        UnsafeExceptionsPanel {
+                            id: unsafePanel
+                            localeName: window.appLanguage
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            theme: currentTheme
+                            bridge: backend
+                            localIpc: typeof isIpcMode !== "undefined" && isIpcMode
+                            translate: function(key) { return window.tr(key) }
+                            onVisibleChanged: if (visible && !loaded && !busy) load()
+                            onAcceptanceRequested: function(item) { unsafeDialog.present(item, false) }
+                            onHelpRequested: function(item) { unsafeDialog.present(item, true) }
                         }
 
                         TokenSettingsPanel {
