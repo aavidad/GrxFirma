@@ -36,7 +36,12 @@ var ErrDirectory = errors.New("excepciones.directorio_no_disponible")
 
 // WithLock serializes settings.json transactions across processes. The lock
 // file is never removed, so waiters cannot end up locking different inodes.
+// Un «acceso denegado» sale como *Error con la explicación del catálogo.
 func WithLock(ctx context.Context, dir string, fn func() error) error {
+	return ExplainAccess(withLock(ctx, dir, fn))
+}
+
+func withLock(ctx context.Context, dir string, fn func() error) error {
 	if ctx == nil || ctx.Err() != nil {
 		if ctx == nil {
 			return context.Canceled
@@ -60,9 +65,15 @@ func WithLock(ctx context.Context, dir string, fn func() error) error {
 		return err
 	}
 	defer directory.Close()
+	// Antes de cambiar permisos: un proceso elevado no puede quedarse con la
+	// carpeta de ajustes de otra persona.
+	if err := checkSettingsUser(directory, dir); err != nil {
+		return err
+	}
 	if err := protectSettingsDirectory(directory); err != nil {
 		return err
 	}
+	claimSettingsDirectory(directory, dir)
 	if info, err := directory.Stat(); err != nil {
 		return err
 	} else if runtime.GOOS != "windows" && info.Mode().Perm()&0077 != 0 {
