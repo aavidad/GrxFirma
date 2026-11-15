@@ -309,7 +309,8 @@
   "approval.document",
   "approval.document.sized",
   "approval.documents",
-  "approval.size.bytes"
+  "approval.size.bytes",
+  "excepciones.sha1_leer.aviso"
  ],
  "de": [
   " + base64",
@@ -433,7 +434,8 @@
   "winui.proteger.cms_envelopeddata_enveloped",
   "report.signer.organization",
   "qt.filedialog.filter",
-  "qt.qstandardpaths.downloads"
+  "qt.qstandardpaths.downloads",
+  "excepciones.sha1_leer.aviso"
  ],
  "en": [
   " + base64",
@@ -644,7 +646,8 @@
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
   "winui.proteger.cms_envelopeddata_enveloped",
   "winui.proteger.json_grxfirma_afp",
-  "❌ Error: "
+  "❌ Error: ",
+  "excepciones.sha1_leer.aviso"
  ],
  "fr": [
   " + base64",
@@ -801,7 +804,8 @@
   "winui.proteger.documento",
   "winui.proteger.json_grxfirma_afp",
   "winui.selector.nombre_firma",
-  "report.signer.organization"
+  "report.signer.organization",
+  "excepciones.sha1_leer.aviso"
  ],
  "gl": [
   "afirma.elegir.cancelar",
@@ -1794,7 +1798,8 @@
   "approval.document",
   "approval.document.sized",
   "approval.documents",
-  "approval.size.bytes"
+  "approval.size.bytes",
+  "excepciones.sha1_leer.aviso"
  ],
  "it": [
   " + base64",
@@ -1972,7 +1977,8 @@
   "❌ Error: ",
   "qt.filedialog.filter",
   "approval.document",
-  "approval.document.sized"
+  "approval.document.sized",
+  "excepciones.sha1_leer.aviso"
  ],
  "pt": [
   "afirma.elegir.cancelar",
@@ -2414,7 +2420,8 @@
   "approval.document",
   "approval.document.sized",
   "approval.documents",
-  "approval.size.bytes"
+  "approval.size.bytes",
+  "excepciones.sha1_leer.aviso"
  ],
  "va": [
   " + base64",
@@ -2768,7 +2775,8 @@
   "approval.document",
   "approval.document.sized",
   "approval.documents",
-  "approval.size.bytes"
+  "approval.size.bytes",
+  "excepciones.sha1_leer.aviso"
  ],
  "zh": [
   " + base64",
@@ -2845,6 +2853,7 @@
   "width",
   "winui.comun.facturae",
   "winui.proteger.cms_authenvelopeddata_authenveloped_p7m",
-  "winui.proteger.cms_envelopeddata_enveloped"
+  "winui.proteger.cms_envelopeddata_enveloped",
+  "excepciones.sha1_leer.aviso"
  ]
 }

@@ -5159,7 +5159,7 @@
   ,"verifactu.qr_timeout": "La búsqueda del QR ha superado el tiempo máximo. Pruebe con una imagen más pequeña o recortada."
   ,"verifactu.qr_busy": "Ya hay otra búsqueda de QR en curso. Espere a que termine y vuelva a intentarlo."
   ,"movil.informe.confianza_no_evaluada": "La confianza en el emisor no se evalúa en el móvil: no dispone de las anclas de confianza del sistema."
-  ,"movil.verificacion.cadena_no_evaluada": "La integridad criptografica se ha verificado, pero la confianza de la cadena no esta evaluada por el sistema."
+  ,"movil.verificacion.cadena_no_evaluada": "La integridad criptográfica se ha comprobado, pero el sistema no ha evaluado la confianza en la cadena de certificados."
   ,"verifactu.cli_qr_input": "leer-qr-verifactu y cotejar-qr-verifactu aceptan en -entrada la URL del QR o un fichero PNG, JPEG o PDF."
   ,"eni.error.signature_mismatch": "La firma no corresponde al documento original o el documento se ha modificado después de firmarlo. Compruebe que ha elegido el original correcto."
   ,"firma.sha1_corresponde.aviso": "La firma corresponde al documento, pero usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Se admite para no dejar fuera documentos firmados hace años; al verificar la firma aparecerá este mismo aviso."
@@ -6975,7 +6975,7 @@
   "excepciones.sha1_crear.aviso": "Se ha permitido crear una firma SHA-1. Aviso: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones.",
   "excepciones.sha1_crear.bloqueo": "La app no permite esto por seguridad. Se ha bloqueado crear una firma SHA-1. SHA-1 ya no ofrece una resistencia suficiente frente a colisiones. Por ejemplo, dos documentos distintos pueden llegar a compartir la misma huella de ese algoritmo. Puede activarlo aceptando el aviso que muestra GrxFirma o en Preferencias, Seguridad, «Crear firmas SHA-1». Si su organización no lo permite, consulte al administrador.",
   "excepciones.sha1_leer.ajuste": "Evaluar firmas SHA-1 antiguas",
-  "excepciones.sha1_leer.aviso": "Se ha permitido evaluar una firma SHA-1 antigua. Aviso: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones.",
+  "excepciones.sha1_leer.aviso": "Esta firma usa SHA-1 y se ha comprobado porque usted lo permitió. SHA-1 ya no es seguro, así que el resultado no es una garantía.",
   "excepciones.sha1_leer.bloqueo": "La app no permite esto por seguridad. No se ha evaluado esta firma SHA-1 antigua. SHA-1 ya no ofrece una resistencia suficiente frente a colisiones. Por ejemplo, una firma antigua puede tener un resumen que no ofrezca la protección esperada hoy. Puede activarlo aceptando el aviso que muestra GrxFirma o en Preferencias, Seguridad, «Evaluar firmas SHA-1 antiguas». Si su organización no lo permite, consulte al administrador.",
   "excepciones.sha1_conservar.ajuste": "Conservar firmas SHA-1 en ENI o cofirmas",
   "excepciones.sha1_conservar.aviso": "Se ha permitido conservar una firma SHA-1 antigua al crear un ENI o una cofirma. Aviso: SHA-1 ya no ofrece una resistencia suficiente frente a colisiones.",
