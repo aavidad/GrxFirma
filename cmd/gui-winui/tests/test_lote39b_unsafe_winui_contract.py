@@ -59,5 +59,17 @@ class StartupOnWindows10(unittest.TestCase):
         self.assertIn("ThemeBrushes.RefreshFromSystem()", handler)
 
 
+class StaleNotice(unittest.TestCase):
+    def test_notice_is_cleared_on_new_operation_and_setting_change(self):
+        window = read(UI / "MainWindow.xaml.cs")
+        clear = block_after(window, "internal void ClearUnsafeNotice()")
+        self.assertIn("UnsafeResultNotice.IsOpen = false;", clear)
+        app = read(UI / "App.xaml.cs")
+        self.assertIn("ClearNotice = () => EnqueueOnUi(() => _window?.ClearUnsafeNotice()),", app)
+        client = read(CORE / "Operations/UnsafeExceptionsClient.cs")
+        send = block_after(client, "public async Task<IpcCallResult<TData>> SendAsync<TParameters, TData>(")
+        self.assertLess(send.index("ClearNotice?.Invoke()"), send.index("await inner.SendAsync"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -107,6 +107,30 @@ public sealed class UnsafeExceptionsTests
     }
 
     [TestMethod]
+    public async Task NewOperationOrSettingChange_ClearsPreviousNotice_BackgroundQueriesDoNot()
+    {
+        var transport = new Fake();
+        var cleared = 0;
+        var client = new UnsafeExceptionsClient(transport)
+        { RequestAcceptance = (_, _) => Task.FromResult(false), ClearNotice = () => cleared++ };
+        await client.SendAsync<object, JsonElement>("get_settings", new { });
+        await client.ListAsync();
+        Assert.AreEqual(0, cleared, "Una consulta de fondo no retira el aviso del resultado.");
+        await client.SendAsync<object, JsonElement>("verify", new { });
+        Assert.AreEqual(1, cleared, "Una verificación nueva retira el aviso de la anterior.");
+        await client.DisableAsync(Item() with { Enabled = true });
+        Assert.AreEqual(2, cleared, "Desactivar retira «…porque usted lo permitió».");
+        client.RequestAcceptance = (_, _) => Task.FromResult(true);
+        Assert.IsTrue(await client.ActivateAsync(Item()));
+        Assert.AreEqual(3, cleared);
+        transport.ActivationSucceeds = false;
+        Assert.IsFalse(await client.ActivateAsync(Item()));
+        Assert.AreEqual(3, cleared, "Si no se activó, el ajuste no cambió.");
+        foreach (var action in new[] { "sign", "sign_batch", "sign_multicosign", "protect", "protect_sign", "unprotect" })
+            Assert.IsTrue(UnsafeExceptionsClient.NoticeOperations.Contains(action), action);
+    }
+
+    [TestMethod]
     public async Task RetryWarnings_ReachOperationNotice()
     {
         var transport = new Fake();

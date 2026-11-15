@@ -100,6 +100,14 @@ public sealed partial class MainWindow : Window
         UnsafeResultNotice.IsOpen = true;
     }
 
+    // Al empezar otra operación o cambiar el ajuste, el aviso anterior ya no
+    // describe lo que hay en pantalla.
+    internal void ClearUnsafeNotice()
+    {
+        UnsafeResultNotice.IsOpen = false;
+        UnsafeResultNotice.Message = string.Empty;
+    }
+
     internal void ShowSettingsPage()
     {
         RootNavigation.SelectedItem = SettingsNavigationItem;
