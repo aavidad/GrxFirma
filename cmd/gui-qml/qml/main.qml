@@ -69,14 +69,17 @@ Window {
         bridge: backend
         translate: function(key) { return window.tr(key) }
         onActivated: function(item) {
-            unsafePanel.load()
             const step = UnsafeResume.next(item)
+            // Desde Configuración la confirmación va en la propia sección, en
+            // su región viva, y el foco vuelve a la fila (lote 39h). Antes
+            // salía un aviso abajo que tapaba la fila.
+            if (step === "notice_activated") { unsafePanel.confirmChange(item.id); return }
+            unsafePanel.load()
             if (step === "retry") backend.retryUnsafeOperation(item.retryId)
             else if (step === "resend") window.resendUnsafeOperation(item)
             else {
                 window.finishUnsafeInterruptedFlow(item)
-                window.unsafeNotice = [window.tr(step === "notice_resend"
-                    ? "excepciones.pantalla.reenviar" : "excepciones.pantalla.activada_confirmacion")]
+                window.unsafeNotice = [window.tr("excepciones.pantalla.reenviar")]
             }
         }
         onActivationFailed: unsafePanel.load()
@@ -1541,6 +1544,13 @@ Window {
 
     function localizedStatusMessage() {
         return localizeVisibleDiagnosticText(window.statusMessage)
+    }
+
+    // La barra de estado tiene una sola línea: un mensaje de varios párrafos
+    // (la razón y el texto de la organización) salía partido en dos líneas
+    // cortadas por la mitad (lote 39h). Se une en una y se acorta al final.
+    function singleLineText(text) {
+        return String(text || "").replace(/\s*[\r\n]+\s*/g, " ").trim()
     }
 
     function supportAssistantResponsibility() {
@@ -5517,6 +5527,22 @@ Window {
         return text !== key ? text : String(type)
     }
 
+    // «algoritmo_antiguo=sha1» pasa a «SHA-1»: el rótulo ya lo da el tipo,
+    // como en el informe del motor y en WinUI (lote 39h). Lo demás, igual.
+    function verificationEvidenceSummaryText(summary) {
+        const text = String(summary || "").trim()
+        const prefix = "verificacion.detalle."
+        const cut = text.indexOf("=")
+        if (cut <= 0 || /[ \t]/.test(text.substring(0, cut)) || tr(prefix + text.substring(0, cut)) === prefix + text.substring(0, cut))
+            return localizeVisibleDiagnosticText(text)
+        const value = text.substring(cut + 1)
+        const revision = value.match(/^revision_hasta_(\d{1,12})_de_(\d{1,12})$/)
+        if (revision)
+            return catalogFormat(prefix + "valor.revision_hasta", [revision[1], revision[2]])
+        const valueKey = prefix + "valor." + value
+        return value !== "" && tr(valueKey) !== valueKey ? tr(valueKey) : value
+    }
+
     function verificationEvidenceText(details) {
         if (!details || !details.evidence || details.evidence.length === 0)
             return tr("No disponible")
@@ -5524,7 +5550,7 @@ Window {
         for (let i = 0; i < details.evidence.length; i++) {
             const item = details.evidence[i]
             const type = item && item.type ? verificationEvidenceTypeText(item.type) : tr("No disponible")
-            const summary = item && item.summary ? item.summary : ""
+            const summary = item && item.summary ? verificationEvidenceSummaryText(item.summary) : ""
             rows.push(tr("Tipo: ") + type + (summary !== "" ? " · " + summary : ""))
         }
         return rows.join("\n")
@@ -5738,7 +5764,7 @@ Window {
         rejectLabel: tr("Cancelar")
         id: verifyFileDialog
         title: tr("Seleccionar documento firmado")
-        nameFilters: [tr("Documentos firmados (*.pdf *.p7s *.xsig *.xml)"), tr("Todos los archivos (*)")]
+        nameFilters: [tr("Documentos firmados (*.pdf *.csig *.p7s *.p7m *.sig *.xsig *.xml *.dsig *.xmlsig *.asics *.odt *.ods *.odp *.docx *.xlsx *.pptx)"), tr("Todos los archivos (*)")]
         onAccepted: {
             let path = localPathFromUrl(selectedFile)
             window.rememberSessionDocumentPath(path)
@@ -9584,6 +9610,21 @@ Window {
                 contentWidth: availableWidth
                 contentHeight: sidebarContent.implicitHeight
                 clip: true
+                // Si el menú no cabe (texto al 200 % en una ventana baja), la
+                // barra de desplazamiento se ve siempre: antes «ACERCA DE»
+                // quedaba fuera sin ninguna pista de que había más (lote 39h).
+                readonly property bool overflowing: contentHeight > availableHeight + 1
+                ScrollBar.vertical.policy: overflowing ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded
+                // Con el teclado, el botón que recibe el foco se desplaza a la vista.
+                function reveal(item) {
+                    const flick = navigationScroll.contentItem
+                    if (!item || !flick || !overflowing) return
+                    const top = item.mapToItem(sidebarContent, 0, 0).y
+                    if (top < flick.contentY)
+                        flick.contentY = Math.max(0, top)
+                    else if (top + item.height > flick.contentY + flick.height)
+                        flick.contentY = Math.min(flick.contentHeight - flick.height, top + item.height - flick.height)
+                }
                 ColumnLayout {
                 id: sidebarContent
                 objectName: "navigationContent"
@@ -9627,7 +9668,8 @@ Window {
 
                     Image {
                         Layout.preferredWidth: 44
-                        Layout.preferredHeight: Typography.minimum(44)
+                        // El logotipo no es texto: no crece con el tamaño del texto.
+                        Layout.preferredHeight: 44
                         source: "../assets/grxfirma-logo-pluma-pequeno-96.png"
                         sourceSize.width: 88
                         sourceSize.height: 88
@@ -16005,7 +16047,39 @@ Window {
                                         Accessible.name: tr("qt.accessibility.text_size")
                                         model: Typography.percentages.map(function(value) { return window.tr("qt.accessibility.percent").replace("%1", value) })
                                         currentIndex: Math.max(0, Typography.percentages.indexOf(appSettings.textScalePercent))
-                                        onActivated: function(index) { appSettings.textScalePercent = Typography.percentages[index]; appSettings.sync() }
+                                        // Volver a colocar toda la ventana con otro tamaño de texto
+                                        // tarda unos segundos. Si empezaba con la lista abierta, la
+                                        // lista se quedaba pintada encima, parecía que el clic no
+                                        // había hecho nada y la página saltaba a otro sitio (lote 39h).
+                                        // Ahora la lista se cierra y se pinta cerrada antes del cambio,
+                                        // y después la página vuelve a este desplegable.
+                                        property int pendingPercent: 0
+                                        function applyPendingPercent() {
+                                            const percent = pendingPercent
+                                            pendingPercent = 0
+                                            if (percent <= 0 || percent === appSettings.textScalePercent) return
+                                            appSettings.textScalePercent = percent
+                                            appSettings.sync()
+                                            textSizeReveal.restart()
+                                        }
+                                        function revealAfterScale() {
+                                            const flick = configMainOuterScroll.contentItem
+                                            if (!flick || !flick.contentItem) return
+                                            const top = textSizeCombo.mapToItem(flick.contentItem, 0, 0).y
+                                            flick.contentY = Math.max(0, Math.min(flick.contentHeight - flick.height,
+                                                top - flick.height / 3))
+                                            textSizeCombo.forceActiveFocus(Qt.OtherFocusReason)
+                                        }
+                                        Timer { id: textSizeApply; interval: 120; onTriggered: textSizeCombo.applyPendingPercent() }
+                                        Timer { id: textSizeReveal; interval: 150; onTriggered: textSizeCombo.revealAfterScale() }
+                                        onActivated: function(index) {
+                                            pendingPercent = Typography.percentages[index]
+                                            if (!popup.visible) textSizeApply.restart()
+                                        }
+                                        Connections {
+                                            target: textSizeCombo.popup
+                                            function onClosed() { if (textSizeCombo.pendingPercent > 0) textSizeApply.restart() }
+                                        }
                                     }
                                 }
 
@@ -18714,10 +18788,15 @@ Window {
         }
 
         Layout.fillWidth: true
-        implicitHeight: Math.max(Typography.minimum(54), navLabel.implicitHeight + 20)
+        // 54 px como mínimo, que crecen menos que el texto: con el mínimo
+        // multiplicado por la escala, al 200 % el menú no cabía en una ventana
+        // de 850 px y «ACERCA DE» quedaba fuera (lote 39h). Todos los botones
+        // miden lo mismo aunque el icono de uno sea más alto.
+        implicitHeight: Math.max(54, Typography.minimum(36), navLabel.implicitHeight + 20)
         Layout.preferredHeight: implicitHeight
         radius: 8
         activeFocusOnTab: true
+        onActiveFocusChanged: if (activeFocus) navigationScroll.reveal(navButtonRoot)
         Accessible.role: Accessible.Button
         Accessible.name: navButtonRoot.text
         Accessible.checkable: true
@@ -18822,12 +18901,14 @@ Window {
                 id: statusMessageText
                 objectName: "statusMessageText"
                 textFormat: Text.PlainText
-                text: localizedStatusMessage()
+                text: window.singleLineText(localizedStatusMessage())
                 color: statusBar.labelColor
                 font.pixelSize: Typography.size12
                 font.bold: localizedStatusMessage().startsWith(tr("Error"))
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
+                wrapMode: Text.NoWrap
+                maximumLineCount: 1
                 elide: Text.ElideRight
                 // Los lectores de pantalla anuncian cada mensaje nuevo de la barra.
                 Accessible.role: Accessible.AlertMessage
@@ -18837,7 +18918,7 @@ Window {
                 PlainToolTip {
                     visible: statusMessageText.truncated && statusMessageHover.hovered
                     delay: 400
-                    text: statusMessageText.text
+                    text: localizedStatusMessage()
                 }
             }
             ThemedButton {
