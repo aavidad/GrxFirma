@@ -77,7 +77,7 @@
   "INSTALLING": "Instalando GrxFirma @1@...",
   "REINSTALLING": "Reinstalando GrxFirma @1@...",
   "UPDATING": "Actualizando GrxFirma: @1@ -> @2@...",
-  "ARCH_HINT": "       Usa GOARCH=amd64, arm64, arm o 386.",
+  "ARCH_HINT": "       Use GOARCH=amd64, arm64, arm o 386.",
   "EXPECTED": "       esperado: @1@",
   "ACTUAL": "       obtenido: @1@",
   "LANGUAGE_CHOICES": "1) Español  2) English  3) Català  4) Valencià  5) Galego  6) Euskara  7) Français  8) Deutsch  9) Italiano  10) Português  11) 中文",

@@ -1,7 +1,7 @@
 ACTUAL	       obtenido: @1@
 AFIRMA_GRXFIRMA	  1) GrxFirma
 AFIRMA_PROMPT	Elija 1, 2 o 3 (Intro deja la @1@): 
-ARCH_HINT	       Usa GOARCH=amd64, arm64, arm o 386.
+ARCH_HINT	       Use GOARCH=amd64, arm64, arm o 386.
 ARTIFACTS_TABLE	| Fichero | Tamaño (bytes) | SHA-256 |
 ARTIFACTS_TITLE	# Artefactos de la suite Linux
 EXPECTED	       esperado: @1@

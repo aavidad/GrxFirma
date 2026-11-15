@@ -1231,7 +1231,7 @@ func TestRoutes_Index(t *testing.T) {
 		!strings.Contains(body, `/certificates?lang=es`) {
 		t.Fatalf("index sin propagacion visible del locale por enlaces: %s", body)
 	}
-	if !strings.Contains(body, "Selección de páginas inválida. Usa 1, 1,3-5 o all.") {
+	if !strings.Contains(body, "Selección de páginas inválida. Use 1, 1,3-5 o all.") {
 		t.Fatalf("index sin validacion visible de rangos de pagina: %s", body)
 	}
 	if !strings.Contains(body, `id="signFileMeta"`) {
