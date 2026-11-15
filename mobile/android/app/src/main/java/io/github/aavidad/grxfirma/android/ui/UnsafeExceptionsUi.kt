@@ -4,8 +4,10 @@ package io.github.aavidad.grxfirma.android.ui
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.os.Build
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -18,6 +20,16 @@ import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aavidad.grxfirma.android.R
 import io.github.aavidad.grxfirma.android.core.UnsafeExceptionState
+
+/**
+ * Título que anuncia TalkBack al abrir la ventana. Desde Android 9,
+ * Window.setTitle lo guarda en accessibilityTitle; antes TalkBack leía el
+ * título de los parámetros de la ventana, que por defecto es el de la actividad.
+ */
+internal fun Window.setAccessibleTitle(value: CharSequence) {
+    setTitle(value)
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) attributes = attributes.apply { title = value }
+}
 
 private fun Context.dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
 private fun column(context: Context) = LinearLayout(context).apply {
@@ -142,7 +154,8 @@ class UnsafeExceptionDialog(
                 bottomMargin = context.dp(8)
             }
         })
-        footer.addView(acceptance)
+        // Sin activación posible la casilla no se añade: ni se ve ni la recorre el lector de pantalla.
+        if (item.canActivate) footer.addView(acceptance)
         footer.addView(status)
         footer.addView(activate)
         // Las secundarias van aparte, con otro estilo y separadas de la principal.
@@ -168,14 +181,14 @@ class UnsafeExceptionDialog(
         acceptance.setOnCheckedChangeListener { _, checked -> activate.isEnabled = checked && item.canActivate && !busy }
         dialog = MaterialAlertDialogBuilder(context).setView(root).create()
         // Título de la ventana para TalkBack: el mismo que se ve, no el nombre del ajuste.
-        dialog.window?.setTitle(title)
+        dialog.window?.setAccessibleTitle(title)
         dialog.setOnCancelListener { onCancel() }
     }
 
     fun show() {
         dialog.show()
         dialog.window?.let {
-            it.setTitle(title)
+            it.setAccessibleTitle(title)
             it.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             SafeWindowInsets.fullScreenDialog(it)
         }
@@ -216,7 +229,7 @@ class UnsafeExceptionDialog(
             close.setOnClickListener { dialog.dismiss() }
             dialog.show()
             dialog.window?.let {
-                it.setTitle(EngineText.resolve(context, item.key("ajuste")))
+                it.setAccessibleTitle(EngineText.resolve(context, item.key("ajuste")))
                 it.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 SafeWindowInsets.fullScreenDialog(it)
             }

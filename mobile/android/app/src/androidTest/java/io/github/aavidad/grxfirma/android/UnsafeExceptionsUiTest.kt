@@ -71,7 +71,7 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                     { fail("Una directiva no permite activar") }, {}).show()
             }
             onView(withId(R.id.unsafeActivate)).inRoot(isDialog()).check(matches(not(isDisplayed())))
-            // La casilla no se añade al árbol de accesibilidad si está prohibida.
+            // Sin activación posible la casilla no se añade al diálogo: ni se ve ni la lee TalkBack.
             onView(withId(R.id.unsafeAcceptance)).inRoot(isDialog()).check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist())
             onView(withId(R.id.unsafeMore)).inRoot(isDialog()).perform(click())
             onView(withId(R.id.unsafeHelpText)).inRoot(isDialog()).check(matches(isDisplayed()))
@@ -182,17 +182,33 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                     dialog.show()
                 }
                 onView(withText(expected)).inRoot(isDialog()).check(matches(isDisplayed()))
-                onView(withId(R.id.unsafeCancel)).inRoot(isDialog()).check { view, error ->
-                    if (error != null) throw error
-                    val params = view.rootView.layoutParams as WindowManager.LayoutParams
-                    assertEquals("Título accesible de la ventana", expected, params.title.toString())
-                }
+                // El título que anuncia TalkBack es el de la ventana en el árbol de
+                // accesibilidad, no LayoutParams.title (el nombre interno de la actividad).
+                assertTrue("Título accesible de la ventana: ${accessibleWindowTitles()}",
+                    waitForWindowTitle(expected))
                 // La versión del texto viaja al núcleo; no se enseña a la persona.
                 onView(withText(org.hamcrest.Matchers.containsString(item.acceptanceVersion))).inRoot(isDialog())
                     .check(androidx.test.espresso.assertion.ViewAssertions.doesNotExist())
                 scenario.onActivity { dialog.close() }
             }
         }
+    }
+
+    private fun accessibleWindowTitles(): List<String> {
+        val automation = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation
+        automation.serviceInfo = automation.serviceInfo.apply {
+            flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+        }
+        return automation.windows.mapNotNull { it.title?.toString() }
+    }
+
+    /** Las ventanas del árbol de accesibilidad se actualizan aparte; se esperan hasta 5 s. */
+    private fun waitForWindowTitle(expected: String): Boolean {
+        repeat(50) {
+            if (expected in accessibleWindowTitles()) return true
+            Thread.sleep(100)
+        }
+        return false
     }
 
     /** La principal va rellena y, deshabilitada, conserva su color; las secundarias, con borde o solo texto. */
