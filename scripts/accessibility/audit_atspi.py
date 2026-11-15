@@ -21,6 +21,8 @@ import os
 import shutil
 import signal
 import subprocess
+import sys
+import tempfile
 import time
 import unicodedata
 from collections.abc import Iterator
@@ -78,9 +80,11 @@ def showing(node: object) -> bool:
     return has_state(node, pyatspi.STATE_VISIBLE) and has_state(node, pyatspi.STATE_SHOWING)
 
 
-def find_application(timeout: float) -> object:
+def find_application(timeout: float, process: subprocess.Popen) -> object:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        if process.poll() is not None:
+            raise RuntimeError(f"GrxFirma termino antes de aparecer en el bus AT-SPI (codigo {process.returncode})")
         desktop = pyatspi.Registry.getDesktop(0)
         candidates = []
         for index in range(desktop.childCount):
@@ -257,7 +261,7 @@ def stop(process: subprocess.Popen | None) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--app", required=True)
-    parser.add_argument("--timeout", type=float, default=15.0)
+    parser.add_argument("--timeout", type=float, default=60.0)
     parser.add_argument("--settle", type=float, default=1.5,
                         help="segundos de espera tras cada cambio de sección")
     args = parser.parse_args()
@@ -269,20 +273,30 @@ def main() -> int:
     window_manager = start_window_manager()
     # Start AT-SPI before Qt so the application registers its accessible tree.
     pyatspi.Registry.getDesktop(0)
+    # La salida de la app se guarda para mostrarla si la auditoria falla.
+    app_log = tempfile.TemporaryFile(mode="w+", encoding="utf-8", errors="replace")
     process = subprocess.Popen(
         [app],
         stdin=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stdout=app_log,
+        stderr=subprocess.STDOUT,
         start_new_session=True,
     )
     try:
-        application = find_application(args.timeout)
+        application = find_application(args.timeout, process)
         time.sleep(args.settle)
         audit(application, args.settle)
+    except BaseException:
+        stop(process)
+        app_log.seek(0)
+        lines = app_log.read().splitlines()[-80:]
+        print("--- salida de GrxFirma (ultimas lineas) ---", file=sys.stderr)
+        print("\n".join(lines) or "(sin salida)", file=sys.stderr)
+        raise
     finally:
         stop(process)
         stop(window_manager)
+        app_log.close()
 
     return 0
 
