@@ -32,6 +32,7 @@ El código vendorizado conserva sus titulares y licencias:
 
 - `third_party/pdfsign/**`: BSD-2-Clause, copyright de Digitorus.
 - Gradle Wrapper de Android: Apache-2.0, copyright de sus autores originales.
+- `packaging/windows/i18n/Valencian.nlf` y `Valencian.nsh`: derivados de los ficheros de idioma catalán de NSIS, licencia zlib/libpng, copyright de Nullsoft and Contributors; aviso en `Valencian.nlf.LICENSE`.
 
 ## Comprobación
 

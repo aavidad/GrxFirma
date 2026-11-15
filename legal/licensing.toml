@@ -109,11 +109,13 @@ uncommentable_extensions = [
   ".pbxproj",
   ".sln",
   ".sum",
+  ".tsv",
   ".txt",
   ".xcscheme",
 ]
 uncommentable_filenames = [
   ".gitkeep",
+  "qmldir",
 ]
 license_text_filenames = ["LICENSE"]
 generated_globs = [
@@ -121,6 +123,8 @@ generated_globs = [
   "docs/generated/**",
   "docs/dependencias/*/evidencias/**",
   "mobile/android/app/gradle.lockfile",
+  "packaging/windows/i18n/[a-z][a-z].nsh",
+  "packaging/windows/i18n/version.nsh",
   "mobile/ios/GrxFirma.xcodeproj/project.pbxproj",
   "mobile/ios/GrxFirma.xcodeproj/xcshareddata/xcschemes/GrxFirma.xcscheme",
 ]
@@ -160,6 +164,21 @@ notice_file = "third_party/pdfsign/LICENSE"
 required_notice_markers = [
   "BSD 2-Clause License",
   "Copyright (c) 2018, Digitorus",
+]
+
+[[third_party]]
+name = "NSIS Catalan.nlf"
+paths = [
+  "packaging/windows/i18n/Valencian.nlf",
+  "packaging/windows/i18n/Valencian.nsh",
+  "packaging/windows/i18n/Valencian.nlf.LICENSE",
+]
+license = "Zlib"
+copyright = "1999-2021 Nullsoft and Contributors"
+notice_file = "packaging/windows/i18n/Valencian.nlf.LICENSE"
+required_notice_markers = [
+  "Nullsoft and Contributors",
+  "This notice may not be removed or altered from any source distribution.",
 ]
 
 [[third_party]]

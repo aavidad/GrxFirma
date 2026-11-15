@@ -1,3 +1,8 @@
+<!-- Derechos de autor (C) 2026 Alberto Avidad Fernández. -->
+<!-- Autoría: Alberto Avidad Fernández -->
+<!-- Licencia: EUPL 1.2 o posterior -->
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+
 # Idiomas de los instaladores Windows
 
 Los cuatro instaladores NSIS (suite, AfirmaURI, CLI y Qt) usan los catálogos

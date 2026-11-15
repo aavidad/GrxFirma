@@ -1480,6 +1480,20 @@
         }
       ]
     },
+    "legal:NSIS Catalan.nlf@copia-local": {
+      "uses": [
+        "ejecucion"
+      ],
+      "licenses": [
+        "Zlib"
+      ],
+      "license_evidence": [
+        {
+          "source": "packaging/windows/i18n/Valencian.nlf.LICENSE",
+          "sha256": "9cbfa02884957f154347c0a705b2bbd6e85bee70fe3506f2abe5c79d38668ecf"
+        }
+      ]
+    },
     "legal:Gradle Wrapper@copia-local": {
       "uses": [
         "construccion"
