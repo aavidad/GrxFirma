@@ -5,6 +5,7 @@
 
 package io.github.aavidad.grxfirma.android.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Typeface
@@ -41,7 +42,12 @@ internal fun Window.setAccessibleTitle(value: CharSequence) {
  * Al abrir una ventana, TalkBack se queda con el primer control enfocable (la
  * casilla o «Cerrar») y se salta el título. El título pasa a ser enfocable y
  * recibe el foco de entrada y el de accesibilidad en cuanto se pinta.
+ *
+ * Se fuerza el foco de accesibilidad solo aquí, una vez al abrir el aviso o su
+ * ayuda: quien lo use tiene que oír el título y el ajuste antes que la casilla
+ * con la que acepta el riesgo (recorrido Android 3, defecto 1).
  */
+@SuppressLint("AccessibilityFocus")
 internal fun View.takeInitialFocus() {
     isFocusable = true
     isFocusableInTouchMode = true
@@ -51,13 +57,6 @@ internal fun View.takeInitialFocus() {
     }
     post(focus)
     // TalkBack coloca su foco al recibir el cambio de ventana; se repite después.
-    postDelayed(focus, 400)
-}
-
-/** Lleva TalkBack a [view] para que lea su contenido (por ejemplo, el estado nuevo de un caso). */
-internal fun View.announceByFocus() {
-    val focus = Runnable { performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null) }
-    post(focus)
     postDelayed(focus, 400)
 }
 
@@ -351,8 +350,10 @@ class UnsafeExceptionsPanel(
     }
     private var items: List<UnsafeExceptionState>? = null
     private val controls = mutableMapOf<String, Pair<MaterialButton, Boolean>>()
-    /** Caso cuyo botón se ha pulsado: al cambiar su estado, TalkBack vuelve a él. */
+    /** Caso cuyo botón se ha pulsado: al cambiar su estado, recibe el foco y se anuncia. */
     private var pendingFocus: String? = null
+    /** «Ajuste: estado nuevo», en la región viva de la sección (TalkBack lo lee sin mover el foco). */
+    private var announcement = ""
     init {
         container.addView(paragraph(context, UnsafeExceptionTexts.text(context, "seccion"), heading = true))
         container.addView(paragraph(context, UnsafeExceptionTexts.text(context, "introduccion")))
@@ -362,13 +363,20 @@ class UnsafeExceptionsPanel(
     }
 
     fun render(state: MainUiState) {
+        renderRows(state)
         status.text = when {
             !state.unsafeExceptionsAvailable -> UnsafeExceptionTexts.text(context, "no_disponible")
             state.unsafeSaving -> UnsafeExceptionTexts.text(context, "guardando")
             state.unsafeLoading -> UnsafeExceptionTexts.text(context, "cargando")
-            else -> state.unsafeError?.resolve(context).orEmpty()
+            else -> state.unsafeError?.resolve(context) ?: announcement
         }
         status.visibility = if (status.text.isEmpty()) View.GONE else View.VISIBLE
+        controls.values.forEach { (button, changeable) ->
+            button.isEnabled = changeable && !state.unsafeLoading && !state.unsafeSaving && state.canReplaceSelection
+        }
+    }
+
+    private fun renderRows(state: MainUiState) {
         refreshButton.isEnabled = state.unsafeExceptionsAvailable && !state.unsafeLoading && !state.unsafeSaving
         val previous = items
         if (previous != state.unsafeExceptions) {
@@ -376,6 +384,7 @@ class UnsafeExceptionsPanel(
             val changed = changedIds(previous, state.unsafeExceptions)
             if (changed == null) {
                 pendingFocus = null
+                announcement = ""
                 rows.removeAllViews()
                 controls.clear()
                 state.unsafeExceptions.forEach { rows.addView(row(it)) }
@@ -389,15 +398,14 @@ class UnsafeExceptionsPanel(
                     rows.addView(fresh, index)
                     if (item.id == pendingFocus) {
                         pendingFocus = null
+                        // Con teclado el foco vuelve al botón del caso; TalkBack oye el estado nuevo.
                         fresh.findViewWithTag<View>("unsafe-change-${item.id}").requestFocus()
-                        // TalkBack lee el estado nuevo del caso que se acaba de cambiar.
-                        fresh.findViewWithTag<View>("unsafe-status-${item.id}").announceByFocus()
+                        val name = EngineText.resolve(context, item.key("ajuste"))
+                        val now = fresh.findViewWithTag<TextView>("unsafe-status-${item.id}").text
+                        announcement = "$name: $now"
                     }
                 }
             }
-        }
-        controls.values.forEach { (button, changeable) ->
-            button.isEnabled = changeable && !state.unsafeLoading && !state.unsafeSaving && state.canReplaceSelection
         }
     }
 
