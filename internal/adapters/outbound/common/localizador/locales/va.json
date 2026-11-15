@@ -7199,6 +7199,7 @@
   "excepciones.pantalla.guardando": "Guardando la aceptación…",
   "excepciones.pantalla.error": "No se ha podido cambiar la excepción. Actualice la lista y vuelva a intentarlo. Si sigue bloqueada, hable con su administrador.",
   "excepciones.pantalla.reenviar": "La excepción se ha activado. Sus opciones siguen en el formulario; pulse de nuevo el botón de la operación para continuar.",
+  "excepciones.pantalla.advertencias": "Advertiments",
   "excepciones.pantalla.version": "Versión del texto de aceptación: {version}",
   "excepciones.pantalla.cerrar": "Cerrar",
   "excepciones.pantalla.volver": "Volver a la aceptación",

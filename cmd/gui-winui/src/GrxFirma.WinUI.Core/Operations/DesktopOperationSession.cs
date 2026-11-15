@@ -20,6 +20,7 @@ public sealed class DesktopOperationSession
     private const int MaximumCertificateIdCharacters = 1024;
 
     private readonly object _gate = new();
+    private readonly Func<IIpcClient, IIpcClient> _operationTransport;
     private IIpcClient? _transport;
     private DesktopOperationsClient? _operations;
     private IReadOnlySet<string> _advertisedActions =
@@ -28,6 +29,24 @@ public sealed class DesktopOperationSession
         new(StringComparer.Ordinal);
 
     public event EventHandler? AvailabilityChanged;
+
+    public DesktopOperationSession()
+        : this(static transport => transport)
+    {
+    }
+
+    /// <summary>
+    /// <paramref name="operationTransport"/> envuelve el transporte que usan
+    /// las operaciones (p. ej. la puerta de excepciones inseguras). Attach y
+    /// Detach siguen identificando la sesión por el transporte original, de
+    /// modo que la aplicación retira exactamente lo que publicó. Se llama
+    /// dentro del cerrojo de la sesión: no debe volver a llamarla.
+    /// </summary>
+    public DesktopOperationSession(Func<IIpcClient, IIpcClient> operationTransport)
+    {
+        ArgumentNullException.ThrowIfNull(operationTransport);
+        _operationTransport = operationTransport;
+    }
 
     public bool IsConnected
     {
@@ -147,7 +166,7 @@ public sealed class DesktopOperationSession
             }
 
             _transport = transport;
-            _operations = new DesktopOperationsClient(transport);
+            _operations = new DesktopOperationsClient(_operationTransport(transport));
             _advertisedActions = actions;
         }
 

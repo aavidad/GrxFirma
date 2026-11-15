@@ -277,7 +277,11 @@ public sealed class NdjsonIpcClient : IIpcClient
                 Data = response.Data,
                 UnsafeException = (response.UnsafeException ?? (response.ExceptionId is { Length: > 0 } id
                     ? new GrxFirma.WinUI.Core.Operations.UnsafeExceptionState
-                    { Id = id, Activable = response.Activable, AcceptanceVersion = response.AcceptanceVersion ?? string.Empty }
+                    {
+                        Id = id, Activable = response.Activable, AcceptanceVersion = response.AcceptanceVersion ?? string.Empty,
+                        SettingKey = response.SettingKey ?? string.Empty, RiskKey = response.RiskKey ?? string.Empty,
+                        AcceptanceKey = response.AcceptanceKey ?? string.Empty, HelpKey = response.HelpKey ?? string.Empty,
+                    }
                     : null)) is { } unsafeBlock ? unsafeBlock with { OperationPending = true } : null,
                 RetryId = response.RetryId,
                 WarningKeys = response.WarningKeys,

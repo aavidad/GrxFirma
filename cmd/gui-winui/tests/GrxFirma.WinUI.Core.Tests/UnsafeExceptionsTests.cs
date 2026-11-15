@@ -129,6 +129,31 @@ public sealed class UnsafeExceptionsTests
         Assert.AreEqual("excepciones.cms_cbc.aviso", wire.WarningKeys[0]);
     }
 
+    [TestMethod]
+    public void Wire_TakesCatalogKeysFromTheEngine()
+    {
+        var listed = JsonSerializer.Deserialize<UnsafeExceptionState>("""
+            {"id":"cms_cbc","setting_key":"excepciones.cms_cbc.ajuste","risk_key":"excepciones.cms_cbc.riesgo",
+             "acceptance_key":"excepciones.cms_cbc.aceptacion","help_key":"excepciones.cms_cbc.ayuda",
+             "organization_key":"excepciones.cms_cbc.organizacion"}
+            """);
+        Assert.IsNotNull(listed);
+        Assert.AreEqual("excepciones.cms_cbc.ajuste", listed.SettingKey);
+        Assert.AreEqual("excepciones.cms_cbc.riesgo", listed.RiskKey);
+        Assert.AreEqual("excepciones.cms_cbc.aceptacion", listed.AcceptanceKey);
+        Assert.AreEqual("excepciones.cms_cbc.ayuda", listed.HelpKey);
+        Assert.AreEqual("excepciones.cms_cbc.organizacion", listed.OrganizationKey);
+
+        var wire = JsonSerializer.Deserialize<IpcWireResponse<JsonElement>>("""
+            {"ok":false,"exceptionId":"cms_cbc","activable":true,"settingKey":"excepciones.cms_cbc.ajuste",
+             "riskKey":"excepciones.cms_cbc.riesgo","acceptanceKey":"excepciones.cms_cbc.aceptacion",
+             "helpKey":"excepciones.cms_cbc.ayuda"}
+            """);
+        Assert.IsNotNull(wire);
+        Assert.AreEqual("excepciones.cms_cbc.aceptacion", wire.AcceptanceKey);
+        Assert.AreEqual("excepciones.cms_cbc.ajuste", wire.SettingKey);
+    }
+
     private sealed class Fake : IIpcClient
     {
         public IpcHello? ServerHello => null;

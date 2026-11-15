@@ -7199,6 +7199,7 @@
   "excepciones.pantalla.guardando": "Saving acceptance…",
   "excepciones.pantalla.error": "The exception could not be changed. Refresh the list and try again. If it remains blocked, contact your administrator.",
   "excepciones.pantalla.reenviar": "The exception is enabled. Your options are still in the form; press the operation button again to continue.",
+  "excepciones.pantalla.advertencias": "Warnings",
   "excepciones.pantalla.version": "Acceptance text version: {version}",
   "excepciones.pantalla.cerrar": "Close",
   "excepciones.pantalla.volver": "Back to acceptance",

@@ -71,6 +71,14 @@ internal sealed record IpcWireResponse<TData>
     public bool Activable { get; init; }
     [JsonPropertyName("acceptanceVersion")]
     public string? AcceptanceVersion { get; init; }
+    [JsonPropertyName("settingKey")]
+    public string? SettingKey { get; init; }
+    [JsonPropertyName("riskKey")]
+    public string? RiskKey { get; init; }
+    [JsonPropertyName("acceptanceKey")]
+    public string? AcceptanceKey { get; init; }
+    [JsonPropertyName("helpKey")]
+    public string? HelpKey { get; init; }
     [JsonPropertyName("exception")]
     public UnsafeExceptionState? UnsafeException { get; init; }
     [JsonPropertyName("retryId")]
