@@ -39,7 +39,7 @@ const (
 	TimeoutOperacionSegundos = "timeout_operacion_segundos"
 	MaxTamanoDocumentoBytes  = "max_tamano_documento_bytes"
 	// TSAPermitidas es la lista opcional de TSA que puede pedir una petición
-	// (tsaURL de las opciones). PENDIENTE: no está en la plantilla ADMX.
+	// (tsaURL de las opciones). Tiene plantilla en packaging/windows/admx.
 	TSAPermitidas            = "tsa_permitidas"
 	PermitirOrigenVacio      = "permitir_origen_vacio"
 	PermitirDESLegacy        = "permitir_des_legacy"
