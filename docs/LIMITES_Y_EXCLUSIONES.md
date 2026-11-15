@@ -5,7 +5,7 @@
 
 # Límites conocidos y exclusiones — GrxFirma
 
-Fecha: 2026-03-20.  
+Fecha: 2026-03-20. Última revisión: 2026-11-15.  
 Autoría: Alberto Avidad Fernández
 Estado: documento operativo de referencia.
 
@@ -38,11 +38,13 @@ A fecha actual no debe afirmarse como cerrado:
 
 ### 2. Evidencia externa de firma aún en consolidación
 
-Aunque existe bastante evidencia técnica, aún faltan cierres de producto en:
+Hay evidencia técnica local con material sintético (véase el último apartado),
+pero faltan cierres de producto en:
 
-- algunas validaciones externas de `PAdES`
-- consolidación completa del paquete DSS
-- corpus externo más amplio para ciertas variantes
+- el validador DSS, que no está montado en el equipo de desarrollo (en otros, sin confirmar)
+- `xmlsec1`, que a 14/11/2026 no se había ejecutado contra XAdES ni FacturaE
+- un corpus externo más amplio para ciertas variantes
+- cualquier validación por un tercero independiente: sin confirmar
 
 ---
 
@@ -61,7 +63,9 @@ La compatibilidad con portales reales está muy avanzada, pero todavía no debe 
 Hay capacidades cuyo comportamiento depende del entorno del cliente:
 
 - PKCS#11/DNIe: existe un adaptador experimental, pero no está conectado a los
-  binarios de producción ni dispone de flujo PIN o firma con hardware validado
+  binarios de producción ni dispone de flujo PIN o firma con hardware validado.
+  El paquete de Linux incluye el auxiliar de tarjetas, desactivado en la suite
+  normal; el README no debe leerse como soporte de tarjetas en producción
 - protección `compat` RSA: un certificado opaco del almacén del sistema puede
   firmar, pero no se ofrece como destinatario si su adaptador no permite
   desproteger. Para ese cifrado se necesita un P12/PFX RSA autorizado con
@@ -77,7 +81,12 @@ Esto obliga a definir requisitos por plataforma y escenario.
 
 ### 5. Accesibilidad no auditada formalmente
 
-Aunque se han mejorado varias ventanas y flujos, la accesibilidad sigue pendiente de revisión formal:
+Se han corregido defectos concretos: tamaño del texto del 100 al 200 %, foco del
+editor de sello y símbolos que el lector pronuncia en Qt (lote 28), y tiradores
+del sello, aviso del lote y cambio de tema en WinUI (lote 27). Lo hecho en
+WinUI está sin comprobar en Windows y lo de Qt, sin lector real. Android sigue
+con dos pendientes en [ACCESIBILIDAD.md](ACCESIBILIDAD.md#6-qué-queda-pendiente).
+Ninguna plataforma ha tenido revisión formal:
 
 - teclado
 - foco
