@@ -2928,7 +2928,11 @@ func (a *Adaptador) handleServiceAction(w http.ResponseWriter, r *http.Request, 
 		if socketPath == "" {
 			socketPath = a.defaultServiceSocketPath()
 		}
-		callErr = a.Servicio.Instalar(r.Context(), socketPath)
+		if socketPath == "" {
+			callErr = appdirs.ErrRuntimeNoDisponible
+		} else {
+			callErr = a.Servicio.Instalar(r.Context(), socketPath)
+		}
 		msg = a.t("info.servicio_instalado")
 	case "uninstall":
 		callErr = a.Servicio.Desinstalar(r.Context())
@@ -3799,15 +3803,17 @@ func (a *Adaptador) saveUISettings(settings map[string]any) error {
 	return securefile.WriteFileAtomic(path, data, 0o600)
 }
 
+// defaultServiceSocketPath es la ruta del socket del servicio cuando el
+// cliente no indica una: XDG_RUNTIME_DIR si es privado y, si no, ~/.local/run.
+// Sin carpeta personal devuelve "" y la instalación se rechaza: el socket
+// nunca va a la carpeta temporal compartida, donde otro usuario podría
+// crearlo antes y recibir las peticiones de firma.
 func (a *Adaptador) defaultServiceSocketPath() string {
-	if dir := os.Getenv("XDG_RUNTIME_DIR"); strings.TrimSpace(dir) != "" {
-		return filepath.Join(dir, "grxfirma_ipc.sock")
+	dir, err := appdirs.RuntimeUsuario()
+	if err != nil {
+		return ""
 	}
-	home, err := os.UserHomeDir()
-	if err == nil && strings.TrimSpace(home) != "" {
-		return filepath.Join(home, ".local", "run", "grxfirma_ipc.sock")
-	}
-	return filepath.Join(os.TempDir(), "grxfirma_ipc.sock")
+	return filepath.Join(dir, "grxfirma_ipc.sock")
 }
 
 // directorioTLSRest devuelve la carpeta del TLS local. Sin carpeta indicada y

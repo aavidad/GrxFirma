@@ -37,6 +37,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/common/updatecheck"
+	"grxfirma/internal/adapters/outbound/desktop/certselectionstore"
 	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
 	"grxfirma/internal/adapters/outbound/desktop/truststore"
@@ -2829,7 +2830,11 @@ func (a *Adaptador) ejecutarAutoseleccionLimpiar(_ context.Context, cfg configCL
 		a.escribirSinCarpetaPersonal()
 		return 1
 	}
-	sesion := a.rutaAutoseleccionSesion()
+	sesion, err := a.rutaAutoseleccionSesion()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	eliminados := 0
 
 	for _, ruta := range []string{persistente, sesion} {
@@ -2867,7 +2872,11 @@ func (a *Adaptador) ejecutarAutoseleccionListar(_ context.Context, cfg configCLI
 		a.escribirSinCarpetaPersonal()
 		return 1
 	}
-	sesion := a.rutaAutoseleccionSesion()
+	sesion, err := a.rutaAutoseleccionSesion()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 
 	preferenciasPersistentes, err := leerMapaAutoseleccion(persistente)
 	if err != nil {
@@ -2922,7 +2931,11 @@ func (a *Adaptador) ejecutarAutoseleccionEliminar(_ context.Context, cfg configC
 		a.escribirSinCarpetaPersonal()
 		return 1
 	}
-	sesion := a.rutaAutoseleccionSesion()
+	sesion, err := a.rutaAutoseleccionSesion()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	eliminadoPersistente, err := eliminarEntradaAutoseleccion(persistente, origen)
 	if err != nil {
 		fmt.Fprintf(a.Stderr, "error eliminando autoselección persistente: %v\n", err)
@@ -2965,7 +2978,11 @@ func (a *Adaptador) ejecutarAutoseleccionResetear(ctx context.Context, cfg confi
 		a.escribirSinCarpetaPersonal()
 		return 1
 	}
-	sesion := a.rutaAutoseleccionSesion()
+	sesion, err := a.rutaAutoseleccionSesion()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 
 	preferenciasPersistentes, err := leerMapaAutoseleccion(persistente)
 	if err != nil {
@@ -3012,7 +3029,11 @@ func (a *Adaptador) ejecutarAutoseleccionExportar(_ context.Context, cfg configC
 		a.escribirSinCarpetaPersonal()
 		return 1
 	}
-	sesion := a.rutaAutoseleccionSesion()
+	sesion, err := a.rutaAutoseleccionSesion()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	preferenciasPersistentes, err := leerMapaAutoseleccion(persistente)
 	if err != nil {
 		fmt.Fprintf(a.Stderr, "error leyendo autoselección persistente: %v\n", err)
@@ -3092,7 +3113,11 @@ func (a *Adaptador) ejecutarAutoseleccionImportar(_ context.Context, cfg configC
 		a.escribirSinCarpetaPersonal()
 		return 1
 	}
-	sesion := a.rutaAutoseleccionSesion()
+	sesion, err := a.rutaAutoseleccionSesion()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	if err := guardarMapaAutoseleccion(persistente, payload.Persistente); err != nil {
 		fmt.Fprintf(a.Stderr, "error guardando autoselección persistente: %v\n", err)
 		return 1
@@ -4282,15 +4307,11 @@ func (a *Adaptador) rutaAutoseleccionPersistente() (string, error) {
 	return filepath.Join(configDir, "preferred-certificates.json"), nil
 }
 
-func (a *Adaptador) rutaAutoseleccionSesion() string {
-	if dir := strings.TrimSpace(os.Getenv("XDG_RUNTIME_DIR")); dir != "" {
-		return filepath.Join(dir, "grxfirma", "preferred-certificates-session.json")
-	}
-	usuario := strings.TrimSpace(os.Getenv("USER"))
-	if usuario == "" {
-		usuario = "default"
-	}
-	return filepath.Join(os.TempDir(), "grxfirma-"+usuario, "preferred-certificates-session.json")
+// rutaAutoseleccionSesion es la misma ruta que usa el motor al recordar un
+// certificado durante la sesión. Sin carpeta personal falla cerrado: nunca se
+// lee ni se escribe en la carpeta temporal compartida.
+func (a *Adaptador) rutaAutoseleccionSesion() (string, error) {
+	return certselectionstore.SessionPath()
 }
 
 func leerMapaAutoseleccion(ruta string) (map[string]string, error) {

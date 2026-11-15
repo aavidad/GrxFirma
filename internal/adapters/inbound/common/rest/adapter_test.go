@@ -2381,6 +2381,45 @@ func TestRoutes_ServiceInstall(t *testing.T) {
 	}
 }
 
+// Sin XDG_RUNTIME_DIR ni carpeta personal la instalación del servicio se
+// rechaza: el socket nunca va a la carpeta temporal compartida.
+func TestRoutes_ServiceInstallSinCarpetaPrivadaNoUsaTemporal(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("el servicio con socket solo existe en Linux")
+	}
+	t.Setenv("XDG_RUNTIME_DIR", "")
+	t.Setenv("HOME", "")
+	gestor := &serviceManagerMockREST{}
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithServicio(gestor)
+	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/service/install", map[string]any{})
+	if !bytes.Contains(rr.Body.Bytes(), []byte(`"ok":false`)) {
+		t.Fatalf("se esperaba ok=false: %s", rr.Body.String())
+	}
+	if gestor.installSocket != "" {
+		t.Fatalf("se instaló el servicio con socket %q", gestor.installSocket)
+	}
+}
+
+// Un XDG_RUNTIME_DIR que no es privado no recibe el socket.
+func TestRoutes_ServiceInstallIgnoraRuntimeCompartido(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("el servicio con socket solo existe en Linux")
+	}
+	compartido := t.TempDir()
+	if err := os.Chmod(compartido, 0o777); err != nil {
+		t.Fatal(err)
+	}
+	home := t.TempDir()
+	t.Setenv("XDG_RUNTIME_DIR", compartido)
+	t.Setenv("HOME", home)
+	gestor := &serviceManagerMockREST{}
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithServicio(gestor)
+	doJSON(t, adaptador.Routes(), http.MethodPost, "/service/install", map[string]any{})
+	if want := filepath.Join(home, ".local", "run", "grxfirma_ipc.sock"); gestor.installSocket != want {
+		t.Fatalf("socket %q, se esperaba %q", gestor.installSocket, want)
+	}
+}
+
 type pdfPreviewUseCaseMockREST struct {
 	result application.PdfPreviewResult
 	err    error
