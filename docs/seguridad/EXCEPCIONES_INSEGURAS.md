@@ -93,7 +93,7 @@ La fachada móvil expone `UnsafeExceptionsJSON()` y `SetUnsafeExceptionJSON(requ
 
 ### Recibos y activación local
 
-El núcleo conserva `AcceptanceVersion = "2026-11-15.2"`. Una aceptación local guarda `origin` con el valor exacto «aceptado desde el aviso», `accepted_at` en UTC distinto de cero, `channel` (`cli`, `desktop`, `android` o `protocol_dialog`) y `text_version`. El recibo se lee por sus nombres exactos, sin alias con otras mayúsculas. Si cambia la versión del texto, el ajuste de usuario deja de activarse hasta que se lea y acepte el texto nuevo. La directiva de máquina prevalece también después de una aceptación local.
+El núcleo conserva `AcceptanceVersion = "2026-11-15.2"`. Una aceptación local guarda `origin` con el valor exacto «aceptado desde el aviso», `accepted_at` en UTC distinto de cero, `channel` (`cli`, `desktop` o `android`; `protocol_dialog` se conserva solo para leer recibos históricos) y `text_version`. El recibo se lee por sus nombres exactos, sin alias con otras mayúsculas. Si cambia la versión del texto, el ajuste de usuario deja de activarse hasta que se lea y acepte el texto nuevo. La directiva de máquina prevalece también después de una aceptación local.
 
 `unsafe_exceptions_activate` recibe `{"id":"cms_cbc","accepted":true,"acceptanceVersion":"2026-11-15.2"}`. Puede incluir `retryId` cuando el núcleo haya ofrecido un reintento seguro. `unsafe_operation_retry` recibe `{"retryId":"..."}` y solo reintenta una operación local pendiente y vigente. El núcleo valida el identificador, la versión, la aceptación y la directiva antes de activar. La interfaz presenta el riesgo antes de aceptar y permite cancelar la operación.
 
@@ -415,7 +415,7 @@ Bloqueo de la organización: si la organización lo prohíbe, usted no puede act
 
 Qué ha pasado: GrxFirma ha detenido esta operación: usar una ruta local absoluta indicada por una web. Una ruta absoluta señala un archivo o carpeta concretos del equipo.
 
-Por qué es inseguro: La web puede elegir un destino local en lugar de la persona. Por ejemplo, una web podría sugerir una ruta distinta de la que usted habría elegido.
+Por qué es inseguro: La web puede leer o sustituir archivos locales sin que usted elija cada uno. Puede exponer claves de acceso o cambiar archivos que afectan al inicio de otros programas.
 
 Cuándo tiene sentido: Solo para un portal autorizado cuyo flujo necesite una ruta fija.
 
@@ -522,3 +522,13 @@ Qué cambia: al activar «Evaluar XML con canonicalización histórica», GrxFir
 Cómo deshacerlo: desactive «Evaluar XML con canonicalización histórica» en Preferencias, Seguridad.
 
 Bloqueo de la organización: si la organización lo prohíbe, usted no puede activarla. Consulte al administrador.
+
+El diálogo propio de afirma:// no tiene todavía una operación de activación implementada. Se ha retirado su emisor de autoridad sin llamadores. Hasta conectar ese diálogo mediante IPC local, la activación se hace en Preferencias, Seguridad; ningún parámetro del protocolo puede crear una autoridad local.
+
+### Texto de bloqueo por canal (vuelta 6)
+
+Las claves `excepciones.<id>.bloqueo` explican la operación, el riesgo y el nombre del ajuste en Preferencias, Seguridad. La persona puede aceptar el aviso en GrxFirma cuando la interfaz ofrezca esa acción, o abrir esa sección. Android, escritorio y los portales reciben el mismo texto sin instrucciones de terminal. Si la organización lo prohíbe o su directiva es ilegible, el bloqueo remite al administrador y no ofrece activación.
+
+La CLI añade `excepciones.cli.como_activar`, sustituyendo `{id}` por el identificador. La orden es `grxfirma -activar-excepcion <id>` con confirmación interactiva; para automatizarla se necesita `-acepto-el-aviso`. El texto de aceptación y su versión `2026-11-15.2` no cambian.
+
+La barrera de rutas compara la identidad de cada antecesor existente con las carpetas protegidas mediante `os.SameFile`. Así se comprueban también los alias por mayúsculas y las uniones de compatibilidad de Windows. Las pruebas específicas de esos sistemas deben ejecutarse allí; compilarlas en Linux no acredita ese resultado.

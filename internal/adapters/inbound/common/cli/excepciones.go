@@ -45,7 +45,7 @@ func (a *Adaptador) ejecutarActivarExcepcion(ctx context.Context, cfg configCLI)
 	if configDir == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), err)
+			fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), a.mensajeErrorExcepcion(err))
 			return 1
 		}
 		configDir = appdirs.Config(home)
@@ -76,9 +76,30 @@ func (a *Adaptador) ejecutarActivarExcepcion(ctx context.Context, cfg configCLI)
 		ID: id, Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
 	})
 	if err != nil {
-		fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), err)
+		fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), a.mensajeErrorExcepcion(err))
 		return 1
 	}
 	fmt.Fprintln(a.Stdout, loc.T("excepciones.cli.activada", id))
 	return 0
+}
+
+// La ayuda de terminal pertenece al adaptador CLI; Block.Error es común a todos los canales.
+func (a *Adaptador) mensajeErrorExcepcion(err error) string {
+	if err == nil {
+		return ""
+	}
+	var block *excepciones.Block
+	if !errors.As(err, &block) {
+		if a.ConfigDir != "" {
+			block = excepciones.FromText(err.Error(), excepciones.WithConfigDir(context.Background(), a.ConfigDir))
+		} else {
+			block = excepciones.FromText(err.Error())
+		}
+	}
+	message := err.Error()
+	if block != nil && block.Activable && !block.ConfigUnavailable {
+		instruction := a.excepcionLocalizador().T("excepciones.cli.como_activar")
+		message += "\n" + strings.ReplaceAll(instruction, "{id}", block.ID)
+	}
+	return message
 }

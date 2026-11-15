@@ -61,7 +61,7 @@ func (e *XMLDSigDetached) Sign(ctx context.Context, job domain.SignatureJob, key
 			etiqueta string
 		)
 		if job.Action == domain.ActionCoSign {
-			firmado, etiqueta, err = cosignXAdES(pura, clave)
+			firmado, etiqueta, err = cosignXAdES(ctx, pura, clave)
 		} else if job.Action == domain.ActionSign {
 			firmado, etiqueta, err = buildXAdESEnvelop(pura, clave, variante)
 		} else {

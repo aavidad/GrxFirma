@@ -285,7 +285,10 @@ func vfCheckSignatureConContexto(ctx context.Context, data []byte, n *vfNode, at
 	if errors.As(e, &block) {
 		return []vfProblem{{"Signature", block.BlockKey, "error"}}
 	}
-	if e != nil || len(xmlCompatibilityDetails(verification.result)) > 0 {
+	if block := excepciones.FromText(verification.result.Reason, ctx); block != nil {
+		return []vfProblem{{"Signature", block.BlockKey, "error"}}
+	}
+	if e != nil || (!verification.result.Valid && len(algoritmosAntiguos(verification.result)) == 0) || len(xmlCompatibilityDetails(verification.result)) > 0 {
 		return fail("signature")
 	}
 	antiguo := usaSHA1 || len(algoritmosAntiguos(verification.result)) > 0

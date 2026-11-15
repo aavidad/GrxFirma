@@ -76,7 +76,6 @@ func TestCotejarXAdESSeparadaConElOriginal(t *testing.T) {
 
 func TestCotejarXAdESSeparadaNoConfundeCanonicalizacionConBytesOriginales(t *testing.T) {
 	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
-	excepciones.SetForTest(t, "xml_c14n_antigua", true)
 	priv, cert := generarCertRSAPrueba(t)
 	original := []byte(`<a b="1"></a>`)
 	mismaFormaCanonica := []byte(`<a  b="1"/>`)
@@ -94,8 +93,14 @@ func TestCotejarXAdESSeparadaNoConfundeCanonicalizacionConBytesOriginales(t *tes
 	if err := commonsigner.CotejarXAdESSeparada(firma.Data, original); err != nil {
 		t.Fatalf("el original firmado debe cotejar: %v", err)
 	}
-	if err := commonsigner.CotejarXAdESSeparada(firma.Data, mismaFormaCanonica); !errors.Is(err, commonsigner.ErrFirmaNoCorrespondeOriginal) {
-		t.Fatalf("bytes distintos no pueden incorporarse al ENI: %v", err)
+	for _, permitido := range []bool{false, true} {
+		excepciones.SetForTest(t, "xml_c14n_antigua", permitido)
+		ctx, avisos := domain.ConAvisosOperacion(context.Background())
+		err := commonsigner.CotejarXAdESSeparada(firma.Data, mismaFormaCanonica, ctx)
+		var bloqueo *excepciones.Block
+		if !errors.Is(err, commonsigner.ErrFirmaNoCorrespondeOriginal) && !(errors.As(err, &bloqueo) && bloqueo.ID == "xml_c14n_antigua") {
+			t.Fatalf("permiso=%v: bytes distintos incorporados al ENI: %v; avisos=%v", permitido, err, avisos.Claves())
+		}
 	}
 }
 

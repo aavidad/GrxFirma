@@ -12,6 +12,7 @@ import (
 	"crypto/subtle"
 	"crypto/x509"
 	"encoding/asn1"
+	"grxfirma/internal/security/cryptopolicy"
 	"grxfirma/internal/security/excepciones"
 	"time"
 
@@ -78,7 +79,7 @@ func comprobarSelloCMS(token, valorFirma []byte, firmante *x509.Certificate, anc
 	if len(contexts) > 0 && contexts[0] != nil {
 		ctx = contexts[0]
 	}
-	if p7.Signers[0].DigestAlgorithm.Algorithm.Equal(pkcs7.OIDDigestAlgorithmSHA1) {
+	if cryptopolicy.CMSUsesSHA1(p7.Signers[0].DigestAlgorithm.Algorithm, p7.Signers[0].DigestEncryptionAlgorithm.Algorithm) {
 		if excepciones.Check("sha1_leer", ctx) != nil {
 			domain.AnotarAviso(ctx, "excepciones.sha1_leer.bloqueo")
 			return time.Time{}, false, false
@@ -120,7 +121,7 @@ func selloCMSValidado(p7 *pkcs7.PKCS7, sello *timestamp.Timestamp, fecha time.Ti
 	if len(p7.Signers) != 1 {
 		return false
 	}
-	if p7.Signers[0].DigestAlgorithm.Algorithm.Equal(pkcs7.OIDDigestAlgorithmSHA1) {
+	if cryptopolicy.CMSUsesSHA1(p7.Signers[0].DigestAlgorithm.Algorithm, p7.Signers[0].DigestEncryptionAlgorithm.Algorithm) {
 		ctx := context.Background()
 		if len(contexts) > 0 && contexts[0] != nil {
 			ctx = contexts[0]

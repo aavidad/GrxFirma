@@ -88,9 +88,9 @@ func (e *XAdESBESDetached) Sign(ctx context.Context, job domain.SignatureJob, ke
 	)
 	switch variante := xadesVariante(job.Options); {
 	case job.Action == domain.ActionCoSign:
-		xmlSig, algorithmLabel, err = cosignXAdES(job, clave)
+		xmlSig, algorithmLabel, err = cosignXAdES(ctx, job, clave)
 	case job.Action == domain.ActionCounterSign:
-		xmlSig, algorithmLabel, err = countersignXAdES(job, clave)
+		xmlSig, algorithmLabel, err = countersignXAdES(ctx, job, clave)
 	case job.Action != domain.ActionSign:
 		err = fmt.Errorf("acción de firma XAdES no soportada: %s", job.Action)
 	case variante != xadesVarianteDetached:

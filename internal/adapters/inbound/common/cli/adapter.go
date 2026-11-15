@@ -3635,7 +3635,7 @@ func (a *Adaptador) escribirErrorCLI(contexto string, err error) {
 		fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), contexto)
 		return
 	}
-	fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), contexto+":", err)
+	fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), contexto+":", a.mensajeErrorExcepcion(err))
 }
 
 func (a *Adaptador) translateSecret(id string, args ...any) string {

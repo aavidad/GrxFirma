@@ -30,7 +30,6 @@ type localAuthority uint8
 const (
 	desktopAuthority localAuthority = iota + 1
 	androidAuthority
-	protocolDialogAuthority
 	cliAuthority
 )
 
@@ -41,9 +40,6 @@ func ForLocalDesktop(ctx context.Context) context.Context {
 }
 func ForLocalAndroid(ctx context.Context) context.Context {
 	return context.WithValue(ctx, localAuthorityKey{}, androidAuthority)
-}
-func ForLocalProtocolDialog(ctx context.Context) context.Context {
-	return context.WithValue(ctx, localAuthorityKey{}, protocolDialogAuthority)
 }
 func ForLocalCLI(ctx context.Context) context.Context {
 	return context.WithValue(ctx, localAuthorityKey{}, cliAuthority)
@@ -62,8 +58,6 @@ func localChannel(ctx context.Context) string {
 		return "desktop"
 	case androidAuthority:
 		return "android"
-	case protocolDialogAuthority:
-		return "protocol_dialog"
 	case cliAuthority:
 		return "cli"
 	}

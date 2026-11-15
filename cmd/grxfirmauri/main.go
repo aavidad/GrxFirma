@@ -232,6 +232,29 @@ func runConDependencias(
 	stderr io.Writer,
 	manejarSolicitud manejadorSolicitudProtocolo,
 ) int {
+	// Las consultas y los argumentos desconocidos terminan antes de preparar
+	// interfaz, configuración, servicios o almacenes de certificados.
+	if len(args) > 0 && !invocacionProtocolo(args) {
+		first := strings.ToLower(strings.TrimSpace(args[0]))
+		if len(args) == 1 {
+			switch first {
+			case "--help", "-help", "-h":
+				_, _ = fmt.Fprintln(stderr, tl("protocolo.cli.ayuda"))
+				return 0
+			case "--version", "-version":
+				_, _ = fmt.Fprintln(stderr, tl("grxfirma-afirmauri %s", version))
+				return 0
+			}
+		}
+		server, rest, flagErr := extraerFlagsServidor(args)
+		management := (len(args) == 1 && (first == installManagedLocalTLSTrustFlag || first == removeManagedLocalTLSTrustFlag)) ||
+			(len(args) == 2 && first == removeManagedLocalTLSTrustFlag && strings.EqualFold(args[1], noPromptLocalTLSTrustFlag))
+		dialog := (first == flagElegirProgramaFirmaWeb && (len(args) == 1 || (len(args) == 2 && args[1] == flagSinRecordar))) || (first == flagFalloReenvioAutoFirma && len(args) == 1)
+		if flagErr != nil || !(management || dialog || (server.habilitado && len(rest) == 0)) {
+			_, _ = fmt.Fprintln(stderr, tl("protocolo.cli.ayuda"))
+			return 1
+		}
+	}
 	_ = os.Setenv("SYSLOG_IDENTIFIER", "grxfirma-afirmauri")
 	configurarRegistroPorDefecto(os.Stderr)
 	setProtocolLocalizer(defaultProtocolConfigDir())
@@ -325,6 +348,11 @@ func ejecutarURIProtocolo(
 	rawURI string,
 	manejarSolicitud manejadorSolicitudProtocolo,
 ) int {
+	parsed, parseErr := url.Parse(strings.TrimSpace(rawURI))
+	if parseErr != nil || !strings.EqualFold(parsed.Scheme, "afirma") || parsed.Host == "" {
+		_, _ = fmt.Fprintln(stderr, tl("protocolo.cli.ayuda"))
+		return 1
+	}
 	// Fyne/GLFW necesita OpenGL. En Windows x64 esta preparación puede activar
 	// el fallback Win32 seguro; si ninguna interfaz puede mostrar aprobación o
 	// selección, se falla cerrado antes de interpretar o ejecutar la URI.

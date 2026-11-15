@@ -286,7 +286,10 @@ func (e *Executor) doWithFallback(do func(client *http.Client) (*http.Response, 
 //  4. Firma local — el motor de firma firma el hash devuelto por PreSign.
 //  5. PostSign — POST al servlet con la firma producida.
 //  6. Upload — PUT/POST al STServlet con el resultado final cifrado.
-func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, job domain.SignatureJob) (domain.SignatureResult, error) {
+func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, job domain.SignatureJob) (result domain.SignatureResult, err error) {
+	ctx, warnings := domain.ConAvisosOperacion(ctx)
+	defer func() { result.Warnings = append(result.Warnings, warnings.Claves()...) }()
+
 	if err := session.Validate(); err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("sesion invalida: %w", err)
 	}
@@ -335,7 +338,7 @@ func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, 
 
 	// La TSA indicada por el servidor se reenvía en prefirma. Si usa HTTP,
 	// se pide la misma excepción que en las firmas con sello locales.
-	if err := requireTriphaseTSAOptions(ctx, legacyDecodeBatchExtraParams(retrieved.ExtraParams)); err != nil {
+	if err := requireTriphaseTSAProperties(ctx, retrieved.ExtraParams); err != nil {
 		return domain.SignatureResult{}, err
 	}
 
@@ -448,7 +451,7 @@ func (e *Executor) retrieve(ctx context.Context, session domain.ExchangeSession)
 			if err != nil {
 				return nil, err
 			}
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -498,7 +501,7 @@ func (e *Executor) retrieveCompat(ctx context.Context, session domain.ExchangeSe
 				if method == http.MethodPost {
 					req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 				}
-				return client.Do(req)
+				return doTriphaseRequest(client, req)
 			})
 		})
 		if err != nil {
@@ -553,7 +556,7 @@ func (e *Executor) presign(ctx context.Context, session domain.ExchangeSession, 
 				return nil, err
 			}
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -595,7 +598,7 @@ func (e *Executor) postsign(ctx context.Context, session domain.ExchangeSession,
 				return nil, err
 			}
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -829,7 +832,7 @@ func (e *Executor) uploadEncoded(ctx context.Context, session domain.ExchangeSes
 			if err != nil {
 				return nil, err
 			}
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -853,7 +856,7 @@ func (e *Executor) doLegacyPOST(ctx context.Context, endpoint string, form url.V
 				return nil, err
 			}
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-			return client.Do(req)
+			return doTriphaseRequest(client, req)
 		})
 	})
 	if err != nil {
@@ -894,8 +897,23 @@ func esParametroClaveSesion(nombre string) bool {
 }
 
 func requireTriphaseTSAOptions(ctx context.Context, options map[string]string) error {
-	if urlTSA := strings.TrimSpace(options["tsaurl"]); urlTSA != "" {
-		return tsaclient.RequireTransport(ctx, urlTSA)
+	for key, value := range options {
+		if strings.EqualFold(strings.TrimSpace(key), "tsaurl") && strings.TrimSpace(value) != "" {
+			if err := tsaclient.RequireTransport(ctx, strings.TrimSpace(value)); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
+}
+
+// Todo intercambio con los servlets pasa por el mismo control, incluidas
+// lectura y subida independientes de una firma trifásica completa.
+func doTriphaseRequest(client *http.Client, req *http.Request) (*http.Response, error) {
+	if strings.EqualFold(req.URL.Scheme, "http") {
+		if err := excepciones.Require(req.Context(), "trifasica_http"); err != nil {
+			return nil, err
+		}
+	}
+	return client.Do(req)
 }

@@ -167,15 +167,6 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 	if strings.TrimSpace(req.PreSignEndpoint) == "" || strings.TrimSpace(req.PostSignEndpoint) == "" {
 		return "", errors.New("faltan endpoints de prefirma/postfirma del lote")
 	}
-	if requireExchange {
-		if err := e.sendLegacyBatchWait(ctx, req.Session); err != nil {
-			traceLegacyBatch("wait error err=%v", err)
-			return "", fmt.Errorf("wait remoto del lote fallido: %w", err)
-		}
-		traceLegacyBatch("wait ok")
-		detenerWait := e.startLegacyBatchWaitLoop(ctx, req.Session)
-		defer detenerWait()
-	}
 
 	signingKey, ok := signingKeyFromContext(ctx).(legacyBatchSigningKey)
 	if !ok || signingKey == nil {
@@ -198,9 +189,20 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 		if algoritmo == "" {
 			algoritmo = "SHA256withRSA"
 		}
+		if err := requireTriphaseTSAProperties(ctx, batchReq.ExtraParams); err != nil {
+			return "", err
+		}
+		for _, sign := range batchReq.SingleSigns {
+			if err := requireTriphaseTSAProperties(ctx, sign.ExtraParams); err != nil {
+				return "", err
+			}
+		}
 		globalSignOptions, perSignOptions = buildLegacyBatchSignOptions(batchReq)
 	} else {
 		algoritmo = extractLegacyBatchAlgorithmFromXML(req.Payload)
+		if err := requireXMLBatchTSAOptions(ctx, req.Payload); err != nil {
+			return "", err
+		}
 	}
 
 	// El lote JSON lleva propiedades globales y por firma que el servidor
@@ -212,6 +214,16 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 		if err := requireTriphaseTSAOptions(ctx, options); err != nil {
 			return "", err
 		}
+	}
+
+	if requireExchange {
+		if err := e.sendLegacyBatchWait(ctx, req.Session); err != nil {
+			traceLegacyBatch("wait error err=%v", err)
+			return "", fmt.Errorf("wait remoto del lote fallido: %w", err)
+		}
+		traceLegacyBatch("wait ok")
+		detenerWait := e.startLegacyBatchWaitLoop(ctx, req.Session)
+		defer detenerWait()
 	}
 
 	batchVariants := legacyBatchVariants(req.Payload)
@@ -836,14 +848,32 @@ func decodeLegacyProtocolBase64(raw string) ([]byte, error) {
 }
 
 func legacyDecodeBatchExtraParams(v string) map[string]string {
+	props := make(map[string]string)
+	for _, pair := range legacyBatchExtraParamPairs(v) {
+		props[strings.ToLower(pair[0])] = pair[1]
+	}
+	return props
+}
+
+// El control no fusiona alias ni identificadores: el servidor puede distinguirlos.
+func requireTriphaseTSAProperties(ctx context.Context, raw string) error {
+	for _, pair := range legacyBatchExtraParamPairs(raw) {
+		if err := requireTriphaseTSAOptions(ctx, map[string]string{pair[0]: pair[1]}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func legacyBatchExtraParamPairs(v string) [][2]string {
 	body := strings.TrimSpace(v)
 	if body == "" {
-		return map[string]string{}
+		return nil
 	}
 	if decoded, err := decodeLegacyProtocolBase64(body); err == nil && len(decoded) > 0 {
 		body = string(decoded)
 	}
-	props := make(map[string]string)
+	var props [][2]string
 	body = strings.ReplaceAll(body, `\n`, "\n")
 	for _, line := range strings.Split(strings.ReplaceAll(body, "\r\n", "\n"), "\n") {
 		line = strings.TrimSpace(line)
@@ -852,16 +882,16 @@ func legacyDecodeBatchExtraParams(v string) map[string]string {
 		}
 		sep := strings.IndexAny(line, "=:")
 		if sep < 0 {
-			props[strings.ToLower(line)] = ""
+			props = append(props, [2]string{line, ""})
 			continue
 		}
-		key := strings.ToLower(strings.TrimSpace(line[:sep]))
+		key := strings.TrimSpace(line[:sep])
 		value := strings.TrimSpace(line[sep+1:])
 		if decoded, err := url.QueryUnescape(value); err == nil {
 			value = decoded
 		}
 		if key != "" {
-			props[key] = value
+			props = append(props, [2]string{key, value})
 		}
 	}
 	return props
@@ -1123,7 +1153,7 @@ func (e *Executor) doLegacyBatchPOST(ctx context.Context, target string, body io
 		req.Header.Set("User-Agent", "AutoFirma/1.6.5")
 		req.Header.Set("Accept", "*/*")
 		traceLegacyBatch("http post target=%s ctype=%q transport=%s", summarizeLegacyBatchURL(target), req.Header.Get("Content-Type"), transportName)
-		resp, doErr := client.Do(req)
+		resp, doErr := doTriphaseRequest(client, req)
 		if doErr != nil {
 			traceLegacyBatch("http post error target=%s transport=%s err=%v", summarizeLegacyBatchURL(target), transportName, doErr)
 			return nil, 0, doErr
@@ -1497,4 +1527,29 @@ func legacyBatchEncodingName(value string) string {
 		return "std"
 	}
 	return "urlsafe"
+}
+
+// requireXMLBatchTSAOptions inspecciona cada bloque, también si hay identificadores repetidos.
+func requireXMLBatchTSAOptions(ctx context.Context, raw []byte) error {
+	decoder := xml.NewDecoder(bytes.NewReader(raw))
+	for {
+		token, err := decoder.Token()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		start, ok := token.(xml.StartElement)
+		if !ok || start.Name.Local != "extraparams" {
+			continue
+		}
+		var value string
+		if err := decoder.DecodeElement(&value, &start); err != nil {
+			return err
+		}
+		if err := requireTriphaseTSAProperties(ctx, value); err != nil {
+			return err
+		}
+	}
 }

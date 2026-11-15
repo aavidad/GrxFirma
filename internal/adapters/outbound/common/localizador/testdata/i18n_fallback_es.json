@@ -68,6 +68,7 @@
     "excepciones.cli.activada",
     "excepciones.cli.ayuda",
     "excepciones.cli.cancelada",
+    "excepciones.cli.como_activar",
     "excepciones.cli.confirmacion_requerida",
     "excepciones.cli.confirmar",
     "excepciones.cli.id_requerido",
@@ -250,6 +251,7 @@
     "proteccion.cms.saed.estructura_invalida",
     "proteccion.cms.saed.rsa_no_admitido",
     "proteccion.cms.saed.sobre_invalido",
-    "proteccion.cms.saed.version_invalida"
+    "proteccion.cms.saed.version_invalida",
+    "protocolo.cli.ayuda"
   ]
 }

@@ -8,7 +8,9 @@ package cryptopolicy
 
 import (
 	"context"
+	"encoding/asn1"
 	"errors"
+	"github.com/digitorus/pkcs7"
 
 	"grxfirma/internal/security/excepciones"
 )
@@ -54,3 +56,12 @@ type sha1DisabledError struct{ cause error }
 func (e sha1DisabledError) Error() string        { return e.cause.Error() }
 func (e sha1DisabledError) Unwrap() error        { return e.cause }
 func (e sha1DisabledError) Is(target error) bool { return target == ErrSHA1Disabled }
+
+// CMSUsesSHA1 incluye el resumen y los identificadores de firma que la librería
+// interpreta como SHA-1 aunque el resumen declarado diga SHA-256.
+func CMSUsesSHA1(digest, signature asn1.ObjectIdentifier) bool {
+	return digest.Equal(pkcs7.OIDDigestAlgorithmSHA1) ||
+		signature.Equal(pkcs7.OIDDigestAlgorithmECDSASHA1) ||
+		signature.Equal(pkcs7.OIDDigestAlgorithmDSASHA1) ||
+		signature.Equal(pkcs7.OIDEncryptionAlgorithmRSASHA1)
+}

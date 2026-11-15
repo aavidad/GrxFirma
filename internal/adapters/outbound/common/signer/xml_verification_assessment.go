@@ -678,6 +678,10 @@ func markXMLCompatibilityConDecision(result domain.VerificationResult, compatibi
 	requiereC14N := compatibilidadC14N(compatibility)
 	if decidir && requiereC14N {
 		if err := excepciones.Check("xml_c14n_antigua", contexts...); err != nil {
+			// El bloqueo conserva lo observado: ningún consumidor puede confundirlo con éxito.
+			for _, detail := range compatibility {
+				result.Evidence = append(result.Evidence, domain.VerificationEvidence{Type: xmlCompatibilityEvidence, Summary: detail})
+			}
 			result.Valid = false
 			result.Coverage = domain.CoberturaNoAcreditada
 			result.Reason = err.Error()

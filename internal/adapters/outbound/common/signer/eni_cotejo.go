@@ -141,6 +141,9 @@ func CotejarXAdESSeparada(firma, original []byte, contexts ...context.Context) e
 		}
 		return ErrFirmaNoCorrespondeOriginal
 	}
+	if block := excepciones.FromText(verificacion.result.Reason, ctx); block != nil {
+		return block
+	}
 	if !externa && !contenidoInternoCoincide(firma, original) {
 		return ErrFirmaNoCorrespondeOriginal
 	}
@@ -155,6 +158,9 @@ func CotejarXAdESSeparada(firma, original []byte, contexts ...context.Context) e
 			return errors.Join(ErrFirmaCorrespondeConC14NAntigua, ErrFirmaCorrespondeConSHA1)
 		}
 		return ErrFirmaCorrespondeConC14NAntigua
+	}
+	if !verificacion.result.Valid && verificacion.result.Integrity.Status != domain.VerificationStatusValid {
+		return ErrFirmaNoCorrespondeOriginal
 	}
 	if len(algoritmosAntiguos(verificacion.result)) > 0 {
 		return ErrFirmaCorrespondeConSHA1

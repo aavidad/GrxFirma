@@ -21,6 +21,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/appdirs"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -269,6 +270,7 @@ func Require(ctx context.Context, id string) error {
 		return err
 	}
 	domain.AnotarAviso(ctx, Warning(id))
+	avisos.Registrar(localizador.Detectar().T(Warning(id)), "")
 	return nil
 }
 

@@ -38,8 +38,12 @@ func TestExceptionConsentAndHelpCatalogues(t *testing.T) {
 			if len(strings.Split(strings.TrimSpace(cat[e.HelpKey]), "\n")) != 7 {
 				t.Errorf("ayuda sin siete apartados: %s/%s", lang, e.ID)
 			}
-			if !strings.Contains(cat[e.BlockKey], "grxfirma -activar-excepcion "+e.ID) {
-				t.Errorf("bloqueo sin orden exacta: %s/%s", lang, e.ID)
+			block := cat[e.BlockKey]
+			if strings.Contains(block, "-activar-excepcion") || strings.Contains(block, "-acepto-el-aviso") || strings.Contains(block, "settings.json") || strings.Contains(block, "config.json") {
+				t.Errorf("bloqueo dependiente de terminal o ficheros: %s/%s", lang, e.ID)
+			}
+			if !strings.Contains(block, cat[e.SettingKey]) || !strings.Contains(block, "GrxFirma") {
+				t.Errorf("bloqueo sin ajuste o aplicación: %s/%s", lang, e.ID)
 			}
 		}
 	}
@@ -68,7 +72,7 @@ func TestExceptionAcceptanceIsReadyForPeople(t *testing.T) {
 			if lang == "en" && (!strings.HasPrefix(text, "I can enable this at my own risk. I understand that ") || !strings.HasSuffix(text, ". I can turn it off again in Preferences, Security.")) {
 				t.Errorf("aceptación inglesa incompleta: %s", e.ID)
 			}
-			for _, key := range []string{e.AcceptanceKey, e.HelpKey} {
+			for _, key := range []string{e.AcceptanceKey, e.HelpKey, e.BlockKey} {
 				value := cat[key]
 				if android[key] != value {
 					t.Errorf("Android difiere: %s/%s", lang, key)

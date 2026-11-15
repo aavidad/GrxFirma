@@ -11,6 +11,7 @@ import (
 	"crypto/rsa"
 	"crypto/subtle"
 	"crypto/x509"
+	"grxfirma/internal/security/cryptopolicy"
 	"grxfirma/internal/security/excepciones"
 	"time"
 
@@ -141,10 +142,13 @@ func controlFirmaSello(ctx context.Context, p7 *pkcs7.PKCS7, tsa *x509.Certifica
 	if p7 == nil || len(p7.Signers) != 1 {
 		return domain.AspectoDictamen{}
 	}
+	if tsa == nil {
+		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "sello_sin_firmante_unico"}
+	}
 	if key, ok := tsa.PublicKey.(*rsa.PublicKey); ok && key.N.BitLen() < 2048 {
 		return domain.AspectoDictamen{Estado: domain.SelloNoValido, Motivo: "tsa_clave_rsa_corta"}
 	}
-	if p7.Signers[0].DigestAlgorithm.Algorithm.Equal(pkcs7.OIDDigestAlgorithmSHA1) {
+	if cryptopolicy.CMSUsesSHA1(p7.Signers[0].DigestAlgorithm.Algorithm, p7.Signers[0].DigestEncryptionAlgorithm.Algorithm) {
 		if err := excepciones.Require(ctx, "sha1_leer"); err != nil {
 			domain.AnotarAviso(ctx, "excepciones.sha1_leer.bloqueo")
 			return domain.AspectoDictamen{Estado: domain.SelloNoComprobado, Motivo: "excepciones.sha1_leer.bloqueo"}

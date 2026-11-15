@@ -11,6 +11,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
@@ -62,7 +63,7 @@ func WithLock(ctx context.Context, dir string, fn func() error) error {
 	defer directory.Close()
 	if info, err := directory.Stat(); err != nil {
 		return err
-	} else if info.Mode().Perm()&0077 != 0 {
+	} else if runtime.GOOS != "windows" && info.Mode().Perm()&0077 != 0 {
 		return ErrDirectory
 	}
 	file, err := securefile.OpenAppend(filepath.Join(dir, ".settings.lock"), 0600)

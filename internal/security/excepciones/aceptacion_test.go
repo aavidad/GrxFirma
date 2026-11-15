@@ -32,7 +32,7 @@ func TestAcceptanceRequiresLocalExplicitCurrentVersion(t *testing.T) {
 	if err := SetUserAt(dir, "tsa_http", true); err == nil {
 		t.Fatal("setter sin aceptación habilita")
 	}
-	for channel, issuer := range map[string]func(context.Context) context.Context{"desktop": ForLocalDesktop, "android": ForLocalAndroid, "protocol_dialog": ForLocalProtocolDialog, "cli": ForLocalCLI} {
+	for channel, issuer := range map[string]func(context.Context) context.Context{"desktop": ForLocalDesktop, "android": ForLocalAndroid, "cli": ForLocalCLI} {
 		t.Run(channel, func(t *testing.T) {
 			d := t.TempDir()
 			receipt, err := ActivateLocal(issuer(context.Background()), d, req)

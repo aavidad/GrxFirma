@@ -119,3 +119,30 @@ func TestActivarExcepcionCLINoAceptaIDVacioNiOtraOperacion(t *testing.T) {
 		}
 	}
 }
+
+func TestV6BloqueoCLIAnadeOrdenSoloSiSePuedeActivar(t *testing.T) {
+	machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
+	for _, e := range excepciones.Catalog() {
+		t.Run(e.ID, func(t *testing.T) {
+			machinepolicy.UnsetForTest(t, e.PolicyKey)
+			a, _, stderr := cliExcepcionPrueba(t.TempDir(), "", false)
+			block := excepciones.DescribeAt(a.ConfigDir, e.ID)
+			if !block.Activable {
+				t.Fatalf("fixture no activable: %+v", block)
+			}
+			if strings.Contains(block.Error(), "-activar-excepcion") || strings.Contains(block.Error(), "-acepto-el-aviso") {
+				t.Fatal("el error común recomienda la terminal")
+			}
+			a.escribirErrorCLI("operación", block)
+			if !strings.Contains(stderr.String(), "grxfirma -activar-excepcion "+e.ID) || !strings.Contains(stderr.String(), "-acepto-el-aviso") {
+				t.Fatal(stderr.String())
+			}
+			stderr.Reset()
+			machinepolicy.SetForTest(t, e.PolicyKey, false)
+			a.escribirErrorCLI("operación", excepciones.DescribeAt(a.ConfigDir, e.ID))
+			if strings.Contains(stderr.String(), "-activar-excepcion") {
+				t.Fatal("ofrece activar lo prohibido por la organización")
+			}
+		})
+	}
+}

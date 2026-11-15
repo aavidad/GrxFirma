@@ -286,6 +286,8 @@ func (h *legacyWebSocketHandler) loadCertificatesCached(ctx context.Context) ([]
 }
 
 func (h *legacyWebSocketHandler) HandleLegacy(ctx context.Context, raw string, solicitud afirmauri.Solicitud) (resultado legacyws.Resultado, handled bool, err error) {
+	ctx, operationWarnings := domain.ConAvisosOperacion(ctx)
+	defer func() { resultado.Warnings = append(resultado.Warnings, operationWarnings.Claves()...) }()
 	release, err := certpicker.BeginCredentialOperation(ctx, h.selector)
 	if err != nil {
 		return legacyws.Resultado{}, true, err
@@ -441,6 +443,9 @@ func (h *legacyWebSocketHandler) handleSign(ctx context.Context, solicitud afirm
 			return "CANCEL", nil
 		}
 		return "", err
+	}
+	for _, warning := range resultado.Warnings {
+		domain.AnotarAviso(ctx, warning)
 	}
 	probe.Mark("sign_execute_done", "certificate_id", cert.ID, "result_bytes", len(resultado.Result.Data))
 	slog.Info("legacy_handle_sign_execute_done", "elapsed_ms_total", time.Since(start).Milliseconds())

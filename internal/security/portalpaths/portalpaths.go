@@ -36,14 +36,24 @@ func Check(raw string) (string, error) {
 	if err != nil {
 		return "", ErrProtected
 	}
+	var identities []os.FileInfo
 	for _, root := range protectedRoots(home) {
 		physicalRoot, err := physicalPath(root)
 		if err != nil {
 			return "", ErrProtected
 		}
+		identity, statErr := os.Stat(root)
+		if statErr == nil {
+			identities = append(identities, identity)
+		} else if !os.IsNotExist(statErr) {
+			return "", ErrProtected
+		}
 		if within(root, raw) || within(physicalRoot, path) {
 			return "", ErrProtected
 		}
+	}
+	if protected, err := protectedAncestor(path, identities, os.Stat); err != nil || protected {
+		return "", ErrProtected
 	}
 	return path, nil
 }
@@ -114,9 +124,32 @@ func HasParentComponent(raw string) bool {
 
 func within(root, target string) bool {
 	root, target = filepath.Clean(root), filepath.Clean(target)
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
 		root, target = strings.ToLower(root), strings.ToLower(target)
 	}
 	rel, err := filepath.Rel(root, target)
 	return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// Compara identidades del sistema de ficheros, no nombres: cubre alias de
+// mayúsculas y uniones de Windows aunque EvalSymlinks conserve su texto.
+func protectedAncestor(path string, identities []os.FileInfo, stat func(string) (os.FileInfo, error)) (bool, error) {
+	for {
+		info, err := stat(path)
+		if err != nil && !os.IsNotExist(err) {
+			return false, err
+		}
+		if err == nil && info.IsDir() {
+			for _, root := range identities {
+				if os.SameFile(root, info) {
+					return true, nil
+				}
+			}
+		}
+		parent := filepath.Dir(path)
+		if parent == path {
+			return false, nil
+		}
+		path = parent
+	}
 }

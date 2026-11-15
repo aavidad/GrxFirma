@@ -21,6 +21,7 @@ import (
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/originvalidator"
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/triphase"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
@@ -143,6 +144,12 @@ func (o *Orchestrator) HandleRequest(ctx context.Context, solicitud afirmauri.So
 func (o *Orchestrator) HandleRequestConAprobacion(ctx context.Context, solicitud afirmauri.Solicitud, aprobador ports.UserApproval) error {
 	ctx, cancel := context.WithTimeout(ctx, o.timeout)
 	defer cancel()
+	ctx, operationWarnings := domain.ConAvisosOperacion(ctx)
+	defer func() {
+		for _, key := range operationWarnings.Claves() {
+			o.publicar(ctx, "session.warning", key)
+		}
+	}()
 	release, err := certpicker.BeginCredentialOperation(ctx, o.certSelector)
 	if err != nil {
 		return err
@@ -259,7 +266,11 @@ func (o *Orchestrator) HandleRequestConAprobacion(ctx context.Context, solicitud
 	o.publicar(ctx, "session.complete", "firma completada")
 
 	// Paso 7: Notificar el resultado al usuario.
-	o.notificar(ctx, "Firma completada", "El documento ha sido firmado correctamente.")
+	message := "El documento ha sido firmado correctamente."
+	for _, key := range operationWarnings.Claves() {
+		message += "\n" + localizador.Detectar().T(key)
+	}
+	o.notificar(ctx, "Firma completada", message)
 	return nil
 }
 
