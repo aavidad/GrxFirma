@@ -58,11 +58,20 @@ public sealed class UnsafeExceptionConsentViewModel(UnsafeExceptionState item)
         ? "excepciones.activar_continuar" : "excepciones.pantalla.activar";
 }
 
+// Dónde aceptó la persona, para el recibo del motor. Es un valor cerrado: el
+// diálogo de una operación detenida o el apartado Seguridad de Configuración.
+public enum UnsafeAcceptanceOrigin
+{
+    [JsonStringEnumMemberName("aviso")] Warning,
+    [JsonStringEnumMemberName("ajustes")] Settings,
+}
+
 public sealed record UnsafeActivationParameters(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("accepted")] bool Accepted,
     [property: JsonPropertyName("acceptanceVersion")] string AcceptanceVersion,
-    [property: JsonPropertyName("retryId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? RetryId);
+    [property: JsonPropertyName("retryId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? RetryId,
+    [property: JsonPropertyName("origin"), JsonConverter(typeof(JsonStringEnumConverter<UnsafeAcceptanceOrigin>))] UnsafeAcceptanceOrigin Origin);
 
 /// <summary>One IPC boundary for all pages; only a server-issued retry token can
 /// replay an operation. No password, PIN or operation parameters are cached.</summary>
@@ -91,6 +100,15 @@ public sealed class UnsafeExceptionsClient(IIpcClient inner) : IIpcClient
         DesktopOperationActions.GenerateEniFile,
     };
 
+    // Activar una excepción no confirma una firma. Una firma detenida no se
+    // repite con el retryId del motor: la persona la vuelve a lanzar y la
+    // página pide otra vez la confirmación de firma si está activada.
+    public static IReadOnlySet<string> SigningOperations { get; } = new HashSet<string>(StringComparer.Ordinal)
+    {
+        DesktopOperationActions.Sign, DesktopOperationActions.SignMultiCosign,
+        DesktopOperationActions.SignBatch, DesktopOperationActions.ProtectAndSign,
+    };
+
     public Task<IpcCallResult<IReadOnlyList<UnsafeExceptionState>>> ListAsync(CancellationToken ct = default) =>
         inner.SendAsync<object, IReadOnlyList<UnsafeExceptionState>>("unsafe_exceptions_list", new { }, ct);
 
@@ -110,14 +128,20 @@ public sealed class UnsafeExceptionsClient(IIpcClient inner) : IIpcClient
         return result;
     }
 
-    public async Task<bool> ActivateAsync(UnsafeExceptionState item, string? retryId = null, CancellationToken ct = default)
+    /// <summary>Activación pedida desde Configuración (o desde un bloqueo si
+    /// el estado lo marca como operación detenida).</summary>
+    public Task<bool> ActivateAsync(UnsafeExceptionState item, string? retryId = null, CancellationToken ct = default) =>
+        ActivateCoreAsync(item, retryId, item.OperationPending || retryId is not null, ct);
+
+    private async Task<bool> ActivateCoreAsync(UnsafeExceptionState item, string? retryId, bool fromBlock, CancellationToken ct)
     {
         if (!item.Activable || item.Fixed || string.IsNullOrWhiteSpace(item.AcceptanceVersion) || RequestAcceptance is null)
             return false;
         if (!await RequestAcceptance(item, ct).ConfigureAwait(false)) return false;
         ct.ThrowIfCancellationRequested();
+        var origin = fromBlock ? UnsafeAcceptanceOrigin.Warning : UnsafeAcceptanceOrigin.Settings;
         var result = await inner.SendAsync<UnsafeActivationParameters, JsonElement>("unsafe_exceptions_activate",
-            new(item.Id, true, item.AcceptanceVersion, retryId), ct).ConfigureAwait(false);
+            new(item.Id, true, item.AcceptanceVersion, retryId, origin), ct).ConfigureAwait(false);
         if (result.IsSuccess) ClearNotice?.Invoke();
         else Notice?.Invoke("excepciones.pantalla.error");
         return result.IsSuccess;
@@ -137,14 +161,18 @@ public sealed class UnsafeExceptionsClient(IIpcClient inner) : IIpcClient
                 if (RequestAcceptance is not null) await RequestAcceptance(block, cancellationToken).ConfigureAwait(false);
                 break;
             }
-            if (!await ActivateAsync(block, result.RetryId, cancellationToken).ConfigureAwait(false)) break;
-            if (string.IsNullOrWhiteSpace(result.RetryId))
+            // Una firma no se repite por el motor: su reintento no se activa
+            // y la persona la relanza pasando por la confirmación de firma.
+            var retryId = SigningOperations.Contains(action) || string.IsNullOrWhiteSpace(result.RetryId)
+                ? null : result.RetryId;
+            if (!await ActivateCoreAsync(block, retryId, fromBlock: true, cancellationToken).ConfigureAwait(false)) break;
+            if (retryId is null)
             {
                 Notice?.Invoke("excepciones.pantalla.reenviar");
                 break;
             }
             var retried = await inner.SendAsync<object, TData>("unsafe_operation_retry",
-                new { retryId = result.RetryId }, cancellationToken).ConfigureAwait(false);
+                new { retryId }, cancellationToken).ConfigureAwait(false);
             result = retried with { Action = action };
         }
         if (result.IsSuccess)

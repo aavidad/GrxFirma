@@ -3702,8 +3702,16 @@ void IpcBridge::loadUnsafeExceptions() {
   sendRequest(QStringLiteral("unsafe_exceptions_list"));
 }
 void IpcBridge::activateUnsafeException(const QString &id, const QString &version,
-                                       const QString &retryId) {
-  QVariantMap params{{"id", id}, {"accepted", true}, {"acceptanceVersion", version}};
+                                       const QString &origin, const QString &retryId) {
+  // El recibo guarda dónde aceptó la persona. El motor solo admite estos dos
+  // valores desde la interfaz, y con un reintento solo el aviso: lo demás se
+  // corta aquí sin enviar nada.
+  const bool fromWarning = origin == QLatin1String("aviso");
+  if ((!fromWarning && origin != QLatin1String("ajustes")) || (!retryId.isEmpty() && !fromWarning)) {
+    emit unsafeExceptionsFinished(QStringLiteral("unsafe_exceptions_activate"), false, QVariant());
+    return;
+  }
+  QVariantMap params{{"id", id}, {"accepted", true}, {"acceptanceVersion", version}, {"origin", origin}};
   if (!retryId.isEmpty()) params.insert("retryId", retryId);
   sendRequest(QStringLiteral("unsafe_exceptions_activate"), params);
 }

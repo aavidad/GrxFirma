@@ -84,14 +84,35 @@ class UnsafeExceptionsContract(unittest.TestCase):
         blocked = source.split("function onUnsafeExceptionBlocked(block) {", 1)[1].split("\n        }\n", 1)[0]
         self.assertIn("window.resetUnsafeNotice()", blocked)
         self.assertIn("pending.resend = window.unsafeOperationCanResend(pending)", blocked)
-        self.assertIn("else if (item.operationPending === true && item.resend === true) window.resendUnsafeOperation(item)", source)
-        self.assertIn("window.executeSignRequest(window.selectedCertIndex)", source.split("function resendUnsafeOperation(item)", 1)[1].split("\n    }\n", 1)[0])
+        self.assertIn('else if (step === "resend") window.resendUnsafeOperation(item)', source)
+        self.assertIn("window.requestSignConfirmation(window.selectedCertIndex)", source.split("function resendUnsafeOperation(item)", 1)[1].split("\n    }\n", 1)[0])
         warnings = source.split("function onUnsafeOperationWarnings(warnings) {", 1)[1].split("\n        }\n", 1)[0]
         self.assertIn("window.addUnsafeNotice(window.visibleSigningWarnings(warnings))", warnings)
         self.assertIn("if (withReport !== false) resetUnsafeNotice()", source)
         bridge = (ROOT / "cmd/gui-qml/ipcbridge.cpp").read_text()
         self.assertIn("if (!diagnostic.isEmpty() && !unsafeBlocked) {", bridge)
         self.assertIn("errMsg = ipcUnsafeBlockMessage(obj, errMsg);", bridge)
+
+    def test_activation_is_not_a_sign_confirmation(self):
+        """Lote 39f: tras activar, una firma vuelve a pasar por la
+        confirmación de firma (confirmToSign) y no se repite por el retryId
+        del motor; el diálogo dice al puente si se aceptó en el aviso o en
+        Configuración."""
+        source = (QML / "main.qml").read_text()
+        resend = source.split("function resendUnsafeOperation(item)", 1)[1].split("\n    }\n", 1)[0]
+        self.assertIn("requestSignConfirmation", resend)
+        self.assertNotIn("executeSignRequest", resend)
+        activated = source.split("onActivated: function(item) {", 1)[1].split("\n        }\n", 1)[0]
+        self.assertIn("UnsafeResume.next(item)", activated)
+        self.assertNotIn("item.retryId) backend.retryUnsafeOperation", activated)
+        blocked = source.split("function onUnsafeExceptionBlocked(block) {", 1)[1].split("\n        }\n", 1)[0]
+        self.assertIn('if (pending.resend) pending.retryId = ""', blocked)
+        confirm = source.split("function requestSignConfirmation(selectedCertIndex) {", 1)[1].split("\n    }\n", 1)[0]
+        self.assertIn("if (!window.confirmToSign) {", confirm)
+        self.assertIn("signConfirmDialog.open()", confirm)
+        self.assertIn("<file>qml/UnsafeResume.js</file>", (ROOT / "cmd/gui-qml/qml.qrc").read_text())
+        dialog = (QML / "UnsafeExceptionDialog.qml").read_text()
+        self.assertIn('blocked ? "aviso" : "ajustes"', dialog)
 
 
 if __name__ == "__main__":

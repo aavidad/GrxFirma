@@ -25,7 +25,7 @@ ApplicationWindow {
         id: fake
         signal unsafeExceptionsFinished(string action, bool ok, var data)
         function loadUnsafeExceptions() { unsafeExceptionsFinished("unsafe_exceptions_list", true, previewItems) }
-        function activateUnsafeException(id, version, retry) { }
+        function activateUnsafeException(id, version, origin, retry) { }
         function disableUnsafeException(id) { }
     }
     ScrollView {

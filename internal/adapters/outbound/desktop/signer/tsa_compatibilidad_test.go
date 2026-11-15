@@ -36,7 +36,7 @@ func contextoConAceptacionTSAHTTP(t *testing.T) (context.Context, *domain.Avisos
 	dir := t.TempDir()
 	ctx := excepciones.WithConfigDir(context.Background(), dir)
 	_, err := excepciones.ActivateLocal(excepciones.ForLocalDesktop(ctx), dir, excepciones.ActivationRequest{
-		ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
+		ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion, Origin: excepciones.OriginSettings,
 	})
 	if err != nil {
 		t.Fatalf("no se pudo aceptar TSA HTTP en la configuración temporal: %v", err)

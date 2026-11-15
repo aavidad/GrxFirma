@@ -21,11 +21,26 @@ import (
 
 const AcceptanceVersion = "2026-11-15.3"
 const AcceptanceField = settingsfile.AcceptanceField
-const acceptanceOrigin = "aceptado desde el aviso"
+
+// Origen de una aceptación: dónde la dio la persona. Es un valor cerrado y
+// cada canal local solo admite los suyos: la interfaz de escritorio y Android
+// distinguen el aviso de un bloqueo de su apartado de ajustes; la línea de
+// órdenes siempre es la línea de órdenes. El origen describe el recibo; la
+// autorización sigue saliendo del canal local, nunca de este campo.
+const (
+	OriginWarning  = "aviso"
+	OriginSettings = "ajustes"
+	OriginCLI      = "linea_ordenes"
+)
+
+// Los recibos anteriores guardaban este texto fijo fuera cual fuera el origen.
+// Se siguen leyendo, pero ya no se escriben.
+const legacyAcceptanceOrigin = "aceptado desde el aviso"
 
 var ErrAcceptanceRequired = errors.New("excepciones.aceptacion_requerida")
 var ErrAcceptanceVersion = errors.New("excepciones.version_aceptacion_invalida")
 var ErrNonLocal = errors.New("excepciones.canal_no_local")
+var ErrAcceptanceOrigin = errors.New("error.formato_invalido")
 
 type localAuthorityKey struct{}
 type localAuthority uint8
@@ -67,10 +82,36 @@ func localChannel(ctx context.Context) string {
 	return ""
 }
 
+// acceptanceOrigin comprueba el origen que declara el adaptador contra los
+// que admite su canal. La línea de órdenes no necesita declararlo; la
+// interfaz de escritorio y Android sí, porque solo ellas saben si la persona
+// aceptó desde un aviso o desde el apartado Seguridad. Un origen vacío,
+// desconocido o de otro canal se rechaza y no activa nada.
+func acceptanceOrigin(ctx context.Context, requested string) (string, error) {
+	switch localChannel(ctx) {
+	case "cli":
+		if requested == "" || requested == OriginCLI {
+			return OriginCLI, nil
+		}
+	case "desktop", "android":
+		if requested == OriginWarning || requested == OriginSettings {
+			return requested, nil
+		}
+	}
+	return "", ErrAcceptanceOrigin
+}
+
+// ValidInterfaceOrigin dice si un origen lo puede declarar una interfaz
+// gráfica local (escritorio o Android).
+func ValidInterfaceOrigin(origin string) bool {
+	return origin == OriginWarning || origin == OriginSettings
+}
+
 type ActivationRequest struct {
 	ID                string `json:"id"`
 	Accepted          bool   `json:"accepted"`
 	AcceptanceVersion string `json:"acceptanceVersion"`
+	Origin            string `json:"origin,omitempty"`
 }
 type Acceptance struct {
 	ID          string    `json:"id"`
@@ -102,16 +143,20 @@ func ActivateLocal(ctx context.Context, dir string, r ActivationRequest) (Accept
 	if !ok {
 		return Acceptance{}, ErrAcceptanceRequired
 	}
+	origin, err := acceptanceOrigin(ctx, r.Origin)
+	if err != nil {
+		return Acceptance{}, err
+	}
 	writeMu.Lock()
 	defer writeMu.Unlock()
 	var receipt Acceptance
-	err := settingsfile.WithLock(ctx, dir, func() error {
+	err = settingsfile.WithLock(ctx, dir, func() error {
 		effective := state(e, dir, nil)
 		block := blockForState(e, effective)
 		if !block.Activable {
 			return block
 		}
-		receipt = Acceptance{ID: r.ID, AcceptedAt: time.Now().UTC(), TextVersion: AcceptanceVersion, Origin: acceptanceOrigin, Channel: localChannel(ctx)}
+		receipt = Acceptance{ID: r.ID, AcceptedAt: time.Now().UTC(), TextVersion: AcceptanceVersion, Origin: origin, Channel: localChannel(ctx)}
 		return writeUserSettings(ctx, dir, r.ID, true, &receipt)
 	})
 	if err != nil {
@@ -232,15 +277,28 @@ func parseAcceptance(raw []byte, id string) *Acceptance {
 		}
 	}
 	var r Acceptance
-	if json.Unmarshal(raw, &r) != nil || r.ID != id || r.AcceptedAt.IsZero() || r.Origin != acceptanceOrigin {
-		return nil
-	}
-	switch r.Channel {
-	case "desktop", "android", "protocol_dialog", "cli":
-	default:
+	if json.Unmarshal(raw, &r) != nil || r.ID != id || r.AcceptedAt.IsZero() || !receiptOriginMatchesChannel(r.Origin, r.Channel) {
 		return nil
 	}
 	return &r
+}
+
+// Un recibo nuevo lleva un origen propio de su canal. El texto antiguo vale
+// con cualquiera de los canales históricos. Cualquier otro valor invalida el
+// recibo y la excepción sigue desactivada.
+func receiptOriginMatchesChannel(origin, channel string) bool {
+	switch origin {
+	case legacyAcceptanceOrigin:
+		switch channel {
+		case "desktop", "android", "protocol_dialog", "cli":
+			return true
+		}
+	case OriginWarning, OriginSettings:
+		return channel == "desktop" || channel == "android"
+	case OriginCLI:
+		return channel == "cli"
+	}
+	return false
 }
 func currentAcceptance(r *Acceptance, id string) bool {
 	return r != nil && r.ID == id && r.TextVersion == AcceptanceVersion && !r.AcceptedAt.After(time.Now().Add(5*time.Minute))

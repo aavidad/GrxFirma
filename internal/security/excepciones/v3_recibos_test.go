@@ -18,7 +18,7 @@ import (
 )
 
 func v3Receipt(id string) Acceptance {
-	return Acceptance{ID: id, AcceptedAt: time.Now().UTC().Add(-time.Minute), TextVersion: AcceptanceVersion, Origin: acceptanceOrigin, Channel: "cli"}
+	return Acceptance{ID: id, AcceptedAt: time.Now().UTC().Add(-time.Minute), TextVersion: AcceptanceVersion, Origin: legacyAcceptanceOrigin, Channel: "cli"}
 }
 func v3Write(t *testing.T, dir, file string, receipt *Acceptance) {
 	t.Helper()

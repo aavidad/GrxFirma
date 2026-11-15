@@ -31,7 +31,7 @@ func (m *Manejador) handleUnsafeExceptions(ctx context.Context, action string, r
 			return respuesta{OK: false, Action: action, Error: m.t("error.formato_invalido")}
 		}
 		for key := range obj {
-			if key != "id" && key != "accepted" && key != "acceptanceVersion" && key != "retryId" {
+			if key != "id" && key != "accepted" && key != "acceptanceVersion" && key != "retryId" && key != "origin" {
 				return respuesta{OK: false, Action: action, Error: m.t("error.formato_invalido")}
 			}
 		}
@@ -40,15 +40,21 @@ func (m *Manejador) handleUnsafeExceptions(ctx context.Context, action string, r
 			Accepted          *bool  `json:"accepted"`
 			AcceptanceVersion string `json:"acceptanceVersion"`
 			RetryID           string `json:"retryId"`
+			Origin            string `json:"origin"`
 		}
 		if json.Unmarshal(raw, &p) != nil || p.Accepted == nil {
 			return respuesta{OK: false, Action: action, Error: m.t("excepciones.aceptacion_requerida")}
+		}
+		// La interfaz dice dónde aceptó la persona: en el aviso de un bloqueo
+		// o en el apartado Seguridad. Un reintento solo nace de un bloqueo.
+		if !excepciones.ValidInterfaceOrigin(p.Origin) || (p.RetryID != "" && p.Origin != excepciones.OriginWarning) {
+			return respuesta{OK: false, Action: action, Error: m.t("error.formato_invalido")}
 		}
 		if p.RetryID != "" && !m.retryMatches(ctx, p.RetryID, p.ID) {
 			return respuesta{OK: false, Action: action, Error: m.t("excepciones.reintento_caducado")}
 		}
 		m.settingsMu.Lock()
-		receipt, err := excepciones.ActivateLocal(ctx, m.configDirSeguro(), excepciones.ActivationRequest{ID: p.ID, Accepted: *p.Accepted, AcceptanceVersion: p.AcceptanceVersion})
+		receipt, err := excepciones.ActivateLocal(ctx, m.configDirSeguro(), excepciones.ActivationRequest{ID: p.ID, Accepted: *p.Accepted, AcceptanceVersion: p.AcceptanceVersion, Origin: p.Origin})
 		m.settingsMu.Unlock()
 		if err != nil {
 			return respuesta{OK: false, Action: action, Error: localUnsafeError(m, err), cause: err}
@@ -93,7 +99,7 @@ func localUnsafeError(m *Manejador, err error) string {
 		return err.Error()
 	}
 	switch err {
-	case excepciones.ErrNonLocal, excepciones.ErrAcceptanceRequired, excepciones.ErrAcceptanceVersion:
+	case excepciones.ErrNonLocal, excepciones.ErrAcceptanceRequired, excepciones.ErrAcceptanceVersion, excepciones.ErrAcceptanceOrigin:
 		return m.t(err.Error())
 	}
 	return err.Error()

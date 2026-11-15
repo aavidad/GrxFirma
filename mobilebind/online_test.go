@@ -349,7 +349,7 @@ func TestTimestampProbeHTTPUsesPrivateSettingsAndWarning(t *testing.T) {
 	if requests != 0 {
 		t.Fatal("HTTP salió antes del ajuste")
 	}
-	if _, err := excepciones.ActivateLocal(excepciones.ForLocalAndroid(f.operationContext()), f.configDir, excepciones.ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion}); err != nil {
+	if _, err := excepciones.ActivateLocal(excepciones.ForLocalAndroid(f.operationContext()), f.configDir, excepciones.ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion, Origin: excepciones.OriginSettings}); err != nil {
 		t.Fatal(err)
 	}
 	raw, err := f.ProbeTimestampAuthorityJSON(req)

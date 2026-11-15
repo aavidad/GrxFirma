@@ -40,6 +40,7 @@ class IpcBridgeTransientSecretTest : public QObject {
 
 private slots:
   void unsafeVersionedActivation();
+  void unsafeActivationOriginIsClosed();
   void unsafeBlockAndRetryRouting();
   void unsafeBlockUsesInterfaceLanguageAndNoDiagnostic();
   void unsafeDisconnectedNeverDeferred();
@@ -71,7 +72,7 @@ void IpcBridgeTransientSecretTest::unsafeVersionedActivation() {
   QVERIFY(peer);
   peer->readAll();
   QSignalSpy finished(&bridge, &IpcBridge::unsafeExceptionsFinished);
-  bridge.activateUnsafeException("cms_cbc", "2026-11-15.1", "fixture-token");
+  bridge.activateUnsafeException("cms_cbc", "2026-11-15.1", "aviso", "fixture-token");
   const auto sent = nextRequest(peer);
   QVERIFY(!sent.isEmpty());
   QCOMPARE(sent.value("action").toString(), QStringLiteral("unsafe_exceptions_activate"));
@@ -79,6 +80,7 @@ void IpcBridgeTransientSecretTest::unsafeVersionedActivation() {
   QCOMPARE(params.value("acceptanceVersion").toString(), QStringLiteral("2026-11-15.1"));
   QCOMPARE(params.value("accepted").toBool(), true);
   QCOMPARE(params.value("retryId").toString(), QStringLiteral("fixture-token"));
+  QCOMPARE(params.value("origin").toString(), QStringLiteral("aviso"));
   auto reply = [&](const QString &id) {
     peer->write(QJsonDocument(QJsonObject{{"action", "unsafe_exceptions_activate"},
         {"requestId", id}, {"ok", true}, {"data", QJsonObject{}}}).toJson(QJsonDocument::Compact) + '\n');
@@ -91,6 +93,38 @@ void IpcBridgeTransientSecretTest::unsafeVersionedActivation() {
   QCOMPARE(finished.count(), 1);
   reply(sent.value("requestId").toString());
   QCOMPARE(finished.count(), 1);
+}
+
+// Lote 39f: el puente solo envía los dos orígenes que admite el motor y,
+// con un reintento, solo el aviso. Lo demás termina en fallo sin enviar nada.
+void IpcBridgeTransientSecretTest::unsafeActivationOriginIsClosed() {
+  IpcBridge bridge;
+  QLocalServer server;
+  auto *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  peer->readAll();
+  QSignalSpy finished(&bridge, &IpcBridge::unsafeExceptionsFinished);
+  bridge.activateUnsafeException("cms_cbc", "2026-11-15.1", "ajustes");
+  const auto sent = nextRequest(peer);
+  QCOMPARE(sent.value("params").toObject().value("origin").toString(), QStringLiteral("ajustes"));
+  QVERIFY(!sent.value("params").toObject().contains("retryId"));
+  const QStringList rejected{QString(), QStringLiteral("linea_ordenes"), QStringLiteral("Aviso"),
+                             QStringLiteral("aceptado desde el aviso")};
+  for (const auto &origin : rejected) {
+    finished.clear();
+    bridge.activateUnsafeException("cms_cbc", "2026-11-15.1", origin);
+    QCOMPARE(finished.count(), 1);
+    QVERIFY(!finished.at(0).at(1).toBool());
+  }
+  finished.clear();
+  bridge.activateUnsafeException("cms_cbc", "2026-11-15.1", "ajustes", "fixture-token");
+  QCOMPARE(finished.count(), 1);
+  QVERIFY(!finished.at(0).at(1).toBool());
+  QTest::qWait(50);
+  while (peer->canReadLine()) {
+    const auto request = QJsonDocument::fromJson(peer->readLine()).object();
+    QVERIFY(request.value("action").toString() != QStringLiteral("unsafe_exceptions_activate"));
+  }
 }
 
 void IpcBridgeTransientSecretTest::unsafeBlockAndRetryRouting() {
@@ -166,7 +200,7 @@ void IpcBridgeTransientSecretTest::unsafeBlockUsesInterfaceLanguageAndNoDiagnost
 void IpcBridgeTransientSecretTest::unsafeDisconnectedNeverDeferred() {
   IpcBridge bridge;
   QSignalSpy finished(&bridge, &IpcBridge::unsafeExceptionsFinished);
-  bridge.activateUnsafeException("cms_cbc", "2026-11-15.1");
+  bridge.activateUnsafeException("cms_cbc", "2026-11-15.1", "ajustes");
   QCOMPARE(finished.count(), 1);
   QVERIFY(!finished.at(0).at(1).toBool());
   QVERIFY(bridge.m_deferredRequest.isEmpty());

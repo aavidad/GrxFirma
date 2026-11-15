@@ -36,14 +36,19 @@ func TestAcceptanceRequiresLocalExplicitCurrentVersion(t *testing.T) {
 	if err := SetUserAt(dir, "tsa_http", true); err == nil {
 		t.Fatal("setter sin aceptación habilita")
 	}
+	origins := map[string]string{"desktop": OriginSettings, "android": OriginWarning, "cli": OriginCLI}
 	for channel, issuer := range map[string]func(context.Context) context.Context{"desktop": ForLocalDesktop, "android": ForLocalAndroid, "cli": ForLocalCLI} {
 		t.Run(channel, func(t *testing.T) {
 			d := t.TempDir()
-			receipt, err := ActivateLocal(issuer(context.Background()), d, req)
+			r := req
+			if channel != "cli" {
+				r.Origin = origins[channel]
+			}
+			receipt, err := ActivateLocal(issuer(context.Background()), d, r)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if receipt.Channel != channel || receipt.TextVersion != AcceptanceVersion || receipt.AcceptedAt.IsZero() || receipt.Origin != acceptanceOrigin {
+			if receipt.Channel != channel || receipt.TextVersion != AcceptanceVersion || receipt.AcceptedAt.IsZero() || receipt.Origin != origins[channel] {
 				t.Fatalf("recibo incompleto: %+v", receipt)
 			}
 			var found State
@@ -74,7 +79,7 @@ func TestAcceptanceOrganizationBlocksAllCases(t *testing.T) {
 			machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
 			machinepolicy.SetForTest(t, e.PolicyKey, false)
 			dir := t.TempDir()
-			req := ActivationRequest{ID: e.ID, Accepted: true, AcceptanceVersion: AcceptanceVersion}
+			req := ActivationRequest{ID: e.ID, Accepted: true, AcceptanceVersion: AcceptanceVersion, Origin: OriginSettings}
 			b := DescribeAt(dir, e.ID)
 			if b.Activable || b.TitleKey == "" || b.RiskKey == "" || b.AcceptanceKey == "" || b.HelpKey == "" {
 				t.Fatalf("metadatos: %+v", b)

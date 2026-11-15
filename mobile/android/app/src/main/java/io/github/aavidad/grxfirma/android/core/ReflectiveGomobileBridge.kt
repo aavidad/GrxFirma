@@ -64,8 +64,8 @@ class ReflectiveGomobileBridge private constructor(
     override fun disableUnsafeException(item: UnsafeExceptionState): List<UnsafeExceptionState> =
         UnsafeExceptions.parseList(invokeJson("setUnsafeExceptionJSON", UnsafeExceptions.disableRequest(item)))
 
-    override fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean) {
-        invokeJson("activateUnsafeExceptionJSON", UnsafeExceptions.activationRequest(item, accepted))
+    override fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean, origin: UnsafeAcceptanceOrigin) {
+        invokeJson("activateUnsafeExceptionJSON", UnsafeExceptions.activationRequest(item, accepted, origin))
     }
 
     override fun selectCertificate(): CertificateSummary = CoreJsonCodec.parseCertificate(

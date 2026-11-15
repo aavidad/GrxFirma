@@ -29,7 +29,7 @@ func TestMobileExceptionsRequireVersionedLocalAcceptance(t *testing.T) {
 		t.Fatal("la versión anterior no activa la excepción")
 	}
 	request := mustJSON(t, map[string]any{
-		"id": "tsa_http", "accepted": true, "acceptanceVersion": excepciones.AcceptanceVersion,
+		"id": "tsa_http", "accepted": true, "acceptanceVersion": excepciones.AcceptanceVersion, "origin": "ajustes",
 	})
 	raw, err := f.ActivateUnsafeExceptionJSON(request)
 	if err != nil {
@@ -70,10 +70,10 @@ func TestMobileExceptionsIgnoreOperationAcceptanceAndPolicyWins(t *testing.T) {
 	f := &Facade{configDir: t.TempDir(), platform: "android", androidIntentAdapter: androidintent.New(nil)}
 	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
 	request := mustJSON(t, map[string]any{
-		"id": "tsa_http", "accepted": true, "acceptanceVersion": excepciones.AcceptanceVersion,
+		"id": "tsa_http", "accepted": true, "acceptanceVersion": excepciones.AcceptanceVersion, "origin": "ajustes",
 	})
 	if _, err := f.ActivateUnsafeExceptionJSON(`{"id":"tsa_http","accepted":true,"acceptanceVersion":"` + excepciones.AcceptanceVersion + `","origin":"android"}`); err == nil {
-		t.Fatal("la solicitud no puede elegir el origen")
+		t.Fatal("la solicitud no puede nombrar un canal como origen")
 	}
 	_, _ = f.SignJSON(`{"format":"cades","unsafe_exception":` + request + `}`)
 	_, _ = f.TranslateAndroidIntentJSON(`{"action":"android.intent.action.SEND","descriptor":"a.pdf","payload_base64":"JVBERi0xLjQK","unsafe_exception":` + request + `}`)

@@ -43,7 +43,7 @@ interface CoreBridge {
     val unsafeExceptionsAvailable: Boolean get() = false
     fun unsafeExceptions(): List<UnsafeExceptionState> = toolsUnavailable()
     fun disableUnsafeException(item: UnsafeExceptionState): List<UnsafeExceptionState> = toolsUnavailable()
-    fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean): Unit = toolsUnavailable()
+    fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean, origin: UnsafeAcceptanceOrigin): Unit = toolsUnavailable()
 
     fun selectCertificate(): CertificateSummary
 

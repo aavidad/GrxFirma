@@ -131,7 +131,7 @@ class MainViewModelUnsafeExceptionsTest {
             enabled = enabled && id == "sha1_leer", fixed = !activable, activable = activable,
             acceptanceVersion = version)
         override fun unsafeExceptions() = UnsafeExceptions.ids.map { item(it) }
-        override fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean) {
+        override fun activateUnsafeException(item: UnsafeExceptionState, accepted: Boolean, origin: UnsafeAcceptanceOrigin) {
             if (!activable || !accepted) throw CoreContractException("excepciones.sha1_leer.organizacion")
             if (item.acceptanceVersion != version) throw CoreContractException("excepciones.version_aceptacion_invalida")
             activations++

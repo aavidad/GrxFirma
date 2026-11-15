@@ -56,7 +56,7 @@ func retryFixture(t *testing.T) (*Manejador, context.Context, peticion, *unsafeG
 }
 func activateRetry(t *testing.T, m *Manejador, ctx context.Context, id string) respuesta {
 	t.Helper()
-	raw, _ := json.Marshal(map[string]any{"id": "rsa_corta", "accepted": true, "acceptanceVersion": excepciones.AcceptanceVersion, "retryId": id})
+	raw, _ := json.Marshal(map[string]any{"id": "rsa_corta", "accepted": true, "acceptanceVersion": excepciones.AcceptanceVersion, "retryId": id, "origin": "aviso"})
 	return m.despachar(ctx, peticion{Action: "unsafe_exceptions_activate", Params: raw})
 }
 func TestUnsafeRetryUsesAcceptedOriginalOnce(t *testing.T) {
@@ -170,7 +170,7 @@ func TestUnsafeActivationRequiresVerifiedFrontendAndPreservesSettings(t *testing
 	if m.despachar(ctx, peticion{Action: "unsafe_exceptions_activate", Params: raw}).OK {
 		t.Fatal("acepta source externo")
 	}
-	if _, err := excepciones.ActivateLocal(excepciones.ForLocalDesktop(ctx), dir, excepciones.ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion}); err != nil {
+	if _, err := excepciones.ActivateLocal(excepciones.ForLocalDesktop(ctx), dir, excepciones.ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion, Origin: excepciones.OriginSettings}); err != nil {
 		t.Fatal(err)
 	}
 	if r := m.despachar(ctx, peticion{Action: "save_settings", Params: json.RawMessage(`{"idioma":"en"}`)}); !r.OK {

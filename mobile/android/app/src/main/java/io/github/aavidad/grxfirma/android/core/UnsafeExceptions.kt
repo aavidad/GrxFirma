@@ -74,16 +74,24 @@ object UnsafeExceptions {
         json.optString("acceptanceVersion").ifBlank { json.optString("acceptance_version") }
             .takeIf { it.length in 1..80 && it.all { c -> c.isLetterOrDigit() || c in "._-" } }.orEmpty()
 
-    fun activationRequest(item: UnsafeExceptionState, accepted: Boolean): String {
+    // origin dice al núcleo dónde aceptó la persona, para el recibo: en el
+    // aviso de una operación detenida o en Preferencias (lote 39f).
+    fun activationRequest(item: UnsafeExceptionState, accepted: Boolean, origin: UnsafeAcceptanceOrigin): String {
         require(accepted && item.canActivate)
         return JSONObject().put("id", item.id).put("accepted", true)
-            .put("acceptanceVersion", item.acceptanceVersion).toString()
+            .put("acceptanceVersion", item.acceptanceVersion).put("origin", origin.wire).toString()
     }
 
     fun disableRequest(item: UnsafeExceptionState): String {
         require(item.canDisable)
         return JSONObject().put("id", item.id).put("enabled", false).toString()
     }
+}
+
+/** Valor cerrado del recibo de aceptación que entiende el núcleo. */
+enum class UnsafeAcceptanceOrigin(val wire: String) {
+    FROM_BLOCK("aviso"),
+    FROM_PREFERENCES("ajustes"),
 }
 
 data class UnsafeExceptionState(

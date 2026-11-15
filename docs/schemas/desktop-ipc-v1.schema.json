@@ -61,7 +61,7 @@
         },
         {
           "if": {"properties": {"action": {"const": "unsafe_exceptions_activate"}}, "required": ["action"]},
-          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["id", "accepted", "acceptanceVersion"], "properties": {"id": {"type": "string", "minLength": 1}, "accepted": {"const": true}, "acceptanceVersion": {"const": "2026-11-15.3"}, "retryId": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
+          "then": {"required": ["params"], "properties": {"params": {"type": "object", "required": ["id", "accepted", "acceptanceVersion", "origin"], "properties": {"id": {"type": "string", "minLength": 1}, "accepted": {"const": true}, "acceptanceVersion": {"const": "2026-11-15.3"}, "retryId": {"type": "string", "minLength": 1}, "origin": {"enum": ["aviso", "ajustes"], "description": "Dónde aceptó la persona: en el aviso de una operación detenida o en el apartado Seguridad. Con retryId solo cabe aviso."}}, "if": {"required": ["retryId"]}, "then": {"properties": {"origin": {"const": "aviso"}}}, "additionalProperties": false}}}
         },
         {
           "if": {"properties": {"action": {"const": "unsafe_operation_retry"}}, "required": ["action"]},
@@ -457,7 +457,7 @@
         "id": {"type": "string"},
         "accepted_at": {"type": "string", "format": "date-time"},
         "text_version": {"type": "string", "minLength": 1, "description": "Version accepted at that time; historical receipts remain visible but do not enable an exception."},
-        "origin": {"const": "aceptado desde el aviso"},
+        "origin": {"enum": ["aviso", "ajustes", "linea_ordenes", "aceptado desde el aviso"], "description": "aviso, ajustes o linea_ordenes según dónde se aceptó; «aceptado desde el aviso» solo aparece en recibos anteriores al lote 39f."},
         "channel": {"type": "string"}
       },
       "additionalProperties": false

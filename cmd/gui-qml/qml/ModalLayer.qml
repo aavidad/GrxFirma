@@ -11,6 +11,8 @@ Rectangle {
     id: layer
     property Item initialFocusItem: null
     property Item returnFocusItem: null
+    // Ya se ha puesto el foco inicial en esta apertura.
+    property bool entered: false
     signal escapePressed()
 
     function containsItem(item) {
@@ -22,6 +24,11 @@ Rectangle {
     function enter() {
         const host = layer.Window.window
         const previous = host ? host.activeFocusItem : null
+        // Una entrada tardía (al hacerse visible o tras abrir el diálogo) no
+        // quita el foco a quien ya se mueve dentro de la capa: antes, el
+        // primer Tab o Mayús+Tab se perdía porque el foco volvía al inicial.
+        if (entered && previous && previous !== layer && containsItem(previous)) return
+        entered = true
         if (previous && !containsItem(previous)) returnFocusItem = previous
         if (initialFocusItem) initialFocusItem.forceActiveFocus(Qt.TabFocusReason)
     }
@@ -46,7 +53,10 @@ Rectangle {
     }
     onVisibleChanged: {
         if (visible) Qt.callLater(enter)
-        else Qt.callLater(restoreFocus)
+        else {
+            entered = false
+            Qt.callLater(restoreFocus)
+        }
     }
     Component.onCompleted: if (visible) Qt.callLater(enter)
     // Los controles consumen Tab antes de propagar Keys a sus antecesores.

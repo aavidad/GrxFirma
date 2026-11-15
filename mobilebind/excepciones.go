@@ -56,7 +56,9 @@ func (f *Facade) SetUnsafeExceptionJSON(request string) (string, error) {
 }
 
 // ActivateUnsafeExceptionJSON solo la app Android puede llamar a este punto
-// local. La solicitud no contiene ni elige el origen de la autorización.
+// local. La autorización sale del canal Android, nunca de la solicitud. La
+// solicitud solo dice dónde aceptó la persona («aviso» tras un bloqueo o
+// «ajustes» desde Preferencias), para que el recibo lo guarde.
 func (f *Facade) ActivateUnsafeExceptionJSON(request string) (string, error) {
 	if f == nil || f.configDir == "" || f.platform != "android" {
 		return "", newFacadeError("error.settings_no_configurado")
@@ -68,6 +70,7 @@ func (f *Facade) ActivateUnsafeExceptionJSON(request string) (string, error) {
 		ID                string `json:"id"`
 		Accepted          *bool  `json:"accepted"`
 		AcceptanceVersion string `json:"acceptanceVersion"`
+		Origin            string `json:"origin"`
 	}
 	if decodeUnsafeExceptionRequest(request, &p) != nil {
 		return "", newFacadeError("error.formato_invalido")
@@ -75,12 +78,15 @@ func (f *Facade) ActivateUnsafeExceptionJSON(request string) (string, error) {
 	if p.Accepted == nil || !*p.Accepted {
 		return "", excepciones.ErrAcceptanceRequired
 	}
+	if !excepciones.ValidInterfaceOrigin(p.Origin) {
+		return "", newFacadeError("error.formato_invalido")
+	}
 	if _, ok := excepciones.Find(p.ID); !ok {
 		return "", newFacadeError("error.formato_invalido")
 	}
 	ctx := excepciones.ForLocalAndroid(f.operationContext())
 	accepted, err := excepciones.ActivateLocal(ctx, f.configDir, excepciones.ActivationRequest{
-		ID: p.ID, Accepted: *p.Accepted, AcceptanceVersion: p.AcceptanceVersion,
+		ID: p.ID, Accepted: *p.Accepted, AcceptanceVersion: p.AcceptanceVersion, Origin: p.Origin,
 	})
 	if err != nil {
 		return "", errorTipado(err)

@@ -134,7 +134,7 @@ func TestV39ReintentoTrasActivarVerificaYAvisa(t *testing.T) {
 		t.Fatalf("sin reintento: %+v", blocked)
 	}
 	activar, _ := json.Marshal(map[string]any{"id": "sha1_leer", "accepted": true,
-		"acceptanceVersion": excepciones.AcceptanceVersion, "retryId": blocked.RetryID})
+		"acceptanceVersion": excepciones.AcceptanceVersion, "retryId": blocked.RetryID, "origin": "aviso"})
 	if r := m.despachar(ctx, peticion{Action: "unsafe_exceptions_activate", Params: activar}); !r.OK {
 		t.Fatalf("activación: %+v", r)
 	}

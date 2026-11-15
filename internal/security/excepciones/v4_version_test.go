@@ -34,10 +34,10 @@ func TestV4PreviousTextNeedsFreshAcceptance(t *testing.T) {
 	if !block.Activable || block.AcceptanceVersion == r.TextVersion {
 		t.Fatalf("no ofrece aceptación nueva: %+v", block)
 	}
-	if _, err := ActivateLocal(ForLocalDesktop(ctx), dir, ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: r.TextVersion}); err != ErrAcceptanceVersion {
+	if _, err := ActivateLocal(ForLocalDesktop(ctx), dir, ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: r.TextVersion, Origin: OriginWarning}); err != ErrAcceptanceVersion {
 		t.Fatalf("versión vieja aceptada: %v", err)
 	}
-	if _, err := ActivateLocal(ForLocalDesktop(ctx), dir, ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: AcceptanceVersion}); err != nil {
+	if _, err := ActivateLocal(ForLocalDesktop(ctx), dir, ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: AcceptanceVersion, Origin: OriginWarning}); err != nil {
 		t.Fatal(err)
 	}
 	if err := Check("tsa_http", ctx); err != nil {

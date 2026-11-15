@@ -12,6 +12,7 @@ import QtQml 2.15
 import Qt.labs.settings 1.1
 import "ThemeContrast.js" as Contrast
 import "VerificationSigners.js" as Signers
+import "UnsafeResume.js" as UnsafeResume
 
 Window {
     id: window
@@ -69,28 +70,28 @@ Window {
         translate: function(key) { return window.tr(key) }
         onActivated: function(item) {
             unsafePanel.load()
-            if (item.operationPending === true && item.retryId) backend.retryUnsafeOperation(item.retryId)
-            else if (item.operationPending === true && item.resend === true) window.resendUnsafeOperation(item)
+            const step = UnsafeResume.next(item)
+            if (step === "retry") backend.retryUnsafeOperation(item.retryId)
+            else if (step === "resend") window.resendUnsafeOperation(item)
             else {
                 window.finishUnsafeInterruptedFlow(item)
-                window.unsafeNotice = [window.tr(item.operationPending === true
+                window.unsafeNotice = [window.tr(step === "notice_resend"
                     ? "excepciones.pantalla.reenviar" : "excepciones.pantalla.activada_confirmacion")]
             }
         }
         onActivationFailed: unsafePanel.load()
         onCancelled: function(item) { window.finishUnsafeInterruptedFlow(item) }
     }
-    // Firmas que el motor no puede repetir con retryId (guardan en disco o
-    // llevan opciones del formulario): «Activar y continuar» las vuelve a
-    // lanzar desde el formulario, que el diálogo modal ha dejado intacto.
-    readonly property var unsafeResendActions: ["sign", "sign_multicosign", "sign_batch"]
+    // Una firma detenida se vuelve a lanzar desde el formulario, que el
+    // diálogo modal ha dejado intacto, también si el motor ofrecía un
+    // reintento (lote 39f): activar una excepción no confirma la firma, así
+    // que pasa otra vez por la confirmación si la persona la tiene activada.
     function unsafeOperationCanResend(block) {
-        return block.operationPending === true && !block.retryId
-                && window.unsafeResendActions.indexOf(String(block.operationAction || "")) !== -1
+        return UnsafeResume.canResend(block)
     }
     function resendUnsafeOperation(item) {
-        if (window.unsafeResendActions.indexOf(String(item.operationAction || "")) === -1) return
-        Qt.callLater(function() { window.executeSignRequest(window.selectedCertIndex) })
+        if (!UnsafeResume.isSigning(item.operationAction)) return
+        Qt.callLater(function() { window.requestSignConfirmation(window.selectedCertIndex) })
     }
     // Un aviso de uso pertenece a la operación que lo dio: se vacía al empezar
     // otra a mano y se suma al de la comprobación automática que sigue a una
@@ -126,6 +127,8 @@ Window {
             window.resetUnsafeNotice()
             const pending = Object.assign({}, block)
             pending.resend = window.unsafeOperationCanResend(pending)
+            // La firma no se repite por el motor: su reintento no se activa.
+            if (pending.resend) pending.retryId = ""
             unsafeDialog.present(pending, false)
         }
         function onUnsafeOperationWarnings(warnings) {
@@ -5316,7 +5319,7 @@ Window {
     function verificationOutcomeDisplay(details) {
         const outcome = verificationOutcomeKind(details)
         if (outcome === "trusted") return "✅ " + verificationOutcomeLabel(details)
-        if (outcome === "invalid") return "Error: " + verificationOutcomeLabel(details)
+        if (outcome === "invalid") return tr("Error: ") + verificationOutcomeLabel(details)
         return "⚠️ " + verificationOutcomeLabel(details)
     }
 
@@ -8802,7 +8805,7 @@ Window {
             window.statusMessage = backend.status
         }
         function onIncidentReportSent(ok, message, localPath) {
-            window.statusMessage = (ok ? "✅ " : "Error: ") + message
+            window.statusMessage = (ok ? "✅ " : tr("Error: ")) + message
             if (localPath && localPath !== "") {
                 window.lastIncidentReportPath = localPath
             }
@@ -8842,7 +8845,7 @@ Window {
             window.signingInProgress = false
             window.resetCosignOriginalChoice()
             window.cscPendingSecrets = null
-            window.statusMessage = (success ? "✅ " : "Error: ") + message
+            window.statusMessage = (success ? "✅ " : tr("Error: ")) + message
             window.signResultGeneration++
             const resultGeneration = window.signResultGeneration
             window.signResultKind = success ? "success" : "error"
@@ -9274,7 +9277,7 @@ Window {
             }
         }
         function onCertificateImportFinished(ok, message) {
-            backend.updateStatus(ok ? ("✅ " + message) : ("Error: " + message))
+            backend.updateStatus(ok ? ("✅ " + message) : (tr("Error: ") + message))
             if (ok) {
                 backend.backendLogReceived(tr("Firma: Certificado importado con éxito."))
             } else {
@@ -9294,11 +9297,11 @@ Window {
                 })
             } else {
                 window.certificateAccessOptions = ({ managers: [], importTargets: [] })
-                window.statusMessage = "Error: " + message
+                window.statusMessage = tr("Error: ") + message
             }
         }
         function onTemporaryCertificateFinished(ok, message, certificate) {
-            window.statusMessage = (ok ? "✅ " : "Error: ") + message
+            window.statusMessage = (ok ? "✅ " : tr("Error: ")) + message
             if (!ok) {
                 window.pendingTemporaryRemovalId = ""
                 backend.backendLogReceived(tr("Error cargando certificado temporal: ") + message)
@@ -9333,7 +9336,7 @@ Window {
             window.statusMessage = tr("Error")
         }
         function onPublicRootsInstallationFinished(ok, message) {
-            backend.updateStatus(ok ? ("✅ " + message) : ("Error: " + message))
+            backend.updateStatus(ok ? ("✅ " + message) : (tr("Error: ") + message))
             if (ok) {
                 backend.backendLogReceived(tr("Confianza: Raíces de AAPP instaladas correctamente."))
             } else {

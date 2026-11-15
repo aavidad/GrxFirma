@@ -40,7 +40,7 @@ func TestV3MobileUnprotectPreservesBlockAndAllowedWarning(t *testing.T) {
 	if !errors.As(err, &block) || block.ID != "cms_rsa_v15_leer" || !block.Activable {
 		t.Fatalf("bloqueo perdido: %v", err)
 	}
-	_, err = excepciones.ActivateLocal(excepciones.ForLocalAndroid(context.Background()), f.configDir, excepciones.ActivationRequest{ID: block.ID, Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion})
+	_, err = excepciones.ActivateLocal(excepciones.ForLocalAndroid(context.Background()), f.configDir, excepciones.ActivationRequest{ID: block.ID, Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion, Origin: excepciones.OriginWarning})
 	if err != nil {
 		t.Fatal(err)
 	}
