@@ -394,6 +394,11 @@ func (inventory managedNSSTrustInventory) validate() error {
 func removeManagedTrustedPlatform(ctx context.Context, certFile string) error {
 	managedTrustMu.Lock()
 	defer managedTrustMu.Unlock()
+	// Quien nunca generó la CA local no tiene carpeta ni inventario: no hay
+	// nada que retirar y la desinstalación del paquete no debe fallar.
+	if _, err := os.Lstat(filepath.Dir(certFile)); errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
 	unlock, err := acquireManagedTrustLock(certFile + ".grxfirma-trust.lock")
 	if err != nil {
 		return fmt.Errorf("localtlstrust: bloquear inventario NSS: %w", err)

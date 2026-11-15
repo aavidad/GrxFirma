@@ -246,3 +246,14 @@ esac
 exit 1
 `
 }
+
+// Retirar el paquete .deb no debe fallar para quien nunca generó la CA local.
+func TestRemoveManagedTrustedSinCarpetaNoFallaNiLaCrea(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "tls-que-no-existe")
+	if err := RemoveManagedTrusted(context.Background(), filepath.Join(dir, "localhost-ca.pem")); err != nil {
+		t.Fatalf("RemoveManagedTrusted sin carpeta: %v", err)
+	}
+	if _, err := os.Stat(dir); !os.IsNotExist(err) {
+		t.Fatalf("no debía crear la carpeta: %v", err)
+	}
+}
