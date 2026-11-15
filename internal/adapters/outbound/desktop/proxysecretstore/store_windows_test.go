@@ -281,3 +281,16 @@ func TestClassifyWindowsStatusReason(t *testing.T) {
 		}
 	}
 }
+
+// Con %APPDATA% relativo los secretos del proxy no se guardan en la carpeta de
+// trabajo del proceso.
+func TestStoreWindows_RechazaDirectorioDeConfiguracionRelativo(t *testing.T) {
+	t.Parallel()
+	for _, base := range []string{"relativo", `.\AppData`, `C:AppData`} {
+		store := newWindowsTestStore(&fakeDPAPI{output: []byte("ciphertext")})
+		store.configDir = func() (string, error) { return base, nil }
+		if dir, err := store.secretsDir(); err == nil {
+			t.Fatalf("APPDATA=%q aceptado: %q", base, dir)
+		}
+	}
+}

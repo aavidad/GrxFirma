@@ -87,6 +87,11 @@ func (s *Store) secretsDir() (string, error) {
 	if base == "" {
 		return "", errors.New("proxysecretstore: directorio de configuracion vacio")
 	}
+	// os.UserConfigDir solo rechaza %APPDATA% vacío: relativo, los secretos
+	// acabarían en la carpeta de trabajo del proceso.
+	if !filepath.IsAbs(base) {
+		return "", errors.New("proxysecretstore: directorio de configuracion relativo")
+	}
 	return filepath.Join(base, "GrxFirma", "proxy-secrets"), nil
 }
 
