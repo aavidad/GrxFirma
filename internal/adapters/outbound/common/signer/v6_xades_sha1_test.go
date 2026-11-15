@@ -36,7 +36,7 @@ func TestV6CofirmaXAdESConservaSHA1(t *testing.T) {
 	for _, accion := range []domain.SignatureAction{domain.ActionCoSign, domain.ActionCounterSign} {
 		priv, cert := certForTest(t, "Nuevo")
 		doc, _ := domain.NewDocument("entrada.xml", firmado, "application/xml")
-		ctx, avisos := domain.ConAvisosOperacion(context.Background())
+		ctx, _ := domain.ConAvisosOperacion(context.Background())
 		res, err := NewXAdESBESDetached().Sign(ctx, domain.SignatureJob{Document: doc, Format: domain.FormatXAdES, Action: accion,
 			Options: map[string]string{"format": "XAdES Enveloped"}}, &LocalSigningKey{ID: "n", Signer: priv, Certificate: cert})
 
@@ -45,7 +45,7 @@ func TestV6CofirmaXAdESConservaSHA1(t *testing.T) {
 			t.Fatalf("%s conservó SHA-1 sin permiso: %v", accion, err)
 		}
 		excepciones.SetForTest(t, "sha1_conservar", true)
-		ctx, avisos = domain.ConAvisosOperacion(context.Background())
+		ctx, avisos := domain.ConAvisosOperacion(context.Background())
 		res, err = NewXAdESBESDetached().Sign(ctx, domain.SignatureJob{Document: doc, Format: domain.FormatXAdES, Action: accion, Options: map[string]string{"format": "XAdES Enveloped"}}, &LocalSigningKey{ID: "n", Signer: priv, Certificate: cert})
 		if err != nil || !bytes.Contains(res.Data, []byte("rsa-sha1")) || !slices.Contains(avisos.Claves(), excepciones.Warning("sha1_conservar")) {
 			t.Fatalf("%s con permiso: %v avisos=%v", accion, err, avisos.Claves())

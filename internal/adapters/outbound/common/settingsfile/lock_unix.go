@@ -17,9 +17,9 @@ import (
 
 func lockFile(ctx context.Context, file *os.File) (func(), error) {
 	for {
-		err := unix.Flock(int(file.Fd()), unix.LOCK_EX|unix.LOCK_NB)
+		err := unix.Flock(int(file.Fd()), unix.LOCK_EX|unix.LOCK_NB) // #nosec G115 -- os.File.Fd is a kernel int descriptor on Unix.
 		if err == nil {
-			return func() { _ = unix.Flock(int(file.Fd()), unix.LOCK_UN) }, nil
+			return func() { _ = unix.Flock(int(file.Fd()), unix.LOCK_UN) }, nil // #nosec G115 -- os.File.Fd is a kernel int descriptor on Unix.
 		}
 		if !errors.Is(err, unix.EWOULDBLOCK) && !errors.Is(err, unix.EAGAIN) {
 			return nil, err

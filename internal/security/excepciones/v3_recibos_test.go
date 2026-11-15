@@ -165,7 +165,11 @@ func TestV3AcceptingAnotherCaseDoesNotCanonicalizeForeignReceipt(t *testing.T) {
 // declarando su nombre en datos recibidos de un portal.
 func TestV3ProtocolDialogNameDoesNotGrantLocalAuthority(t *testing.T) {
 	machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+	// Claves de texto a propósito: simulan datos llegados de fuera que imitan
+	// los nombres de las claves locales.
+	//lint:ignore SA1029 la prueba necesita claves de texto ajenas al paquete
 	ctx := context.WithValue(context.Background(), "source", "protocol_dialog")
+	//lint:ignore SA1029 la prueba necesita claves de texto ajenas al paquete
 	ctx = context.WithValue(ctx, "channel", "protocol_dialog")
 	if IsLocal(ctx) {
 		t.Fatal("datos externos otorgan capacidad local")

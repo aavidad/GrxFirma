@@ -64,7 +64,7 @@ func readFilePinned(path string, max int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	f := os.NewFile(uintptr(fd), path)
+	f := os.NewFile(uintptr(fd), path) // #nosec G115 -- unix.Openat devuelve un descriptor no negativo cuando err es nil.
 	defer f.Close()
 	info, err := f.Stat()
 	if err != nil || !info.Mode().IsRegular() || info.Size() > max {
@@ -121,7 +121,7 @@ func writeFile(path string, data []byte, force bool, check func(string) (string,
 		return "", err
 	}
 	defer unix.Unlinkat(dirfd, temp, 0)
-	f := os.NewFile(uintptr(fd), temp)
+	f := os.NewFile(uintptr(fd), temp) // #nosec G115 -- unix.Openat devuelve un descriptor no negativo cuando err es nil.
 	if err := f.Chmod(os.FileMode(mode)); err != nil {
 		f.Close()
 		return "", err

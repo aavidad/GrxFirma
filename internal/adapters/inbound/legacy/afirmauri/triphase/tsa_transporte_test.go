@@ -53,23 +53,23 @@ func TestTrifasicaTSAHTTPPermisoAvisoYDirectiva(t *testing.T) {
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(body)), Header: http.Header{}}, nil
 	})}
 	session := sesionTest("https://servidor.example/retrieve", "https://servidor.example/upload", "")
-	call := func() (error, []string) {
+	call := func() ([]string, error) {
 		ctx, warnings := domain.ConAvisosOperacion(context.Background())
 		_, err := New(client).Execute(ctx, session, jobTest())
-		return err, warnings.Claves()
+		return warnings.Claves(), err
 	}
-	err, warnings := call()
+	warnings, err := call()
 	var blocked *excepciones.Block
 	if err == nil || errors.As(err, &blocked) || posts != 1 || !slices.Contains(warnings, excepciones.Warning("tsa_http")) {
 		t.Fatalf("permitido: err=%v posts=%d warnings=%v", err, posts, warnings)
 	}
 	machinepolicy.SetForTest(t, "permitir_tsa_http", false)
-	err, _ = call()
+	_, err = call()
 	if !errors.As(err, &blocked) || posts != 1 {
 		t.Fatalf("prohibición: err=%v posts=%d", err, posts)
 	}
 	machinepolicy.ErrorForTest(t, "permitir_tsa_http", errors.New("ilegible"))
-	err, _ = call()
+	_, err = call()
 	if !errors.As(err, &blocked) || posts != 1 {
 		t.Fatalf("directiva ilegible: err=%v posts=%d", err, posts)
 	}

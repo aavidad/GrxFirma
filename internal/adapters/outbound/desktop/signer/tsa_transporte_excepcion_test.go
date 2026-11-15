@@ -116,28 +116,28 @@ func TestFirmasConSelloHTTPCompartenBloqueoYAviso(t *testing.T) {
 			})}
 			motor := signer.NuevoMotorFirmaGo(nil).WithTimestampAuthority(client).PermitirTSADeOpcionesEnRedLocal()
 			job := domain.SignatureJob{Document: doc, Format: tc.format, Action: domain.ActionSign, Options: map[string]string{"level": "T", "tsaURL": endpoint}}
-			sign := func() (error, []string) {
+			sign := func() ([]string, error) {
 				ctx, warnings := domain.ConAvisosOperacion(context.Background())
 				_, err := motor.Sign(ctx, job, signer.NuevaClaveLocal(priv, cert))
-				return err, warnings.Claves()
+				return warnings.Claves(), err
 			}
 			var block *excepciones.Block
-			err, warnings := sign()
+			warnings, err := sign()
 			if !errors.As(err, &block) || block.ID != "tsa_http" || requests != 0 || slices.Contains(warnings, excepciones.Warning("tsa_http")) {
 				t.Fatalf("sin ajuste: err=%v requests=%d avisos=%v", err, requests, warnings)
 			}
 			excepciones.SetForTest(t, "tsa_http", true)
-			err, warnings = sign()
+			warnings, err = sign()
 			if err == nil || errors.As(err, &block) || requests != 1 || !slices.Contains(warnings, excepciones.Warning("tsa_http")) {
 				t.Fatalf("permitido: err=%v requests=%d avisos=%v", err, requests, warnings)
 			}
 			machinepolicy.SetForTest(t, "permitir_tsa_http", false)
-			err, _ = sign()
+			_, err = sign()
 			if !errors.As(err, &block) || requests != 1 {
 				t.Fatalf("máquina prohibida: err=%v requests=%d", err, requests)
 			}
 			machinepolicy.ErrorForTest(t, "permitir_tsa_http", errors.New("ilegible"))
-			err, _ = sign()
+			_, err = sign()
 			if !errors.As(err, &block) || requests != 1 {
 				t.Fatalf("máquina ilegible: err=%v requests=%d", err, requests)
 			}

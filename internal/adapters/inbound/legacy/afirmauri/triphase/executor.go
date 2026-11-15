@@ -915,5 +915,9 @@ func doTriphaseRequest(client *http.Client, req *http.Request) (*http.Response, 
 			return nil, err
 		}
 	}
+	// #nosec G704 -- el destino sale de la sesión afirma://, cuyos orígenes
+	// (OrigenesEndpoints) ha admitido antes la política de dominios de
+	// confianza; las redirecciones pasan por politicaRedireccionTrifasica y
+	// HTTP exige la excepción trifasica_http.
 	return client.Do(req)
 }

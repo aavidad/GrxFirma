@@ -88,7 +88,9 @@ func TestV39lEstadoInterfazPerezosoNoSeCalculaSiNoHaceFalta(t *testing.T) {
 	if calculado != 0 {
 		t.Fatal("calculado antes de tiempo")
 	}
-	if !esInterfazVerificada(ctx) || !esInterfazVerificada(ctx) || calculado != 1 {
+	// Dos lecturas seguidas: el estado se calcula una sola vez.
+	primera, segunda := esInterfazVerificada(ctx), esInterfazVerificada(ctx)
+	if !primera || !segunda || calculado != 1 {
 		t.Fatalf("cálculos: %d", calculado)
 	}
 	// Una acción sin bloqueo no llega a calcularlo.

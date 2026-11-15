@@ -112,7 +112,6 @@ func (b *Block) Error() string {
 func blockForState(e Exception, s State) *Block {
 	return &Block{ID: e.ID, BlockKey: e.BlockKey, SettingKey: e.SettingKey, PolicyKey: e.PolicyKey, TitleKey: e.TitleKey, RiskKey: e.RiskKey, AcceptanceKey: e.AcceptanceKey, HelpKey: e.HelpKey, OrganizationKey: e.OrganizationKey, AcceptanceVersion: AcceptanceVersion, Activable: s.Activable, ConfigUnavailable: s.ConfigUnavailable}
 }
-func blocked(e Exception) error { return Describe(e.ID) }
 
 // Describe devuelve metadatos sin permitir activar una excepción por sí solo.
 func Describe(id string) *Block {

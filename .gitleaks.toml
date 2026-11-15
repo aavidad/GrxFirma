@@ -103,3 +103,19 @@ condition = "AND"
 regexTarget = "line"
 paths = ['''^internal/adapters/inbound/common/cli/adapter\.go$''']
 regexes = ['''envProtectionSecret\s*=\s*"GRXFIRMA_PROTECTION_SECRET_B64"''']
+
+[[allowlists]]
+description = "Identifier of the CMS key-transport function, not a key"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^internal/adapters/outbound/common/protector/cms\.go$''']
+regexes = ['''keyEncrypt\s*=\s*cryptobinpkcs7\.KeyEncryptRSA''']
+
+[[allowlists]]
+description = "SHA-256 of build files whose names contain transientsecret, not secrets"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^legal/dependency-review\.json$''']
+regexes = ['''"cmd/gui-qml/[a-z_]*transientsecret_test\.pro": "[0-9a-f]{64}"''']
