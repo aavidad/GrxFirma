@@ -260,3 +260,19 @@ EOF
   [ "$status" -eq 0 ]
   [[ "$output" == *"${QML_ROOT}"* ]]
 }
+
+@test "install-user stage carries the i18n catalogs so the preflight prints sentences" {
+  local root stage
+  root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  stage="${BATS_TEST_TMPDIR}/install-user-stage"
+  mkdir -p "${stage}"
+  # Ejecuta solo el bloque que prepara el stage de install-user.sh.
+  run env ROOT_DIR="${root}" STAGE_DIR="${stage}" RAW_VERSION=test bash -euo pipefail -c \
+    "$(sed -n '/Preparando stage local/,/chmod 755 "\${STAGE_DIR}\/check-runtime-dependencies.sh"/p' "${root}/packaging/linux/install-user.sh")"
+  [ "$status" -eq 0 ]
+  : > "${stage}/runtime-dependencies.qml"
+  run env -u LC_ALL -u LANGUAGE -u GRXFIRMA_INSTALLER_LANG LANG=fr_FR.UTF-8 \
+    "${stage}/check-runtime-dependencies.sh" --check-bundle "${stage}"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Toutes les bibliothèques dont le paquet a besoin sont installées."* ]]
+}
