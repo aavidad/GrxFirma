@@ -70,6 +70,8 @@ func TestWindowsSettingsLockPermiteCrearGuardarYDesactivar(t *testing.T) {
 		}
 		allowed[sid.String()] = false
 	}
+	effective := map[string]bool{}
+	inheritable := map[string]bool{}
 	for i := uint32(0); i < uint32(acl.AceCount); i++ {
 		var ace *windows.ACCESS_ALLOWED_ACE
 		if err := windows.GetAce(acl, i, &ace); err != nil {
@@ -82,17 +84,26 @@ func TestWindowsSettingsLockPermiteCrearGuardarYDesactivar(t *testing.T) {
 		if _, ok := allowed[sid]; !ok {
 			t.Fatalf("directorio concede acceso a %s", sid)
 		}
-		if ace.Header.AceFlags&windows.INHERIT_ONLY_ACE != 0 {
-			t.Fatalf("ACE sin acceso efectivo: %s", sid)
+		// Windows puede partir una entrada GENERIC_ALL heredable en dos: una
+		// efectiva sobre la carpeta y otra solo de herencia con los derechos
+		// genéricos. Se exige que cada principal tenga las dos cosas.
+		if ace.Header.AceFlags&windows.INHERIT_ONLY_ACE == 0 {
+			effective[sid] = true
 		}
-		if ace.Header.AceFlags&(windows.OBJECT_INHERIT_ACE|windows.CONTAINER_INHERIT_ACE) != (windows.OBJECT_INHERIT_ACE | windows.CONTAINER_INHERIT_ACE) {
-			t.Fatalf("ACE no heredable por ficheros y carpetas: %s", sid)
+		if ace.Header.AceFlags&(windows.OBJECT_INHERIT_ACE|windows.CONTAINER_INHERIT_ACE) == (windows.OBJECT_INHERIT_ACE | windows.CONTAINER_INHERIT_ACE) {
+			inheritable[sid] = true
 		}
 		allowed[sid] = true
 	}
 	for sid, found := range allowed {
 		if !found {
 			t.Fatalf("DACL no incluye %s", sid)
+		}
+		if !effective[sid] {
+			t.Fatalf("ACE sin acceso efectivo: %s", sid)
+		}
+		if !inheritable[sid] {
+			t.Fatalf("ACE no heredable por ficheros y carpetas: %s", sid)
 		}
 	}
 
