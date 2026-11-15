@@ -204,24 +204,76 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
         }
     }
 
-    /** Lote 39d: ningún párrafo toma el foco al abrir; TalkBack empieza por el título. */
-    @Test fun noParagraphTakesTheInitialFocus() {
+    /**
+     * Vuelta 2: el foco inicial cae en el título, en el diálogo y en la ayuda, y vuelve
+     * a él al cerrar la ayuda. Antes caía en la casilla (que hereda de Button) o en «Cerrar».
+     */
+    @Test fun initialFocusIsOnTheTitle() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { UnsafeExceptionDialog(it, item, true, {}, {}).show() }
             assertConsentWindowHasFocus()
             onView(withId(R.id.unsafeAcceptanceText)).inRoot(isDialog()).check { view, error ->
                 if (error != null) throw error
-                val text = view as android.widget.TextView
-                assertFalse("El texto de aceptación no es seleccionable", text.isTextSelectable)
-                assertFalse("El texto de aceptación no recibe foco", text.isFocusable)
-                val focused = view.rootView.findFocus()
-                assertFalse("Foco inicial en un párrafo: $focused",
-                    focused is android.widget.TextView && focused !is android.widget.Button)
+                assertFalse("El texto de aceptación no es seleccionable", (view as android.widget.TextView).isTextSelectable)
+                assertEquals("Foco inicial: ${view.rootView.findFocus()}", R.id.unsafeTitle, view.rootView.findFocus()?.id)
             }
             onView(withId(R.id.unsafeMore)).inRoot(isDialog()).perform(click())
             onView(withId(R.id.unsafeHelpText)).inRoot(isDialog()).check { view, error ->
                 if (error != null) throw error
-                assertFalse("La ayuda no recibe el foco antes que su título", view.isFocusable)
+                assertEquals("Foco inicial de la ayuda: ${view.rootView.findFocus()}", R.id.unsafeHelpTitle, view.rootView.findFocus()?.id)
+            }
+            onView(withId(R.id.unsafeHelpClose)).inRoot(isDialog()).perform(click())
+            onView(withId(R.id.unsafeTitle)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                assertTrue("Al cerrar la ayuda el foco vuelve al título", view.isFocused)
+            }
+        }
+    }
+
+    /** Vuelta 2: «Cerrar» queda fijo y entero, el texto se desplaza con barra visible y cada apartado tiene encabezado. */
+    @Test fun helpHasAFixedCloseButtonAndOneHeadingPerSection() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { UnsafeExceptionDialog.showHelp(it, item) }
+            onView(withId(R.id.unsafeHelpClose)).inRoot(isDialog()).check(matches(isCompletelyDisplayed()))
+                .check { view, error ->
+                    if (error != null) throw error
+                    assertControlInsideSafeArea(view)
+                }
+            onView(withId(R.id.unsafeHelpScroll)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                assertTrue(view.isVerticalScrollBarEnabled)
+                assertFalse("La barra no se oculta", view.isScrollbarFadingEnabled)
+                val headings = mutableListOf<View>()
+                fun walk(v: View) {
+                    if (ViewCompat.isAccessibilityHeading(v)) headings += v
+                    if (v is ViewGroup) for (i in 0 until v.childCount) walk(v.getChildAt(i))
+                }
+                walk(view)
+                assertEquals("Título y siete apartados", 8, headings.size)
+            }
+        }
+    }
+
+    /** Vuelta 2: al cambiar un caso solo se rehace su fila; el resto, y el foco, siguen donde estaban. */
+    @Test fun changingOneCaseOnlyRebuildsItsRow() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val binding = DialogPreferencesBinding.inflate(activity.layoutInflater)
+                val panel = UnsafeExceptionsPanel(binding.unsafePreferences, {}, {}, {})
+                val cases = UnsafeExceptions.ids.map { id -> item.copy(id = id) }
+                val base = MainUiState(backend = io.github.aavidad.grxfirma.android.core.CoreReadiness(true, "ready", ""),
+                    unsafeExceptionsAvailable = true, unsafeExceptions = cases)
+                panel.render(base)
+                val other = binding.root.findViewWithTag<View>("unsafe-case-cms_cbc")
+                val before = binding.root.findViewWithTag<View>("unsafe-case-sha1_leer")
+                val enabled = cases.map { if (it.id == "sha1_leer") it.copy(enabled = true, acceptedAt = "2026-11-15T17:06:00Z") else it }
+                panel.render(base.copy(unsafeExceptions = enabled))
+                assertSame("Las demás filas no se rehacen", other, binding.root.findViewWithTag<View>("unsafe-case-cms_cbc"))
+                assertNotSame(before, binding.root.findViewWithTag<View>("unsafe-case-sha1_leer"))
+                val status = binding.root.findViewWithTag<android.widget.TextView>("unsafe-status-sha1_leer").text.toString()
+                assertTrue("Una sola línea con la fecha: $status", status.startsWith(UnsafeExceptionTexts.text(activity, "aceptada_fecha").substringBefore("{date}")))
+                val refresh = binding.root.findViewById<com.google.android.material.button.MaterialButton>(R.id.unsafeRefresh)
+                assertTrue("Actualizar lista va con borde", refresh.strokeWidth > 0)
             }
         }
     }

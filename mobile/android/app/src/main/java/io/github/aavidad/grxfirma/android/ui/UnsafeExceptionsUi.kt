@@ -5,6 +5,7 @@
 
 package io.github.aavidad.grxfirma.android.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Typeface
@@ -13,6 +14,7 @@ import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -34,6 +36,28 @@ import io.github.aavidad.grxfirma.android.core.UnsafeExceptionState
 internal fun Window.setAccessibleTitle(value: CharSequence) {
     setTitle(value)
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) attributes = attributes.apply { title = value }
+}
+
+/**
+ * Al abrir una ventana, TalkBack se queda con el primer control enfocable (la
+ * casilla o «Cerrar») y se salta el título. El título pasa a ser enfocable y
+ * recibe el foco de entrada y el de accesibilidad en cuanto se pinta.
+ *
+ * Se fuerza el foco de accesibilidad solo aquí, una vez al abrir el aviso o su
+ * ayuda: quien lo use tiene que oír el título y el ajuste antes que la casilla
+ * con la que acepta el riesgo (recorrido Android 3, defecto 1).
+ */
+@SuppressLint("AccessibilityFocus")
+internal fun View.takeInitialFocus() {
+    isFocusable = true
+    isFocusableInTouchMode = true
+    val focus = Runnable {
+        requestFocus()
+        performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
+    }
+    post(focus)
+    // TalkBack coloca su foco al recibir el cambio de ventana; se repite después.
+    postDelayed(focus, 400)
 }
 
 private fun Context.dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
@@ -121,14 +145,15 @@ class UnsafeExceptionDialog(
     }
     private val more = secondary(context, UnsafeExceptionTexts.text(context, "mas_informacion"), outlined = false).apply {
         id = R.id.unsafeMore
-        setOnClickListener { showHelp(context, item) }
+        setOnClickListener { showHelp(context, item) { titleView.takeInitialFocus() } }
     }
     private var busy = false
     private val dialog: AlertDialog
+    private val titleView = paragraph(context, title, heading = true).apply { id = R.id.unsafeTitle }
 
     init {
         ViewCompat.setAccessibilityPaneTitle(body, title)
-        body.addView(paragraph(context, title, heading = true))
+        body.addView(titleView)
         body.addView(paragraph(context, EngineText.resolve(context, item.key("ajuste")), heading = true))
         // Ningún párrafo es seleccionable: un texto seleccionable recibe el foco
         // al abrir la ventana y TalkBack empezaría por él, no por el título.
@@ -197,6 +222,8 @@ class UnsafeExceptionDialog(
             it.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             SafeWindowInsets.fullScreenDialog(it)
         }
+        // TalkBack empieza por el título, no por la casilla.
+        titleView.takeInitialFocus()
     }
 
     fun render(saving: Boolean, error: UiText?) {
@@ -233,25 +260,74 @@ class UnsafeExceptionDialog(
             else -> listOf(item.key("riesgo"), "android.inseguro.version_no_disponible")
         }
 
-        fun showHelp(context: Context, item: UnsafeExceptionState) {
-            val body = column(context).apply {
-                setPadding(context.dp(24), context.dp(12), context.dp(24), context.dp(24))
+        /**
+         * Apartados de la ayuda: separados por una línea en blanco y, cada uno,
+         * «Encabezado: texto». Sin dos puntos al principio, el apartado va sin encabezado.
+         */
+        fun helpSections(text: String): List<Pair<String, String>> =
+            text.split("\n\n").map { it.trim() }.filter { it.isNotEmpty() }.map { section ->
+                val colon = section.indexOfFirst { it == ':' || it == '：' }
+                if (colon <= 0 || colon > 60) "" to section
+                else section.substring(0, colon).trim() to section.substring(colon + 1).trim()
+                    .replaceFirstChar { it.titlecase() }
             }
-            ViewCompat.setAccessibilityPaneTitle(body, EngineText.resolve(context, item.key("ajuste")))
-            body.addView(paragraph(context, EngineText.resolve(context, item.key("ajuste")), heading = true))
-            body.addView(paragraph(context, EngineText.resolve(context, item.key("ayuda"))).apply {
-                id = R.id.unsafeHelpText
-            })
-            val close = action(context, UnsafeExceptionTexts.text(context, "cerrar"))
-            body.addView(close)
-            val dialog = MaterialAlertDialogBuilder(context).setView(ScrollView(context).apply { addView(body) }).create()
+
+        fun showHelp(context: Context, item: UnsafeExceptionState, onClosed: () -> Unit = {}) {
+            val setting = EngineText.resolve(context, item.key("ajuste"))
+            val body = column(context).apply {
+                setPadding(context.dp(24), context.dp(12), context.dp(24), context.dp(12))
+            }
+            ViewCompat.setAccessibilityPaneTitle(body, setting)
+            val helpTitle = paragraph(context, setting, heading = true).apply { id = R.id.unsafeHelpTitle }
+            body.addView(helpTitle)
+            // Un encabezado por apartado: TalkBack puede saltar de uno a otro.
+            helpSections(EngineText.resolve(context, item.key("ayuda"))).forEachIndexed { index, (heading, text) ->
+                if (heading.isNotEmpty()) body.addView(TextView(context).apply {
+                    this.text = heading
+                    setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
+                    setPadding(0, context.dp(12), 0, 0)
+                    ViewCompat.setAccessibilityHeading(this, true)
+                })
+                body.addView(paragraph(context, text).apply {
+                    if (index == 0) id = R.id.unsafeHelpText
+                    setPadding(0, context.dp(4), 0, context.dp(4))
+                })
+            }
+            // El texto se desplaza con la barra siempre visible; «Cerrar» queda fijo abajo.
+            val scroll = ScrollView(context).apply {
+                id = R.id.unsafeHelpScroll
+                isVerticalScrollBarEnabled = true
+                isScrollbarFadingEnabled = false
+                isVerticalFadingEdgeEnabled = true
+                setFadingEdgeLength(context.dp(32))
+                addView(body)
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+            }
+            val close = action(context, UnsafeExceptionTexts.text(context, "cerrar")).apply { id = R.id.unsafeHelpClose }
+            val footer = column(context).apply {
+                setPadding(context.dp(24), context.dp(8), context.dp(24), context.dp(16))
+                addView(View(context).apply {
+                    setBackgroundColor(ContextCompat.getColor(context, R.color.outline_variant))
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, context.dp(1)).apply {
+                        bottomMargin = context.dp(8)
+                    }
+                })
+                addView(close)
+            }
+            val root = column(context).apply {
+                addView(scroll)
+                addView(footer)
+            }
+            val dialog = MaterialAlertDialogBuilder(context).setView(root).create()
             close.setOnClickListener { dialog.dismiss() }
+            dialog.setOnDismissListener { onClosed() }
             dialog.show()
             dialog.window?.let {
-                it.setAccessibleTitle(EngineText.resolve(context, item.key("ajuste")))
-                it.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                it.setAccessibleTitle(setting)
+                it.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                 SafeWindowInsets.fullScreenDialog(it)
             }
+            helpTitle.takeInitialFocus()
         }
     }
 }
@@ -266,12 +342,18 @@ class UnsafeExceptionsPanel(
     private val context = container.context
     private val status = paragraph(context, "").apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
     private val rows = column(context)
-    private val refreshButton = action(context, UnsafeExceptionTexts.text(context, "actualizar")).apply {
+    // Casi nadie lo necesita: va con borde, no relleno.
+    private val refreshButton = secondary(context, UnsafeExceptionTexts.text(context, "actualizar"), outlined = true).apply {
         id = R.id.unsafeRefresh
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         setOnClickListener { refresh() }
     }
     private var items: List<UnsafeExceptionState>? = null
-    private val controls = mutableListOf<Pair<MaterialButton, Boolean>>()
+    private val controls = mutableMapOf<String, Pair<MaterialButton, Boolean>>()
+    /** Caso cuyo botón se ha pulsado: al cambiar su estado, recibe el foco y se anuncia. */
+    private var pendingFocus: String? = null
+    /** «Ajuste: estado nuevo», en la región viva de la sección (TalkBack lo lee sin mover el foco). */
+    private var announcement = ""
     init {
         container.addView(paragraph(context, UnsafeExceptionTexts.text(context, "seccion"), heading = true))
         container.addView(paragraph(context, UnsafeExceptionTexts.text(context, "introduccion")))
@@ -281,73 +363,123 @@ class UnsafeExceptionsPanel(
     }
 
     fun render(state: MainUiState) {
+        renderRows(state)
         status.text = when {
             !state.unsafeExceptionsAvailable -> UnsafeExceptionTexts.text(context, "no_disponible")
             state.unsafeSaving -> UnsafeExceptionTexts.text(context, "guardando")
             state.unsafeLoading -> UnsafeExceptionTexts.text(context, "cargando")
-            else -> state.unsafeError?.resolve(context).orEmpty()
+            else -> state.unsafeError?.resolve(context) ?: announcement
         }
         status.visibility = if (status.text.isEmpty()) View.GONE else View.VISIBLE
+        controls.values.forEach { (button, changeable) ->
+            button.isEnabled = changeable && !state.unsafeLoading && !state.unsafeSaving && state.canReplaceSelection
+        }
+    }
+
+    private fun renderRows(state: MainUiState) {
         refreshButton.isEnabled = state.unsafeExceptionsAvailable && !state.unsafeLoading && !state.unsafeSaving
-        if (items != state.unsafeExceptions) {
+        val previous = items
+        if (previous != state.unsafeExceptions) {
             items = state.unsafeExceptions
-            rows.removeAllViews()
-            controls.clear()
-            state.unsafeExceptions.forEach { item ->
-                val name = EngineText.resolve(context, item.key("ajuste"))
-                val row = column(context).apply {
-                    tag = "unsafe-case-${item.id}"
-                    setPadding(context.dp(12), context.dp(8), context.dp(12), context.dp(12))
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                        topMargin = context.dp(8)
+            val changed = changedIds(previous, state.unsafeExceptions)
+            if (changed == null) {
+                pendingFocus = null
+                announcement = ""
+                rows.removeAllViews()
+                controls.clear()
+                state.unsafeExceptions.forEach { rows.addView(row(it)) }
+            } else {
+                // Solo se rehace la fila que cambia: las demás, y el foco, siguen donde estaban.
+                state.unsafeExceptions.filter { it.id in changed }.forEach { item ->
+                    val old = rows.findViewWithTag<View>("unsafe-case-${item.id}")
+                    val index = rows.indexOfChild(old)
+                    rows.removeViewAt(index)
+                    val fresh = row(item)
+                    rows.addView(fresh, index)
+                    if (item.id == pendingFocus) {
+                        pendingFocus = null
+                        // Con teclado el foco vuelve al botón del caso; TalkBack oye el estado nuevo.
+                        fresh.findViewWithTag<View>("unsafe-change-${item.id}").requestFocus()
+                        val name = EngineText.resolve(context, item.key("ajuste"))
+                        val now = fresh.findViewWithTag<TextView>("unsafe-status-${item.id}").text
+                        announcement = "$name: $now"
                     }
-                    // Un caso activado se ve de un vistazo, no solo por la palabra «Activada».
-                    if (item.enabled) background = GradientDrawable().apply {
-                        cornerRadius = context.dp(12).toFloat()
-                        setColor(ContextCompat.getColor(context, R.color.status_warning_container))
-                    }
                 }
-                row.addView(paragraph(context, name, heading = true))
-                row.addView(paragraph(context, EngineText.resolve(context, item.statusKey)).apply {
-                    if (item.enabled) setTypeface(typeface, Typeface.BOLD)
-                })
-                if (item.enabled && item.acceptedAt.isNotBlank()) row.addView(paragraph(context,
-                    UnsafeExceptionTexts.text(context, "aceptada_fecha").replace("{fecha}", UiText.DateTime(item.acceptedAt, true).resolve(context))))
-                if (item.fixed || item.policyUnreadable) row.addView(paragraph(context, EngineText.resolve(context, item.key("organizacion"))))
-                val change = action(context, UnsafeExceptionTexts.text(context, when {
-                    item.enabled -> "desactivar"
-                    !item.activable -> "ver_bloqueo"
-                    else -> "activar"
-                })).apply {
-                    tag = "unsafe-change-${item.id}"
-                    contentDescription = "$text: $name"
-                    setOnClickListener { if (item.enabled) disable(item) else activate(item) }
-                }
-                controls += change to (if (item.enabled) item.canDisable else true)
-                // Una sola acción rellena por caso; «Más información» va como texto.
-                val help = secondary(context, UnsafeExceptionTexts.text(context, "mas_informacion"), outlined = false).apply {
-                    tag = "unsafe-help-${item.id}"
-                    contentDescription = "$text: $name"
-                    setOnClickListener { UnsafeExceptionDialog.showHelp(context, item) }
-                }
-                val large = context.largeText()
-                val actions = LinearLayout(context).apply {
-                    orientation = if (large) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                }
-                listOf(change, help).forEachIndexed { index, button ->
-                    button.layoutParams = if (large) LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                        else LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                            if (index > 0) marginStart = context.dp(8)
-                        }
-                    actions.addView(button)
-                }
-                row.addView(actions)
-                rows.addView(row)
             }
         }
-        controls.forEach { (button, changeable) ->
-            button.isEnabled = changeable && !state.unsafeLoading && !state.unsafeSaving && state.canReplaceSelection
+    }
+
+    private fun row(item: UnsafeExceptionState): View {
+        val name = EngineText.resolve(context, item.key("ajuste"))
+        val row = column(context).apply {
+            tag = "unsafe-case-${item.id}"
+            setPadding(context.dp(12), context.dp(8), context.dp(12), context.dp(12))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                topMargin = context.dp(8)
+            }
+            // Un caso activado se ve de un vistazo, no solo por la palabra «Activada».
+            if (item.enabled) background = GradientDrawable().apply {
+                cornerRadius = context.dp(12).toFloat()
+                setColor(ContextCompat.getColor(context, R.color.status_warning_container))
+            }
+        }
+        row.addView(paragraph(context, name, heading = true))
+        // Una sola línea de estado: «Activado el …» ya dice que está activado.
+        val key = statusKey(item)
+        val statusText = EngineText.resolve(context, key).let {
+            if (key == DATE_KEY) it.replace("{date}", UiText.DateTime(item.acceptedAt, true).resolve(context)) else it
+        }
+        row.addView(paragraph(context, statusText).apply {
+            tag = "unsafe-status-${item.id}"
+            if (item.enabled) setTypeface(typeface, Typeface.BOLD)
+        })
+        if (item.fixed || item.policyUnreadable) row.addView(paragraph(context, EngineText.resolve(context, item.key("organizacion"))))
+        val change = action(context, UnsafeExceptionTexts.text(context, when {
+            item.enabled -> "desactivar"
+            !item.activable -> "ver_bloqueo"
+            else -> "activar"
+        })).apply {
+            tag = "unsafe-change-${item.id}"
+            contentDescription = "$text: $name"
+            setOnClickListener {
+                pendingFocus = item.id
+                if (item.enabled) disable(item) else activate(item)
+            }
+        }
+        controls[item.id] = change to (if (item.enabled) item.canDisable else true)
+        // Una sola acción rellena por caso; «Más información» va como texto.
+        val help = secondary(context, UnsafeExceptionTexts.text(context, "mas_informacion"), outlined = false).apply {
+            tag = "unsafe-help-${item.id}"
+            contentDescription = "$text: $name"
+            setOnClickListener { UnsafeExceptionDialog.showHelp(context, item) }
+        }
+        val large = context.largeText()
+        val actions = LinearLayout(context).apply {
+            orientation = if (large) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        listOf(change, help).forEachIndexed { index, button ->
+            button.layoutParams = if (large) LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                else LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    if (index > 0) marginStart = context.dp(8)
+                }
+            actions.addView(button)
+        }
+        row.addView(actions)
+        return row
+    }
+
+    companion object {
+        private const val DATE_KEY = "android.inseguro.aceptada_fecha"
+
+        /** Activado por la persona y con fecha: una línea, «Activado el {date}». */
+        fun statusKey(item: UnsafeExceptionState): String =
+            if (item.statusKey == "android.inseguro.activada" && item.acceptedAt.isNotBlank()) DATE_KEY else item.statusKey
+
+        /** Casos que cambian entre dos listas con los mismos casos en el mismo orden; null si hay que rehacerlas. */
+        fun changedIds(old: List<UnsafeExceptionState>?, new: List<UnsafeExceptionState>): Set<String>? {
+            if (old == null || old.map { it.id } != new.map { it.id }) return null
+            return old.zip(new).filter { (a, b) -> a != b }.map { it.second.id }.toSet()
         }
     }
 }
