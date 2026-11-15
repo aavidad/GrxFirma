@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 )
 
 const (
@@ -28,7 +30,7 @@ const (
 var (
 	openGLVersionPrefix = regexp.MustCompile(`^\s*(\d+)\.(\d+)`)
 
-	checkPlatformGraphicsReadiness = platformGraphicsReadiness
+	checkPlatformGraphicsReadiness = graphicsReadinessConEscritorio
 	showPlatformGraphicsFailure    = platformGraphicsFailureDialog
 	activateNativeProtocolFallback = enableNativeProtocolUIFallback
 )
@@ -145,7 +147,33 @@ func sanitizeGraphicsDiagnostic(raw string) string {
 	return strings.Join(strings.Fields(clean.String()), " ")
 }
 
+// graphicsReadinessConEscritorio exige primero un escritorio visible: sin él,
+// ninguna ventana de Fyne ni diálogo Win32 puede llegar a la persona.
+func graphicsReadinessConEscritorio() error {
+	if err := comprobarEscritorioUI("interfaz_grafica"); err != nil {
+		return err
+	}
+	return platformGraphicsReadiness()
+}
+
+// rechazarSinEscritorio comprueba el escritorio antes de abrir la interfaz.
+// Sin él no se muestra ningún aviso gráfico, que tampoco vería nadie: el
+// motivo va a la salida de error con el texto del catálogo.
+func rechazarSinEscritorio(stderr io.Writer, dialogo string) error {
+	err := comprobarEscritorioUI(dialogo)
+	if err == nil {
+		return nil
+	}
+	if stderr != nil {
+		_, _ = fmt.Fprintln(stderr, tl("error: ")+tl(escritorio.ClaveMensaje))
+	}
+	return err
+}
+
 func requireInteractiveGraphics(stderr io.Writer) error {
+	if err := rechazarSinEscritorio(stderr, "servicio_websocket"); err != nil {
+		return err
+	}
 	err := checkPlatformGraphicsReadiness()
 	if err == nil {
 		return nil
@@ -155,6 +183,11 @@ func requireInteractiveGraphics(stderr io.Writer) error {
 
 func prepareProtocolInteractiveUI(stderr io.Writer) error {
 	disableNativeProtocolUIFallback()
+	// Sin escritorio tampoco sirve la interfaz nativa de Windows: sus
+	// diálogos esperarían igual. Se falla cerrado antes de leer la URI.
+	if err := rechazarSinEscritorio(stderr, "interfaz_protocolo"); err != nil {
+		return err
+	}
 	if nativeProtocolUIForced() && activateNativeProtocolFallback(nil) {
 		if stderr != nil {
 			_, _ = fmt.Fprintln(

@@ -202,6 +202,9 @@ func (s selectorInteractivo) Select(ctx context.Context, certs []domain.Certific
 type trustUIFyne struct{}
 
 func (t trustUIFyne) PedirDecision(ctx context.Context, origen string) (trustdialog.DecisionUnicaVez, error) {
+	if err := comprobarEscritorioUI("confianza_origen"); err != nil {
+		return trustdialog.Rechazar, err
+	}
 	portalActionUI()
 	if dir, err := defaultProtocolConfigDir(); err == nil {
 		trustdialog.SetConfigDir(dir)

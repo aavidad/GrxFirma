@@ -60,6 +60,9 @@ func solicitarPasswordTemporalNativo(ctx context.Context) ([]byte, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
+	if err := comprobarEscritorioUI("contrasena_p12_nativa"); err != nil {
+		return nil, err
+	}
 	if err := procPromptTemporaryCredential.Find(); err != nil {
 		return nil, errors.New("no está disponible el diálogo protegido de contraseña de Windows")
 	}

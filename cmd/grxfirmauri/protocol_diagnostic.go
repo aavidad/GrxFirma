@@ -333,12 +333,15 @@ func appendTailEvent(events []protocolDiagnosticEvent, event protocolDiagnosticE
 	return events
 }
 
-func protocolIncidentDir() string {
-	home, err := os.UserHomeDir()
+// protocolIncidentDir devuelve la carpeta de incidencias del perfil. Pueden
+// llevar datos personales: sin carpeta personal válida no se escriben, nunca
+// van a la carpeta temporal compartida.
+func protocolIncidentDir() (string, error) {
+	state, err := appdirs.StateUsuario()
 	if err != nil {
-		return filepath.Join(os.TempDir(), "grxfirma-incidents")
+		return "", err
 	}
-	return filepath.Join(appdirs.State(home), "incidents")
+	return filepath.Join(state, "incidents"), nil
 }
 
 func ensurePrivateProtocolIncidentDir(path string) (err error) {
@@ -349,7 +352,10 @@ func ensurePrivateProtocolIncidentDir(path string) (err error) {
 }
 
 func writeProtocolIncidentFiles(incident protocolIncident) (string, error) {
-	dir := protocolIncidentDir()
+	dir, err := protocolIncidentDir()
+	if err != nil {
+		return "", err
+	}
 	if err := ensurePrivateProtocolIncidentDir(dir); err != nil {
 		return "", err
 	}
@@ -580,7 +586,11 @@ func buildProtocolIncidentText(incident protocolIncident) string {
 }
 
 func buildProtocolIncidentLogTail() string {
-	text, err := readProtocolDebugLogTail(resolveProtocolDebugLogPath(), 64*1024)
+	path := resolveProtocolDebugLogPath()
+	if path == "" {
+		return ""
+	}
+	text, err := readProtocolDebugLogTail(path, 64*1024)
 	if err != nil {
 		return ""
 	}
@@ -598,11 +608,13 @@ func resolveProtocolDebugLogPath() string {
 	if path := strings.TrimSpace(os.Getenv("GRXFIRMA_DEBUG_LOG_FILE")); path != "" {
 		return path
 	}
-	home, err := os.UserHomeDir()
+	// Sin carpeta personal no hay registro que leer: un fichero de la carpeta
+	// temporal compartida lo podría haber dejado otra persona.
+	state, err := appdirs.StateUsuario()
 	if err != nil {
-		return filepath.Join(os.TempDir(), "grxfirma-debug.log")
+		return ""
 	}
-	return filepath.Join(appdirs.State(home), "logs", "grxfirma-debug.log")
+	return filepath.Join(state, "logs", "grxfirma-debug.log")
 }
 
 func readProtocolDebugLogTail(path string, maxBytes int64) (string, error) {

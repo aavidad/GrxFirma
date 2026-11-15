@@ -65,6 +65,21 @@ func State(home string) string {
 	return filepath.Join(home, ".local", "state", "grxfirma")
 }
 
+// ErrStateNoDisponible indica que el entorno no da una carpeta personal
+// absoluta para diagnósticos y registros.
+var ErrStateNoDisponible = errors.New("appdirs: carpeta de diagnósticos no disponible")
+
+// StateUsuario es State con la carpeta personal del sistema, para quien debe
+// fallar cerrado: con la carpeta personal vacía o relativa no hay carpeta y
+// quien llama no escribe. Nunca se usa la carpeta temporal compartida.
+func StateUsuario() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil || strings.TrimSpace(home) == "" || !filepath.IsAbs(home) {
+		return "", ErrStateNoDisponible
+	}
+	return State(home), nil
+}
+
 // Cache devuelve la raíz de ficheros temporales persistentes del usuario.
 func Cache(home string) string {
 	if runtime.GOOS == "windows" {

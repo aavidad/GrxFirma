@@ -23,6 +23,9 @@ import (
 func TestMain(m *testing.M) {
 	nuevoSelectorFirmaWeb = func() ports.ProtocoloAfirma { return &selectorFirmaWebFalso{} }
 	presentarAvisoFirmaWeb = func(context.Context, string) {}
+	// Las pruebas simulan los diálogos con sustitutos: hacen de escritorio.
+	// Las de sin escritorio vuelven a la comprobación real (sinEscritorio).
+	comprobarEscritorioUI = func(string) error { return nil }
 	os.Exit(m.Run())
 }
 

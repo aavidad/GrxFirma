@@ -24,6 +24,7 @@ import (
 	"fyne.io/fyne/v2/storage"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/portalpaths"
 )
@@ -78,6 +79,9 @@ func (r fyneResolver) ResolveDocumentFiltered(ctx context.Context, filter ports.
 	case <-ctx.Done():
 		return SelectedDocument{}, ctx.Err()
 	default:
+	}
+	if err := escritorio.Comprobar("selector_documento"); err != nil {
+		return SelectedDocument{}, err
 	}
 
 	var w fyne.Window

@@ -9,13 +9,16 @@ package wincertstore
 
 import (
 	"errors"
+	"syscall"
 	"testing"
 
 	"golang.org/x/sys/windows"
+
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 )
 
 func TestAdquirirClavePreferida_PrefiereCNGConFallbackCAPISinCambiarPropiedad(t *testing.T) {
-	t.Parallel()
+	t.Cleanup(escritorio.SustituirDetector(func() bool { return true }))
 	for _, spec := range []uint32{windows.CERT_NCRYPT_KEY_SPEC, windows.AT_SIGNATURE, windows.AT_KEYEXCHANGE} {
 		for _, owned := range []bool{false, true} {
 			want := claveWindowsAdquirida{manejador: windows.Handle(123), especificacion: spec, liberarManejador: owned}
@@ -34,8 +37,24 @@ func TestAdquirirClavePreferida_PrefiereCNGConFallbackCAPISinCambiarPropiedad(t 
 	}
 }
 
+// Sin escritorio la clave se pide en silencio: un proveedor que necesite PIN
+// o confirmación falla en vez de abrir una ventana que nadie ve.
+func TestAdquirirClavePreferida_SinEscritorioPideSilencio(t *testing.T) {
+	t.Cleanup(escritorio.SustituirDetector(func() bool { return false }))
+	var recibidas uint32
+	_, err := adquirirClavePreferida(func(flags uint32) (claveWindowsAdquirida, error) {
+		recibidas = flags
+		return claveWindowsAdquirida{}, syscall.Errno(nteSilentContext)
+	})
+	if recibidas&windows.CRYPT_ACQUIRE_SILENT_FLAG == 0 {
+		t.Fatalf("flags = %#x; sin escritorio falta CRYPT_ACQUIRE_SILENT_FLAG", recibidas)
+	}
+	if !errors.Is(err, escritorio.ErrSinEscritorio) || !errors.Is(err, syscall.Errno(nteSilentContext)) {
+		t.Fatalf("error sin escritorio = %v", err)
+	}
+}
+
 func TestAdquirirClavePreferida_NoReintentaErroresNiAdmiteHandleNulo(t *testing.T) {
-	t.Parallel()
 	wantErr := errors.New("proveedor no disponible")
 	calls := 0
 	got, err := adquirirClavePreferida(func(uint32) (claveWindowsAdquirida, error) {

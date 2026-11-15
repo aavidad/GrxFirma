@@ -21,6 +21,8 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/windows"
+
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 )
 
 const (
@@ -123,7 +125,7 @@ func ShowVerification(ctx context.Context, spec Spec) (int32, int32, bool, error
 		// registro y quien llama sigue o falla con ErrSinEscritorio. Nunca
 		// se da por pulsado ningún botón.
 		slog.WarnContext(ctx, "dialogo_nativo_sin_escritorio", "titulo", spec.Title, "instruccion", spec.Instruction)
-		return 0, 0, false, ErrSinEscritorio
+		return 0, 0, false, &escritorio.Error{Dialogo: "wintaskdialog"}
 	}
 	if !Available() {
 		return 0, 0, false, errors.New("TaskDialog no disponible: falta Common Controls v6 en el manifiesto")

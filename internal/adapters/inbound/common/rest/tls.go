@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -222,13 +223,17 @@ func serverTLSConfig(cert tls.Certificate, minVersion uint16) *tls.Config {
 	return cfg
 }
 
+// ErrDirectorioTLSNoIndicado indica que no se ha dado carpeta para el TLS
+// local. La clave privada nunca se guarda en la carpeta temporal compartida.
+var ErrDirectorioTLSNoIndicado = errors.New("rest: no se ha indicado la carpeta del TLS local")
+
 // EnsureLocalhostCertificate crea o reutiliza un certificado válido para localhost y 127.0.0.1.
 func EnsureLocalhostCertificate(dir, prefix string) (string, string, error) {
 	if prefix == "" {
 		prefix = defaultCertPrefix
 	}
-	if dir == "" {
-		dir = os.TempDir()
+	if strings.TrimSpace(dir) == "" {
+		return "", "", ErrDirectorioTLSNoIndicado
 	}
 	if err := prepareTLSDirectory(dir); err != nil {
 		return "", "", err
@@ -287,8 +292,8 @@ func EnsureLocalhostCertificateWithLocalCAContext(ctx context.Context, dir, pref
 	if prefix == "" {
 		prefix = defaultCertPrefix
 	}
-	if dir == "" {
-		dir = os.TempDir()
+	if strings.TrimSpace(dir) == "" {
+		return "", "", "", ErrDirectorioTLSNoIndicado
 	}
 	if err := prepareTLSDirectory(dir); err != nil {
 		return "", "", "", err

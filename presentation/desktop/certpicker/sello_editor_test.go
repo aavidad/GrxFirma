@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/testsupport/pdffixture"
 )
@@ -130,6 +131,7 @@ func TestEjecutarEditorSelloBorraTemporales(t *testing.T) {
 	if runtime.GOOS != "linux" {
 		t.Skip("prueba del proceso simulado en Linux")
 	}
+	t.Cleanup(escritorio.SustituirDetector(func() bool { return true }))
 	root := t.TempDir()
 	program := filepath.Join(root, "editor.sh")
 	logPath := filepath.Join(root, "request-path")
@@ -195,6 +197,7 @@ func TestEjecutarEditorSelloAprovechaResultadoValidoTrasFallo(t *testing.T) {
 	if runtime.GOOS != "linux" {
 		t.Skip("prueba del proceso simulado en Linux")
 	}
+	t.Cleanup(escritorio.SustituirDetector(func() bool { return true }))
 	root := t.TempDir()
 	program := filepath.Join(root, "editor.sh")
 	resultFile := filepath.Join(root, "result.txt")

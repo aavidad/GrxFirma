@@ -53,3 +53,19 @@ func TestConfigUsuarioRechazaAppDataRelativoEnWindows(t *testing.T) {
 		t.Fatalf("APPDATA absoluto: %q, %v", dir, err)
 	}
 }
+
+func TestStateUsuarioRechazaPerfilVacioORelativo(t *testing.T) {
+	for _, home := range []string{"", "relativa"} {
+		t.Setenv("HOME", home)
+		t.Setenv("USERPROFILE", home)
+		if dir, err := StateUsuario(); !errors.Is(err, ErrStateNoDisponible) {
+			t.Fatalf("HOME=%q: StateUsuario = %q, %v", home, dir, err)
+		}
+	}
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
+	if dir, err := StateUsuario(); err != nil || !filepath.IsAbs(dir) {
+		t.Fatalf("StateUsuario con perfil = %q, %v", dir, err)
+	}
+}

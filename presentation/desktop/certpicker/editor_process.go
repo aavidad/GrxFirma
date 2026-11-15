@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/domain"
 )
 
@@ -32,6 +33,14 @@ var resolverEjecutableEditorSello = executableEditorSello
 func EjecutarEditorSello(ctx context.Context, documento domain.Document, nombreCertificado string) ([]byte, error) {
 	if runtime.GOOS != "windows" && runtime.GOOS != "linux" {
 		return nil, ErrEditorSelloNoDisponible
+	}
+	// Sin escritorio el editor se abriría donde nadie lo ve y esperaría hasta
+	// el plazo. Se trata como editor no disponible, igual que si no estuviera
+	// instalado: quien llama sigue con el selector de posiciones, que también
+	// comprueba el escritorio, o firma sin sello si la interfaz no permite
+	// elegir. El error lleva además ErrSinEscritorio.
+	if err := escritorio.Comprobar("editor_sello"); err != nil {
+		return nil, errors.Join(ErrEditorSelloNoDisponible, err)
 	}
 	if len(documento.Content) == 0 || len(documento.Content) > 100*1024*1024 {
 		return nil, ErrEditorSelloNoDisponible

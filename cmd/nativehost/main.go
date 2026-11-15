@@ -52,6 +52,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/systemtrust"
 	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/adapters/outbound/desktop/certcatalogagg"
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/adapters/outbound/desktop/macoskeychain"
 	"grxfirma/internal/adapters/outbound/desktop/nssstore"
 	"grxfirma/internal/adapters/outbound/desktop/proxyhttp"
@@ -441,6 +442,11 @@ func serveNativeMessage(ctx context.Context, adaptador *nativehost.Adaptador, ca
 }
 
 func solicitarAprobacionSistema(ctx context.Context, titulo, mensaje string) (bool, error) {
+	// Sin escritorio nadie puede confirmar: la firma no se aprueba y no se
+	// lanza zenity, kdialog ni osascript.
+	if err := escritorio.Comprobar("aprobacion_nativehost"); err != nil {
+		return false, err
+	}
 	switch runtime.GOOS {
 	case "darwin":
 		return solicitarAprobacionMacOS(ctx, titulo, mensaje)

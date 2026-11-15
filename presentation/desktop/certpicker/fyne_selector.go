@@ -25,6 +25,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
+	"grxfirma/internal/adapters/outbound/desktop/escritorio"
 	"grxfirma/internal/domain"
 )
 
@@ -83,6 +84,11 @@ func (f *FyneSelector) Select(ctx context.Context, certs []domain.CertificateRef
 
 	if len(certs) == 0 && !f.credentialActions {
 		return ResultadoSeleccion{}, errors.New(tp("no hay certificados disponibles"))
+	}
+	// Sin escritorio nadie puede elegir: no se abre la ventana ni se da por
+	// elegido ningún certificado.
+	if err := escritorio.Comprobar("selector_certificado"); err != nil {
+		return ResultadoSeleccion{}, err
 	}
 	slog.Info("certpicker_select_start", "count", len(certs), "reuse_window", f.window != nil, "reuse_host", f.window != nil && f.host != nil)
 

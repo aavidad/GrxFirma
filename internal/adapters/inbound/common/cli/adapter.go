@@ -2791,7 +2791,11 @@ func (a *Adaptador) ejecutarImportarP12(ctx context.Context, cfg configCLI) int 
 		fmt.Fprintln(a.Stderr, "error validando el contenedor P12:", err)
 		return 1
 	}
-	destinoDir := a.directorioP12()
+	destinoDir, err := a.directorioP12()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	if err := os.MkdirAll(destinoDir, 0o700); err != nil {
 		fmt.Fprintln(a.Stderr, "error creando el directorio P12:", err)
 		return 1
@@ -2820,7 +2824,11 @@ func (a *Adaptador) ejecutarImportarP12(ctx context.Context, cfg configCLI) int 
 }
 
 func (a *Adaptador) ejecutarAutoseleccionLimpiar(_ context.Context, cfg configCLI) int {
-	persistente := a.rutaAutoseleccionPersistente()
+	persistente, err := a.rutaAutoseleccionPersistente()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	sesion := a.rutaAutoseleccionSesion()
 	eliminados := 0
 
@@ -2854,7 +2862,11 @@ func (a *Adaptador) ejecutarAutoseleccionLimpiar(_ context.Context, cfg configCL
 }
 
 func (a *Adaptador) ejecutarAutoseleccionListar(_ context.Context, cfg configCLI) int {
-	persistente := a.rutaAutoseleccionPersistente()
+	persistente, err := a.rutaAutoseleccionPersistente()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	sesion := a.rutaAutoseleccionSesion()
 
 	preferenciasPersistentes, err := leerMapaAutoseleccion(persistente)
@@ -2905,7 +2917,11 @@ func (a *Adaptador) ejecutarAutoseleccionEliminar(_ context.Context, cfg configC
 		return 1
 	}
 
-	persistente := a.rutaAutoseleccionPersistente()
+	persistente, err := a.rutaAutoseleccionPersistente()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	sesion := a.rutaAutoseleccionSesion()
 	eliminadoPersistente, err := eliminarEntradaAutoseleccion(persistente, origen)
 	if err != nil {
@@ -2944,7 +2960,11 @@ func (a *Adaptador) ejecutarAutoseleccionResetear(ctx context.Context, cfg confi
 		return 1
 	}
 
-	persistente := a.rutaAutoseleccionPersistente()
+	persistente, err := a.rutaAutoseleccionPersistente()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	sesion := a.rutaAutoseleccionSesion()
 
 	preferenciasPersistentes, err := leerMapaAutoseleccion(persistente)
@@ -2987,7 +3007,11 @@ func (a *Adaptador) ejecutarAutoseleccionExportar(_ context.Context, cfg configC
 		return 1
 	}
 
-	persistente := a.rutaAutoseleccionPersistente()
+	persistente, err := a.rutaAutoseleccionPersistente()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	sesion := a.rutaAutoseleccionSesion()
 	preferenciasPersistentes, err := leerMapaAutoseleccion(persistente)
 	if err != nil {
@@ -3063,7 +3087,11 @@ func (a *Adaptador) ejecutarAutoseleccionImportar(_ context.Context, cfg configC
 		payload.Sesion = map[string]string{}
 	}
 
-	persistente := a.rutaAutoseleccionPersistente()
+	persistente, err := a.rutaAutoseleccionPersistente()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	sesion := a.rutaAutoseleccionSesion()
 	if err := guardarMapaAutoseleccion(persistente, payload.Persistente); err != nil {
 		fmt.Fprintf(a.Stderr, "error guardando autoselección persistente: %v\n", err)
@@ -3095,7 +3123,11 @@ func (a *Adaptador) ejecutarAutoseleccionImportar(_ context.Context, cfg configC
 }
 
 func (a *Adaptador) ejecutarTLSAlmacenEstado(_ context.Context, cfg configCLI) int {
-	dir := a.directorioTLS()
+	dir, err := a.directorioTLS()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	total, certificados, claves := contarArtefactosTLS(dir)
 	payload := map[string]any{
 		"exito":              true,
@@ -3117,7 +3149,11 @@ func (a *Adaptador) ejecutarTLSAlmacenEstado(_ context.Context, cfg configCLI) i
 }
 
 func (a *Adaptador) ejecutarTLSAlmacenLimpiar(ctx context.Context, cfg configCLI) int {
-	dir := a.directorioTLS()
+	dir, err := a.directorioTLS()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
 	eliminados, err := resttls.ClearManagedLocalhostTLS(ctx, dir)
 	if err != nil {
 		fmt.Fprintln(a.Stderr, "error retirando confianza y artefactos TLS gestionados:", err)
@@ -3142,7 +3178,12 @@ func (a *Adaptador) ejecutarTLSAlmacenLimpiar(ctx context.Context, cfg configCLI
 func (a *Adaptador) ejecutarTLSGenerarCerts(ctx context.Context, cfg configCLI) int {
 	ctx, notices := domain.ConAvisosOperacion(ctx)
 	defer func() { a.escribirAvisosCLI("", notices.Claves()) }()
-	certFile, keyFile, rootFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(ctx, a.directorioTLS(), resttls.ManagedLocalhostPrefix)
+	dir, err := a.directorioTLS()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
+	certFile, keyFile, rootFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(ctx, dir, resttls.ManagedLocalhostPrefix)
 	if err != nil {
 		fmt.Fprintln(a.Stderr, "error generando certificados TLS:", err)
 		return 1
@@ -3168,7 +3209,12 @@ func (a *Adaptador) ejecutarTLSGenerarCerts(ctx context.Context, cfg configCLI) 
 func (a *Adaptador) ejecutarTLSInstalarConfianza(ctx context.Context, cfg configCLI) int {
 	ctx, notices := domain.ConAvisosOperacion(ctx)
 	defer func() { a.escribirAvisosCLI("", notices.Claves()) }()
-	_, _, certFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(ctx, a.directorioTLS(), resttls.ManagedLocalhostPrefix)
+	dir, err := a.directorioTLS()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
+	_, _, certFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(ctx, dir, resttls.ManagedLocalhostPrefix)
 	if err != nil {
 		fmt.Fprintln(a.Stderr, "error generando el certificado TLS local:", err)
 		return 1
@@ -3209,8 +3255,13 @@ func (a *Adaptador) ejecutarTLSInstalarConfianza(ctx context.Context, cfg config
 }
 
 func (a *Adaptador) ejecutarTLSEstadoConfianza(_ context.Context, cfg configCLI) int {
-	certFile := filepath.Join(a.directorioTLS(), resttls.ManagedLocalhostPrefix+"-root.crt.pem")
-	_, err := os.Stat(certFile)
+	dir, err := a.directorioTLS()
+	if err != nil {
+		a.escribirSinCarpetaPersonal()
+		return 1
+	}
+	certFile := filepath.Join(dir, resttls.ManagedLocalhostPrefix+"-root.crt.pem")
+	_, err = os.Stat(certFile)
 	estado := "no_generado"
 	if err == nil {
 		estado = "certificado_generado"
@@ -4173,43 +4224,62 @@ func serializarDominiosConfiados(dominios []domain.TrustDecision) []map[string]s
 	return out
 }
 
-func (a *Adaptador) directorioTLS() string {
-	configDir := strings.TrimSpace(a.ConfigDir)
-	if configDir == "" {
-		dir, err := appdirs.ConfigUsuario()
-		if err != nil {
-			return filepath.Join(os.TempDir(), "grxfirma", "tls")
-		}
-		configDir = dir
+// errSinCarpetaPersonal indica que no hay carpeta de configuración absoluta
+// del perfil y que, por eso, no se guarda ni se lee material de claves: nunca
+// se usa la carpeta temporal compartida ni la de trabajo.
+var errSinCarpetaPersonal = errors.New("cli: sin carpeta personal válida para el material de claves")
+
+// claveSinCarpetaPersonal es el texto del catálogo que explica qué falta.
+const (
+	claveSinCarpetaPersonal = "cli.error.sin_carpeta_personal"
+	clavePrefijoErrorCLI    = "cli.error.prefix"
+)
+
+// carpetaConfiguracion devuelve la carpeta indicada de forma explícita o la
+// del perfil comprobada. Sin ninguna de las dos falla cerrado.
+func (a *Adaptador) carpetaConfiguracion() (string, error) {
+	if configDir := strings.TrimSpace(a.ConfigDir); configDir != "" {
+		return configDir, nil
 	}
-	return filepath.Join(configDir, "tls")
+	dir, err := appdirs.ConfigUsuario()
+	if err != nil {
+		return "", errors.Join(errSinCarpetaPersonal, err)
+	}
+	return dir, nil
 }
 
-func (a *Adaptador) directorioP12() string {
-	configDir := strings.TrimSpace(a.ConfigDir)
-	if configDir == "" {
-		dir, err := appdirs.ConfigUsuario()
-		if err != nil {
-			return filepath.Join(".", "pkcs12")
-		}
-		configDir = dir
+// escribirSinCarpetaPersonal explica en la salida de error por qué no se ha
+// guardado nada.
+func (a *Adaptador) escribirSinCarpetaPersonal() {
+	prefijo := a.translateSecret(clavePrefijoErrorCLI)
+	fmt.Fprintln(a.Stderr, prefijo, a.translateSecret(claveSinCarpetaPersonal))
+}
+
+func (a *Adaptador) directorioTLS() (string, error) {
+	configDir, err := a.carpetaConfiguracion()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(configDir, "tls"), nil
+}
+
+func (a *Adaptador) directorioP12() (string, error) {
+	configDir, err := a.carpetaConfiguracion()
+	if err != nil {
+		return "", err
 	}
 	if cfg, err := config.Load(configDir); err == nil && strings.TrimSpace(cfg.DirectorioP12) != "" {
-		return cfg.DirectorioP12
+		return cfg.DirectorioP12, nil
 	}
-	return filepath.Join(configDir, "pkcs12")
+	return filepath.Join(configDir, "pkcs12"), nil
 }
 
-func (a *Adaptador) rutaAutoseleccionPersistente() string {
-	configDir := strings.TrimSpace(a.ConfigDir)
-	if configDir == "" {
-		dir, err := appdirs.ConfigUsuario()
-		if err != nil {
-			return filepath.Join(".", "preferred-certificates.json")
-		}
-		configDir = dir
+func (a *Adaptador) rutaAutoseleccionPersistente() (string, error) {
+	configDir, err := a.carpetaConfiguracion()
+	if err != nil {
+		return "", err
 	}
-	return filepath.Join(configDir, "preferred-certificates.json")
+	return filepath.Join(configDir, "preferred-certificates.json"), nil
 }
 
 func (a *Adaptador) rutaAutoseleccionSesion() string {
