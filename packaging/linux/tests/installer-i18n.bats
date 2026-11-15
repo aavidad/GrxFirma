@@ -16,7 +16,9 @@ setup() {
 }
 
 @test "se resuelve el idioma del sistema, valenciano, sustitución y reserva inglesa" {
-  run bash -c 'source "$1"; unset GRXFIRMA_INSTALLER_LANG; LC_ALL=ca_ES.UTF-8@valencia grx_installer_language' _ "$I18N_RUNTIME"
+  # Sin la variante valenciana instalada, bash avisa por stderr al cambiar
+  # LC_ALL; solo interesa el idioma que devuelve la función.
+  run bash -c 'exec 2>/dev/null; source "$1"; unset GRXFIRMA_INSTALLER_LANG; LC_ALL=ca_ES.UTF-8@valencia grx_installer_language' _ "$I18N_RUNTIME"
   [ "$status" -eq 0 ]
   [ "$output" = va ]
   run env -u GRXFIRMA_INSTALLER_LANG LC_ALL=C bash -c 'source "$1"; grx_message UNKNOWN_VERSION' _ "$I18N_RUNTIME"

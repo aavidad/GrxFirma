@@ -125,17 +125,33 @@ func (a *Almacen) listarEnRutaCertutil(ctx context.Context, ruta string) ([]doma
 	}
 
 	var refs []domain.CertificateRef
-	for _, nick := range nicknames {
+	for _, nick := range nicknamesUnicos(nicknames) {
 		if ctx.Err() != nil {
 			break
 		}
-		ref, err := a.exportarCertificado(ctx, ruta, nick)
+		delNick, err := a.exportarCertificados(ctx, ruta, nick)
 		if err != nil {
 			continue // ignorar certs que no se pueden exportar
 		}
-		refs = append(refs, ref)
+		refs = append(refs, delNick...)
 	}
 	return refs, nil
+}
+
+// nicknamesUnicos quita los nicknames repetidos: tras renovar un certificado,
+// certutil -L lista el mismo nickname una vez por certificado, y certutil
+// -L -n ya devuelve todos los certificados con ese nickname (F-10).
+func nicknamesUnicos(nicknames []string) []string {
+	vistos := make(map[string]struct{}, len(nicknames))
+	unicos := make([]string, 0, len(nicknames))
+	for _, nick := range nicknames {
+		if _, dup := vistos[nick]; dup {
+			continue
+		}
+		vistos[nick] = struct{}{}
+		unicos = append(unicos, nick)
+	}
+	return unicos
 }
 
 // KeyFor implementa ports.SigningKeyProvider resolviendo la clave privada desde
@@ -153,18 +169,19 @@ func (a *Almacen) KeyFor(ctx context.Context, certificate domain.CertificateRef)
 		if err != nil {
 			continue
 		}
-		for _, nick := range nicknames {
+		for _, nick := range nicknamesUnicos(nicknames) {
 			if ctx.Err() != nil {
 				return nil, ctx.Err()
 			}
-			ref, err := a.exportarCertificado(ctx, ruta, nick)
+			refs, err := a.exportarCertificados(ctx, ruta, nick)
 			if err != nil {
 				continue
 			}
-			if ref.Fingerprint != certificate.Fingerprint {
-				continue
+			for _, ref := range refs {
+				if ref.Fingerprint == certificate.Fingerprint {
+					return a.exportarClaveLocal(ctx, ruta, nick, certificate)
+				}
 			}
-			return a.exportarClaveLocal(ctx, ruta, nick, certificate)
 		}
 	}
 
@@ -632,13 +649,14 @@ func (a *Almacen) listarNicknames(ctx context.Context, ruta string) ([]string, e
 	return parsearListaNSS(out), nil
 }
 
-// exportarCertificado exporta un certificado PEM y construye su CertificateRef.
-func (a *Almacen) exportarCertificado(ctx context.Context, ruta, nickname string) (domain.CertificateRef, error) {
+// exportarCertificados exporta en PEM todos los certificados con ese nickname
+// (varios si se ha renovado el certificado) y construye sus CertificateRef.
+func (a *Almacen) exportarCertificados(ctx context.Context, ruta, nickname string) ([]domain.CertificateRef, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	certutilPath, err := resolveNSSExecutable(a.certutil)
 	if err != nil {
-		return domain.CertificateRef{}, err
+		return nil, err
 	}
 
 	// #nosec G204 -- same controlled certutil dependency; nickname and NSS
@@ -646,15 +664,19 @@ func (a *Almacen) exportarCertificado(ctx context.Context, ruta, nickname string
 	cmd := exec.CommandContext(ctx, certutilPath, "-L", "-d", rutaCertutil(ruta), "-n", nickname, "-a")
 	out, err := cmd.Output()
 	if err != nil {
-		return domain.CertificateRef{}, fmt.Errorf("certutil -L -n %q: %w", nickname, err)
+		return nil, fmt.Errorf("certutil -L -n %q: %w", nickname, err)
 	}
 
-	cert, err := parsearPEM(out)
+	certs, err := parsearCertificadosPEM(out)
 	if err != nil {
-		return domain.CertificateRef{}, fmt.Errorf("parsear PEM de %q: %w", nickname, err)
+		return nil, fmt.Errorf("parsear PEM de %q: %w", nickname, err)
 	}
 
-	return construirRef(cert), nil
+	refs := make([]domain.CertificateRef, 0, len(certs))
+	for _, cert := range certs {
+		refs = append(refs, construirRef(cert))
+	}
+	return refs, nil
 }
 
 // parsearListaNSS extrae los nicknames con trust "u,u,u" de la salida de certutil -L.
@@ -678,23 +700,6 @@ func parsearListaNSS(output []byte) []string {
 		}
 	}
 	return nicknames
-}
-
-// parsearPEM extrae el primer certificado de un bloque PEM.
-func parsearPEM(data []byte) (*x509.Certificate, error) {
-	rest := data
-	for len(rest) > 0 {
-		block, next := pem.Decode(rest)
-		if block == nil {
-			break
-		}
-		rest = next
-		if block.Type != "CERTIFICATE" {
-			continue
-		}
-		return x509.ParseCertificate(block.Bytes)
-	}
-	return nil, fmt.Errorf("no se encontró bloque CERTIFICATE en el PEM")
 }
 
 // construirRef crea un domain.CertificateRef a partir de un x509.Certificate.
