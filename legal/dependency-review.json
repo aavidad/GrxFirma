@@ -17,11 +17,12 @@
     "cmd/gui-qml/residentagent_test.pro": "4154cb338ae49a976cbed3120e3aa162bc9ddf5d405d7573c72841a4c221a608",
     "cmd/gui-qml/savedialognames_test.pro": "d06c9711b12a890fe10e2b44c1039d830e493f87fc7fddac26403da3fbab2cb9",
     "cmd/gui-qml/transientsecret_test.pro": "8bb32cce81738ee98a35b4f76611eb9f3f071a9dfae782cb200b84753e539cb9",
+    "cmd/gui-qml/translatorbridge_test.pro": "924d4389715dbd8f470d18e889d8209acc52102dd2be5ccd8016cbb22c426321",
     "cmd/gui-qml/webcompatibilitylease_test.pro": "cc9eda2cd2d8aa882f82a3d73daba36e5a68567c3c6491741bd8f8bd303d4a7b",
-    "cmd/gui-winui/src/GrxFirma.WinUI/GrxFirma.WinUI.csproj": "0c14d558836a442ad9865514f5e85565d165922a772e065322d4e47472c8a555",
     "cmd/gui-winui/src/GrxFirma.WinUI.Core/GrxFirma.WinUI.Core.csproj": "47df075bf2bbd9e525a15fd583ec7e794ceac02a55494d447854f4c86f77fff4",
+    "cmd/gui-winui/src/GrxFirma.WinUI/GrxFirma.WinUI.csproj": "0c14d558836a442ad9865514f5e85565d165922a772e065322d4e47472c8a555",
     "cmd/gui-winui/tests/GrxFirma.WinUI.Core.Tests/GrxFirma.WinUI.Core.Tests.csproj": "53b1ee553f9054f8fb6ea816aae24b764267d86e3a415198cd0186dfdd1eb378",
-    "mobile/android/app/build.gradle.kts": "a0d7d4b3366fd85c19cec128525d0b734e708683fe8b9b65ae477689e6d316f5",
+    "mobile/android/app/build.gradle.kts": "2528b3d870b9f859fadb8d0b6c504a5a3ee047c77bf39268ec7c2ab136c6ce99",
     "mobile/android/app/proguard-rules.pro": "3c1a0c9f05ddf47d97a074cbd4126c25bed0738cf776a44b3b0da2ac369d864d",
     "mobile/android/build.gradle.kts": "673310d6fc3b5a641d7e16e796fe96f49469f39baf5035e32158177741e10523",
     "mobile/android/settings.gradle.kts": "1a2bd4e6c2ec3eaed918953199e3bc3356e24ef5f896cdd3c96617ddc953bf4d",
@@ -1480,20 +1481,6 @@
         }
       ]
     },
-    "legal:NSIS Catalan.nlf@copia-local": {
-      "uses": [
-        "ejecucion"
-      ],
-      "licenses": [
-        "Zlib"
-      ],
-      "license_evidence": [
-        {
-          "source": "packaging/windows/i18n/Valencian.nlf.LICENSE",
-          "sha256": "9cbfa02884957f154347c0a705b2bbd6e85bee70fe3506f2abe5c79d38668ecf"
-        }
-      ]
-    },
     "legal:Gradle Wrapper@copia-local": {
       "uses": [
         "construccion"
@@ -1509,6 +1496,20 @@
         {
           "source": "mobile/android/gradlew.bat",
           "sha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234"
+        }
+      ]
+    },
+    "legal:NSIS Catalan.nlf@copia-local": {
+      "uses": [
+        "ejecucion"
+      ],
+      "licenses": [
+        "Zlib"
+      ],
+      "license_evidence": [
+        {
+          "source": "packaging/windows/i18n/Valencian.nlf.LICENSE",
+          "sha256": "9cbfa02884957f154347c0a705b2bbd6e85bee70fe3506f2abe5c79d38668ecf"
         }
       ]
     },
@@ -2408,6 +2409,20 @@
         }
       ]
     },
+    "maven:androidx.test.espresso:espresso-accessibility@3.7.0": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"The Apache Software License, Version 2.0\", \"url\": \"http://www.apache.org/licenses/LICENSE-2.0.txt\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/androidx.test.espresso/espresso-accessibility/3.7.0/84ed40054c47801b82040c597177968b8f18c734/espresso-accessibility-3.7.0.pom",
+          "sha256": "a03920291a29d70d25ddad7d093bd837b28e96b8b3778a8dfbfeeea7f8ed2c57"
+        }
+      ]
+    },
     "maven:androidx.test.espresso:espresso-core@3.7.0": {
       "uses": [
         "pruebas"
@@ -3276,6 +3291,20 @@
         }
       ]
     },
+    "maven:com.google.android.apps.common.testing.accessibility.framework:accessibility-test-framework@3.1.2": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"The Apache License, Version 2.0\", \"url\": \"http://www.apache.org/licenses/LICENSE-2.0.txt\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/com.google.android.apps.common.testing.accessibility.framework/accessibility-test-framework/3.1.2/7734bf1229b56d37cc3702498454cff0a2f52d03/accessibility-test-framework-3.1.2.pom",
+          "sha256": "bc787098a208e6bdc8d93720a162bbea01df1b26394d1c1ef5ec523b1d604e8b"
+        }
+      ]
+    },
     "maven:com.google.android.material:material@1.13.0": {
       "uses": [
         "ejecucion"
@@ -3558,6 +3587,24 @@
         }
       ]
     },
+    "maven:com.google.guava:guava@28.2-android": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"Apache License, Version 2.0\", \"url\": \"http://www.apache.org/licenses/LICENSE-2.0.txt\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/com.google.guava/guava/28.2-android/8524e3a9ec839c335c75699514bc6dcb5b541778/guava-28.2-android.pom",
+          "sha256": "806fe9b94e53e543072b80b043aa0ec5524178d1f3735af00cc55bb2e3ccdd00"
+        },
+        {
+          "source": "$GRADLE_CACHE/com.google.guava/guava-parent/28.2-android/6db9079b12f809e8ab0f589d2e847a7a0bd9f4d2/guava-parent-28.2-android.pom",
+          "sha256": "4b0388889ae30b257117460bbea589e41fc0afed1658aa54a65ab44b7f69033f"
+        }
+      ]
+    },
     "maven:com.google.guava:guava@32.0.1-jre": {
       "uses": [
         "construccion"
@@ -3627,6 +3674,20 @@
         {
           "source": "$GRADLE_CACHE/com.google.guava/guava-parent/26.0-android/a2c0df489614352b7e8e503e274bd1dee5c42a64/guava-parent-26.0-android.pom",
           "sha256": "f8698ab46ca996ce889c1afc8ca4f25eb8ac6b034dc898d4583742360016cc04"
+        }
+      ]
+    },
+    "maven:com.google.j2objc:j2objc-annotations@1.3": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"The Apache Software License, Version 2.0\", \"url\": \"http://www.apache.org/licenses/LICENSE-2.0.txt\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/com.google.j2objc/j2objc-annotations/1.3/47e0dd93285dcc6b33181713bc7e8aed66742964/j2objc-annotations-1.3.pom",
+          "sha256": "5faca824ba115bee458730337dfdb2fcea46ba2fd774d4304edbf30fa6a3f055"
         }
       ]
     },
@@ -3763,6 +3824,24 @@
         {
           "source": "$GRADLE_CACHE/com.google.protobuf/protobuf-parent/4.28.3/7cff07b948592e4012be233f0cddba2d7409bb24/protobuf-parent-4.28.3.pom",
           "sha256": "5364cdc058b2e5a212af6dfc1894299070dd434026a15827bbe313774489f403"
+        }
+      ]
+    },
+    "maven:com.google.protobuf:protobuf-lite@3.0.1": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"New BSD license\", \"url\": \"http://www.opensource.org/licenses/bsd-license.php\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/com.google.protobuf/protobuf-lite/3.0.1/6b899d982947441869b3653aaf9942ec9198db8e/protobuf-lite-3.0.1.pom",
+          "sha256": "d6286a4955021c8cdd9d51c2ae0da044f76b2ecada4f206e4795d43c0beb488d"
+        },
+        {
+          "source": "$GRADLE_CACHE/com.google.protobuf/protobuf-parent/3.0.0/fa9a080c3ed2997cd84df8effd6cb8af9e4ed020/protobuf-parent-3.0.0.pom",
+          "sha256": "932e6bab9a24a7bc958bbdb7e29e04d083b473d11c4ba3fab1e9b7149579f272"
         }
       ]
     },
@@ -4751,6 +4830,35 @@
         }
       ]
     },
+    "maven:org.checkerframework:checker-compat-qual@2.5.5": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"GNU General Public License, version 2 (GPL2), with the classpath exception\", \"url\": \"http://www.gnu.org/software/classpath/license.html\"}",
+        "{\"name\": \"The MIT License\", \"url\": \"http://opensource.org/licenses/MIT\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/org.checkerframework/checker-compat-qual/2.5.5/493796785b3c508c4c25e539321218511bd1c1ae/checker-compat-qual-2.5.5.pom",
+          "sha256": "42f21ebd9183be049ee5afc822b345403a5da764037875734a039b0d6e0353be"
+        }
+      ]
+    },
+    "maven:org.checkerframework:checker-qual@2.5.5": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"The MIT License\", \"url\": \"http://opensource.org/licenses/MIT\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/org.checkerframework/checker-qual/2.5.5/c43513e5c3d3b71803a51ea140a6cb10a6b80f29/checker-qual-2.5.5.pom",
+          "sha256": "ad3b6e64da823e225c69b1c983d0972885722f49af2743ffc116fb36224358da"
+        }
+      ]
+    },
     "maven:org.checkerframework:checker-qual@3.33.0": {
       "uses": [
         "construccion"
@@ -4891,6 +4999,20 @@
         }
       ]
     },
+    "maven:org.hamcrest:hamcrest-core@2.2": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"BSD License 3\", \"url\": \"http://opensource.org/licenses/BSD-3-Clause\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/org.hamcrest/hamcrest-core/2.2/399ab31a6a84f36c84a9f50b9ba82fd890436391/hamcrest-core-2.2.pom",
+          "sha256": "f7fde2fff5101a5fc3a39e28810b911c2da202ddc2bd50765f89e7c6ff8ce7dd"
+        }
+      ]
+    },
     "maven:org.hamcrest:hamcrest-library@1.3": {
       "uses": [
         "pruebas"
@@ -4906,6 +5028,34 @@
         {
           "source": "$GRADLE_CACHE/org.hamcrest/hamcrest-parent/1.3/80391bd32bfa4837a15215d5e9f07c60555c379a/hamcrest-parent-1.3.pom",
           "sha256": "6d535f94efb663bdb682c9f27a50335394688009642ba7a9677504bc1be4129b"
+        }
+      ]
+    },
+    "maven:org.hamcrest:hamcrest-library@2.2": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"BSD License 3\", \"url\": \"http://opensource.org/licenses/BSD-3-Clause\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/org.hamcrest/hamcrest-library/2.2/93c7a7bc18925ba9bc86a917a959986219492ed0/hamcrest-library-2.2.pom",
+          "sha256": "f58ad835d2426431259d86e4fe3a4f5161e671d916c5cbecf35738bcde82fcff"
+        }
+      ]
+    },
+    "maven:org.hamcrest:hamcrest@2.2": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"BSD License 3\", \"url\": \"http://opensource.org/licenses/BSD-3-Clause\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/org.hamcrest/hamcrest/2.2/98624f676c4d263b568816b0af5d4f552a2d0501/hamcrest-2.2.pom",
+          "sha256": "b36137376c4b3fcf76dc337e2a1bc5b691a2ac1aa966ab5d26209a93812fa57d"
         }
       ]
     },
@@ -5550,6 +5700,20 @@
         {
           "source": "$GRADLE_CACHE/org.json/json/20250517/d8a43659ab51786e68434adf265fa6d0b73d70b2/json-20250517.pom",
           "sha256": "71a1fb86a2b05537a3cfc1c87db42d036efdbbfc7e9c349b635d21ac1fa876a7"
+        }
+      ]
+    },
+    "maven:org.jsoup:jsoup@1.12.2": {
+      "uses": [
+        "pruebas"
+      ],
+      "licenses": [
+        "{\"name\": \"The MIT License\", \"url\": \"https://jsoup.org/license\"}"
+      ],
+      "license_evidence": [
+        {
+          "source": "$GRADLE_CACHE/org.jsoup/jsoup/1.12.2/2306c0f068c642138826b2b0c4de40a1a42d2e5a/jsoup-1.12.2.pom",
+          "sha256": "15272b7e0ef13876dfde46a8a82c26315e277891f204bd905475a4e4f4fa52c5"
         }
       ]
     },
