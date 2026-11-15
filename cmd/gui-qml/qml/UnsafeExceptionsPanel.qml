@@ -19,6 +19,18 @@ GroupBox {
     implicitWidth: 320
     title: t("excepciones.pantalla.preferencias")
     Accessible.name: title
+    label: Text {
+        x: panel.leftPadding
+        y: panel.topPadding - implicitHeight - panel.spacing
+        width: panel.availableWidth
+        text: panel.title
+        textFormat: Text.PlainText
+        font.pixelSize: Typography.size18
+        font.bold: true
+        color: panel.theme.textColor
+        wrapMode: Text.WordWrap
+        Accessible.role: Accessible.Heading
+    }
     function t(key) { return panel.translate(key) }
     function load() {
         if (!localIpc || busy) return

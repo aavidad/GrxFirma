@@ -31,7 +31,6 @@ internal static class UnsafeExceptionDialog
         AutomationProperties.SetHeadingLevel(heading, AutomationHeadingLevel.Level2);
         body.Children.Add(heading);
         var risk = Prose(item.Key(helpOnly ? "ayuda" : "riesgo"));
-        if (helpOnly) risk.Text = risk.Text.Replace("\n", "\n\n", StringComparison.Ordinal);
         body.Children.Add(risk);
         var organization = Prose(item.Key("organizacion"));
         organization.Visibility = !helpOnly && !item.Activable ? Visibility.Visible : Visibility.Collapsed;
@@ -46,7 +45,6 @@ internal static class UnsafeExceptionDialog
         AutomationProperties.SetName(acceptance, Localizer.Text(item.Key("aceptacion")));
         AutomationProperties.SetHelpText(acceptance, Localizer.Fill("excepciones.pantalla.version", ("version", item.AcceptanceVersion)));
         body.Children.Add(acceptance);
-        if (item.Activable) body.Children.Add(Prose("excepciones.pantalla.desactivar_aqui"));
         var dialog = new ContentDialog
         {
             XamlRoot = root,
@@ -74,7 +72,7 @@ internal static class UnsafeExceptionDialog
             var help = new Button { Content = Localizer.Text("excepciones.mas_informacion"), MinHeight = 44 };
             help.Click += (_, _) =>
             {
-                risk.Text = Localizer.Text(item.Key("ayuda")).Replace("\n", "\n\n", StringComparison.Ordinal);
+                risk.Text = Localizer.Text(item.Key("ayuda"));
                 help.Visibility = Visibility.Collapsed;
                 risk.StartBringIntoView();
             };

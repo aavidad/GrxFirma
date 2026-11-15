@@ -76,7 +76,7 @@ El núcleo conserva `AcceptanceVersion = "2026-11-15.1"`. Una aceptación local 
 
 La lista y los bloqueos exponen `title_key`, `risk_key`, `acceptance_key`, `help_key` y `organization_key`, además de `activable`. Cuando `activable` es falso por una directiva, la interfaz muestra el texto de organización y remite al administrador.
 
-Los textos de aceptación de la versión `2026-11-15.1` se conservan literalmente, incluida la referencia a Preferencias aún pendiente y la errata «aES-CBC». Las pantallas añaden una aclaración sobre la sección ya disponible cuando el ajuste es activable. Corregir el texto aceptado requiere una nueva versión del núcleo; no se cambia su contenido manteniendo la versión anterior.
+Los textos de aceptación de la versión `2026-11-15.1` se conservan literalmente, incluida la referencia a Preferencias aún pendiente y la errata «aES-CBC». Corregir el texto aceptado requiere una nueva versión del núcleo; no se cambia su contenido manteniendo la versión anterior.
 
 ### Textos de ayuda
 

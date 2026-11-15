@@ -79,6 +79,20 @@ TestCase {
         panel.change(editable)
         compare(fake.calls[1].action, "disable")
     }
+    function test_preferences_heading_scales_and_wraps() {
+        const panel = createTemporaryObject(panelFactory, tests, {width: 360})
+        verify(panel !== null)
+        compare(panel.label.font.pixelSize, Typography.size18)
+        const originalSize = panel.label.font.pixelSize
+        Typography.textScalePercent = 200
+        wait(0)
+        compare(panel.label.font.pixelSize, Typography.size18)
+        verify(panel.label.font.pixelSize >= originalSize * 1.9)
+        verify(panel.label.height > panel.label.font.pixelSize)
+        verify(panel.label.x >= 0)
+        verify(panel.label.x + panel.label.width <= panel.width)
+        verify(panel.label.y + panel.label.height <= panel.contentItem.y)
+    }
     function test_cancel_does_not_run_after_successful_activation() {
         dialog.present(entry(true), false)
         dialog.close()

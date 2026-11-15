@@ -99,7 +99,7 @@ ThemedDialog {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: dialog.showingHelp ? dialog.caseText("ayuda").split("\n").join("\n\n") : dialog.caseText("riesgo")
+                        text: dialog.caseText(dialog.showingHelp ? "ayuda" : "riesgo")
                         textFormat: Text.PlainText
                         font.pixelSize: Typography.control
                         color: dialog.theme.textColor
@@ -126,15 +126,6 @@ ThemedDialog {
                         enabled: !dialog.busy
                         text: dialog.caseText("aceptacion")
                         Accessible.description: dialog.appText("excepciones.pantalla.version").replace("{version}", dialog.item.acceptance_version || "")
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        visible: dialog.activable
-                        text: dialog.appText("excepciones.pantalla.desactivar_aqui")
-                        textFormat: Text.PlainText
-                        font.pixelSize: Typography.control
-                        color: dialog.theme.textColor
-                        wrapMode: Text.WordWrap
                     }
                     Text {
                         Layout.fillWidth: true
