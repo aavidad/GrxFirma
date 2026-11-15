@@ -1042,6 +1042,24 @@ Window {
         seedSessionDocumentForActiveTab()
         if (activeTab !== "cifrar")
             clearTransientProtectionSecrets()
+        Qt.callLater(moveFocusOutOfHiddenTab)
+    }
+
+    // Al cambiar de sección, el foco no puede quedarse en un control de la
+    // sección que se oculta: un Intro pulsaría a ciegas, por ejemplo, un
+    // interruptor de seguridad de Configuración. Se lleva a la sección visible.
+    function itemIsShown(item) {
+        for (let it = item; it; it = it.parent) {
+            if (!it.visible) return false
+        }
+        return true
+    }
+    function moveFocusOutOfHiddenTab() {
+        const focused = window.activeFocusItem
+        if (focused === null || itemIsShown(focused)) return
+        const current = mainContentStack.children[mainContentStack.currentIndex]
+        if (current) current.forceActiveFocus(Qt.OtherFocusReason)
+        else window.contentItem.forceActiveFocus(Qt.OtherFocusReason)
     }
 
     function localPathFromUrl(urlValue) {
@@ -9780,6 +9798,7 @@ Window {
 
         // --- CONTENIDO ---
         StackLayout {
+            id: mainContentStack
             Layout.fillWidth: true
             Layout.fillHeight: true
             currentIndex: activeTab === "firmar" ? 0 : 

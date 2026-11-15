@@ -833,6 +833,29 @@ chmod 755 "${PKG_ROOT}/DEBIAN/preinst"
 cat > "${PKG_ROOT}/DEBIAN/postinst" <<'EOF'
 #!/usr/bin/env bash
 set -e
+# Versiones anteriores pudieron dejar carpetas con escritura de grupo u otros
+# (construidas con umask 0002), y dpkg no corrige los permisos de una carpeta
+# que ya existe al actualizar. Se quitan solo en las carpetas de GrxFirma.
+for grx_dir in /usr/lib/grxfirma /usr/share/doc/grxfirma; do
+  if [[ -d "${grx_dir}" && ! -L "${grx_dir}" ]]; then
+    find "${grx_dir}" -xdev \( -type d -o -type f \) -perm /022 -exec chmod go-w {} + || true
+  fi
+done
+for grx_dir in \
+  /etc/opt/chrome/native-messaging-hosts \
+  /etc/chromium/native-messaging-hosts \
+  /etc/opt/edge/native-messaging-hosts \
+  /etc/opt/brave.com/brave/native-messaging-hosts \
+  /etc/opt/vivaldi/native-messaging-hosts \
+  /etc/opt/opera/native-messaging-hosts \
+  /usr/lib/mozilla/native-messaging-hosts \
+  /usr/share/google-chrome/extensions \
+  /usr/share/chromium/extensions
+do
+  if [[ -d "${grx_dir}" && ! -L "${grx_dir}" ]]; then
+    chmod go-w "${grx_dir}" || true
+  fi
+done
 if command -v update-desktop-database >/dev/null 2>&1; then
   if [[ -d /usr/local/share/applications ]]; then
     update-desktop-database /usr/local/share/applications || true
