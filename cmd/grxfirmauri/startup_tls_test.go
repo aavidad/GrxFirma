@@ -12,11 +12,46 @@ import (
 	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 	"io"
+	"runtime"
 	"strings"
 	"testing"
 )
 
+// La instalación automática de la CA local al arrancar solo existe en Linux
+// (lote 30): en Windows y macOS la hace el instalador y el arranque no la
+// intenta ni avisa de su bloqueo.
+func soloInstalacionCALinux(t *testing.T) {
+	t.Helper()
+	if runtime.GOOS != "linux" {
+		t.Skip("la CA local se instala al arrancar solo en Linux")
+	}
+}
+
+func TestPrepareStartupLocalTLSTrustFueraDeLinuxNoHaceNada(t *testing.T) {
+	if runtime.GOOS == "linux" {
+		t.Skip("comprobación de Windows y macOS")
+	}
+	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
+	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
+	previousEnsure := ensureStartupLocalTLSTrust
+	previousNotice := getStartupTLSTrustNotice()
+	t.Cleanup(func() {
+		ensureStartupLocalTLSTrust = previousEnsure
+		setStartupTLSTrustNotice(previousNotice)
+	})
+	ensureStartupLocalTLSTrust = func(context.Context, string) (bool, error) {
+		t.Fatal("fuera de Linux el arranque no instala la CA local")
+		return false, nil
+	}
+	setStartupTLSTrustNotice("")
+	var stderr bytes.Buffer
+	if err := prepareStartupLocalTLSTrust(context.Background(), t.TempDir(), &stderr); err != nil || stderr.Len() != 0 || getStartupTLSTrustNotice() != "" {
+		t.Fatalf("err=%v stderr=%q aviso=%q", err, stderr.String(), getStartupTLSTrustNotice())
+	}
+}
+
 func TestPrepareStartupLocalTLSTrustReportsOnlyChanges(t *testing.T) {
+	soloInstalacionCALinux(t)
 	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
 	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
 	previousEnsure := ensureStartupLocalTLSTrust
@@ -53,6 +88,7 @@ func TestPrepareStartupLocalTLSTrustReportsOnlyChanges(t *testing.T) {
 }
 
 func TestPrepareStartupLocalTLSTrustSinAjusteNoInstala(t *testing.T) {
+	soloInstalacionCALinux(t)
 	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
 	excepciones.SetForTest(t, "ca_instalacion_automatica", false)
 	previous := ensureStartupLocalTLSTrust
@@ -71,6 +107,7 @@ func TestPrepareStartupLocalTLSTrustSinAjusteNoInstala(t *testing.T) {
 }
 
 func TestPrepareStartupLocalTLSTrustExplainsFailure(t *testing.T) {
+	soloInstalacionCALinux(t)
 	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
 	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
 	previousEnsure := ensureStartupLocalTLSTrust
@@ -100,6 +137,7 @@ func TestPrepareStartupLocalTLSTrustExplainsFailure(t *testing.T) {
 }
 
 func TestProtocolEntryPreparesTrustBeforeHandler(t *testing.T) {
+	soloInstalacionCALinux(t)
 	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
 	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
 	previousEnsure := ensureStartupLocalTLSTrust
@@ -131,6 +169,7 @@ func TestProtocolEntryPreparesTrustBeforeHandler(t *testing.T) {
 }
 
 func TestProtocolEntryStopsWhenTrustCannotBeInstalled(t *testing.T) {
+	soloInstalacionCALinux(t)
 	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
 	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
 	previousEnsure := ensureStartupLocalTLSTrust
