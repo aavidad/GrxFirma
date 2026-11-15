@@ -222,3 +222,15 @@ func TestUnsafeRetryUsesSigningTimeoutAndSensitiveFrames(t *testing.T) {
 		}
 	}
 }
+
+func TestV3GenericSaveRejectsCaseFoldedReceipt(t *testing.T) {
+	dir := t.TempDir()
+	m := &Manejador{ConfigDir: dir, Settings: usersettings.New(dir), Loc: localizador.Para("es")}
+	ctx := conEstadoInterfaz(context.Background(), interfazVerificada)
+	for _, key := range []string{"EXCEPCIONES_INSEGURAS", "EXCEPCIONES_INSEGURAS_ACEPTACIONES"} {
+		raw, _ := json.Marshal(map[string]any{key: map[string]any{"tsa_http": true}})
+		if r := m.despachar(ctx, peticion{Action: "save_settings", Params: raw}); r.OK {
+			t.Fatalf("guardado admite alias %s", key)
+		}
+	}
+}

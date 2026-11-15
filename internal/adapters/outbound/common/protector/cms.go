@@ -221,7 +221,11 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 		if err != nil {
 			return domain.UnprotectedPayload{}, err
 		}
-		for _, id := range revision.excepciones() {
+		contentRevision := revision
+		if contentType == cmsContentTypeEnvelopedData {
+			contentRevision.rsaV15 = false
+		}
+		for _, id := range contentRevision.excepciones() {
 			if err := excepciones.Require(ctx, id); err != nil {
 				return domain.UnprotectedPayload{}, err
 			}
@@ -275,30 +279,45 @@ func (p *CMSProtector) Unprotect(ctx context.Context, protected domain.Document,
 	if revision.sinAjenos != nil {
 		sobre = revision.sinAjenos
 	}
-	for _, key := range keys {
-		if !key.Supports(domain.ProtectionProfileCompat) {
-			continue
+	// Preferimos los destinatarios OAEP: la presencia de otro destinatario
+	// v1.5 no obliga a habilitarlo si la clave propia abre el sobre seguro.
+	for _, legacyTransport := range []bool{false, true} {
+		for _, key := range keys {
+			if !key.Supports(domain.ProtectionProfileCompat) {
+				continue
+			}
+			if len(key.CertificateDER) == 0 {
+				continue
+			}
+			cert, priv, err := parseCMSRSAKeyMaterial(key)
+			if err != nil {
+				continue
+			}
+			algorithm, found := revision.transportePara(cert)
+			if !found || algorithm.Equal(oidCMSRSAPKCS1v15) != legacyTransport {
+				continue
+			}
+			if legacyTransport {
+				if err := excepciones.Require(ctx, "cms_rsa_v15_leer"); err != nil {
+					return domain.UnprotectedPayload{}, err
+				}
+			}
+			plaintext, err := decryptCMSEnvelopedData(ctx, sobre, cert, priv)
+			if err != nil {
+				continue
+			}
+			doc, err := domain.NewDocument(unprotectedCMSFileName(protected.Name), plaintext, inferUnprotectedMIME(protected.MIMEType))
+			if err != nil {
+				return domain.UnprotectedPayload{}, err
+			}
+			selectedRevision := revision
+			selectedRevision.rsaV15 = legacyTransport
+			return conAvisosRevisionCMS(domain.UnprotectedPayload{
+				Document:    doc,
+				Profile:     domain.ProtectionProfileCompat,
+				RecipientID: key.RecipientID,
+			}, selectedRevision), nil
 		}
-		if len(key.CertificateDER) == 0 {
-			continue
-		}
-		cert, priv, err := parseCMSRSAKeyMaterial(key)
-		if err != nil {
-			continue
-		}
-		plaintext, err := decryptCMSEnvelopedData(sobre, cert, priv)
-		if err != nil {
-			continue
-		}
-		doc, err := domain.NewDocument(unprotectedCMSFileName(protected.Name), plaintext, inferUnprotectedMIME(protected.MIMEType))
-		if err != nil {
-			return domain.UnprotectedPayload{}, err
-		}
-		return conAvisosRevisionCMS(domain.UnprotectedPayload{
-			Document:    doc,
-			Profile:     domain.ProtectionProfileCompat,
-			RecipientID: key.RecipientID,
-		}, revision), nil
 	}
 	return domain.UnprotectedPayload{}, errors.New("no se pudo desproteger el sobre CMS con las claves disponibles")
 }
@@ -543,7 +562,26 @@ func parseCMSRSAKeyMaterial(key domain.ProtectionKeyMaterial) (*x509.Certificate
 	return cert, priv, nil
 }
 
-func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.PrivateKey) ([]byte, error) {
+func decryptCMSEnvelopedData(ctx context.Context, data []byte, cert *x509.Certificate, priv *rsa.PrivateKey) ([]byte, error) {
+	revision, err := revisarCMS(data, ctx)
+	if err != nil {
+		return nil, err
+	}
+	algorithm, found := revision.transportePara(cert)
+	if !found {
+		return nil, errors.New("no se encontró un destinatario CMS para el certificado")
+	}
+	legacyTransport := algorithm.Equal(oidCMSRSAPKCS1v15)
+	if legacyTransport {
+		if err := excepciones.Check("cms_rsa_v15_leer", ctx); err != nil {
+			return nil, err
+		}
+	}
+	if !legacyTransport && !algorithm.Equal(oidCMSRSAESOAEP) {
+		return nil, errors.New("transporte de clave CMS no permitido")
+	}
+	// Nunca se pasa OAEP al lector digitorus: ignora el OID de transporte y
+	// puede abrir ciphertext PKCS#1 v1.5 mal etiquetado como OAEP.
 	if err := comprobarAnidamientoCMS(data); err != nil {
 		return nil, err
 	}
@@ -556,6 +594,7 @@ func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.Priv
 	}
 	data = adaptado
 	compatCert, err := cryptobinx509.ParseCertificate(cert.Raw)
+	var primaryErr error = err
 	if err == nil {
 		var (
 			plaintext  []byte
@@ -569,6 +608,10 @@ func decryptCMSEnvelopedData(data []byte, cert *x509.Certificate, priv *rsa.Priv
 		if decryptErr == nil {
 			return plaintext, nil
 		}
+		primaryErr = decryptErr
+	}
+	if !legacyTransport {
+		return nil, primaryErr
 	}
 
 	// Compatibilidad de lectura con los contenedores V2 emitidos antes de

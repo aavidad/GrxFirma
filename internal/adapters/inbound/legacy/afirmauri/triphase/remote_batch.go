@@ -203,6 +203,17 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 		algoritmo = extractLegacyBatchAlgorithmFromXML(req.Payload)
 	}
 
+	// El lote JSON lleva propiedades globales y por firma que el servidor
+	// recibirá en prefirma. Una TSA HTTP requiere autorización antes de enviarlas.
+	if err := requireTriphaseTSAOptions(ctx, globalSignOptions); err != nil {
+		return "", err
+	}
+	for _, options := range perSignOptions {
+		if err := requireTriphaseTSAOptions(ctx, options); err != nil {
+			return "", err
+		}
+	}
+
 	batchVariants := legacyBatchVariants(req.Payload)
 	certVariants := legacyBatchCertVariants(signingKey.CertificateChainDER())
 	if len(certVariants) == 0 {
@@ -346,7 +357,7 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 		if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
 			return "", err
 		}
-		tdSigned, err := signLegacyBatchTriphase(preResp.TD, signingKey, algoritmo, globalSignOptions, perSignOptions)
+		tdSigned, err := signLegacyBatchTriphase(preResp.TD, signingKey, algoritmo, globalSignOptions, perSignOptions, ctx)
 		if err != nil {
 			return "", fmt.Errorf("firma trifásica batch fallida: %w", err)
 		}
@@ -371,7 +382,7 @@ func (e *Executor) executeLegacyRemoteBatchResult(ctx context.Context, req afirm
 		if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
 			return "", err
 		}
-		tdXML, err := signLegacyBatchTriphaseXML(preRaw, signingKey, algoritmo, globalSignOptions, perSignOptions)
+		tdXML, err := signLegacyBatchTriphaseXML(preRaw, signingKey, algoritmo, globalSignOptions, perSignOptions, ctx)
 		if err != nil {
 			return "", fmt.Errorf("firma trifásica batch XML fallida: %w", err)
 		}
@@ -600,7 +611,7 @@ func requireLegacyBatchSHA1(ctx context.Context, algorithm string) error {
 	return nil
 }
 
-func signLegacyBatchTriphase(td *legacyTriphaseDataResponse, key legacyBatchSigningKey, algorithm string, signOptions map[string]string, perSignOptions map[string]map[string]string) (*legacyTriphaseDataRequest, error) {
+func signLegacyBatchTriphase(td *legacyTriphaseDataResponse, key legacyBatchSigningKey, algorithm string, signOptions map[string]string, perSignOptions map[string]map[string]string, ctxs ...context.Context) (*legacyTriphaseDataRequest, error) {
 	hash, err := legacyHashFromAlgorithm(algorithm)
 	if err != nil {
 		return nil, err
@@ -630,7 +641,7 @@ func signLegacyBatchTriphase(td *legacyTriphaseDataResponse, key legacyBatchSign
 				}
 			}
 		}
-		pk1B64, err := signLegacyBatchPreData(preData, key, algorithm, hash, opts)
+		pk1B64, err := signLegacyBatchPreData(preData, key, algorithm, hash, opts, ctxs...)
 		if err != nil {
 			return nil, fmt.Errorf("error firmando PRE: %w", err)
 		}
@@ -656,7 +667,7 @@ func signLegacyBatchTriphase(td *legacyTriphaseDataResponse, key legacyBatchSign
 	return out, nil
 }
 
-func signLegacyBatchTriphaseXML(rawTD []byte, key legacyBatchSigningKey, algorithm string, signOptions map[string]string, perSignOptions map[string]map[string]string) ([]byte, error) {
+func signLegacyBatchTriphaseXML(rawTD []byte, key legacyBatchSigningKey, algorithm string, signOptions map[string]string, perSignOptions map[string]map[string]string, ctxs ...context.Context) ([]byte, error) {
 	var td legacyXMLTriphaseData
 	if err := xml.Unmarshal(rawTD, &td); err != nil {
 		return nil, err
@@ -692,7 +703,7 @@ func signLegacyBatchTriphaseXML(rawTD []byte, key legacyBatchSigningKey, algorit
 				}
 			}
 		}
-		pk1B64, err := signLegacyBatchPreData(preData, key, algorithm, hash, opts)
+		pk1B64, err := signLegacyBatchPreData(preData, key, algorithm, hash, opts, ctxs...)
 		if err != nil {
 			return nil, err
 		}
@@ -708,10 +719,10 @@ func signLegacyBatchTriphaseXML(rawTD []byte, key legacyBatchSigningKey, algorit
 	return out, nil
 }
 
-func hashLegacyPreData(preData []byte, hash crypto.Hash) ([]byte, error) {
+func hashLegacyPreData(preData []byte, hash crypto.Hash, ctxs ...context.Context) ([]byte, error) {
 	switch hash {
 	case crypto.SHA1:
-		if err := cryptopolicy.RequireLegacySHA1(); err != nil {
+		if err := cryptopolicy.RequireLegacySHA1(ctxs...); err != nil {
 			return nil, err
 		}
 		sum := sha1.Sum(preData) // #nosec G401 -- guarded legacy signature path; SHA-256+ remains the default.
@@ -741,20 +752,38 @@ func cloneLegacySignOptions(src map[string]string) map[string]string {
 	return out
 }
 
-func signLegacyBatchPreData(preData []byte, key legacyBatchSigningKey, algorithm string, hash crypto.Hash, options map[string]string) (string, error) {
+func signLegacyBatchPreData(preData []byte, key legacyBatchSigningKey, algorithm string, hash crypto.Hash, options map[string]string, ctxs ...context.Context) (string, error) {
 	if hash == crypto.SHA1 {
-		if err := cryptopolicy.RequireLegacySHA1(); err != nil {
+		if err := cryptopolicy.RequireLegacySHA1(ctxs...); err != nil {
 			return "", err
+		}
+	}
+	if len(ctxs) > 0 && ctxs[0] != nil {
+		if typed, ok := key.(interface {
+			SignPreDataWithContext(context.Context, []byte, string, map[string]string) (string, error)
+		}); ok {
+			return typed.SignPreDataWithContext(ctxs[0], preData, algorithm, options)
 		}
 	}
 	if typed, ok := key.(legacyBatchPreSigningKey); ok {
 		return typed.SignPreData(preData, algorithm, options)
 	}
-	digest, err := hashLegacyPreData(preData, hash)
+	digest, err := hashLegacyPreData(preData, hash, ctxs...)
 	if err != nil {
 		return "", err
 	}
-	firma, err := key.SignDigest(digest, hash)
+	var firma []byte
+	if len(ctxs) > 0 && ctxs[0] != nil {
+		if typed, ok := key.(interface {
+			SignDigestWithContext(context.Context, []byte, crypto.Hash) ([]byte, error)
+		}); ok {
+			firma, err = typed.SignDigestWithContext(ctxs[0], digest, hash)
+		} else {
+			firma, err = key.SignDigest(digest, hash)
+		}
+	} else {
+		firma, err = key.SignDigest(digest, hash)
+	}
 	if err != nil {
 		return "", err
 	}

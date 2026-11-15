@@ -4,17 +4,32 @@ Todas las excepciones empiezan desactivadas para cada usuario, también al actua
 
 ## Ajustes y directivas
 
-Puede activar una excepción desde la línea de órdenes con `grxfirma -activar-excepcion ID` y aceptación expresa. También puede editar `config.json`: en Linux y macOS, `~/.config/grxfirma/config.json`; en Windows, `%APPDATA%\GrxFirma\config.json`. Es un mapa JSON:
+La vía habitual es `grxfirma -activar-excepcion ID` en el equipo donde se hará la operación. La orden muestra el riesgo y pide aceptación; para un uso automatizado se exige `-acepto-el-aviso`. La CLI guarda el ajuste y el recibo de aceptación en `settings.json`, en el directorio privado de configuración de GrxFirma. En Linux y macOS está bajo `~/.config/grxfirma/`; en Windows, bajo `%APPDATA%\GrxFirma\`.
+
+Un `true` aislado en `config.json` o `settings.json` **no activa** una excepción. El mismo fichero debe contener también un recibo vigente para ese identificador. El ejemplo siguiente muestra la forma de los dos bloques, pero el marcador de fecha impide usarlo como aceptación: la fecha real y el recibo deben proceder de una aceptación expresa de la versión actual del texto.
 
 ```json
 {
   "excepciones_inseguras": {
     "cms_cbc": true
+  },
+  "excepciones_inseguras_aceptaciones": {
+    "cms_cbc": {
+      "id": "cms_cbc",
+      "accepted_at": "<fecha UTC emitida tras aceptar el aviso>",
+      "text_version": "2026-11-15.1",
+      "origin": "aceptado desde el aviso",
+      "channel": "cli"
+    }
   }
 }
 ```
 
-Para activar una excepción en este equipo con aceptación expresa, use `grxfirma -activar-excepcion ID` y confirme la pregunta. En una orden automatizada, añada `-acepto-el-aviso`. El cambio desde el aviso se guarda en `settings.json`. Si edita `config.json` manualmente, añada la clave dentro del objeto sin borrar los demás ajustes. Las preferencias de escritorio admiten el mismo mapa en `settings.json`, en la misma carpeta que `config.json`. Para cada identificador, si existe un valor en `settings.json`, prevalece sobre `config.json`; para desactivar una excepción aceptada desde un aviso, ponga `false` en `settings.json`. `config.json` solo decide cuando ese identificador no figura en `settings.json`. La consulta IPC lee ambos ficheros y el cambio por IPC escribe solo `settings.json`. La sección **Preferencias > Seguridad > Excepciones inseguras** se preparará en el lote siguiente; aún no está disponible. La directiva de máquina se guarda en `/etc/grxfirma/policy.json` (macOS: `/private/etc/grxfirma/policy.json`) o en `HKLM\SOFTWARE\Policies\GrxFirma` en Windows; la plantilla ADMX/ADML presenta los valores de Windows. Una directiva fijada prevalece sobre el usuario. La lectura fallida o un valor ilegible bloquea la excepción. `prohibir_cifrado_cms_heredado=true` bloquea también la lectura de cifrados CMS antiguos y AES-CBC. Las variables antiguas de entorno no habilitan excepciones.
+Si necesita conservar una configuración manual en `config.json`, copie allí **ambos bloques** producidos tras aceptar el aviso con la CLI. Para cada identificador, `settings.json` prevalece sobre `config.json`; una desactivación en `settings.json` no se revierte editando `config.json`. El núcleo lee los nombres exactos `excepciones_inseguras` y `excepciones_inseguras_aceptaciones`, junto con las claves exactas del recibo (`id`, `accepted_at`, `text_version`, `origin`, `channel`). No acepta alias con otras mayúsculas. Si cambia la versión del texto o el recibo falta, la excepción vuelve a estar desactivada hasta una nueva aceptación.
+
+Una directiva de máquina fijada por el administrador prevalece sobre los ficheros de usuario. Si permite expresamente una excepción, ese ajuste de máquina ya es una autorización y no necesita recibo de usuario. La directiva se guarda en `/etc/grxfirma/policy.json` (macOS: `/private/etc/grxfirma/policy.json`) o `HKLM\SOFTWARE\Policies\GrxFirma` en Windows; la plantilla ADMX/ADML presenta los valores de Windows. Una directiva ilegible bloquea la excepción. `prohibir_cifrado_cms_heredado=true` bloquea también la lectura de cifrados CMS antiguos y AES-CBC. Las variables antiguas de entorno no habilitan excepciones.
+
+Si GrxFirma no puede localizar un directorio privado de configuración válido, el bloqueo usa `excepciones.directorio_no_disponible` y no activa nada. En Android, la fachada debe recibir el directorio privado de la aplicación. La sección **Preferencias > Seguridad > Excepciones inseguras** llegará en el lote siguiente; hoy la activación local se hace desde la CLI o mediante el contrato de aceptación de los adaptadores locales autorizados.
 
 | Fila | Identificador | Qué permite | Riesgo | Ajuste de usuario | Directiva de máquina | Clave de aviso | Clave de bloqueo |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -45,6 +60,8 @@ Para activar una excepción en este equipo con aceptación expresa, use `grxfirm
 | 40 | `llamante_desarrollo` | Aceptar extensión de desarrollo en el host nativo | se amplía quién puede pedir operaciones al host | `excepciones_inseguras.llamante_desarrollo` | `permitir_llamante_desarrollo` | `excepciones.llamante_desarrollo.aviso` | `excepciones.llamante_desarrollo.bloqueo` |
 | 45 | `pkcs11_experimental` | Usar controladores PKCS#11 experimentales | el controlador nativo puede ejecutar código con los permisos de GrxFirma | `excepciones_inseguras.pkcs11_experimental` | `permitir_pkcs11_experimental` | `excepciones.pkcs11_experimental.aviso` | `excepciones.pkcs11_experimental.bloqueo` |
 
+El lector del sobre CMS firmado y cifrado de AutoFirma 1.9 exige tanto `cms_aes_ecb` como `cms_rsa_v15_leer`. Si la máquina prohíbe cualquiera de las dos, el sobre no se abre.
+
 Para crear una identidad del perfil alto en fichero cuando falta el almacén, se requieren `alto_clave_fichero_crear` y `alto_clave_fichero_leer`: el programa debe poder reabrir esa identidad después de guardarla. La clave visible del ajuste es `excepciones.<id>.ajuste`. Los bloqueos explican el motivo y dan la orden local `grxfirma -activar-excepcion ID`, con confirmación expresa. En verificación de SHA-1 o XML histórico, sin permiso la firma queda sin evaluar y no puede declararse válida. Con permiso, se devuelve la evaluación y el aviso.
 
 ## Contrato IPC
@@ -70,7 +87,7 @@ La fachada móvil expone `UnsafeExceptionsJSON()` y `SetUnsafeExceptionJSON(requ
 
 ## Anexo
 
-El núcleo conserva `AcceptanceVersion = "2026-11-15.1"`. Una aceptación local guarda `origin` con el valor «aceptado desde el aviso», `accepted_at` en UTC y `text_version`. Si cambia la versión del texto, se pide leerlo y aceptarlo otra vez. La directiva de máquina prevalece también después de una aceptación local.
+El núcleo conserva `AcceptanceVersion = "2026-11-15.1"`. Una aceptación local guarda `origin` con el valor exacto «aceptado desde el aviso», `accepted_at` en UTC distinto de cero, `channel` (`cli`, `desktop`, `android` o `protocol_dialog`) y `text_version`. El recibo se lee por sus nombres exactos, sin alias con otras mayúsculas. Si cambia la versión del texto, el ajuste de usuario deja de activarse hasta que se lea y acepte el texto nuevo. La directiva de máquina prevalece también después de una aceptación local.
 
 `unsafe_exceptions_activate` recibe `{"id":"cms_cbc","accepted":true,"acceptanceVersion":"2026-11-15.1"}`. Puede incluir `retryId` cuando el núcleo haya ofrecido un reintento seguro. `unsafe_operation_retry` recibe `{"retryId":"..."}` y solo reintenta una operación local pendiente y vigente. El núcleo valida el identificador, la versión, la aceptación y la directiva antes de activar. Las pantallas y el diálogo de aceptación se incorporarán en otro lote.
 

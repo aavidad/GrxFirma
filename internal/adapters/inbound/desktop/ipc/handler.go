@@ -421,7 +421,7 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp.BlockKey = bloqueo.BlockKey
 		resp.SettingKey = bloqueo.SettingKey
 		effective := excepciones.DescribeAt(m.configDirSeguro(), bloqueo.ID)
-		policyBlocked := !effective.Activable
+		policyBlocked := !effective.Activable && !effective.ConfigUnavailable
 		trustedBlock := blockReport.For(bloqueo.ID) != nil
 		if !esInterfazVerificada(ctx) || !trustedBlock {
 			effective.Activable = false
@@ -440,6 +440,9 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 			key := effective.BlockKey
 			if policyBlocked {
 				key = effective.OrganizationKey
+			}
+			if effective.ConfigUnavailable {
+				key = "excepciones.directorio_no_disponible"
 			}
 			resp.Error = m.t(key)
 			if policyBlocked {
@@ -2183,6 +2186,11 @@ func (m *Manejador) handleSaveSettings(ctx context.Context, raw json.RawMessage)
 	if err != nil {
 		return respuesta{OK: false, Action: "save_settings", Error: m.t("error.settings_no_configurado")}
 	}
+	for key := range datos {
+		if excepciones.ReservedSettings(key) && key != excepciones.UserField && key != excepciones.AcceptanceField {
+			return respuesta{OK: false, Action: "save_settings", ErrorCode: "unsafe_acceptance_required", Error: m.t("excepciones.aceptacion_requerida")}
+		}
+	}
 	for _, key := range []string{excepciones.UserField, excepciones.AcceptanceField} {
 		if proposed, exists := datos[key]; exists {
 			a, _ := json.Marshal(proposed)
@@ -3169,14 +3177,18 @@ func removeTLSIPCManagedArtifacts(artifactPaths []string) (int, error) {
 }
 
 func (m *Manejador) configDirSeguro() string {
-	if strings.TrimSpace(m.ConfigDir) != "" {
-		return m.ConfigDir
+	if m != nil && strings.TrimSpace(m.ConfigDir) != "" {
+		dir := strings.TrimSpace(m.ConfigDir)
+		if !filepath.IsAbs(dir) {
+			return ""
+		}
+		return filepath.Clean(dir)
 	}
 	home, err := os.UserHomeDir()
-	if err == nil && strings.TrimSpace(home) != "" {
-		return appdirs.Config(home)
+	if err != nil || strings.TrimSpace(home) == "" || !filepath.IsAbs(home) {
+		return ""
 	}
-	return filepath.Join(os.TempDir(), "grxfirma")
+	return appdirs.Config(home)
 }
 
 // ---------------------------------------------------------------------------

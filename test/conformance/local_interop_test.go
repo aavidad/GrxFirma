@@ -17,12 +17,15 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -60,6 +63,8 @@ func TestInteroperabilidadLocal(t *testing.T) {
 				contenido, mime, nombre, formatoFirma = pdffixture.Minimal(), "application/pdf", "original.pdf", domain.FormatPAdES
 			}
 			if formato == "pades-t" {
+				machinepolicy.UnsetForTest(t, "permitir_tsa_http")
+				excepciones.SetForTest(t, "tsa_http", true)
 				responder := nuevaTSALocal(t)
 				cliente := tsaclient.New("http://127.0.0.1/tsa-sintetica")
 				// Transporte HTTP en memoria: funciona también en entornos sin
@@ -96,7 +101,12 @@ func TestInteroperabilidadLocal(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			resultado, err := motor.Sign(context.Background(), domain.SignatureJob{Document: doc, Format: formatoFirma, Action: domain.ActionSign, Options: opciones}, clave)
+			ctx := context.Background()
+			var operationWarnings *domain.AvisosOperacion
+			if formato == "pades-t" {
+				ctx, operationWarnings = domain.ConAvisosOperacion(ctx)
+			}
+			resultado, err := motor.Sign(ctx, domain.SignatureJob{Document: doc, Format: formatoFirma, Action: domain.ActionSign, Options: opciones}, clave)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -129,6 +139,9 @@ func TestInteroperabilidadLocal(t *testing.T) {
 				cms, datos := extraerCMSLocal(t, resultado.Data)
 				validarCMSLocal(t, dir, cms, datos)
 				if formato == "pades-t" {
+					if !slices.Contains(operationWarnings.Claves(), excepciones.Warning("tsa_http")) {
+						t.Fatalf("falta aviso TSA HTTP: %v", operationWarnings.Claves())
+					}
 					if resultado.Algorithm != "PAdES-B-T" || len(respuesta) == 0 {
 						t.Fatalf("falta PAdES-B-T con respuesta TSA: %s", resultado.Algorithm)
 					}

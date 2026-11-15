@@ -75,6 +75,29 @@ func New(url string) *Client {
 	}
 }
 
+// RequireTransport aplica a cualquier productor de sellos la misma decisión
+// sobre HTTP, incluido el escritor PDF que tiene su propio cliente RFC 3161.
+func RequireTransport(ctx context.Context, rawURL string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	endpoint, err := url.Parse(rawURL)
+	if err != nil || endpoint == nil || endpoint.Hostname() == "" || (endpoint.Scheme != "https" && endpoint.Scheme != "http") || endpoint.User != nil || endpoint.Fragment != "" {
+		return errors.New("URL HTTP(S) de TSA inválida")
+	}
+	return requireTransportScheme(ctx, endpoint.Scheme)
+}
+
+func requireTransportScheme(ctx context.Context, scheme string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if scheme == "http" {
+		return excepciones.Require(ctx, "tsa_http")
+	}
+	return nil
+}
+
 // RequestTimestamp solicita un TimeStampToken para el hash indicado.
 func (c *Client) RequestTimestamp(ctx context.Context, hash []byte, hashAlgo crypto.Hash) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, timestampRequestTimeout)
@@ -87,10 +110,8 @@ func (c *Client) RequestTimestamp(ctx context.Context, hash []byte, hashAlgo cry
 		(endpoint.Scheme != "https" && endpoint.Scheme != "http") || endpoint.User != nil || endpoint.Fragment != "" {
 		return nil, errors.New("URL HTTP(S) de TSA inválida")
 	}
-	if endpoint.Scheme == "http" {
-		if err := excepciones.Require(ctx, "tsa_http"); err != nil {
-			return nil, err
-		}
+	if err := requireTransportScheme(ctx, endpoint.Scheme); err != nil {
+		return nil, err
 	}
 	hashOID, err := oidForHash(hashAlgo)
 	if err != nil {

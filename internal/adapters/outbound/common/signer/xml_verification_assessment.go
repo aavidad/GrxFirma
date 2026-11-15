@@ -293,7 +293,7 @@ func verifiesDeclaredSignedInfo(context xmlSignatureContext, signedInfoXML []byt
 	return err == nil && rsa.VerifyPKCS1v15(public, hash, digest, signature) == nil
 }
 
-func identifyXMLSignersWithContext(fragment []byte, context xmlSignatureContext, signedInfo []byte, value string, certificates []*x509.Certificate, requireSigningCertificate bool, contexts ...context.Context) ([]*x509.Certificate, []string, error) {
+func identifyXMLSignersWithContext(fragment []byte, context xmlSignatureContext, signedInfo []byte, value string, certificates []*x509.Certificate, requireSigningCertificate bool) ([]*x509.Certificate, []string, error) {
 	var info signedInfoForVerify
 	if err := xml.Unmarshal(signedInfo, &info); err != nil {
 		return nil, nil, err
@@ -311,11 +311,6 @@ func identifyXMLSignersWithContext(fragment []byte, context xmlSignatureContext,
 	for _, certificate := range certificates {
 		declarados[certificate] = verifiesDeclaredSignedInfo(context, signedInfo, value, certificate, c14nEstandar)
 		declaredMatch = declaredMatch || declarados[certificate]
-	}
-	if !declaredMatch {
-		if err := excepciones.Check("xml_c14n_antigua", contexts...); err != nil {
-			return nil, nil, err
-		}
 	}
 	for _, certificate := range certificates {
 		declared := declarados[certificate]
@@ -594,7 +589,7 @@ const detalleReferenciaExterna = "referencia_externa"
 // externasNoComprobables, una referencia externa que no se puede resolver
 // (GrxFirma no descarga nada) no es un error: se devuelve en noComprobadas y
 // la firma no puede salir válida. Un resumen que no cuadra sigue siendo error.
-func assessXMLReferencesExternas(fragment []byte, context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error), externasNoComprobables bool, contexts ...context.Context) ([]string, []string, error) {
+func assessXMLReferencesExternas(fragment []byte, context xmlSignatureContext, signedInfoXML []byte, resolver func(string) ([]byte, error), externasNoComprobables bool) ([]string, []string, error) {
 	document := context.document
 	var info signedInfoForVerify
 	if err := xml.Unmarshal(signedInfoXML, &info); err != nil {
@@ -647,9 +642,6 @@ func assessXMLReferencesExternas(fragment []byte, context xmlSignatureContext, s
 		if declaredErr == nil && equalBytes(declared, expected) {
 			continue
 		}
-		if err := excepciones.Check("xml_c14n_antigua", contexts...); err != nil {
-			return nil, nil, err
-		}
 		// Firma hecha por una versión anterior de GrxFirma con su C14N de
 		// entonces: mismo procedimiento declarado, otra serialización.
 		if antigua, err := declaredReferenceDigestVariante(context, ref, target, c14nAntiguaGrxFirma); err == nil && equalBytes(antigua, expected) {
@@ -670,21 +662,37 @@ func assessXMLReferencesExternas(fragment []byte, context xmlSignatureContext, s
 }
 
 func markXMLCompatibility(result domain.VerificationResult, compatibility []string, contexts ...context.Context) domain.VerificationResult {
+	return markXMLCompatibilityConDecision(result, compatibility, true, contexts...)
+}
+
+// El resultado parcial conserva la evidencia sin decidir todavía: otras
+// firmas o referencias del mismo documento pueden estar alteradas.
+func markXMLCompatibilityParcial(result domain.VerificationResult, compatibility []string, contexts ...context.Context) domain.VerificationResult {
+	return markXMLCompatibilityConDecision(result, compatibility, false, contexts...)
+}
+
+func markXMLCompatibilityConDecision(result domain.VerificationResult, compatibility []string, decidir bool, contexts ...context.Context) domain.VerificationResult {
 	if len(compatibility) == 0 {
 		return result
 	}
-	if err := excepciones.Check("xml_c14n_antigua", contexts...); err != nil {
-		result.Valid = false
-		result.Coverage = domain.CoberturaNoAcreditada
-		result.Reason = err.Error()
-		result.Integrity.Status = domain.VerificationStatusUnknown
-		result.Integrity.Reason = err.Error()
-		result.Trust.Status = domain.VerificationStatusUnknown
-		result.Errors = []string{err.Error()}
-		result.Warnings = appendUniqueString(result.Warnings, err.Error())
-		return result.Normalize()
+	requiereC14N := compatibilidadC14N(compatibility)
+	if decidir && requiereC14N {
+		if err := excepciones.Check("xml_c14n_antigua", contexts...); err != nil {
+			result.Valid = false
+			result.Coverage = domain.CoberturaNoAcreditada
+			result.Reason = err.Error()
+			result.Integrity.Status = domain.VerificationStatusUnknown
+			result.Integrity.Reason = err.Error()
+			result.Trust.Status = domain.VerificationStatusUnknown
+			result.Errors = []string{err.Error()}
+			result.Warnings = appendUniqueString(result.Warnings, err.Error())
+			return result.Normalize()
+		}
 	}
-	reason := excepciones.Warning("xml_c14n_antigua")
+	reason := motivoDOCTYPEExterno
+	if requiereC14N {
+		reason = excepciones.Warning("xml_c14n_antigua")
+	}
 	result.Valid = false
 	result.Coverage = "unknown"
 	result.Reason = reason
@@ -702,7 +710,9 @@ func markXMLCompatibility(result domain.VerificationResult, compatibility []stri
 	result.Details = withoutSuccessClaims(result.Details)
 	result.Integrity.Details = append(withoutSuccessClaims(result.Integrity.Details), compatibility...)
 	result.Warnings = appendUniqueString(result.Warnings, reason)
-	result.Warnings = appendUniqueString(result.Warnings, excepciones.Warning("xml_c14n_antigua"))
+	if requiereC14N {
+		result.Warnings = appendUniqueString(result.Warnings, excepciones.Warning("xml_c14n_antigua"))
+	}
 	for _, detail := range compatibility {
 		if strings.HasSuffix(detail, sufijoC14NAntigua) {
 			result.Warnings = appendUniqueString(result.Warnings, motivoC14NAntiguaGrxFirma)
@@ -712,6 +722,17 @@ func markXMLCompatibility(result domain.VerificationResult, compatibility []stri
 		result.Evidence = append(result.Evidence, domain.VerificationEvidence{Type: xmlCompatibilityEvidence, Summary: detail})
 	}
 	return result.Normalize()
+}
+
+// compatibilidadC14N distingue el lector histórico de una DTD externa,
+// que se advierte por separado y no depende de esa excepción.
+func compatibilidadC14N(detalles []string) bool {
+	for _, detalle := range detalles {
+		if detalle != detalleDOCTYPEExterno {
+			return true
+		}
+	}
+	return false
 }
 
 func xmlCompatibilityDetails(result domain.VerificationResult) []string {

@@ -68,13 +68,13 @@ func (e *Error) Unwrap() error { return ErrCertificateUnsuitable }
 // metadatos del selector ni opciones de una petición. Los extremos de vigencia
 // son inclusivos. Una extensión KeyUsage ausente no impone restricciones de uso.
 // now debe proceder del reloj del adaptador, no de parámetros del documento.
-func ValidateCertificateDER(der []byte, now time.Time) error {
+func ValidateCertificateDER(der []byte, now time.Time, ctxs ...context.Context) error {
 	if err := validateCertificateDERCore(der, now); err != nil {
 		return err
 	}
 	cert, _ := x509.ParseCertificate(der)
 	if pub, ok := cert.PublicKey.(*rsa.PublicKey); ok && pub.N.BitLen() < 2048 {
-		return excepciones.Check("rsa_corta")
+		return excepciones.Check("rsa_corta", ctxs...)
 	}
 	return nil
 }

@@ -63,6 +63,14 @@ func comprobarOriginalCofirma(content, original []byte, confirmado bool, context
 // firma SHA-1 que corresponde sigue adelante con su aviso (lote 16c), salvo
 // que la política de máquina prohíba SHA-1 legado.
 func resolverCotejoMovil(cotejo error, operacion, errorNoCorresponde string, contexts ...context.Context) ([]string, error) {
+	var avisos []string
+	if errors.Is(cotejo, commonsigner.ErrFirmaCorrespondeConC14NAntigua) {
+		avisos = append(avisos, excepciones.Warning("xml_c14n_antigua"))
+		if !errors.Is(cotejo, commonsigner.ErrFirmaCorrespondeConSHA1) {
+			return avisos, nil
+		}
+		cotejo = commonsigner.ErrFirmaCorrespondeConSHA1
+	}
 	aviso, err := commonsigner.AdmitirCotejoSHA1(cotejo, operacion, contexts...)
 	var block *excepciones.Block
 	if errors.As(err, &block) {
@@ -74,7 +82,7 @@ func resolverCotejoMovil(cotejo error, operacion, errorNoCorresponde string, con
 	case err != nil:
 		return nil, newFacadeError(errorNoCorresponde)
 	case aviso:
-		return []string{excepciones.Warning("sha1_conservar")}, nil
+		return append(avisos, excepciones.Warning("sha1_conservar")), nil
 	}
 	return nil, nil
 }

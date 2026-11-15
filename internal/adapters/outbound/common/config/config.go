@@ -7,6 +7,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"strconv"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/adapters/outbound/common/settingsfile"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/security/machinepolicy"
 )
@@ -216,6 +218,9 @@ func LoadPolicy(policyDir string) (Policy, error) {
 // cualquier usuario: allí la política procede exclusivamente del registro
 // HKLM\SOFTWARE\Policies\GrxFirma, escribible solo por administradores.
 func loadSystemPolicy(policyDir string) (Policy, error) {
+	if machinepolicy.NoMachinePolicy() {
+		return Policy{}, nil
+	}
 	if policyDir == DirPolicyDefecto && machinepolicy.Native() {
 		return loadMachinePolicy()
 	}
@@ -330,17 +335,38 @@ func cargarFicheroUsuario(path string, dst *Config) error {
 
 // crearFichero escribe cfg como JSON en path, creando los directorios necesarios.
 func crearFichero(path string, cfg Config) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
-		return fmt.Errorf("crear directorio %s: %w", filepath.Dir(path), err)
-	}
-	data, err := json.MarshalIndent(cfg, "", "  ")
-	if err != nil {
-		return fmt.Errorf("serializar config: %w", err)
-	}
-	if err := securefile.WriteFileAtomic(path, data, 0o600); err != nil {
-		return fmt.Errorf("escribir %s: %w", path, err)
-	}
-	return nil
+	return settingsfile.WithLock(context.Background(), filepath.Dir(path), func() error {
+		// Another process may have created the file after the preceding read.
+		// Keep the entire newer document instead of overwriting its settings.
+		if raw, err := securefile.ReadFileLimit(path, maxConfigFileBytes); err == nil {
+			var current map[string]json.RawMessage
+			if err := json.Unmarshal(raw, &current); err != nil || current == nil {
+				return fmt.Errorf("config actual no es un objeto JSON válido")
+			}
+			return settingsfile.PreserveReserved(current, map[string]json.RawMessage{})
+		} else if !os.IsNotExist(err) {
+			return fmt.Errorf("leer %s: %w", path, err)
+		}
+		encoded, err := json.Marshal(cfg)
+		if err != nil {
+			return fmt.Errorf("serializar config: %w", err)
+		}
+		var next map[string]json.RawMessage
+		if err := json.Unmarshal(encoded, &next); err != nil {
+			return err
+		}
+		if err := settingsfile.PreserveReserved(map[string]json.RawMessage{}, next); err != nil {
+			return err
+		}
+		data, err := json.MarshalIndent(next, "", "  ")
+		if err != nil {
+			return fmt.Errorf("serializar config: %w", err)
+		}
+		if err := securefile.WriteFileAtomic(path, data, 0o600); err != nil {
+			return fmt.Errorf("escribir %s: %w", path, err)
+		}
+		return nil
+	})
 }
 
 // aplicarEntorno sobreescribe campos de cfg con variables de entorno GRXFIRMA_*.

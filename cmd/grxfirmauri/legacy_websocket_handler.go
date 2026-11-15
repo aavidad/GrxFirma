@@ -30,15 +30,14 @@ import (
 	"grxfirma/internal/adapters/inbound/legacy/legacycrypto"
 	legacyws "grxfirma/internal/adapters/inbound/legacy/websocket"
 	"grxfirma/internal/adapters/outbound/common/logging"
-	"grxfirma/internal/adapters/outbound/common/securefile"
 	desktopdocumentpicker "grxfirma/internal/adapters/outbound/desktop/documentpicker"
-	desktopfilesystem "grxfirma/internal/adapters/outbound/desktop/filesystem"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/cryptopolicy"
 	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/portalpaths"
 	"grxfirma/presentation/desktop/certpicker"
 )
 
@@ -1024,6 +1023,9 @@ func (h *legacyWebSocketHandler) handleSave(ctx context.Context, solicitud afirm
 		".bin",
 	)
 	if err != nil {
+		if errors.Is(err, portalpaths.ErrProtected) {
+			return "SAF_05: Ruta fuera del ámbito permitido"
+		}
 		return "SAF_05: No se pudo determinar ruta de guardado"
 	}
 	selectedPath, overwriteConfirmed, err := h.pickLegacySaveTarget(ctx, targetPath, effectiveLegacySaveExtensions(solicitud.LegacyParams, ".bin"))
@@ -1287,7 +1289,7 @@ func (h *legacyWebSocketHandler) handleLoad(ctx context.Context, solicitud afirm
 		if !ok {
 			return "SAF_25: Ruta fuera del ámbito permitido"
 		}
-		data, err := securefile.ReadFileLimit(resolved, legacyLoadMaxBytes)
+		data, err := portalpaths.ReadFileLimit(resolved, legacyLoadMaxBytes)
 		if err != nil {
 			return "SAF_25: No se pudo cargar el fichero"
 		}
@@ -1331,6 +1333,9 @@ func (h *legacyWebSocketHandler) handleSignAndSave(ctx context.Context, solicitu
 	}
 	targetPath, err := buildSafeLegacyTargetPath(solicitud.LegacyParams, defaultName, defaultSignedExtension(cmd.Format))
 	if err != nil {
+		if errors.Is(err, portalpaths.ErrProtected) {
+			return "SAF_05: Ruta fuera del ámbito permitido", nil
+		}
 		return "SAF_05: No se pudo determinar ruta de guardado", nil
 	}
 	selectedPath, overwriteConfirmed, err := h.pickLegacySaveTarget(ctx, targetPath, effectiveLegacySaveExtensions(solicitud.LegacyParams, defaultSignedExtension(cmd.Format)))
@@ -1599,24 +1604,36 @@ func buildSafeLegacyTargetPath(values url.Values, defaultName, fallbackExt strin
 	}
 	fileName = sanitizeLegacyFilename(fileName, fallbackExt)
 	if explicit == "" {
-		return filepath.Join(downloads, fileName), nil
+		path := filepath.Join(downloads, fileName)
+		_, err := portalpaths.Check(path)
+		return path, err
+	}
+	if portalpaths.HasParentComponent(explicit) {
+		return "", portalpaths.ErrProtected
 	}
 
 	cleanExplicit := filepath.Clean(explicit)
 	if !filepath.IsAbs(cleanExplicit) {
-		return filepath.Join(downloads, sanitizeLegacyFilename(cleanExplicit, fallbackExt)), nil
+		path := filepath.Join(downloads, sanitizeLegacyFilename(cleanExplicit, fallbackExt))
+		_, err := portalpaths.Check(path)
+		return path, err
 	}
 	if err := excepciones.Check("rutas_directas"); err != nil {
 		return "", err
 	}
 	if isPathWithinAllowedRoots(cleanExplicit, home, os.TempDir()) {
-		avisos.Registrar(tl("excepciones.rutas_directas.aviso"), "")
 		if filepath.Ext(cleanExplicit) == "" && fallbackExt != "" {
 			cleanExplicit += fallbackExt
 		}
+		if _, err := portalpaths.Check(cleanExplicit); err != nil {
+			return "", err
+		}
+		avisos.Registrar(tl("excepciones.rutas_directas.aviso"), "")
 		return cleanExplicit, nil
 	}
-	return filepath.Join(downloads, sanitizeLegacyFilename(filepath.Base(cleanExplicit), fallbackExt)), nil
+	path := filepath.Join(downloads, sanitizeLegacyFilename(filepath.Base(cleanExplicit), fallbackExt))
+	_, err = portalpaths.Check(path)
+	return path, err
 }
 
 func sanitizeLegacyFilename(name, fallbackExt string) string {
@@ -1657,7 +1674,7 @@ func effectiveLegacySaveExtensions(values url.Values, fallbackExt string) string
 
 func resolveLegacyReadablePath(rawPath string) (string, bool) {
 	rawPath = strings.TrimSpace(rawPath)
-	if rawPath == "" {
+	if rawPath == "" || portalpaths.HasParentComponent(rawPath) {
 		return "", false
 	}
 	cleanPath := filepath.Clean(rawPath)
@@ -1689,12 +1706,15 @@ func resolveLegacyReadablePath(rawPath string) (string, bool) {
 	if !isPathWithinAllowedRoots(resolvedPath, resolvedRoots...) {
 		return "", false
 	}
+	if _, err := portalpaths.Check(cleanPath); err != nil {
+		return "", false
+	}
 	return resolvedPath, true
 }
 
 func resolveLegacyWritablePath(rawPath string) (string, bool) {
 	rawPath = strings.TrimSpace(rawPath)
-	if rawPath == "" || strings.IndexByte(rawPath, 0) >= 0 {
+	if rawPath == "" || strings.IndexByte(rawPath, 0) >= 0 || portalpaths.HasParentComponent(rawPath) {
 		return "", false
 	}
 	cleanPath := filepath.Clean(rawPath)
@@ -1708,6 +1728,9 @@ func resolveLegacyWritablePath(rawPath string) (string, bool) {
 	if !isPathWithinAllowedRoots(cleanPath, home, os.TempDir()) {
 		return "", false
 	}
+	if _, err := portalpaths.Check(cleanPath); err != nil {
+		return "", false
+	}
 	return cleanPath, true
 }
 
@@ -1718,15 +1741,13 @@ func resolveLegacyWritablePath(rawPath string) (string, bool) {
 // vienen de la web: en Windows llevan la marca de descarga de Internet (A-09)
 // para que SmartScreen y Office los traten como tales.
 func writeLegacySavedFile(targetPath string, data []byte, overwriteConfirmed bool, origen string) (string, error) {
-	politica := desktopfilesystem.PoliticaRenombrar
-	if overwriteConfirmed {
-		politica = desktopfilesystem.PoliticaForzar
-	}
-	saved, err := desktopfilesystem.NuevoEscritorResultado(politica).Escribir(targetPath, data)
+	saved, err := portalpaths.WriteFile(targetPath, data, overwriteConfirmed)
 	if err != nil {
 		return saved, err
 	}
-	marcarDescargaWeb(saved, origen)
+	if _, err := portalpaths.Check(saved); err == nil {
+		marcarDescargaWeb(saved, origen)
+	}
 	return saved, nil
 }
 
@@ -1740,7 +1761,7 @@ func resolveUserChosenReadablePath(rawPath string) (string, bool) {
 	if !ok {
 		return "", false
 	}
-	resolved, err := filepath.EvalSymlinks(cleanPath)
+	resolved, err := portalpaths.Check(cleanPath)
 	if err != nil {
 		return "", false
 	}
@@ -1759,6 +1780,9 @@ func resolveUserChosenWritablePath(rawPath string) (string, bool) {
 	if info, err := os.Lstat(cleanPath); err == nil && !info.Mode().IsRegular() {
 		return "", false
 	}
+	if _, err := portalpaths.Check(cleanPath); err != nil {
+		return "", false
+	}
 	// No se resuelven enlaces simbólicos del directorio: el escritor rechaza
 	// seguirlos, igual que antes.
 	return cleanPath, true
@@ -1766,7 +1790,7 @@ func resolveUserChosenWritablePath(rawPath string) (string, bool) {
 
 func cleanUserChosenPath(rawPath string) (string, bool) {
 	rawPath = strings.TrimSpace(rawPath)
-	if rawPath == "" || strings.IndexByte(rawPath, 0) >= 0 {
+	if rawPath == "" || strings.IndexByte(rawPath, 0) >= 0 || portalpaths.HasParentComponent(rawPath) {
 		return "", false
 	}
 	if strings.HasPrefix(rawPath, `\\.\`) || strings.HasPrefix(rawPath, `\\?\`) ||

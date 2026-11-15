@@ -79,17 +79,32 @@ func cosignCAdES(existing, original []byte, key *LocalSigningKey, spec cmsHashSp
 // (lote 16c), salvo que la política de máquina lo prohíba. Devuelve el
 // original que puede usar la cofirma, o nil si no lo hay o no hace falta.
 func originalCofirmaCotejado(ctx context.Context, existing, original []byte) ([]byte, error) {
-	if len(original) == 0 {
-		if _, implicita, err := ContenidoCAdESImplicito(existing); err == nil && !implicita {
-			if err := excepciones.Require(ctx, "cofirma_sin_original"); err != nil {
-				return nil, err
-			}
+	contenido, implicita, err := ContenidoCAdESImplicito(existing)
+	if err != nil {
+		return nil, err
+	}
+	conSHA1, err := signerInfosSHA1Copiados(existing)
+	if err != nil {
+		return nil, err
+	}
+	if conSHA1 {
+		if err := excepciones.Require(ctx, "sha1_conservar"); err != nil {
+			return nil, err
+		}
+	}
+	if implicita {
+		if len(original) > 0 && !bytes.Equal(original, contenido) {
+			return nil, ErrFirmaNoCorrespondeOriginal
+		}
+		if err := CotejarCAdESExplicita(existing, contenido); err != nil && !errors.Is(err, ErrFirmaCorrespondeConSHA1) {
+			return nil, err
 		}
 		return nil, nil
 	}
-	if _, implicita, err := ContenidoCAdESImplicito(existing); err != nil || implicita {
-		// La firma lleva el documento dentro (o no se puede leer y fallará
-		// después con su propio error): el original no se usa.
+	if len(original) == 0 {
+		if err := excepciones.Require(ctx, "cofirma_sin_original"); err != nil {
+			return nil, err
+		}
 		return nil, nil
 	}
 	aviso, err := AdmitirCotejoSHA1(CotejarCAdESExplicita(existing, original), "cofirma", ctx)
@@ -101,6 +116,55 @@ func originalCofirmaCotejado(ctx context.Context, existing, original []byte) ([]
 		domain.AnotarAviso(ctx, excepciones.Warning("sha1_conservar"))
 	}
 	return original, nil
+}
+
+// signerInfosSHA1Copiados inspecciona todos los firmantes que se conservarán,
+// incluidas las contrafirmas anidadas. No atribuye validez a ninguna firma.
+func signerInfosSHA1Copiados(existing []byte) (bool, error) {
+	sd, err := parseSignedDataParts(existing)
+	if err != nil {
+		return false, err
+	}
+	conSHA1 := false
+	for _, der := range sd.signerInfos {
+		antiguo, err := signerInfoSHA1Copiado(der, 0)
+		if err != nil {
+			return false, err
+		}
+		conSHA1 = conSHA1 || antiguo
+	}
+	return conSHA1, nil
+}
+
+func signerInfoSHA1Copiado(der []byte, profundidad int) (bool, error) {
+	if profundidad > maxProfundidadContrafirma {
+		return false, ErrFirmaNoCorrespondeOriginal
+	}
+	var info signerInfoRaw
+	rest, err := asn1.Unmarshal(der, &info)
+	if err != nil || len(rest) != 0 {
+		return false, ErrFirmaNoCorrespondeOriginal
+	}
+	conSHA1 := info.DigestAlgorithm.Algorithm.Equal(oidDigestSHA1) ||
+		info.SignatureAlgorithm.Algorithm.Equal(oidSignatureRSAWithSHA1) ||
+		info.SignatureAlgorithm.Algorithm.Equal(oidSignatureECDSAWith1)
+	attrs, err := parseUnsignedAttributes(info.UnsignedAttributes)
+	if err != nil {
+		return false, err
+	}
+	for _, attr := range attrs {
+		if !attr.Type.Equal(oidCounterSignature) {
+			continue
+		}
+		for _, value := range attr.Values {
+			antiguo, err := signerInfoSHA1Copiado(value.FullBytes, profundidad+1)
+			if err != nil {
+				return false, err
+			}
+			conSHA1 = conSHA1 || antiguo
+		}
+	}
+	return conSHA1, nil
 }
 
 // AvisoCofirmaSinOriginal es la clave de catálogo del aviso que acompaña al

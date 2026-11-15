@@ -1356,6 +1356,7 @@ func (a *Adaptador) handleProtectSign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, protectResponse{
+		Warnings:               a.traducirAvisosProteccion(r, result.Warnings),
 		OK:                     true,
 		Profile:                string(result.Protected.Profile),
 		RecipientCount:         result.Protected.RecipientCount,

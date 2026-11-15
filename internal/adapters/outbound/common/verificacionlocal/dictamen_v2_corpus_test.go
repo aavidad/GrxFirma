@@ -35,8 +35,8 @@ func TestDictamenV2_CorpusSintetico(t *testing.T) {
 		name, state, reason, secondChange, postChange string
 		incomplete                                    bool
 	}{
-		{"01_una_firma", "valida", "verificada", "", "ninguno", false},
-		{"02_dos_firmas", "valida", "verificada", "permitidos", "ninguno", false},
+		{"01_una_firma", "indeterminada", "resultado_clasico_no_valido", "", "ninguno", false},
+		{"02_dos_firmas", "indeterminada", "resultado_clasico_no_valido", "permitidos", "ninguno", false},
 		{"03_pagina_entre_firmas", "no_valida", "cambios_no_permitidos", "no_permitidos", "ninguno", false},
 		{"04_pagina_posterior", "no_valida", "cambios_no_permitidos", "permitidos", "no_permitidos", false},
 		{"05_docmdp_1", "no_valida", "cambios_no_permitidos", "no_permitidos", "ninguno", false},
@@ -46,15 +46,15 @@ func TestDictamenV2_CorpusSintetico(t *testing.T) {
 		{"09_xref_stream", "indeterminada", "cambios_no_comprobados", "permitidos", "no_comprobados", false},
 		{"10_xref_hibrido", "indeterminada", "cambios_no_comprobados", "permitidos", "no_comprobados", false},
 		{"11_fieldmdp_all", "no_valida", "cambios_no_permitidos", "no_permitidos", "ninguno", false},
-		{"12_dss", "valida", "verificada", "permitidos", "permitidos", false},
+		{"12_dss", "indeterminada", "resultado_clasico_no_valido", "permitidos", "permitidos", false},
 		{"13_doctimestamp", "indeterminada", "pdf_no_comprobado", "", "no_comprobados", false},
-		{"14_docmdp_2", "valida", "verificada", "permitidos", "ninguno", false},
-		{"15_docmdp_3", "valida", "verificada", "permitidos", "ninguno", false},
-		{"16_dss_valido", "valida", "verificada", "", "permitidos", false},
+		{"14_docmdp_2", "indeterminada", "resultado_clasico_no_valido", "permitidos", "ninguno", false},
+		{"15_docmdp_3", "indeterminada", "resultado_clasico_no_valido", "permitidos", "ninguno", false},
+		{"16_dss_valido", "indeterminada", "resultado_clasico_no_valido", "", "permitidos", false},
 		{"17_dss_objeto_ajeno", "indeterminada", "cambios_no_comprobados", "", "no_comprobados", false},
-		{"18_doctimestamp_valido", "valida", "verificada", "permitidos", "ninguno", false},
+		{"18_doctimestamp_valido", "indeterminada", "resultado_clasico_no_valido", "permitidos", "ninguno", false},
 		{"19_doctimestamp_imprint_ajeno", "no_valida", "integridad_no_valida", "no_comprobados", "ninguno", false},
-		{"20_lta_completo", "valida", "verificada", "permitidos", "ninguno", false},
+		{"20_lta_completo", "indeterminada", "resultado_clasico_no_valido", "permitidos", "ninguno", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

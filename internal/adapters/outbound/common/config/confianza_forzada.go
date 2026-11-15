@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/adapters/outbound/common/settingsfile"
 	"grxfirma/internal/domain"
 )
 
@@ -89,7 +90,7 @@ func (a *AlmacenConfianzaForzada) prohibida() bool {
 
 // AceptarConfianzaForzada añade la entrada (o renueva la del mismo tipo y
 // huella) en config.json, con permisos 0600.
-func (a *AlmacenConfianzaForzada) AceptarConfianzaForzada(_ context.Context, aceptacion domain.AceptacionConfianza) error {
+func (a *AlmacenConfianzaForzada) AceptarConfianzaForzada(ctx context.Context, aceptacion domain.AceptacionConfianza) error {
 	aceptacion, err := aceptacion.Normalizar()
 	if err != nil {
 		return err
@@ -99,18 +100,18 @@ func (a *AlmacenConfianzaForzada) AceptarConfianzaForzada(_ context.Context, ace
 	if a.prohibida() {
 		return domain.ErrConfianzaProhibida
 	}
-	return a.actualizar(func(actuales []domain.AceptacionConfianza) []domain.AceptacionConfianza {
+	return a.actualizar(ctx, func(actuales []domain.AceptacionConfianza) []domain.AceptacionConfianza {
 		out := quitarAceptacion(actuales, aceptacion.Tipo, aceptacion.Huella)
 		return append(out, aceptacion)
 	})
 }
 
 // QuitarConfianzaForzada borra la entrada del tipo y huella indicados.
-func (a *AlmacenConfianzaForzada) QuitarConfianzaForzada(_ context.Context, tipo domain.TipoConfianzaForzada, huella string) (bool, error) {
+func (a *AlmacenConfianzaForzada) QuitarConfianzaForzada(ctx context.Context, tipo domain.TipoConfianzaForzada, huella string) (bool, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	quitada := false
-	err := a.actualizar(func(actuales []domain.AceptacionConfianza) []domain.AceptacionConfianza {
+	err := a.actualizar(ctx, func(actuales []domain.AceptacionConfianza) []domain.AceptacionConfianza {
 		out := quitarAceptacion(actuales, tipo, huella)
 		quitada = len(out) != len(actuales)
 		return out
@@ -132,24 +133,31 @@ func quitarAceptacion(lista []domain.AceptacionConfianza, tipo domain.TipoConfia
 // actualizar lee config.json, cambia solo la clave confianza_forzada y lo
 // escribe de forma atómica con permisos 0600. El resto de claves se conserva
 // tal cual.
-func (a *AlmacenConfianzaForzada) actualizar(cambiar func([]domain.AceptacionConfianza) []domain.AceptacionConfianza) error {
+func (a *AlmacenConfianzaForzada) actualizar(ctx context.Context, cambiar func([]domain.AceptacionConfianza) []domain.AceptacionConfianza) error {
+	return settingsfile.WithLock(ctx, a.dirUsuario, func() error { return a.actualizarBloqueado(cambiar) })
+}
+
+func (a *AlmacenConfianzaForzada) actualizarBloqueado(cambiar func([]domain.AceptacionConfianza) []domain.AceptacionConfianza) error {
 	ruta := filepath.Join(a.dirUsuario, ficheroConfig)
 	campos := map[string]json.RawMessage{}
 	datos, err := securefile.ReadFileLimit(ruta, maxConfigFileBytes)
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
-		if err := crearFichero(ruta, Default()); err != nil {
-			return err
-		}
-		datos, err = securefile.ReadFileLimit(ruta, maxConfigFileBytes)
+		datos, err = json.Marshal(Default())
 		if err != nil {
-			return fmt.Errorf("leer %s: %w", ruta, err)
+			return fmt.Errorf("serializar valores iniciales: %w", err)
 		}
 	case err != nil:
 		return fmt.Errorf("leer %s: %w", ruta, err)
 	}
 	if err := json.Unmarshal(datos, &campos); err != nil {
 		return fmt.Errorf("parsear %s: %w", ruta, err)
+	}
+	if campos == nil {
+		return fmt.Errorf("config actual no es un objeto JSON válido")
+	}
+	if err := settingsfile.PreserveReserved(campos, map[string]json.RawMessage{}); err != nil {
+		return err
 	}
 	var actuales []domain.AceptacionConfianza
 	if raw, ok := campos[claveConfianzaForzada]; ok && len(raw) > 0 && string(raw) != "null" {

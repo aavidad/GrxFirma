@@ -174,7 +174,7 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
 		return nil, err
 	}
-	firmados, err := signLegacyBatchTriphaseXML(datosTrifasicos, key, algoritmo, req.ExtraParams, nil)
+	firmados, err := signLegacyBatchTriphaseXML(datosTrifasicos, key, algoritmo, req.ExtraParams, nil, ctx)
 	if err != nil {
 		trazaServidorTrifasico("firma_local", "error")
 		return nil, fmt.Errorf("firma local de la prefirma fallida: %w", err)

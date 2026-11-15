@@ -7177,5 +7177,6 @@
   "proteccion.cms.saed.version_invalida": "La versión del sobre firmado y cifrado no es válida.",
   "proteccion.cms.saed.destinatarios_existentes": "No se puede añadir el transporte seguro a un sobre que ya tiene destinatarios.",
   "proteccion.cms.saed.destinatario_invalido": "Uno de los destinatarios del sobre firmado y cifrado no es válido.",
-  "proteccion.cms.saed.certificado_no_encontrado": "El certificado no figura entre los destinatarios del sobre firmado y cifrado."
+  "proteccion.cms.saed.certificado_no_encontrado": "El certificado no figura entre los destinatarios del sobre firmado y cifrado.",
+  "excepciones.directorio_no_disponible": "No se puede localizar el directorio privado de configuración de GrxFirma. Abra la aplicación desde su lanzador o configure una carpeta privada válida; no se ha activado ninguna excepción."
 }

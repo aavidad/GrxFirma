@@ -34,6 +34,9 @@ const (
 
 	// Comprobaciones necesarias que no concluyen: estado indeterminada.
 	MotivoDictamenIntegridadParcial           MotivoDictamen = "integridad_parcial"
+	MotivoDictamenResultadoClasicoNoValido    MotivoDictamen = "resultado_clasico_no_valido"
+	MotivoDictamenAlgoritmoHeredado           MotivoDictamen = "algoritmo_heredado_sin_aceptar"
+	MotivoDictamenClaveRSACorta               MotivoDictamen = "clave_rsa_corta_sin_aceptar"
 	MotivoDictamenFirmanteNoIdentificado      MotivoDictamen = "firmante_no_identificado"
 	MotivoDictamenCertificadoNoAcreditado     MotivoDictamen = "certificado_no_acreditado"
 	MotivoDictamenConfianzaNoAcreditada       MotivoDictamen = "confianza_no_acreditada"

@@ -201,6 +201,11 @@ func (k *LocalStrongKeyring) DecryptionKeys(ctx context.Context, protected domai
 		}
 		out = append(out, material)
 	}
+	if len(out) == 0 && k.hasLegacyRecipientFile(destinatarios.ids, publicIdentityPaths(identities)) {
+		if err := excepciones.Check("alto_clave_fichero_leer", ctx); err != nil {
+			return nil, err
+		}
+	}
 	return out, nil
 }
 
@@ -343,6 +348,20 @@ func (k *LocalStrongKeyring) loadRecipients(ctx context.Context, wanted map[stri
 		return nil, nil, err
 	}
 	recipients = append(recipients, imported...)
+	if len(wanted) > 0 {
+		missing := make(map[string]struct{}, len(wanted))
+		for id := range wanted {
+			missing[id] = struct{}{}
+		}
+		for _, recipient := range recipients {
+			delete(missing, recipient.ID)
+		}
+		if k.hasLegacyRecipientFile(missing, publicIdentityPaths(identities)) {
+			if err := excepciones.Check("alto_clave_fichero_leer", ctx); err != nil {
+				return nil, nil, err
+			}
+		}
+	}
 	return dedupeRecipients(recipients), enFichero, nil
 }
 
@@ -394,6 +413,10 @@ func (k *LocalStrongKeyring) readAllIdentities(ctx context.Context) ([]strongIde
 	}
 	legacy, err := k.readLegacyIdentities(ctx, publicIdentityPaths(identities))
 	if err != nil {
+		var block *excepciones.Block
+		if len(identities) > 0 && errors.As(err, &block) && block.ID == "alto_clave_fichero_leer" {
+			return identities, nil
+		}
 		return nil, err
 	}
 	if len(legacy) == 0 {
@@ -733,6 +756,29 @@ func (k *LocalStrongKeyring) legacyDirs() []string {
 		return []string{legacy}
 	}
 	return []string{legacy, k.dir()}
+}
+
+// hasLegacyRecipientFile solo mira nombres de fichero; no abre ni analiza
+// ninguna clave v1 mientras la excepción esté desactivada.
+func (k *LocalStrongKeyring) hasLegacyRecipientFile(ids map[string]struct{}, publicPaths map[string]bool) bool {
+	for id := range ids {
+		if len(id) != 16 {
+			continue
+		}
+		if _, err := hex.DecodeString(id); err != nil {
+			continue
+		}
+		for _, dir := range k.legacyDirs() {
+			path := filepath.Join(dir, id+".json")
+			if publicPaths[path] {
+				continue
+			}
+			if _, err := os.Lstat(path); err == nil {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 type legacyStrongIdentity struct {

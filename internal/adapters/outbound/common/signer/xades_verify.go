@@ -297,14 +297,14 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	if err := ctx.Err(); err != nil {
 		return xmlSignatureVerification{}, err
 	}
-	signerCertificates, compatibility, err := identifyXMLSignersWithContext(xmlData, signatureContext, signedInfoXML, signatureValue, certificates, requireSigningCertificate, ctx)
+	signerCertificates, compatibility, err := identifyXMLSignersWithContext(xmlData, signatureContext, signedInfoXML, signatureValue, certificates, requireSigningCertificate)
 	if err != nil {
 		return xmlSignatureVerification{}, err
 	}
 	if err := ctx.Err(); err != nil {
 		return xmlSignatureVerification{}, err
 	}
-	referenceCompatibility, externasNoComprobadas, err := assessXMLReferencesExternas(xmlData, signatureContext, signedInfoXML, externalResolver, referenciasExternasNoComprobables(ctx), ctx)
+	referenceCompatibility, externasNoComprobadas, err := assessXMLReferencesExternas(xmlData, signatureContext, signedInfoXML, externalResolver, referenciasExternasNoComprobables(ctx))
 	if err != nil {
 		return xmlSignatureVerification{}, err
 	}
@@ -336,7 +336,7 @@ func verifyXMLSignatureDocumentWithContext(ctx context.Context, xmlData []byte, 
 	result := domain.NewVerificationSuccess(format, reason, details)
 	result = applySignerVerificationMetadata(domain.RegistroConfianzaForzadaDe(ctx), result, signerCertificates, certificates, anchors)
 	result = marcarSelloXMLNoEvaluable(result, xmlData)
-	result = markXMLCompatibility(result, compatibility, ctx)
+	result = markXMLCompatibilityParcial(result, compatibility, ctx)
 	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, antiguos, ctx)
 	return xmlSignatureVerification{
 		result:               result,

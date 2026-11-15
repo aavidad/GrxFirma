@@ -2067,6 +2067,7 @@ func (a *Adaptador) ejecutarProteccionFirmada(ctx context.Context, cfg configCLI
 		a.escribirErrorCLI(a.t("Resultado", "Resultado"), err)
 		return 1
 	}
+	a.escribirAvisosCLI("", resultado.Warnings)
 
 	protectedB64 := base64.StdEncoding.EncodeToString(resultado.Protected.Document.Content)
 	salidaFinal := ""
@@ -2105,6 +2106,9 @@ func (a *Adaptador) ejecutarProteccionFirmada(ctx context.Context, cfg configCLI
 		}
 		if cfg.noGuardar || cfg.imprimirFirma {
 			payload["contenido_protegido_base64"] = protectedB64
+		}
+		if len(resultado.Warnings) > 0 {
+			payload["advertencias"] = append([]string(nil), resultado.Warnings...)
 		}
 		if err := escribirJSON(a.Stdout, payload); err != nil {
 			a.escribirErrorCLI("JSON", err)
@@ -4696,6 +4700,14 @@ func (a *Adaptador) resolverCotejoENI(cotejo error) ([]string, error) {
 	if errors.As(cotejo, &block) {
 		return nil, cotejo
 	}
+	var avisos []string
+	if errors.Is(cotejo, commonsigner.ErrFirmaCorrespondeConC14NAntigua) {
+		avisos = append(avisos, excepciones.Warning("xml_c14n_antigua"))
+		if !errors.Is(cotejo, commonsigner.ErrFirmaCorrespondeConSHA1) {
+			return avisos, nil
+		}
+		cotejo = commonsigner.ErrFirmaCorrespondeConSHA1
+	}
 	aviso, err := commonsigner.AdmitirCotejoSHA1(cotejo, "eni")
 	switch {
 	case errors.Is(err, commonsigner.ErrCotejoSHA1Prohibido):
@@ -4703,7 +4715,7 @@ func (a *Adaptador) resolverCotejoENI(cotejo error) ([]string, error) {
 	case err != nil:
 		return nil, a.errorFirmaNoCorresponde()
 	case aviso:
-		return []string{commonsigner.AvisoFirmaSHA1Corresponde, "excepciones.sha1_conservar.aviso"}, nil
+		return domain.UnirAvisos(avisos, commonsigner.AvisoFirmaSHA1Corresponde, excepciones.Warning("sha1_conservar")), nil
 	}
 	return nil, nil
 }

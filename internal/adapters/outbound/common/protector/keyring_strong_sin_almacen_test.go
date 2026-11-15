@@ -328,6 +328,7 @@ func TestLocalStrongKeyring_V2HuerfanaNoCaeAFichero(t *testing.T) {
 	almacen.mu.Lock()
 	clear(almacen.datos)
 	almacen.mu.Unlock()
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", false)
 
 	ctx, avisos := domain.ConAvisosOperacion(context.Background())
 	keys, err := keyring.DecryptionKeys(ctx, documentoDirigidoA(t, recipients[0].ID))
@@ -411,9 +412,12 @@ func TestLocalStrongKeyring_ConfiguracionUsuarioActivaSoloLoElegido(t *testing.T
 	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
 	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
 	cfg, data := t.TempDir(), t.TempDir()
-	raw := []byte(`{"excepciones_inseguras":{"alto_clave_fichero_crear":true,"alto_clave_fichero_leer":true}}`)
-	if err := os.WriteFile(filepath.Join(cfg, "config.json"), raw, 0600); err != nil {
-		t.Fatal(err)
+	for _, id := range []string{"alto_clave_fichero_crear", "alto_clave_fichero_leer"} {
+		if _, err := excepciones.ActivateLocal(excepciones.ForLocalCLI(context.Background()), cfg, excepciones.ActivationRequest{
+			ID: id, Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
+		}); err != nil {
+			t.Fatal(err)
+		}
 	}
 	keyring := protector.NuevoLocalStrongKeyring(cfg, data, nil)
 	ctx, warnings := domain.ConAvisosOperacion(context.Background())
@@ -426,5 +430,26 @@ func TestLocalStrongKeyring_ConfiguracionUsuarioActivaSoloLoElegido(t *testing.T
 	}
 	if !slices.Contains(warnings.Claves(), excepciones.Warning("alto_clave_fichero_leer")) {
 		t.Fatalf("falta aviso de lectura: %v", warnings.Claves())
+	}
+}
+
+func TestLocalStrongKeyring_V2NoDependeDeLeerV1Bloqueada(t *testing.T) {
+	cfg, data := t.TempDir(), t.TempDir()
+	store := nuevoAlmacenMemoria()
+	keyring := protector.NuevoLocalStrongKeyring(cfg, data, store)
+	v2, err := keyring.List(context.Background())
+	if err != nil || len(v2) != 1 {
+		t.Fatalf("crear identidad v2: %v, %v", v2, err)
+	}
+	_, _, _, _ = identidadAltoV1(t, filepath.Join(cfg, "protection", "strong"))
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", false)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	keys, err := keyring.DecryptionKeys(ctx, documentoDirigidoA(t, v2[0].ID))
+	if err != nil || len(keys) != 1 || keys[0].RecipientID != v2[0].ID {
+		t.Fatalf("la v1 bloqueada impide usar v2: claves=%d err=%v", len(keys), err)
+	}
+	if slices.Contains(warnings.Claves(), excepciones.Warning("alto_clave_fichero_leer")) {
+		t.Fatalf("la operación v2 no leyó clave v1: %v", warnings.Claves())
 	}
 }

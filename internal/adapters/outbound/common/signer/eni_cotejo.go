@@ -33,6 +33,10 @@ var ErrFirmaNoCorrespondeOriginal = errors.New("la firma no corresponde al docum
 // AdmitirCotejoSHA1.
 var ErrFirmaCorrespondeConSHA1 = errors.New("la firma corresponde al documento, pero usa SHA-1")
 
+// ErrFirmaCorrespondeConC14NAntigua indica que se pudo cotejar el contenido
+// integrado byte a byte, aunque la firma necesita el lector XML histórico.
+var ErrFirmaCorrespondeConC14NAntigua = errors.New(excepciones.Warning("xml_c14n_antigua"))
+
 // ErrCotejoSHA1Prohibido indica que la firma corresponde, usa SHA-1 y la
 // política de máquina lo prohíbe (permitir_sha1_legacy deshabilitada).
 var ErrCotejoSHA1Prohibido = errors.New("excepciones.sha1_conservar.bloqueo")
@@ -139,6 +143,18 @@ func CotejarXAdESSeparada(firma, original []byte, contexts ...context.Context) e
 	}
 	if !externa && !contenidoInternoCoincide(firma, original) {
 		return ErrFirmaNoCorrespondeOriginal
+	}
+	if compatibilidadC14N(xmlCompatibilityDetails(verificacion.result)) {
+		if externa {
+			// La canonicalización puede igualar dos archivos distintos. Sin una
+			// copia literal dentro de la firma no se acreditan los bytes del ENI.
+			return ErrFirmaNoCorrespondeOriginal
+		}
+		domain.AnotarAviso(ctx, excepciones.Warning("xml_c14n_antigua"))
+		if len(algoritmosAntiguos(verificacion.result)) > 0 {
+			return errors.Join(ErrFirmaCorrespondeConC14NAntigua, ErrFirmaCorrespondeConSHA1)
+		}
+		return ErrFirmaCorrespondeConC14NAntigua
 	}
 	if len(algoritmosAntiguos(verificacion.result)) > 0 {
 		return ErrFirmaCorrespondeConSHA1
@@ -281,7 +297,7 @@ func ComprobarIntegridadPAdES(ctx context.Context, pdf []byte) error {
 	result, _, err := verifier.Verify(ctx, doc, domain.CertificateChain{})
 	if err == nil {
 		for _, mensaje := range append(append([]string{result.Reason}, result.Errors...), result.Warnings...) {
-			if block := excepciones.FromText(mensaje); block != nil && block.ID == "sha1_leer" {
+			if block := excepciones.FromText(mensaje, ctx); block != nil && block.ID == "sha1_leer" {
 				return block
 			}
 		}

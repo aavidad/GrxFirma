@@ -1,4 +1,4 @@
-//go:build !windows
+//go:build !windows && !android
 
 // SPDX-License-Identifier: EUPL-1.2
 package machinepolicy

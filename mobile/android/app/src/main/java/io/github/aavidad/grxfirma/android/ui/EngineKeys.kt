@@ -43,7 +43,7 @@ object EngineKeys {
     )
 
     fun isClosed(key: String): Boolean {
-		if (key in setOf("excepciones.aceptacion_requerida", "excepciones.version_aceptacion_invalida", "excepciones.canal_no_local", "excepciones.activar_continuar", "excepciones.cancelar", "excepciones.mas_informacion", "excepciones.reintento_caducado", "excepciones.reintento_no_disponible")) return true
+		if (key in setOf("excepciones.aceptacion_requerida", "excepciones.version_aceptacion_invalida", "excepciones.canal_no_local", "excepciones.directorio_no_disponible", "excepciones.activar_continuar", "excepciones.cancelar", "excepciones.mas_informacion", "excepciones.reintento_caducado", "excepciones.reintento_no_disponible")) return true
 		if (CATALOGUE_KEY.matches(key)) return true
 		val parts = key.split('.')
 		return parts.size == 3 && parts[0] == "excepciones" && parts[1] in EXCEPTION_IDS &&

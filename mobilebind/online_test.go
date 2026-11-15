@@ -16,8 +16,6 @@ import (
 	"grxfirma/internal/security/machinepolicy"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -351,7 +349,7 @@ func TestTimestampProbeHTTPUsesPrivateSettingsAndWarning(t *testing.T) {
 	if requests != 0 {
 		t.Fatal("HTTP salió antes del ajuste")
 	}
-	if err := os.WriteFile(filepath.Join(f.configDir, "settings.json"), []byte(`{"excepciones_inseguras":{"tsa_http":true}}`), 0600); err != nil {
+	if _, err := excepciones.ActivateLocal(excepciones.ForLocalAndroid(f.operationContext()), f.configDir, excepciones.ActivationRequest{ID: "tsa_http", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion}); err != nil {
 		t.Fatal(err)
 	}
 	raw, err := f.ProbeTimestampAuthorityJSON(req)

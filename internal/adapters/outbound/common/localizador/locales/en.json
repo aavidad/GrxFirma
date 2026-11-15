@@ -7177,5 +7177,6 @@
   "proteccion.cms.saed.version_invalida": "The version of the signed and encrypted envelope is invalid.",
   "proteccion.cms.saed.destinatarios_existentes": "Secure key transport cannot be added to an envelope that already has recipients.",
   "proteccion.cms.saed.destinatario_invalido": "One recipient in the signed and encrypted envelope is invalid.",
-  "proteccion.cms.saed.certificado_no_encontrado": "The certificate is not among the recipients of the signed and encrypted envelope."
+  "proteccion.cms.saed.certificado_no_encontrado": "The certificate is not among the recipients of the signed and encrypted envelope.",
+  "excepciones.directorio_no_disponible": "The private GrxFirma configuration directory could not be found. Open the app from its launcher or configure a valid private folder; no exception has been enabled."
 }

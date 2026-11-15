@@ -23,6 +23,7 @@ import (
 	"grxfirma/internal/adapters/inbound/legacy/legacycrypto"
 	"grxfirma/internal/adapters/outbound/common/limits"
 	"grxfirma/internal/adapters/outbound/common/localizador"
+	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/avisos"
@@ -332,6 +333,12 @@ func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, 
 		return domain.SignatureResult{}, fmt.Errorf("respuesta retrieve no es JSON valido: %w", err)
 	}
 
+	// La TSA indicada por el servidor se reenvía en prefirma. Si usa HTTP,
+	// se pide la misma excepción que en las firmas con sello locales.
+	if err := requireTriphaseTSAOptions(ctx, legacyDecodeBatchExtraParams(retrieved.ExtraParams)); err != nil {
+		return domain.SignatureResult{}, err
+	}
+
 	formato := strings.TrimSpace(retrieved.Format)
 	if formato == "" {
 		formato = string(job.Format)
@@ -374,7 +381,7 @@ func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, 
 	if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
 		return domain.SignatureResult{}, err
 	}
-	pk1B64, err := signLegacyBatchPreData(hashBytes, signingKey, algoritmo, hashAlg, nil)
+	pk1B64, err := signLegacyBatchPreData(hashBytes, signingKey, algoritmo, hashAlg, nil, ctx)
 	if err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("firma local PKCS#1 fallida: %w", err)
 	}
@@ -884,4 +891,11 @@ func esParametroClaveSesion(nombre string) bool {
 	default:
 		return false
 	}
+}
+
+func requireTriphaseTSAOptions(ctx context.Context, options map[string]string) error {
+	if urlTSA := strings.TrimSpace(options["tsaurl"]); urlTSA != "" {
+		return tsaclient.RequireTransport(ctx, urlTSA)
+	}
+	return nil
 }

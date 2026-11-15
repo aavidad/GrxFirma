@@ -281,6 +281,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 	ctx, notices := domain.ConAvisosOperacion(ctx)
 	options := map[string]string{"container": container}
 	var protected domain.ProtectedPayload
+	var resultWarnings []string
 	certificateID := ""
 	if req.Sign {
 		if !f.session.hasSigningIdentity(req.CertificateID) {
@@ -302,6 +303,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 			return "", safeOperationError("proteccion")
 		}
 		protected = result.Protected
+		resultWarnings = domain.UnirAvisos(resultWarnings, result.Warnings...)
 		certificateID = result.CertificateUsed.ID
 	} else {
 		cmd, err := application.NewProtectCommand(req.Name, content, req.MIMEType,
@@ -321,6 +323,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 			return "", safeOperationError("proteccion")
 		}
 		protected = result.Protected
+		resultWarnings = domain.UnirAvisos(resultWarnings, result.Warnings...)
 	}
 	data := protected.Document.Content
 	defer zeroBytes(data)
@@ -328,7 +331,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 		return "", newFacadeError("el resultado de proteccion tiene un tamano no permitido")
 	}
 	return marshal(protectResponse{
-		Warnings:       notices.Claves(),
+		Warnings:       domain.UnirAvisos(resultWarnings, notices.Claves()...),
 		Name:           sanitizeOutputText(protected.Document.Name, 200),
 		MIMEType:       sanitizeOutputText(protected.Document.MIMEType, 160),
 		ContentBase64:  base64.StdEncoding.EncodeToString(data),

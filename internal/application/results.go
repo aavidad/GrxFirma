@@ -78,6 +78,8 @@ type ProtectResult struct {
 type ProtectAndSignResult struct {
 	Protected       domain.ProtectedPayload
 	CertificateUsed domain.CertificateRef
+	// Warnings reúne los avisos de la clave, la aprobación y el motor.
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 // UnprotectResult resume el descifrado correcto de un documento protegido.

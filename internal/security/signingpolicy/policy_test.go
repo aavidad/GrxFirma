@@ -129,3 +129,28 @@ func TestRSA1024RequiereAjusteYDevuelveAviso(t *testing.T) {
 		t.Fatalf("la directiva debe bloquear RSA 1024: %v", err)
 	}
 }
+
+func TestValidateCertificateDERRespetaDirectorioDeOperacion(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_rsa_corta")
+	now := time.Now()
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &x509.Certificate{SerialNumber: big.NewInt(71), NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour), KeyUsage: x509.KeyUsageDigitalSignature}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, key.Public(), key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	ctx := excepciones.WithConfigDir(context.Background(), dir)
+	if _, err = excepciones.ActivateLocal(excepciones.ForLocalCLI(ctx), dir, excepciones.ActivationRequest{ID: "rsa_corta", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion}); err != nil {
+		t.Fatal(err)
+	}
+	if err = ValidateCertificateDER(der, now, ctx); err != nil {
+		t.Fatalf("operación privada autorizada: %v", err)
+	}
+	if err = ValidateCertificateDER(der, now); err == nil {
+		t.Fatal("autorización privada se filtró a otra operación")
+	}
+}

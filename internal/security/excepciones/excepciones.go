@@ -8,9 +8,12 @@ package excepciones
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"grxfirma/internal/adapters/outbound/common/settingsfile"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -21,7 +24,7 @@ import (
 	"grxfirma/internal/security/machinepolicy"
 )
 
-const UserField = "excepciones_inseguras"
+const UserField = settingsfile.UserField
 
 type Exception struct {
 	ID                string `json:"id"`
@@ -87,6 +90,7 @@ type Block struct {
 	OrganizationKey   string `json:"organization_key"`
 	AcceptanceVersion string `json:"acceptance_version"`
 	Activable         bool   `json:"activable"`
+	ConfigUnavailable bool   `json:"config_unavailable,omitempty"`
 }
 
 func (b *Block) Error() string {
@@ -96,13 +100,16 @@ func (b *Block) Error() string {
 		key = b.OrganizationKey
 	}
 	message := loc.T(key)
+	if b.ConfigUnavailable {
+		return loc.T("excepciones.directorio_no_disponible") + " [" + b.ID + "; " + b.BlockKey + "]"
+	}
 	if !b.Activable && b.OrganizationKey != "" {
 		message = loc.T(b.RiskKey) + "\n" + message + " [" + b.ID + "; " + b.OrganizationKey + "]"
 	}
 	return message + " [" + b.ID + "; " + b.BlockKey + "]"
 }
 func blockForState(e Exception, s State) *Block {
-	return &Block{ID: e.ID, BlockKey: e.BlockKey, SettingKey: e.SettingKey, PolicyKey: e.PolicyKey, TitleKey: e.TitleKey, RiskKey: e.RiskKey, AcceptanceKey: e.AcceptanceKey, HelpKey: e.HelpKey, OrganizationKey: e.OrganizationKey, AcceptanceVersion: AcceptanceVersion, Activable: s.Activable}
+	return &Block{ID: e.ID, BlockKey: e.BlockKey, SettingKey: e.SettingKey, PolicyKey: e.PolicyKey, TitleKey: e.TitleKey, RiskKey: e.RiskKey, AcceptanceKey: e.AcceptanceKey, HelpKey: e.HelpKey, OrganizationKey: e.OrganizationKey, AcceptanceVersion: AcceptanceVersion, Activable: s.Activable, ConfigUnavailable: s.ConfigUnavailable}
 }
 func blocked(e Exception) error { return Describe(e.ID) }
 
@@ -125,9 +132,13 @@ func DescribeAt(dir, id string) *Block {
 
 // FromText recupera el contrato en adaptadores antiguos que guardan Error().
 // Solo reconoce la marca completa emitida por Block, nunca texto libre.
-func FromText(message string) *Block {
+func FromText(message string, contexts ...context.Context) *Block {
 	for _, e := range catalog {
 		if strings.Contains(message, "["+e.ID+"; "+e.BlockKey+"]") {
+			if len(contexts) > 0 && contexts[0] != nil {
+				dir, err := directoryFor(contexts...)
+				return blockForState(e, state(e, dir, err))
+			}
 			return blocked(e).(*Block)
 		}
 	}
@@ -136,18 +147,29 @@ func FromText(message string) *Block {
 
 type State struct {
 	Exception
-	Activable        bool        `json:"activable"`
-	LastAcceptance   *Acceptance `json:"last_acceptance,omitempty"`
-	Enabled          bool        `json:"enabled"`
-	Fixed            bool        `json:"fixed"`
-	UserEnabled      bool        `json:"user_enabled"`
-	PolicyUnreadable bool        `json:"policy_unreadable"`
+	Activable         bool        `json:"activable"`
+	LastAcceptance    *Acceptance `json:"last_acceptance,omitempty"`
+	Enabled           bool        `json:"enabled"`
+	Fixed             bool        `json:"fixed"`
+	UserEnabled       bool        `json:"user_enabled"`
+	PolicyUnreadable  bool        `json:"policy_unreadable"`
+	ConfigUnavailable bool        `json:"config_unavailable,omitempty"`
 }
 
-func configDir() (string, error) {
+var ErrConfigDirectory = errors.New("excepciones.directorio_no_disponible")
+
+func validDirectory(dir string) bool {
+	return dir != "" && filepath.IsAbs(dir) && filepath.Clean(dir) == dir && filepath.Dir(dir) != dir
+}
+
+func configDir() (string, error) { return configDirForOS(runtime.GOOS) }
+func configDirForOS(goos string) (string, error) {
+	if goos == "android" {
+		return "", ErrConfigDirectory
+	}
 	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
+	if err != nil || !filepath.IsAbs(home) {
+		return "", ErrConfigDirectory
 	}
 	return appdirs.Config(home), nil
 }
@@ -169,6 +191,11 @@ func listAt(dir string, err error) []State {
 }
 func state(e Exception, dir string, dirErr error) State {
 	s := State{Exception: e, Activable: true}
+	if dirErr != nil || !validDirectory(dir) {
+		s.Activable = false
+		s.ConfigUnavailable = true
+		return s
+	}
 	if dirErr == nil && dir != "" {
 		s.LastAcceptance = readAcceptance(dir, e.ID)
 	}
@@ -204,17 +231,10 @@ type directoryKey struct{}
 
 // WithConfigDir vincula una operación al directorio privado de la aplicación.
 func WithConfigDir(ctx context.Context, dir string) context.Context {
-	if dir == "" {
-		return ctx
-	}
 	return context.WithValue(ctx, directoryKey{}, dir)
 }
 
-func Check(id string, contexts ...context.Context) error {
-	e, ok := Find(id)
-	if !ok {
-		return fmt.Errorf("excepciones.id_desconocido: %s", id)
-	}
+func directoryFor(contexts ...context.Context) (string, error) {
 	dir, err := configDir()
 	if len(contexts) > 0 && contexts[0] != nil {
 		if value, ok := contexts[0].Value(directoryKey{}).(string); ok {
@@ -222,6 +242,17 @@ func Check(id string, contexts ...context.Context) error {
 			err = nil
 		}
 	}
+	if !validDirectory(dir) {
+		return "", ErrConfigDirectory
+	}
+	return dir, err
+}
+func Check(id string, contexts ...context.Context) error {
+	e, ok := Find(id)
+	if !ok {
+		return fmt.Errorf("excepciones.id_desconocido: %s", id)
+	}
+	dir, err := directoryFor(contexts...)
 	effective := state(e, dir, err)
 	if !effective.Enabled {
 		b := blockForState(e, effective)
@@ -268,6 +299,9 @@ func SetForTest(tb testHandle, id string, enabled bool) {
 }
 
 func readUser(dir, id string) (bool, error) {
+	if !validDirectory(dir) {
+		return false, ErrConfigDirectory
+	}
 	testMu.RLock()
 	v, ok := testUsers[id]
 	testMu.RUnlock()
@@ -284,18 +318,32 @@ func readUser(dir, id string) (bool, error) {
 			return false, err
 		}
 		var doc map[string]json.RawMessage
-		if err = json.Unmarshal(raw, &doc); err != nil {
+		if json.Unmarshal(raw, &doc) != nil || doc == nil {
+			return false, ErrAcceptanceRequired
+		}
+		for key := range doc {
+			if ReservedSettings(key) && key != UserField && key != AcceptanceField {
+				return false, ErrAcceptanceRequired
+			}
+		}
+		field, exists := doc[UserField]
+		if !exists {
+			continue
+		}
+		var values map[string]bool
+		if err = json.Unmarshal(field, &values); err != nil {
 			return false, err
 		}
-		if field, exists := doc[UserField]; exists {
-			var values map[string]bool
-			if err = json.Unmarshal(field, &values); err != nil {
-				return false, err
-			}
-			if b, exists := values[id]; exists {
-				value = b
-			}
+		enabled, present := values[id]
+		if !present {
+			continue
 		}
+		if !enabled {
+			value = false
+			continue
+		}
+		receipt := acceptanceFromDocument(doc, id)
+		value = currentAcceptance(receipt, id)
 	}
 	return value, nil
 }
@@ -315,17 +363,22 @@ func SetUser(id string, enabled bool) error {
 
 func SetUserAt(dir, id string, enabled bool) error {
 	if enabled {
-		return fmt.Errorf("excepciones.aceptacion_requerida")
+		return ErrAcceptanceRequired
+	}
+	if !validDirectory(dir) {
+		return ErrConfigDirectory
 	}
 	writeMu.Lock()
 	defer writeMu.Unlock()
 	e, ok := Find(id)
 	if !ok {
-		return fmt.Errorf("excepciones.id_desconocido: %s", id)
+		return ErrAcceptanceRequired
 	}
-	s := state(e, dir, nil)
-	if s.Fixed {
-		return blockForState(e, s)
-	}
-	return writeUserSettings(context.Background(), dir, id, false, nil)
+	return settingsfile.WithLock(context.Background(), dir, func() error {
+		effective := state(e, dir, nil)
+		if effective.Fixed {
+			return blockForState(e, effective)
+		}
+		return writeUserSettings(context.Background(), dir, id, false, nil)
+	})
 }

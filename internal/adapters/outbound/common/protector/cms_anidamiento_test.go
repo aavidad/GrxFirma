@@ -99,7 +99,7 @@ func TestCMSAnidamientoProfundo_ValidarAlgoritmos(t *testing.T) {
 
 func TestCMSAnidamientoProfundo_DescifrarEnvelopedData(t *testing.T) {
 	cert, priv := claveCMSPrueba(t)
-	_, err := decryptCMSEnvelopedData(cmsAnidadoProfundo(t, oidCMSEnvelopedData), cert, priv)
+	_, err := decryptCMSEnvelopedData(context.Background(), cmsAnidadoProfundo(t, oidCMSEnvelopedData), cert, priv)
 	exigirRechazoPorProfundidad(t, "decryptCMSEnvelopedData", err)
 }
 

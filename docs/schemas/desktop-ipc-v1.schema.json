@@ -445,7 +445,8 @@
         "help_key": {"type": "string"},
         "organization_key": {"type": "string"},
         "acceptance_version": {"const": "2026-11-15.1"},
-        "activable": {"type": "boolean"}
+        "activable": {"type": "boolean"},
+        "config_unavailable": {"type": "boolean"}
       },
       "additionalProperties": false
     },
@@ -482,6 +483,7 @@
         "fixed": {"type": "boolean"},
         "user_enabled": {"type": "boolean"},
         "policy_unreadable": {"type": "boolean"},
+        "config_unavailable": {"type": "boolean"},
         "last_acceptance": {"$ref": "#/$defs/unsafeAcceptance"}
       },
       "additionalProperties": false

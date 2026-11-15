@@ -93,7 +93,7 @@ func TestDictamenV2_DosFirmasConCRLLocal(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &result); err != nil {
 		t.Fatal(err)
 	}
-	if !result.Valid || result.Dictamen.Estado != string(domain.EstadoDictamenValida) || result.Dictamen.VinculoOriginal.Estado != domain.VinculoAcreditado || len(result.Dictamen.Firmas) != 2 {
+	if result.Valid || result.Dictamen.Estado != string(domain.EstadoDictamenIndeterminada) || result.Dictamen.Motivo != string(domain.MotivoDictamenResultadoClasicoNoValido) || result.Dictamen.VinculoOriginal.Estado != domain.VinculoAcreditado || len(result.Dictamen.Firmas) != 2 {
 		t.Fatalf("dictamen v2 inesperado: %s", rec.Body.String())
 	}
 	for i, sig := range result.Dictamen.Firmas {

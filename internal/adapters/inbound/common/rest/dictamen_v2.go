@@ -120,6 +120,8 @@ func (a *Adaptador) evaluarDictamenV2(ctx context.Context, pdfBytes, original []
 		}
 	}
 	incomplete := false
+	limiteEstado := domain.EstadoDictamenValida
+	limiteMotivo := domain.MotivoDictamenVerificada
 	for i, sig := range inspection.Firmas {
 		entry := firmaV2Response{
 			Orden: i + 1, ByteRange: sig.ByteRange, RevisionHuellaSHA256: sig.RevisionHuellaSHA256,
@@ -174,7 +176,27 @@ func (a *Adaptador) evaluarDictamenV2(ctx context.Context, pdfBytes, original []
 			continue
 		}
 		verification, err := a.Verificar.Execute(ctx, application.VerifyCommand{SignedDocument: cmsDoc, OriginalDocument: &contentDoc})
-		if err != nil || verification.Dictamen == nil || len(verification.Dictamen.Firmantes) != 1 {
+		if err != nil {
+			incomplete = true
+			continue
+		}
+		if v1 := verification.Dictamen; v1 != nil {
+			estadoV1, motivoV1 := v1.Estado, v1.Motivo
+			if !verification.Verification.Valid && estadoV1 == domain.EstadoDictamenValida {
+				estadoV1 = domain.EstadoDictamenIndeterminada
+				motivoV1 = domain.MotivoDictamenResultadoClasicoNoValido
+			}
+			if estadoV1 != domain.EstadoDictamenValida && estadoV1 != domain.EstadoDictamenIndeterminada && estadoV1 != domain.EstadoDictamenNoValida {
+				estadoV1 = domain.EstadoDictamenIndeterminada
+				motivoV1 = domain.MotivoDictamenResultadoClasicoNoValido
+			}
+			if estadoV1 == domain.EstadoDictamenNoValida || (estadoV1 == domain.EstadoDictamenIndeterminada && limiteEstado == domain.EstadoDictamenValida) {
+				limiteEstado, limiteMotivo = estadoV1, motivoV1
+			}
+		} else if !verification.Verification.Valid && limiteEstado == domain.EstadoDictamenValida {
+			limiteEstado, limiteMotivo = domain.EstadoDictamenIndeterminada, domain.MotivoDictamenResultadoClasicoNoValido
+		}
+		if verification.Dictamen == nil || len(verification.Dictamen.Firmantes) != 1 {
 			incomplete = true
 			continue
 		}
@@ -194,6 +216,9 @@ func (a *Adaptador) evaluarDictamenV2(ctx context.Context, pdfBytes, original []
 	}
 	if incomplete {
 		result.Dictamen.Motivo = "firmas_no_comprobadas"
+		if limiteEstado == domain.EstadoDictamenNoValida {
+			result.Dictamen.Estado, result.Dictamen.Motivo = string(limiteEstado), string(limiteMotivo)
+		}
 		result.Dictamen.Integridad = aspectoDictamenResponse{Estado: domain.IntegridadParcial, Motivo: "firma_no_comprobada"}
 		result.Dictamen.VinculoOriginal = aspectoDictamen(composed.VinculoOriginal)
 		result.Reason = result.Dictamen.Motivo
@@ -219,6 +244,12 @@ func (a *Adaptador) evaluarDictamenV2(ctx context.Context, pdfBytes, original []
 			}
 		}
 		applyChangeV2(&result.Dictamen, result.Dictamen.CambiosPosteriores)
+	}
+	if result.Dictamen.Estado != string(domain.EstadoDictamenNoValida) {
+		if limiteEstado == domain.EstadoDictamenNoValida || (limiteEstado == domain.EstadoDictamenIndeterminada && result.Dictamen.Estado == string(domain.EstadoDictamenValida)) {
+			result.Dictamen.Estado = string(limiteEstado)
+			result.Dictamen.Motivo = string(limiteMotivo)
+		}
 	}
 	result.Valid = result.Dictamen.Estado == "valida"
 	result.Reason = result.Dictamen.Motivo

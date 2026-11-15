@@ -74,6 +74,31 @@ func TestCotejarXAdESSeparadaConElOriginal(t *testing.T) {
 	}
 }
 
+func TestCotejarXAdESSeparadaNoConfundeCanonicalizacionConBytesOriginales(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", true)
+	priv, cert := generarCertRSAPrueba(t)
+	original := []byte(`<a b="1"></a>`)
+	mismaFormaCanonica := []byte(`<a  b="1"/>`)
+	doc, err := domain.NewDocument("original.xml", original, "application/xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	firma, err := commonsigner.NewXAdESBESDetached().Sign(context.Background(), domain.SignatureJob{
+		Document: doc, Format: domain.FormatXAdES, Action: domain.ActionSign,
+		Options: map[string]string{"format": "XAdES Externally Detached", "uri": "urn:original"},
+	}, &commonsigner.LocalSigningKey{ID: "k", Signer: priv, Certificate: cert})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := commonsigner.CotejarXAdESSeparada(firma.Data, original); err != nil {
+		t.Fatalf("el original firmado debe cotejar: %v", err)
+	}
+	if err := commonsigner.CotejarXAdESSeparada(firma.Data, mismaFormaCanonica); !errors.Is(err, commonsigner.ErrFirmaNoCorrespondeOriginal) {
+		t.Fatalf("bytes distintos no pueden incorporarse al ENI: %v", err)
+	}
+}
+
 // KD-02: una firma XAdES con el contenido dentro (AFIRMA/CONTENT, modo de
 // AutoFirma) solo coteja con el original si cada firma lo referencia desde
 // su ds:SignedInfo. Un CONTENT añadido fuera de lo firmado, con una

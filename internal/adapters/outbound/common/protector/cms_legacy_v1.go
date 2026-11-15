@@ -103,9 +103,9 @@ func decryptLegacyV1SignedEnvelopedCMS(ctx context.Context, protected domain.Doc
 	if err := excepciones.Require(ctx, "cms_aes_ecb"); err != nil {
 		return domain.UnprotectedPayload{}, true, err
 	}
-	// El ajuste histórico cubre el sobre V1 entero, incluido su transporte de
-	// clave RSA antiguo. Se comunica también ese riesgo en el resultado.
-	domain.AnotarAviso(ctx, excepciones.Warning("cms_rsa_v15_leer"))
+	if err := excepciones.Require(ctx, "cms_rsa_v15_leer"); err != nil {
+		return domain.UnprotectedPayload{}, true, err
+	}
 
 	for _, key := range keys {
 		if err := ctx.Err(); err != nil {

@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/adapters/outbound/common/settingsfile"
 	"grxfirma/internal/ports"
 )
 
@@ -196,15 +197,15 @@ func (a *Almacen) Cargar(ctx context.Context) (map[string]any, error) {
 }
 
 // CargarDocumento implementa ports.ConfiguracionUsuarioTipada.
-func (a *Almacen) CargarDocumento(_ context.Context) (ports.DocumentoConfiguracionUsuario, error) {
-	resultado, err := a.cargarMapaLegacy(context.Background())
+func (a *Almacen) CargarDocumento(ctx context.Context) (ports.DocumentoConfiguracionUsuario, error) {
+	resultado, err := a.cargarMapaLegacy(ctx)
 	if err != nil {
 		return ports.DocumentoConfiguracionUsuario{}, err
 	}
 	return ports.DocumentoConfiguracionUsuarioDesdeMapa(resultado), nil
 }
 
-func (a *Almacen) cargarMapaLegacy(_ context.Context) (map[string]any, error) {
+func (a *Almacen) cargarMapaLegacy(ctx context.Context) (map[string]any, error) {
 	ruta, err := a.rutaFichero()
 	if err != nil {
 		return nil, err
@@ -223,7 +224,7 @@ func (a *Almacen) cargarMapaLegacy(_ context.Context) (map[string]any, error) {
 		return nil, fmt.Errorf("parseando configuracion de usuario: %w", err)
 	}
 	if ports.EliminarCredencialSeguridadUIEnClaro(resultado) {
-		if err := a.guardarMapaEnRuta(ruta, resultado); err != nil {
+		if err := a.guardarMapaEnRuta(ctx, ruta, resultado); err != nil {
 			return nil, fmt.Errorf("saneando credencial UI heredada de configuracion de usuario: %w", err)
 		}
 	}
@@ -239,7 +240,7 @@ func (a *Almacen) Guardar(ctx context.Context, datos map[string]any) error {
 }
 
 // GuardarDocumento implementa ports.ConfiguracionUsuarioTipada.
-func (a *Almacen) GuardarDocumento(_ context.Context, doc ports.DocumentoConfiguracionUsuario) error {
+func (a *Almacen) GuardarDocumento(ctx context.Context, doc ports.DocumentoConfiguracionUsuario) error {
 	datos := doc.Mapa()
 	if err := ports.ValidarOpacidadLogoSello(datos); err != nil {
 		return err
@@ -248,10 +249,10 @@ func (a *Almacen) GuardarDocumento(_ context.Context, doc ports.DocumentoConfigu
 	if err != nil {
 		return err
 	}
-	return a.guardarMapaEnRuta(ruta, datos)
+	return a.guardarMapaEnRuta(ctx, ruta, datos)
 }
 
-func (a *Almacen) guardarMapaEnRuta(ruta string, datos map[string]any) error {
+func (a *Almacen) guardarMapaEnRuta(ctx context.Context, ruta string, datos map[string]any) error {
 	directorio := filepath.Dir(ruta)
 	if err := os.MkdirAll(directorio, 0o700); err != nil {
 		return fmt.Errorf("creando directorio de configuracion: %w", err)
@@ -260,29 +261,73 @@ func (a *Almacen) guardarMapaEnRuta(ruta string, datos map[string]any) error {
 		return fmt.Errorf("restringiendo directorio de configuracion: %w", err)
 	}
 
-	ports.EliminarCredencialSeguridadUIEnClaro(datos)
-	data, err := json.MarshalIndent(datos, "", "  ")
-	if err != nil {
-		return fmt.Errorf("serializando configuracion de usuario: %w", err)
-	}
-
-	if err := securefile.WriteFileAtomic(ruta, data, 0o600); err != nil {
-		return fmt.Errorf("escribiendo configuracion de usuario: %w", err)
-	}
-	if err := protegerFicheroConfiguracion(ruta); err != nil {
-		return fmt.Errorf("restringiendo configuracion de usuario: %w", err)
-	}
-	return nil
+	return settingsfile.WithLock(ctx, directorio, func() error {
+		// The caller may have loaded settings before another process disabled an
+		// exception. Read the reserved fields again under the shared lock.
+		current := map[string]json.RawMessage{}
+		raw, err := securefile.ReadFileLimit(ruta, maxUserSettingsFileBytes)
+		if err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("leyendo preferencias actuales: %w", err)
+		}
+		if len(raw) > 0 {
+			if err = json.Unmarshal(raw, &current); err != nil {
+				return fmt.Errorf("parseando preferencias actuales: %w", err)
+			}
+			if current == nil {
+				return fmt.Errorf("preferencias actuales no son un objeto")
+			}
+		}
+		for key := range current {
+			if settingsfile.Reserved(key) && key != settingsfile.UserField && key != settingsfile.AcceptanceField {
+				return fmt.Errorf("nombre reservado ambiguo en preferencias")
+			}
+		}
+		for key := range datos {
+			if settingsfile.Reserved(key) && key != settingsfile.UserField && key != settingsfile.AcceptanceField {
+				return fmt.Errorf("nombre reservado ambiguo en petición")
+			}
+		}
+		merged := make(map[string]any, len(datos)+2)
+		for key, value := range datos {
+			if !settingsfile.Reserved(key) {
+				merged[key] = value
+			}
+		}
+		for _, key := range []string{settingsfile.UserField, settingsfile.AcceptanceField} {
+			if value, ok := current[key]; ok {
+				var decoded any
+				if err = json.Unmarshal(value, &decoded); err != nil {
+					return err
+				}
+				merged[key] = decoded
+			}
+		}
+		ports.EliminarCredencialSeguridadUIEnClaro(merged)
+		data, err := json.MarshalIndent(merged, "", "  ")
+		if err != nil {
+			return fmt.Errorf("serializando configuracion de usuario: %w", err)
+		}
+		if err = securefile.WriteFileAtomic(ruta, data, 0600); err != nil {
+			return fmt.Errorf("escribiendo configuracion de usuario: %w", err)
+		}
+		if err = protegerFicheroConfiguracion(ruta); err != nil {
+			return fmt.Errorf("restringiendo configuracion de usuario: %w", err)
+		}
+		return nil
+	})
 }
 
 func (a *Almacen) rutaFichero() (string, error) {
 	dir := a.ConfigDir
 	if dir == "" {
 		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", fmt.Errorf("obteniendo directorio home: %w", err)
+		if err != nil || !filepath.IsAbs(home) {
+			return "", fmt.Errorf("obteniendo directorio home: %w", settingsfile.ErrDirectory)
 		}
 		dir = appdirs.Config(home)
+	}
+	if !filepath.IsAbs(dir) || filepath.Clean(dir) != dir || filepath.Dir(dir) == dir {
+		return "", settingsfile.ErrDirectory
 	}
 	return filepath.Join(dir, nombreFichero), nil
 }

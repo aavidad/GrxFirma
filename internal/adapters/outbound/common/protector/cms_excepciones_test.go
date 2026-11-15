@@ -7,10 +7,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
-	"os"
-	"path/filepath"
 	"slices"
 	"testing"
 	"time"
@@ -221,6 +220,61 @@ func TestCMSOAEP256ConDestinatarioOAEPAntiguoConservaAmbos(t *testing.T) {
 	}
 }
 
+func TestCMSDestinatarioOAEPPropioNoExigeAjustePorOtroV15(t *testing.T) {
+	private, cert := newCMSRSAIdentity(t, x509.KeyUsageKeyEncipherment)
+	otherPrivate, otherCert := newCMSRSAIdentity(t, x509.KeyUsageKeyEncipherment)
+	doc, err := domain.NewDocument("mixto.bin", []byte("solo para OAEP"), "application/octet-stream")
+	if err != nil {
+		t.Fatal(err)
+	}
+	protected, err := NuevoCMSProtector().Protect(context.Background(), domain.ProtectionJob{
+		Document: doc, Profile: domain.ProtectionProfileCompat, Options: map[string]string{"container": "cms"},
+	}, []domain.ProtectionRecipient{newCMSRecipient(t, "oaep", cert)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wrapper cmsContentInfo
+	if _, err := asn1.Unmarshal(protected.Document.Content, &wrapper); err != nil {
+		t.Fatal(err)
+	}
+	var envelope struct {
+		Version    int
+		Recipients []cmsKeyTransRecipientInfo `asn1:"set"`
+		Content    cmsAuthEncryptedContentInfo
+	}
+	if _, err := asn1.Unmarshal(wrapper.Content.Bytes, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	envelope.Recipients = append(envelope.Recipients, cmsKeyTransRecipientInfo{
+		Version: 0,
+		IssuerAndSerialNumber: cmsIssuerAndSerialNumber{
+			IssuerName: asn1.RawValue{FullBytes: otherCert.RawIssuer}, SerialNumber: otherCert.SerialNumber,
+		},
+		KeyEncryptionAlgorithm: pkix.AlgorithmIdentifier{Algorithm: oidCMSRSAPKCS1v15},
+		EncryptedKey:           bytes.Repeat([]byte{0x42}, otherPrivate.Size()),
+	})
+	inner, err := asn1.Marshal(envelope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wrapper.Content.Bytes, wrapper.Content.FullBytes = inner, nil
+	protected.Document.Content, err = asn1.Marshal(wrapper)
+	if err != nil {
+		t.Fatal(err)
+	}
+	privateDER, err := x509.MarshalPKCS8PrivateKey(private)
+	if err != nil {
+		t.Fatal(err)
+	}
+	machinepolicy.SetForTest(t, "permitir_cms_rsa_v15_leer", false)
+	out, err := NuevoCMSProtector().Unprotect(context.Background(), protected.Document, []domain.ProtectionKeyMaterial{{
+		RecipientID: "oaep", CertificateDER: cert.Raw, RSAOAEP256PrivateKeyPKCS8: privateDER,
+	}})
+	if err != nil || !bytes.Equal(out.Document.Content, doc.Content) || slices.Contains(out.Avisos, excepciones.Warning("cms_rsa_v15_leer")) {
+		t.Fatalf("destinatario OAEP propio quedó bloqueado o avisó v15 ajeno: %v, avisos=%v", err, out.Avisos)
+	}
+}
+
 func TestCMSSignedEnvelopedLeerPKCS1v15ExigeAjuste(t *testing.T) {
 	protected, key, root, _ := legacySAEDFixture(t, cryptobinpkcs7.AES256GCM)
 	for _, caso := range []struct {
@@ -389,11 +443,13 @@ func legacySAEDFixture(t *testing.T, cipher cryptobinpkcs7.Cipher) (domain.Docum
 
 func TestCMSReaderRespetaDirectorioDeAjustesDeLaOperacion(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(`{"excepciones_inseguras":{"cms_cbc":true}}`), 0600); err != nil {
-		t.Fatal(err)
-	}
 	machinepolicy.UnsetForTest(t, "permitir_cms_cbc")
 	machinepolicy.UnsetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado)
+	if _, err := excepciones.ActivateLocal(excepciones.ForLocalCLI(context.Background()), dir, excepciones.ActivationRequest{
+		ID: "cms_cbc", Accepted: true, AcceptanceVersion: excepciones.AcceptanceVersion,
+	}); err != nil {
+		t.Fatal(err)
+	}
 	secret := bytes.Repeat([]byte{0x72}, protectionAES256KeyBytes)
 	doc := encryptedConCifrado(t, cryptobinpkcs7.AES256CBC, secret)
 	keys := []domain.ProtectionKeyMaterial{{RecipientID: "psk", SymmetricKey: secret}}

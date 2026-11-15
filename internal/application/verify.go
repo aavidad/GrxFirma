@@ -12,6 +12,8 @@ import (
 	"errors"
 	"fmt"
 	"grxfirma/internal/security/excepciones"
+	"strconv"
+	"strings"
 	"time"
 
 	"grxfirma/internal/domain"
@@ -107,7 +109,7 @@ func (uc *VerifySignatureUseCase) Ejecutar(ctx context.Context, cmd VerifyComman
 		var block *excepciones.Block
 		if errors.As(err, &block) {
 			uc.auditar(ctx, cmd, false, err)
-			v := domain.VerificationResult{Valid: false, Reason: block.Error(), Coverage: domain.CoberturaNoAcreditada, Warnings: []string{block.BlockKey}, Errors: []string{block.Error()}, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: block.Error()}, Trust: domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: block.Error()}}
+			v := domain.VerificationResult{Valid: false, Reason: block.Error(), Coverage: domain.CoberturaNoAcreditada, Warnings: domain.UnirAvisos([]string{block.BlockKey}, avisos.Claves()...), Errors: []string{block.Error()}, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: block.Error()}, Trust: domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: block.Error()}}
 			return VerifyResult{Verification: v.Normalize(), Firmantes: signers}, nil
 		}
 		uc.auditar(ctx, cmd, false, err)
@@ -124,6 +126,7 @@ func (uc *VerifySignatureUseCase) Ejecutar(ctx context.Context, cmd VerifyComman
 			uc.auditar(ctx, cmd, false, err)
 			return VerifyResult{}, fmt.Errorf("no se pudo evaluar el dictamen de la firma: %w", err)
 		}
+		verification.Warnings = domain.UnirAvisos(verification.Warnings, avisos.Claves()...)
 		dictamen = &evaluado
 	}
 
@@ -161,7 +164,42 @@ func (uc *VerifySignatureUseCase) componerDictamen(ctx context.Context, cmd Veri
 	if cmd.OriginalDocument != nil {
 		dictamen.HuellaOriginalSHA256 = huellaSHA256(cmd.OriginalDocument.Content)
 	}
-	return dictamen.Componer(), nil
+	dictamen = dictamen.Componer()
+	if dictamen.Estado == domain.EstadoDictamenValida {
+		if motivo := limiteDictamenClasico(verification); motivo != "" {
+			dictamen.Estado = domain.EstadoDictamenIndeterminada
+			dictamen.Motivo = motivo
+		}
+	}
+	return dictamen, nil
+}
+
+// El dictamen de fuentes locales añade evidencia, pero nunca rehabilita una
+// firma que el verificador del formato dejó sin validez.
+func limiteDictamenClasico(v domain.VerificationResult) domain.MotivoDictamen {
+	if !v.Valid {
+		return domain.MotivoDictamenResultadoClasicoNoValido
+	}
+	forced := map[string]bool{}
+	for _, e := range v.Evidence {
+		if e.Type == domain.EvidenciaConfianzaForzada {
+			forced[e.Summary] = true
+		}
+	}
+	for _, e := range v.Evidence {
+		if e.Type == domain.EvidenciaAlgoritmoAntiguo && !forced[string(domain.ConfianzaAlgoritmoSHA1)] {
+			return domain.MotivoDictamenAlgoritmoHeredado
+		}
+	}
+	for _, detail := range v.Certificate.Details {
+		if bits, ok := strings.CutPrefix(detail, "rsa_bits="); ok {
+			parsed, err := strconv.Atoi(bits)
+			if err == nil && parsed < 2048 && !forced[string(domain.ConfianzaClaveRSACorta)] {
+				return domain.MotivoDictamenClaveRSACorta
+			}
+		}
+	}
+	return ""
 }
 
 func huellaSHA256(contenido []byte) string {

@@ -60,6 +60,12 @@ func (m *MotorFirmaGo) firmarPAdES(ctx context.Context, job domain.SignatureJob,
 		}
 	}
 
+	if tsaURL != "" {
+		if err := tsaclient.RequireTransport(ctx, tsaURL); err != nil {
+			return domain.SignatureResult{}, err
+		}
+	}
+
 	var validation pdfsign.ValidationData
 	if solicitaLTVPAdES(job.Options) {
 		var err error

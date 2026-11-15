@@ -116,8 +116,11 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	home, _ := os.UserHomeDir()
-	configDir := appdirs.Config(home)
+	configDir, err := configDirGUI()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, bootLoc.T("rest.verify_only.error.config_dir"))
+		os.Exit(1)
+	}
 	loc := localizador.Para(idiomaPreferido(configDir))
 	localTLSStartupStatus := ensureLocalTLSStartup(ctx, configDir)
 
@@ -445,7 +448,10 @@ func construirServidor(ctx context.Context, rutaP12, passwordP12, socketPath str
 	// avisos (solo la lee afirma://, que es otro proceso): cada firma lleva
 	// sus avisos en su propio registro de operación (lote 17b).
 	avisos.SoloEnRegistro()
-	home, _ := os.UserHomeDir()
+	home, err := validGUIHome()
+	if err != nil {
+		return nil, "", err
+	}
 	configDir := appdirs.Config(home)
 
 	cfg, err := config.Load(configDir)
@@ -954,4 +960,21 @@ func frontendPorDefecto(goos string) string {
 		return string(frontendWinUI)
 	}
 	return "qt"
+}
+
+// configDirGUI resuelve una configuración privada; sin HOME absoluto el
+// servidor no arranca con rutas relativas ni con un temporal compartido.
+func configDirGUI() (string, error) {
+	home, err := validGUIHome()
+	if err != nil {
+		return "", err
+	}
+	return appdirs.Config(home), nil
+}
+func validGUIHome() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil || strings.TrimSpace(home) == "" || !filepath.IsAbs(home) {
+		return "", errors.New("no se pudo resolver el directorio de configuración")
+	}
+	return home, nil
 }

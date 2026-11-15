@@ -89,3 +89,38 @@ func TestVerifySignature_ComponeDictamenConHuellasDeEco(t *testing.T) {
 		t.Fatal("un fallo del evaluador no puede devolver un resultado")
 	}
 }
+
+func TestVerifySignature_DictamenNuncaSuperaElResultadoClasico(t *testing.T) {
+	favorable := domain.DictamenVerificacion{
+		Integridad:      domain.AspectoDictamen{Estado: domain.IntegridadValida},
+		VinculoOriginal: domain.AspectoDictamen{Estado: domain.VinculoNoAportado},
+		Firmantes: []domain.DictamenFirmante{{
+			Cadena:      domain.AspectoDictamen{Estado: domain.CadenaValida},
+			Certificado: domain.AspectoDictamen{Estado: domain.CertificadoVigente},
+			Revocacion:  domain.AspectoDictamen{Estado: domain.RevocacionVigente},
+			SelloTiempo: domain.AspectoDictamen{Estado: domain.SelloNoPresente},
+		}},
+	}
+	for _, tc := range []struct {
+		name    string
+		classic domain.VerificationResult
+		want    domain.EstadoDictamen
+	}{
+		{name: "clasico_no_valido", classic: domain.VerificationResult{Valid: false, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusValid}}, want: domain.EstadoDictamenIndeterminada},
+		{name: "sha1_sin_confianza_forzada", classic: domain.VerificationResult{Valid: true, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusValid}, Evidence: []domain.VerificationEvidence{{Type: domain.EvidenciaAlgoritmoAntiguo, Summary: "sha1"}}}, want: domain.EstadoDictamenIndeterminada},
+		{name: "rsa_corta_sin_confianza_forzada", classic: domain.VerificationResult{Valid: true, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusValid}, Certificate: domain.VerificationAspect{Details: []string{"rsa_bits=1024"}}}, want: domain.EstadoDictamenIndeterminada},
+		{name: "rsa_corta_aceptada_expresamente", classic: domain.VerificationResult{Valid: true, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusValid}, Certificate: domain.VerificationAspect{Details: []string{"rsa_bits=1024"}}, Evidence: []domain.VerificationEvidence{{Type: domain.EvidenciaConfianzaForzada, Summary: "clave_rsa_corta"}}}, want: domain.EstadoDictamenValida},
+		{name: "sha1_aceptado_expresamente", classic: domain.VerificationResult{Valid: true, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusValid}, Evidence: []domain.VerificationEvidence{{Type: domain.EvidenciaAlgoritmoAntiguo, Summary: "sha1"}, {Type: domain.EvidenciaConfianzaForzada, Summary: "algoritmo_sha1"}}}, want: domain.EstadoDictamenValida},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			uc := application.NuevoVerifySignatureUseCase(&trustAnchorMock{}, &verifierMock{result: tc.classic, signers: []domain.CertificateRef{certPrueba()}}, nil).ConEvaluador(&evaluadorMock{dictamen: favorable})
+			out, err := uc.Ejecutar(context.Background(), application.VerifyCommand{SignedDocument: docFirmadoPrueba()})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if out.Dictamen == nil || out.Dictamen.Estado != tc.want {
+				t.Fatalf("clásico=%v, dictamen=%+v, want=%s", out.Verification.Valid, out.Dictamen, tc.want)
+			}
+		})
+	}
+}

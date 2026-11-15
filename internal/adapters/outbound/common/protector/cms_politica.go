@@ -8,6 +8,7 @@ package protector
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
@@ -88,6 +89,9 @@ type revisionCMS struct {
 	heredado asn1.ObjectIdentifier
 	cbc      bool
 	rsaV15   bool
+	// ktri son los destinatarios RSA originales; el lector decide el opt-in
+	// de transporte para el certificado concreto que intenta abrir.
+	ktri [][]byte
 	// ajenos son los tipos de destinatario que se han quitado del sobre.
 	ajenos []string
 	// sinAjenos es el ContentInfo (DER) sin esos destinatarios; nil si no
@@ -157,6 +161,7 @@ func revisarCMS(data []byte, contexts ...context.Context) (revisionCMS, error) {
 		}
 		cifrado = sobre.cifrado
 		revision.rsaV15 = sobre.rsaV15
+		revision.ktri = sobre.ktri
 		if len(sobre.ajenos) > 0 {
 			revision.ajenos = sobre.ajenos
 			if revision.sinAjenos, err = contentInfoCMS(info.ContentType, sobre.sinAjenos); err != nil {
@@ -166,7 +171,26 @@ func revisarCMS(data []byte, contexts ...context.Context) (revisionCMS, error) {
 	default:
 		return revisionCMS{}, errors.New("tipo CMS no soportado")
 	}
-	return evaluarAlgoritmosCMS(cifrado, revision, contexts...)
+	// El cifrado del contenido afecta al sobre entero. El transporte RSA se
+	// decide después, para el destinatario concreto que posea una clave.
+	transportV15 := revision.rsaV15
+	revision.rsaV15 = false
+	checked, err := evaluarAlgoritmosCMS(cifrado, revision, contexts...)
+	checked.rsaV15 = transportV15
+	return checked, err
+}
+
+func (r revisionCMS) transportePara(cert *x509.Certificate) (asn1.ObjectIdentifier, bool) {
+	for _, raw := range r.ktri {
+		var recipient cmsKeyTransRecipientInfo
+		if rest, err := asn1.Unmarshal(raw, &recipient); err != nil || len(rest) != 0 {
+			continue
+		}
+		if cmsRecipientMatchesCertificate(recipient, cert) {
+			return recipient.KeyEncryptionAlgorithm.Algorithm, true
+		}
+	}
+	return nil, false
 }
 
 func evaluarAlgoritmosCMS(cifrado pkix.AlgorithmIdentifier, revision revisionCMS, contexts ...context.Context) (revisionCMS, error) {
@@ -251,6 +275,7 @@ func conAvisosRevisionCMS(out domain.UnprotectedPayload, revision revisionCMS) d
 type sobreEnvelopedData struct {
 	cifrado pkix.AlgorithmIdentifier
 	rsaV15  bool
+	ktri    [][]byte
 	ajenos  []string
 	// sinAjenos es el EnvelopedData (DER) solo con los destinatarios ktri;
 	// nil si no había ajenos.
@@ -291,7 +316,7 @@ func algoritmosEnvelopedData(content []byte) (sobreEnvelopedData, error) {
 	if _, err := asn1.Unmarshal(resto, &eci); err != nil {
 		return sobreEnvelopedData{}, errors.New("contenido cifrado CMS EnvelopedData no valido")
 	}
-	out := sobreEnvelopedData{cifrado: eci.ContentEncryptionAlgorithm, ajenos: ajenos, rsaV15: rsaV15}
+	out := sobreEnvelopedData{cifrado: eci.ContentEncryptionAlgorithm, ajenos: ajenos, rsaV15: rsaV15, ktri: ktri}
 	if len(ajenos) > 0 {
 		// La versión y originatorInfo, tal cual; el SET, solo con los ktri (un
 		// subconjunto de un SET OF en DER sigue ordenado); lo que sigue, tal

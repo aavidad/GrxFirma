@@ -185,8 +185,9 @@ func pemCert(cert *x509.Certificate) []byte {
 // tsaSintetica implementa ports.TimestampAuthority emitiendo el token en
 // memoria. alterar cambia el messageImprint para simular un sello ajeno.
 type tsaSintetica struct {
-	emisor  entidad
-	alterar bool
+	emisor    entidad
+	alterar   bool
+	firmaHash crypto.Hash
 }
 
 func (s tsaSintetica) RequestTimestamp(_ context.Context, resumen []byte, algoritmo crypto.Hash) ([]byte, error) {
@@ -202,7 +203,11 @@ func (s tsaSintetica) RequestTimestamp(_ context.Context, resumen []byte, algori
 		Policy:            asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 55555, 1},
 		AddTSACertificate: true,
 	}
-	respuesta, err := sello.CreateResponseWithOpts(s.emisor.cert, s.emisor.clave, crypto.SHA256)
+	firmaHash := s.firmaHash
+	if firmaHash == 0 {
+		firmaHash = crypto.SHA256
+	}
+	respuesta, err := sello.CreateResponseWithOpts(s.emisor.cert, s.emisor.clave, firmaHash)
 	if err != nil {
 		return nil, err
 	}

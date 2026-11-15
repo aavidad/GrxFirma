@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"grxfirma/internal/adapters/outbound/common/settingsfile"
 	"os"
 	"path/filepath"
 	"time"
@@ -16,7 +17,7 @@ import (
 )
 
 const AcceptanceVersion = "2026-11-15.1"
-const AcceptanceField = "excepciones_inseguras_aceptaciones"
+const AcceptanceField = settingsfile.AcceptanceField
 const acceptanceOrigin = "aceptado desde el aviso"
 
 var ErrAcceptanceRequired = errors.New("excepciones.aceptacion_requerida")
@@ -91,6 +92,9 @@ func ActivateLocal(ctx context.Context, dir string, r ActivationRequest) (Accept
 	if err := ctx.Err(); err != nil {
 		return Acceptance{}, err
 	}
+	if !validDirectory(dir) {
+		return Acceptance{}, ErrConfigDirectory
+	}
 	if !r.Accepted {
 		return Acceptance{}, ErrAcceptanceRequired
 	}
@@ -103,13 +107,17 @@ func ActivateLocal(ctx context.Context, dir string, r ActivationRequest) (Accept
 	}
 	writeMu.Lock()
 	defer writeMu.Unlock()
-	effective := state(e, dir, nil)
-	block := blockForState(e, effective)
-	if !block.Activable {
-		return Acceptance{}, block
-	}
-	receipt := Acceptance{ID: r.ID, AcceptedAt: time.Now().UTC(), TextVersion: AcceptanceVersion, Origin: acceptanceOrigin, Channel: localChannel(ctx)}
-	if err := writeUserSettings(ctx, dir, r.ID, true, &receipt); err != nil {
+	var receipt Acceptance
+	err := settingsfile.WithLock(ctx, dir, func() error {
+		effective := state(e, dir, nil)
+		block := blockForState(e, effective)
+		if !block.Activable {
+			return block
+		}
+		receipt = Acceptance{ID: r.ID, AcceptedAt: time.Now().UTC(), TextVersion: AcceptanceVersion, Origin: acceptanceOrigin, Channel: localChannel(ctx)}
+		return writeUserSettings(ctx, dir, r.ID, true, &receipt)
+	})
+	if err != nil {
 		return Acceptance{}, err
 	}
 	return receipt, nil
@@ -121,6 +129,9 @@ func ActivateLocal(ctx context.Context, dir string, r ActivationRequest) (Accept
 func writeUserSettings(ctx context.Context, dir, id string, enabled bool, receipt *Acceptance) error {
 	if err := ctx.Err(); err != nil {
 		return err
+	}
+	if !validDirectory(dir) {
+		return ErrConfigDirectory
 	}
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
@@ -139,6 +150,11 @@ func writeUserSettings(ctx context.Context, dir, id string, enabled bool, receip
 			return ErrAcceptanceRequired
 		}
 	}
+	for key := range doc {
+		if ReservedSettings(key) && key != UserField && key != AcceptanceField {
+			return ErrAcceptanceRequired
+		}
+	}
 	values := map[string]bool{}
 	if data, ok := doc[UserField]; ok {
 		if err = json.Unmarshal(data, &values); err != nil {
@@ -154,16 +170,20 @@ func writeUserSettings(ctx context.Context, dir, id string, enabled bool, receip
 		return err
 	}
 	if receipt != nil {
-		receipts := map[string]Acceptance{}
+		receipts := map[string]json.RawMessage{}
 		if data, ok := doc[AcceptanceField]; ok {
 			if err = json.Unmarshal(data, &receipts); err != nil {
 				return err
 			}
 			if receipts == nil {
-				receipts = map[string]Acceptance{}
+				receipts = map[string]json.RawMessage{}
 			}
 		}
-		receipts[id] = *receipt
+		encoded, err := json.Marshal(receipt)
+		if err != nil {
+			return err
+		}
+		receipts[id] = encoded
 		doc[AcceptanceField], err = json.Marshal(receipts)
 		if err != nil {
 			return err
@@ -196,23 +216,56 @@ func writeUserSettings(ctx context.Context, dir, id string, enabled bool, receip
 	return securefile.WriteFileAtomic(path, append(raw, '\n'), 0600)
 }
 
-func readAcceptance(dir, id string) *Acceptance {
-	raw, err := securefile.ReadFileLimit(filepath.Join(dir, "settings.json"), 4<<20)
-	if err != nil {
+// Exact names avoid JSON's case-insensitive struct matching for receipts.
+func acceptanceFromDocument(doc map[string]json.RawMessage, id string) *Acceptance {
+	var receipts map[string]json.RawMessage
+	if json.Unmarshal(doc[AcceptanceField], &receipts) != nil {
 		return nil
 	}
-	var doc struct {
-		Receipts map[string]Acceptance `json:"excepciones_inseguras_aceptaciones"`
-	}
-	if json.Unmarshal(raw, &doc) != nil {
+	return parseAcceptance(receipts[id], id)
+}
+func parseAcceptance(raw []byte, id string) *Acceptance {
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(raw, &fields) != nil || len(fields) != 5 {
 		return nil
 	}
-	r, ok := doc.Receipts[id]
-	if !ok {
+	for _, name := range []string{"id", "accepted_at", "text_version", "origin", "channel"} {
+		if _, ok := fields[name]; !ok {
+			return nil
+		}
+	}
+	var r Acceptance
+	if json.Unmarshal(raw, &r) != nil || r.ID != id || r.AcceptedAt.IsZero() || r.Origin != acceptanceOrigin {
+		return nil
+	}
+	switch r.Channel {
+	case "desktop", "android", "protocol_dialog", "cli":
+	default:
 		return nil
 	}
 	return &r
 }
-
-// ReservedSettings impide que un guardado genérico eluda la aceptación.
-func ReservedSettings(key string) bool { return key == UserField || key == AcceptanceField }
+func currentAcceptance(r *Acceptance, id string) bool {
+	return r != nil && r.ID == id && r.TextVersion == AcceptanceVersion && !r.AcceptedAt.After(time.Now().Add(5*time.Minute))
+}
+func readAcceptance(dir, id string) *Acceptance {
+	if !validDirectory(dir) {
+		return nil
+	}
+	var latest *Acceptance
+	for _, name := range []string{"config.json", "settings.json"} {
+		raw, err := securefile.ReadFileLimit(filepath.Join(dir, name), 4<<20)
+		if err != nil {
+			continue
+		}
+		var doc map[string]json.RawMessage
+		if json.Unmarshal(raw, &doc) != nil {
+			continue
+		}
+		if r := acceptanceFromDocument(doc, id); r != nil {
+			latest = r
+		}
+	}
+	return latest
+}
+func ReservedSettings(key string) bool { return settingsfile.Reserved(key) }

@@ -1,7 +1,7 @@
 {
   "contrato": "autofirmav2.dictamen-verificacion.v2",
-  "estado": "valida",
-  "motivo": "verificada",
+  "estado": "indeterminada",
+  "motivo": "resultado_clasico_no_valido",
   "formato": "PAdES",
   "comprobadoEn": "2026-10-02T21:05:41Z",
   "integridad": {

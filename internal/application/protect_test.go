@@ -12,9 +12,11 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -70,6 +72,63 @@ type signedProtectorEngineMock struct {
 	lastJob    domain.ProtectionJob
 	lastKeys   []string
 	lastSigner ports.SigningKey
+}
+
+type warningSigningKeyProvider struct{ aviso string }
+
+func (m warningSigningKeyProvider) KeyFor(ctx context.Context, _ domain.CertificateRef) (ports.SigningKey, error) {
+	domain.AnotarAviso(ctx, m.aviso)
+	return claveMock{id: "clave-firma"}, nil
+}
+
+type warningProtectionApproval struct{ aviso string }
+
+func (m warningProtectionApproval) Request(ctx context.Context, _ string) (bool, error) {
+	domain.AnotarAviso(ctx, m.aviso)
+	return true, nil
+}
+
+type warningSignedProtector struct {
+	protected domain.ProtectedPayload
+	aviso     string
+}
+
+func (m warningSignedProtector) ProtectAndSign(ctx context.Context, _ domain.ProtectionJob, _ []domain.ProtectionRecipient, _ ports.SigningKey) (domain.ProtectedPayload, error) {
+	domain.AnotarAviso(ctx, m.aviso)
+	return m.protected, nil
+}
+
+func TestProtectAndSignDocument_RecogeAvisosDeClaveAprobacionYMotor(t *testing.T) {
+	doc, _ := domain.NewDocument("secreto.txt", []byte("hola"), "text/plain")
+	protectedDoc, _ := domain.NewDocument("secreto.txt.p7m", []byte("cms"), domain.MIMETypeProtectedCMS)
+	uc := application.NuevoProtectAndSignDocumentUseCase(
+		&catalogoMock{certs: []domain.CertificateRef{certPrueba()}},
+		warningSigningKeyProvider{aviso: "aviso.clave"},
+		&protectionRecipientCatalogMock{recipients: []domain.ProtectionRecipient{{ID: "dest-1", RSAOAEP256PublicKeyDER: []byte("rsa-pub"), CertificateDER: []byte("cert-der")}}},
+		warningSignedProtector{protected: domain.ProtectedPayload{Document: protectedDoc, Profile: domain.ProtectionProfileCompat, RecipientCount: 1}, aviso: "aviso.motor"},
+		warningProtectionApproval{aviso: "aviso.aprobacion"}, nil, nil,
+	)
+	result, err := uc.Ejecutar(context.Background(), application.ProtectAndSignCommand{
+		Document: doc, Profile: domain.ProtectionProfileCompat, RecipientIDs: []string{"dest-1"},
+		CertificateID: "cert-001", Options: map[string]string{"container": "signedandenvelopeddata"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := json.Marshal(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var visible struct {
+		Warnings []string `json:"warnings"`
+	}
+	if err := json.Unmarshal(raw, &visible); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"aviso.clave", "aviso.aprobacion", "aviso.motor"}
+	if !slices.Equal(visible.Warnings, want) {
+		t.Fatalf("avisos de las tres fases perdidos: got=%q want=%q", visible.Warnings, want)
+	}
 }
 
 func (m *signedProtectorEngineMock) ProtectAndSign(_ context.Context, job domain.ProtectionJob, recipients []domain.ProtectionRecipient, key ports.SigningKey) (domain.ProtectedPayload, error) {

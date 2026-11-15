@@ -128,6 +128,7 @@
     "excepciones.des_intercambio.organizacion",
     "excepciones.des_intercambio.riesgo",
     "excepciones.des_intercambio.titulo",
+    "excepciones.directorio_no_disponible",
     "excepciones.llamante_desarrollo.aceptacion",
     "excepciones.llamante_desarrollo.ajuste",
     "excepciones.llamante_desarrollo.aviso",
