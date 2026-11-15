@@ -1,0 +1,93 @@
+// Derechos de autor (C) 2026 Alberto Avidad Fernández.
+// SPDX-License-Identifier: EUPL-1.2
+package io.github.aavidad.grxfirma.android.core
+
+import org.json.JSONArray
+import org.json.JSONObject
+import org.junit.Assert.*
+import org.junit.Test
+
+class UnsafeExceptionsTest {
+    private fun state(id: String) = JSONObject().put("id", id).put("enabled", false)
+        .put("fixed", false).put("activable", true).put("acceptance_version", "2026-11-15.1")
+    private fun block(id: String = "cms_cbc", activable: Boolean = true) = JSONObject()
+        .put("exceptionId", id).put("activable", activable)
+        .put("blockKey", "excepciones.$id.bloqueo").put("settingKey", "excepciones.$id.ajuste")
+
+    @Test fun `reads minimal typed error and optional metadata without requiring a new core`() {
+        val minimal = UnsafeExceptions.parseBlock(block().toString())!!
+        assertEquals("cms_cbc", minimal.id)
+        assertTrue(minimal.activable)
+        assertFalse(minimal.canActivate) // Se consulta la versión vigente, nunca se inventa.
+        val full = block().put("acceptanceVersion", "next.2").put("future", JSONObject())
+        assertEquals("next.2", UnsafeExceptions.parseBlock(full.toString())!!.acceptanceVersion)
+        assertFalse(UnsafeExceptions.parseBlock(block(activable = false).toString())!!.activable)
+        assertNotNull(UnsafeExceptions.parseBlock(JSONObject().put("error", full).toString()))
+        assertNotNull(UnsafeExceptions.parseBlock(JSONObject().put("error", JSONObject().put("unsafeException", full)).toString()))
+        assertNotNull(UnsafeExceptions.block(CoreContractException("generic", Exception(full.toString()))))
+    }
+
+    @Test fun `accepts snake case and rejects arbitrary ids keys and malformed permissions`() {
+        val snake = JSONObject().put("id", "sha1_leer").put("activable", false)
+            .put("block_key", "excepciones.sha1_leer.bloqueo").put("setting_key", "excepciones.sha1_leer.ajuste")
+        assertEquals("sha1_leer", UnsafeExceptions.parseBlock(snake.toString())!!.id)
+        listOf("", "no JSON", "{}", "[]", block("not_a_case").toString(),
+            block().put("blockKey", "excepciones.sha1_leer.bloqueo").toString(),
+            block().put("settingKey", "arbitrary").toString(),
+            block().put("activable", "true").toString(),
+            block().apply { remove("activable") }.toString(),
+            "x".repeat(65537), "error [cms_cbc; excepciones.cms_cbc.bloqueo]",
+        ).forEach { assertNull(it.take(100), UnsafeExceptions.parseBlock(it)) }
+        assertNull(UnsafeExceptions.parseBlock(null))
+    }
+
+    @Test fun `all 26 cases reflect user machine and unreadable policy states`() {
+        assertEquals(26, UnsafeExceptions.ids.size)
+        UnsafeExceptions.ids.forEach { id ->
+            val off = UnsafeExceptions.parseState(state(id))
+            assertTrue(off.canActivate)
+            assertFalse(off.canDisable)
+            assertEquals("android.inseguro.desactivada", off.statusKey)
+            val on = UnsafeExceptions.parseState(state(id).put("enabled", true))
+            assertTrue(on.canDisable)
+            assertEquals("android.inseguro.activada", on.statusKey)
+            val denied = UnsafeExceptions.parseState(state(id).put("fixed", true).put("activable", false))
+            assertFalse(denied.canActivate)
+            assertFalse(denied.canDisable)
+            assertEquals("android.inseguro.fijada_inactiva", denied.statusKey)
+            val permitted = UnsafeExceptions.parseState(state(id).put("fixed", true).put("enabled", true))
+            assertFalse(permitted.canDisable)
+            assertFalse(permitted.canActivate)
+            assertEquals("android.inseguro.fijada_activa", permitted.statusKey)
+            val unreadable = UnsafeExceptions.parseState(state(id).put("policy_unreadable", true))
+            assertFalse(unreadable.canActivate)
+            assertFalse(unreadable.canDisable)
+            assertEquals("android.inseguro.directiva_ilegible", unreadable.statusKey)
+            assertFalse(UnsafeExceptions.parseState(JSONObject().put("id", id)).canActivate)
+        }
+    }
+
+    @Test fun `activation sends explicit acceptance and the exact displayed version`() {
+        val item = UnsafeExceptions.parseState(state("tsa_http"))
+        val request = JSONObject(UnsafeExceptions.activationRequest(item, true))
+        assertEquals(3, request.length())
+        assertTrue(request.getBoolean("accepted"))
+        assertEquals(item.id, request.getString("id"))
+        assertEquals(item.acceptanceVersion, request.getString("acceptanceVersion"))
+        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item, false) }
+        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item.copy(activable = false), true) }
+        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.activationRequest(item.copy(acceptanceVersion = ""), true) }
+        val disable = JSONObject(UnsafeExceptions.disableRequest(item.copy(enabled = true)))
+        assertFalse(disable.getBoolean("enabled"))
+        assertEquals(2, disable.length())
+        assertThrows(IllegalArgumentException::class.java) { UnsafeExceptions.disableRequest(item.copy(enabled = true, fixed = true)) }
+    }
+
+    @Test fun `catalogue must contain every case exactly once and retains core order`() {
+        val states = UnsafeExceptions.ids.reversed().map(::state)
+        val parsed = UnsafeExceptions.parseList(JSONArray(states).toString())
+        assertEquals(UnsafeExceptions.ids, parsed.map { it.id })
+        assertThrows(CoreContractException::class.java) { UnsafeExceptions.parseList(JSONArray(states.drop(1)).toString()) }
+        assertThrows(CoreContractException::class.java) { UnsafeExceptions.parseList(JSONArray(states + states.first()).toString()) }
+    }
+}

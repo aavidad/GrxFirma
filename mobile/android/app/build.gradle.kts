@@ -229,6 +229,8 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    // Mismo comprobador del lote 29; sus locks/metadatos se integran por separado.
+    androidTestImplementation("androidx.test.espresso:espresso-accessibility:3.7.0")
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     androidTestUtil("androidx.test:orchestrator:1.6.1")
 }
