@@ -174,7 +174,12 @@ func configDirForOS(goos string) (string, error) {
 	if err != nil || !filepath.IsAbs(home) {
 		return "", ErrConfigDirectory
 	}
-	return appdirs.Config(home), nil
+	// En Windows %APPDATA% vacío o relativo también se rechaza.
+	dir, err := appdirs.ConfigComprobada(home)
+	if err != nil {
+		return "", ErrConfigDirectory
+	}
+	return dir, nil
 }
 
 // List lee el estado efectivo, sin escribir ni crear preferencias.

@@ -178,7 +178,9 @@ func (s selectorInteractivo) ElegirPosicionSello(ctx context.Context) (string, s
 
 func (s selectorInteractivo) Select(ctx context.Context, certs []domain.CertificateRef) (certpicker.ResultadoSeleccion, error) {
 	portalActionUI()
-	certpicker.SetConfigDir(defaultProtocolConfigDir())
+	if dir, err := defaultProtocolConfigDir(); err == nil {
+		certpicker.SetConfigDir(dir)
+	}
 	a, w := currentProtocolUIContext()
 	if a == nil {
 		a = fyne.CurrentApp()
@@ -201,7 +203,9 @@ type trustUIFyne struct{}
 
 func (t trustUIFyne) PedirDecision(ctx context.Context, origen string) (trustdialog.DecisionUnicaVez, error) {
 	portalActionUI()
-	trustdialog.SetConfigDir(defaultProtocolConfigDir())
+	if dir, err := defaultProtocolConfigDir(); err == nil {
+		trustdialog.SetConfigDir(dir)
+	}
 	a, w := currentProtocolUIContext()
 	if a == nil {
 		a = fyne.CurrentApp()

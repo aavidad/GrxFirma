@@ -40,6 +40,15 @@ func ConfigComprobada(home string) (string, error) {
 	return Config(home), nil
 }
 
+// ConfigUsuario es ConfigComprobada con la carpeta personal del sistema.
+func ConfigUsuario() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", ErrConfigNoDisponible
+	}
+	return ConfigComprobada(home)
+}
+
 // Data devuelve la raíz de datos del usuario.
 func Data(home string) string {
 	if runtime.GOOS == "windows" {

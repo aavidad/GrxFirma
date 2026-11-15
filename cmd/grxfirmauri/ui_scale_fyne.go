@@ -74,9 +74,12 @@ func resolveLegacyConfigDir(configDir string) string {
 	if strings.TrimSpace(configDir) != "" {
 		return strings.TrimSpace(configDir)
 	}
-	home, err := os.UserHomeDir()
+	// Sin carpeta válida se devuelve vacío: usersettings resuelve entonces
+	// la suya con la misma comprobación y falla cerrado, en vez de usar la
+	// carpeta de trabajo.
+	dir, err := appdirs.ConfigUsuario()
 	if err != nil {
-		return "."
+		return ""
 	}
-	return appdirs.Config(home)
+	return dir
 }

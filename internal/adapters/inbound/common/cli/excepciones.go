@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"grxfirma/internal/adapters/outbound/common/localizador"
@@ -43,12 +42,12 @@ func (a *Adaptador) ejecutarActivarExcepcion(ctx context.Context, cfg configCLI)
 	}
 	configDir := strings.TrimSpace(a.ConfigDir)
 	if configDir == "" {
-		home, err := os.UserHomeDir()
+		dir, err := appdirs.ConfigUsuario()
 		if err != nil {
 			fmt.Fprintln(a.Stderr, a.t("cli.error.prefix", "error:"), a.mensajeErrorExcepcion(err))
 			return 1
 		}
-		configDir = appdirs.Config(home)
+		configDir = dir
 	}
 
 	if block := excepciones.DescribeAt(configDir, id); block != nil && !block.Activable {
@@ -108,12 +107,12 @@ func (a *Adaptador) ejecutarDesactivarExcepcion(ctx context.Context, cfg configC
 	}
 	dir := strings.TrimSpace(a.ConfigDir)
 	if dir == "" {
-		home, err := os.UserHomeDir()
+		comprobada, err := appdirs.ConfigUsuario()
 		if err != nil {
 			fmt.Fprintln(a.Stderr, err)
 			return 1
 		}
-		dir = appdirs.Config(home)
+		dir = comprobada
 	}
 	err := excepciones.SetUserAtContext(ctx, dir, id, false)
 	if err != nil {

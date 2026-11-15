@@ -332,8 +332,11 @@ func construirServiciosCon(rutaP12, password, rutaCert, rutaClave string, remota
 	ctx := context.Background()
 	metricas := metrics.NewDefault()
 	home, _ := os.UserHomeDir()
-	configDir := appdirs.Config(home)
-	cfg, err := config.Load(configDir)
+	var cfg config.Config
+	configDir, err := appdirs.ConfigComprobada(home)
+	if err == nil {
+		cfg, err = config.Load(configDir)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("cargando configuracion: %w", err)
 	}

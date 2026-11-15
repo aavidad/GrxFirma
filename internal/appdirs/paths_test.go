@@ -31,3 +31,21 @@ func TestConfigComprobadaRechazaPerfilOAppDataVacioORelativo(t *testing.T) {
 		}
 	}
 }
+
+func TestConfigUsuarioRechazaAppDataRelativoEnWindows(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("solo Windows decide la configuración por %APPDATA%")
+	}
+	home := t.TempDir()
+	t.Setenv("USERPROFILE", home)
+	for _, malo := range []string{"", ".", "relativo"} {
+		t.Setenv("APPDATA", malo)
+		if dir, err := ConfigUsuario(); !errors.Is(err, ErrConfigNoDisponible) {
+			t.Fatalf("APPDATA=%q produjo %q, %v", malo, dir, err)
+		}
+	}
+	t.Setenv("APPDATA", filepath.Join(home, "AppData", "Roaming"))
+	if dir, err := ConfigUsuario(); err != nil || dir != Config(home) {
+		t.Fatalf("APPDATA absoluto: %q, %v", dir, err)
+	}
+}
