@@ -40,7 +40,6 @@ import com.google.android.material.button.MaterialButton
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import io.github.aavidad.grxfirma.android.ui.SafeWindowInsets
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
