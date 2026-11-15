@@ -7,6 +7,7 @@ package signer
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -243,7 +244,7 @@ func revisarCII(data []byte) ([]IncidenciaFactura, error) {
 // avisarIncidenciasFacturaB2B revisa una factura UBL o CII que se va a firmar
 // en XAdES y explica al usuario lo que el receptor rechazaría, sin impedir
 // la firma, como con FacturaE.
-func avisarIncidenciasFacturaB2B(job domain.SignatureJob) {
+func avisarIncidenciasFacturaB2B(ctx context.Context, job domain.SignatureJob) {
 	if job.Action != domain.ActionSign || !bytes.HasPrefix(bytes.TrimLeft(job.Document.Content, " \t\r\n\ufeff"), []byte("<")) {
 		return
 	}
@@ -252,7 +253,9 @@ func avisarIncidenciasFacturaB2B(job domain.SignatureJob) {
 		return
 	}
 	if _, incidencias, err := RevisarFactura(job.Document.Content); err == nil && len(incidencias) > 0 {
-		avisos.Registrar("Revisión de la factura", ResumenIncidenciasFactura(incidencias))
+		resumen := ResumenIncidenciasFactura(incidencias)
+		avisos.Registrar("Revisión de la factura", resumen)
+		domain.AnotarAviso(ctx, "factura.revision.incidencias.aviso")
 	}
 }
 

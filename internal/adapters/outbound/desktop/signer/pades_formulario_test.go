@@ -23,6 +23,8 @@ import (
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/adapters/outbound/desktop/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"grxfirma/internal/testsupport/pdfsigtest"
 )
 
@@ -294,6 +296,8 @@ func comprobarFirmaCifrada(t *testing.T, nombre string, firmado []byte, password
 }
 
 func TestMotorFirmaGo_PAdESCifradoConservaElCifrado(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_pdf_cifrado_heredado")
+	excepciones.SetForTest(t, "pdf_cifrado_heredado", true)
 	// Formulario sintético cifrado con qpdf (third_party/pdf/testdata).
 	testdata := filepath.Join("..", "..", "..", "..", "..", "third_party", "pdf", "testdata")
 	leer := func(n string) []byte {
@@ -332,7 +336,26 @@ func TestMotorFirmaGo_PAdESCifradoConservaElCifrado(t *testing.T) {
 	}
 }
 
+func TestMotorFirmaGo_PAdESRC4RequiereAjuste(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_pdf_cifrado_heredado")
+	excepciones.SetForTest(t, "pdf_cifrado_heredado", false)
+	data, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "..", "third_party", "pdf", "testdata", "form-rc4.pdf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := firmarCifrado(t, data, nil); err == nil || !strings.Contains(err.Error(), "pdf_cifrado_heredado") {
+		t.Fatalf("sin ajuste debe bloquear RC4: %v", err)
+	}
+	excepciones.SetForTest(t, "pdf_cifrado_heredado", true)
+	machinepolicy.SetForTest(t, "permitir_pdf_cifrado_heredado", false)
+	if _, err := firmarCifrado(t, data, nil); err == nil || !strings.Contains(err.Error(), "pdf_cifrado_heredado") {
+		t.Fatalf("la directiva debe bloquear RC4: %v", err)
+	}
+}
+
 func TestMotorFirmaGo_PAdESCifradoContrasenaYPermisos(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_pdf_cifrado_heredado")
+	excepciones.SetForTest(t, "pdf_cifrado_heredado", true)
 	testdata := filepath.Join("..", "..", "..", "..", "..", "third_party", "pdf", "testdata")
 	usuario, _ := os.ReadFile(filepath.Join(testdata, "form-aes256-usuario.pdf"))
 	if _, err := firmarCifrado(t, usuario, nil); !errors.Is(err, signer.ErrPDFContrasena) {

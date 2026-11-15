@@ -13,10 +13,13 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 // afpDeAtacante fabrica un .afp como lo haría cualquiera que conozca la clave
@@ -78,7 +81,8 @@ func claveCompat(t *testing.T, priv *rsa.PrivateKey) []domain.ProtectionKeyMater
 // Unprotect no debe devolver separadores, controles ni una extensión que se
 // ejecute al hacer doble clic.
 func TestUnprotect_SaneaNombreYMIMEDelEmisor(t *testing.T) {
-	t.Parallel()
+	excepciones.SetForTest(t, "afp_aad_ambigua", true)
+	machinepolicy.UnsetForTest(t, "permitir_afp_aad_ambigua")
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		t.Fatal(err)
@@ -193,7 +197,6 @@ func TestProtect_EscribeV1InequivocaPorDefectoYV2APeticion(t *testing.T) {
 // aviso visible y con el detalle para la auditoría. Uno de versión
 // desconocida sigue rechazado.
 func TestUnprotect_V1AmbiguaSeAbreConAviso(t *testing.T) {
-	t.Parallel()
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		t.Fatal(err)
@@ -204,6 +207,11 @@ func TestUnprotect_V1AmbiguaSeAbreConAviso(t *testing.T) {
 		t.Fatalf("un sobre v1 normal debe abrirse sin avisos: %+v, %v", out, err)
 	}
 	ambiguo := afpDeAtacante(t, 1, "factura.pdf", "text/html\nname=factura.pdf", &priv.PublicKey)
+	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || excepciones.FromText(err.Error()) == nil {
+		t.Fatalf("la lectura ambigua debe requerir ajuste: %v", err)
+	}
+	excepciones.SetForTest(t, "afp_aad_ambigua", true)
+	machinepolicy.UnsetForTest(t, "permitir_afp_aad_ambigua")
 	out, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv))
 	if err != nil {
 		t.Fatal(err)
@@ -211,8 +219,16 @@ func TestUnprotect_V1AmbiguaSeAbreConAviso(t *testing.T) {
 	if out.Document.Name != "factura.pdf" || out.Document.MIMEType != "application/octet-stream" {
 		t.Fatalf("el nombre y el MIME deben salir saneados: %q %q", out.Document.Name, out.Document.MIMEType)
 	}
-	if len(out.Avisos) != 1 || out.Avisos[0] != avisoAFPNombreNoAutenticado || len(out.Detalles) != 1 || out.Detalles[0] != detalleAFPAADV1Ambigua {
+	if len(out.Avisos) != 1 || out.Avisos[0] != excepciones.Warning("afp_aad_ambigua") || len(out.Detalles) != 1 || out.Detalles[0] != detalleAFPAADV1Ambigua {
 		t.Fatalf("falta el aviso o el detalle: %v %v", out.Avisos, out.Detalles)
+	}
+	machinepolicy.SetForTest(t, "permitir_afp_aad_ambigua", false)
+	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || excepciones.FromText(err.Error()) == nil {
+		t.Fatalf("la directiva debe prevalecer: %v", err)
+	}
+	machinepolicy.ErrorForTest(t, "permitir_afp_aad_ambigua", errors.New("fixture ilegible"))
+	if _, err := engine.Unprotect(context.Background(), ambiguo, claveCompat(t, priv)); err == nil || excepciones.FromText(err.Error()) == nil {
+		t.Fatalf("la directiva ilegible debe bloquear: %v", err)
 	}
 	v9 := afpDeAtacante(t, 9, "futuro.pdf", "application/pdf", &priv.PublicKey)
 	if _, err := engine.Unprotect(context.Background(), v9, claveCompat(t, priv)); err == nil {

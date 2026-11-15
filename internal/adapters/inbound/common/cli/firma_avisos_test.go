@@ -11,6 +11,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -68,6 +70,8 @@ func claveLocalPrueba(t *testing.T, nombre string) *commonsigner.LocalSigningKey
 // la salida de error con el texto del catálogo. Recorre el caso de uso y el
 // motor CAdES reales.
 func TestRunFirma_CofirmaSinDocumentoAvisaEnLaSalidaDeError(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_cofirma_sin_original")
+	excepciones.SetForTest(t, "cofirma_sin_original", true)
 	tmp := t.TempDir()
 	entrada := filepath.Join(tmp, "firmado.csig")
 	if err := os.WriteFile(entrada, firmaCAdESPrueba(t, []byte("documento que no se enseña"), false), 0o600); err != nil {
@@ -93,7 +97,7 @@ func TestRunFirma_CofirmaSinDocumentoAvisaEnLaSalidaDeError(t *testing.T) {
 	if rc != 0 {
 		t.Fatalf("la cofirma debe hacerse como antes: rc=%d stderr=%s", rc, stderr.String())
 	}
-	aviso := loc.T(domain.AvisoCofirmaSinOriginal)
+	aviso := loc.T("excepciones.cofirma_sin_original.aviso")
 	if !strings.Contains(stderr.String(), loc.T("cli.aviso.prefix")+" "+aviso) {
 		t.Fatalf("falta el aviso en la salida de error: %q", stderr.String())
 	}

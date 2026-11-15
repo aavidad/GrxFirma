@@ -14,6 +14,8 @@ import (
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 type verifierEngineMock struct {
@@ -80,6 +82,8 @@ func TestMultiVerifier_RechazaFormatoDesconocido(t *testing.T) {
 }
 
 func TestMultiVerifier_VerificaXAdESPorExtension(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", true)
 	v := commonsigner.NewMultiVerifierOffline()
 	fixturePath := filepath.Join("..", "..", "..", "..", "..", "test", "regression", "fixtures", "v1", "samples", "2_xml_signed.xsig")
 	data, err := os.ReadFile(fixturePath)

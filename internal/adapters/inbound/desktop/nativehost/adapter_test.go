@@ -136,6 +136,21 @@ func TestProcessPing(t *testing.T) {
 	}
 }
 
+func TestProcessLlamanteDesarrolloDevuelveAviso(t *testing.T) {
+	adapter := New(nil, nil, nil, nil).WithDevelopmentCaller(true)
+	responses, err := adapter.Process(context.Background(), "", []byte(`{"requestId":1,"action":"ping"}`))
+	if err != nil || len(responses) != 1 {
+		t.Fatalf("respuesta del host: %d, %v", len(responses), err)
+	}
+	var resp response
+	if err := json.Unmarshal(responses[0], &resp); err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Warnings) != 1 || resp.Warnings[0] != "excepciones.llamante_desarrollo.aviso" {
+		t.Fatalf("falta aviso del llamante de desarrollo: %v", resp.Warnings)
+	}
+}
+
 func TestProcessGetCertificates(t *testing.T) {
 	t.Parallel()
 
@@ -176,6 +191,7 @@ func TestProcessSignChunksLargeSignatures(t *testing.T) {
 			Data:      signature,
 		},
 		CertificateUsed: domain.CertificateRef{ID: "cert-1"},
+		Warnings:        []string{"excepciones.sha1_crear.aviso"},
 	}}, nil, nil)
 
 	req := request{
@@ -194,6 +210,10 @@ func TestProcessSignChunksLargeSignatures(t *testing.T) {
 	}
 	if len(responses) != 2 {
 		t.Fatalf("responses len = %d, want 2", len(responses))
+	}
+	var first response
+	if err := json.Unmarshal(responses[0], &first); err != nil || len(first.Warnings) != 1 {
+		t.Fatalf("faltan avisos en primer fragmento: %+v, %v", first, err)
 	}
 }
 
@@ -337,6 +357,7 @@ func TestProcessVerify(t *testing.T) {
 			Valid:       true,
 			Reason:      "ok",
 			Details:     []string{"cadena valida"},
+			Warnings:    []string{"excepciones.sha1_leer.aviso"},
 			Certificate: domain.VerificationAspect{Status: domain.VerificationStatusUnknown},
 		},
 		Firmantes: []domain.CertificateRef{{ID: "cert-1"}},
@@ -367,6 +388,9 @@ func TestProcessVerify(t *testing.T) {
 	}
 	if resp.Result.CertificateStatus != "unknown" {
 		t.Fatalf("certificateStatus = %q", resp.Result.CertificateStatus)
+	}
+	if len(resp.Result.Warnings) != 1 || resp.Result.Warnings[0] != "excepciones.sha1_leer.aviso" {
+		t.Fatalf("faltan avisos de verificación: %+v", resp.Result.Warnings)
 	}
 }
 

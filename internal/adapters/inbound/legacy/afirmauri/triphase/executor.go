@@ -20,9 +20,13 @@ import (
 	"strings"
 	"time"
 
+	"grxfirma/internal/adapters/inbound/legacy/legacycrypto"
 	"grxfirma/internal/adapters/outbound/common/limits"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
+	"grxfirma/internal/security/excepciones"
 )
 
 type signingKeyContextKey struct{}
@@ -62,7 +66,17 @@ func (e *Executor) ValidarDestino(ctx context.Context, origen string) error {
 	if e == nil || e.validarDestino == nil {
 		return errors.New("no se puede comprobar si el destino está autorizado")
 	}
-	return e.validarDestino(ctx, origen)
+	if err := e.validarDestino(ctx, origen); err != nil {
+		return err
+	}
+	u, err := url.Parse(origen)
+	if err != nil {
+		return err
+	}
+	if strings.EqualFold(u.Scheme, "http") {
+		return excepciones.Require(ctx, "trifasica_http")
+	}
+	return nil
 }
 
 // ConValidadorDestino fija el validador que se aplica en el punto de uso a los
@@ -143,6 +157,8 @@ func politicaRedireccionTrifasica(previa func(*http.Request, []*http.Request) er
 				return fmt.Errorf("redirección a otro origen rechazada: %s: %w", origen, err)
 			}
 			slog.Warn("triphase_redireccion_otro_origen", "saltos", len(via))
+			domain.AnotarAviso(req.Context(), "excepciones.trifasica_redireccion.aviso")
+			avisos.Registrar(localizador.Detectar().T("excepciones.trifasica_redireccion.aviso"), "")
 		}
 		if previa != nil {
 			return previa(req, via)
@@ -273,6 +289,24 @@ func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, 
 	if err := session.Validate(); err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("sesion invalida: %w", err)
 	}
+	if session.SessionKey != "" {
+		if _, err := decodificarClaveAES128(session.SessionKey); err != nil {
+			if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, session.RetrieveEndpoint, session.UploadEndpoint); err != nil {
+				return domain.SignatureResult{}, err
+			}
+		}
+	}
+	for _, raw := range []string{session.RetrieveEndpoint, session.UploadEndpoint} {
+		u, err := url.Parse(raw)
+		if err != nil {
+			return domain.SignatureResult{}, err
+		}
+		if strings.EqualFold(u.Scheme, "http") {
+			if err := excepciones.Require(ctx, "trifasica_http"); err != nil {
+				return domain.SignatureResult{}, err
+			}
+		}
+	}
 
 	// Paso 1: Retrieve.
 	rawData, err := e.retrieve(ctx, session)
@@ -330,6 +364,12 @@ func (e *Executor) Execute(ctx context.Context, session domain.ExchangeSession, 
 	hashAlg, err := legacyHashFromAlgorithm(algoritmo)
 	if err != nil {
 		return domain.SignatureResult{}, fmt.Errorf("algoritmo de firma no soportado: %w", err)
+	}
+	if err := requireLegacyBatchSigningPreflight(ctx, signingKey); err != nil {
+		return domain.SignatureResult{}, err
+	}
+	if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
+		return domain.SignatureResult{}, err
 	}
 	pk1B64, err := signLegacyBatchPreData(hashBytes, signingKey, algoritmo, hashAlg, nil)
 	if err != nil {
@@ -582,6 +622,9 @@ func (e *Executor) UploadCertificate(ctx context.Context, session domain.Exchang
 	certB64 := base64.StdEncoding.EncodeToString(certDER)
 	var datEncoded string
 	if session.SessionKey != "" {
+		if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, session.RetrieveEndpoint, session.UploadEndpoint); err != nil {
+			return err
+		}
 		cifrado, err := cifrarLegacyDES(certDER, session.SessionKey, session.RetrieveEndpoint, session.UploadEndpoint)
 		if err != nil {
 			return fmt.Errorf("cifrado legacy del certificado fallido: %w", err)
@@ -680,6 +723,9 @@ func (e *Executor) UploadSignature(ctx context.Context, session domain.ExchangeS
 
 	var payload string
 	if strings.TrimSpace(session.SessionKey) != "" {
+		if err := legacycrypto.RequireDESEnIntercambioConContexto(ctx, session.RetrieveEndpoint, session.UploadEndpoint); err != nil {
+			return err
+		}
 		encCertVal, err := cifrarLegacyDES(certDER, session.SessionKey, session.RetrieveEndpoint, session.UploadEndpoint)
 		if err != nil {
 			return fmt.Errorf("cifrado legacy del certificado fallido: %w", err)

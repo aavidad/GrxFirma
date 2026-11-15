@@ -5,28 +5,42 @@
 
 package signer
 
-import "grxfirma/internal/domain"
+import (
+	"context"
+	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+)
 
 // Criterio único para firmas hechas con un algoritmo antiguo (SHA-1) en XAdES,
 // XMLdSig, FacturaE, ODF, OOXML, ASiC, CAdES y PAdES: si el resumen y la firma
 // cuadran, la integridad criptográfica se da por comprobada, pero la firma no
 // sale válida y el aviso queda a la vista y en la evidencia. Nunca se usa para
 // firmar.
-const (
-	// Texto visible (clave de los catálogos de idiomas).
-	motivoAlgoritmoAntiguo = "El documento no ha cambiado desde que se firmó, pero la firma usa SHA-1, un algoritmo antiguo que hoy no se considera seguro. Por eso no se da por válida: sirve como prueba de una firma hecha cuando SHA-1 se aceptaba."
-	// detalleAlgoritmoSHA1 identifica el algoritmo en detalles y evidencia.
-	detalleAlgoritmoSHA1 = "algoritmo_antiguo=sha1"
-)
+// detalleAlgoritmoSHA1 identifica el algoritmo en detalles y evidencia.
+const detalleAlgoritmoSHA1 = "algoritmo_antiguo=sha1"
+
+var motivoAlgoritmoAntiguo = excepciones.Warning("sha1_leer")
 
 // marcarAlgoritmoAntiguo deja la integridad como estaba (comprobada), quita la
 // validez global y añade el aviso, el detalle y la evidencia. Si el usuario
 // aceptó SHA-1 en su equipo (lote 14), la validez no se toca y el aviso dice
 // que se da por válida porque lo aceptó.
-func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result domain.VerificationResult, algoritmos []string) domain.VerificationResult {
+func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result domain.VerificationResult, algoritmos []string, contexts ...context.Context) domain.VerificationResult {
 	if len(algoritmos) == 0 {
 		return result
 	}
+	if err := excepciones.Check("sha1_leer", contexts...); err != nil {
+		result.Valid = false
+		result.Coverage = domain.CoberturaNoAcreditada
+		result.Reason = err.Error()
+		result.Integrity.Status = domain.VerificationStatusUnknown
+		result.Integrity.Reason = err.Error()
+		result.Trust.Status = domain.VerificationStatusUnknown
+		result.Errors = []string{err.Error()}
+		result.Warnings = appendUniqueString(result.Warnings, err.Error())
+		return anotarAlgoritmoAntiguo(result, algoritmos, contexts...)
+	}
+	result.Warnings = appendUniqueString(result.Warnings, excepciones.Warning("sha1_leer"))
 	obstaculo := domain.ObstaculoConfianza{Tipo: domain.ConfianzaAlgoritmoSHA1}
 	if registro.Decidir(obstaculo) {
 		result = marcarConfianzaForzada(result, obstaculo)
@@ -37,14 +51,28 @@ func marcarAlgoritmoAntiguo(registro *domain.RegistroConfianzaForzada, result do
 		}
 		result.Warnings = appendUniqueString(result.Warnings, motivoAlgoritmoAntiguo)
 	}
-	return anotarAlgoritmoAntiguo(result, algoritmos)
+	return anotarAlgoritmoAntiguo(result, algoritmos, contexts...)
 }
 
 // anotarAlgoritmoAntiguo deja el detalle y la evidencia sin tocar la validez
 // ni añadir el aviso. Sirve cuando la integridad no se ha podido comprobar
 // (CAdES explícita sin el original): el aviso dice que el documento no ha
 // cambiado, y eso no se sabe.
-func anotarAlgoritmoAntiguo(result domain.VerificationResult, algoritmos []string) domain.VerificationResult {
+func anotarAlgoritmoAntiguo(result domain.VerificationResult, algoritmos []string, contexts ...context.Context) domain.VerificationResult {
+	if len(algoritmos) > 0 {
+		if err := excepciones.Check("sha1_leer", contexts...); err != nil {
+			result.Valid = false
+			result.Coverage = domain.CoberturaNoAcreditada
+			result.Reason = err.Error()
+			result.Integrity.Status = domain.VerificationStatusUnknown
+			result.Integrity.Reason = err.Error()
+			result.Trust.Status = domain.VerificationStatusUnknown
+			result.Errors = []string{err.Error()}
+			result.Warnings = appendUniqueString(result.Warnings, err.Error())
+		} else {
+			result.Warnings = appendUniqueString(result.Warnings, excepciones.Warning("sha1_leer"))
+		}
+	}
 	vistos := map[string]bool{}
 	for _, evidencia := range result.Evidence {
 		if evidencia.Type == domain.EvidenciaAlgoritmoAntiguo {
@@ -73,4 +101,19 @@ func algoritmosAntiguos(result domain.VerificationResult) []string {
 		}
 	}
 	return out
+}
+
+// bloqueoSHA1Previo evita comprobar el resumen y la firma cuando el lector
+// histórico está desactivado.
+func bloqueoSHA1Previo(ctx context.Context, formato string) (domain.VerificationResult, bool) {
+	err := excepciones.Check("sha1_leer", ctx)
+	if err == nil {
+		return domain.VerificationResult{}, false
+	}
+	result := domain.NewVerificationFailure(formato, err.Error(), nil)
+	result.Coverage = domain.CoberturaNoAcreditada
+	result.Integrity.Status = domain.VerificationStatusUnknown
+	result.Integrity.Reason = err.Error()
+	result.Warnings = append(result.Warnings, err.Error())
+	return result.Normalize(), true
 }

@@ -13,6 +13,7 @@ import (
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -42,6 +43,9 @@ func cofirmarConOriginal(t *testing.T, firma, original []byte, accion domain.Sig
 // con firmantes mixtos, igual. Un original que no corresponde no se firma.
 func TestCAdES_CofirmaExplicitaSHA1ConOriginal(t *testing.T) {
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	excepciones.SetForTest(t, "sha1_conservar", true)
+	machinepolicy.UnsetForTest(t, "permitir_cofirma_sin_original")
+	excepciones.SetForTest(t, "cofirma_sin_original", true)
 	original := []byte("acta firmada en 2012 con AutoFirma")
 	soloSHA1 := cadesSHA1Prueba(t, original, true)
 
@@ -80,7 +84,7 @@ func TestCAdES_CofirmaExplicitaSHA1ConOriginal(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if want := []string{commonsigner.AvisoCofirmaSinOriginal}; !slices.Equal(avisos, want) {
+		if want := []string{excepciones.Warning("cofirma_sin_original")}; !slices.Equal(avisos, want) {
 			t.Fatalf("avisos = %q, want %q", avisos, want)
 		}
 	})

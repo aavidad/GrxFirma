@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -30,12 +31,14 @@ import (
 
 	resttls "grxfirma/internal/adapters/inbound/common/rest"
 	"grxfirma/internal/adapters/outbound/common/config"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/common/logging"
 	"grxfirma/internal/adapters/outbound/desktop/localtlstrust"
 	"grxfirma/internal/application"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/cryptopolicy"
-	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/security/excepciones"
 )
 
 const (
@@ -165,9 +168,24 @@ type tlsServerDependencies struct {
 
 func defaultTLSServerDependencies() tlsServerDependencies {
 	return tlsServerDependencies{
-		ensureTrusted:        localtlstrust.EnsureTrusted,
-		ensureManagedTrusted: localtlstrust.EnsureManagedTrusted,
+		ensureTrusted: func(ctx context.Context, cert string) error {
+			return ensureAutomaticTrustIfAllowed(ctx, cert, localtlstrust.EnsureTrusted)
+		},
+		ensureManagedTrusted: func(ctx context.Context, cert string) error {
+			return ensureAutomaticTrustIfAllowed(ctx, cert, localtlstrust.EnsureManagedTrusted)
+		},
 	}
+}
+
+func ensureAutomaticTrustIfAllowed(ctx context.Context, cert string, install func(context.Context, string) error) error {
+	if runtime.GOOS == "linux" {
+		if err := excepciones.Require(ctx, "ca_instalacion_automatica"); err != nil {
+			avisos.Registrar(err.Error(), "")
+			return nil
+		}
+		avisos.Registrar(localizador.Detectar().T(excepciones.Warning("ca_instalacion_automatica")), "")
+	}
+	return install(ctx, cert)
 }
 
 // StartTLSServer arranca el servidor WSS legacy solo si la configuración lo permite.
@@ -206,7 +224,7 @@ func startTLSServerOnPortsWithHooksAndDependencies(ctx context.Context, cfg conf
 		deps.ensureManagedTrusted = deps.ensureTrusted
 	}
 
-	certFile, keyFile, rootCertFile, certSource, err := resttls.EnsureBrowserCompatibleLocalhostCertificate(certDir, "websocket-localhost")
+	certFile, keyFile, rootCertFile, certSource, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(ctx, certDir, "websocket-localhost")
 	if err != nil {
 		return nil, err
 	}
@@ -354,9 +372,13 @@ func handleStorageService(store *legacyStorage, w http.ResponseWriter, r *http.R
 		http.Error(w, compatError("ERR-99", "Peticion externa no permitida"), http.StatusForbidden)
 		return
 	}
-	if ok := setCompatHeaders(r.Context(), w, r, trust, allowedDomains); !ok {
+	if ok, originErr := setCompatHeaders(r.Context(), w, r, trust, allowedDomains); !ok {
 		trace.WarnContext(r.Context(), "storage_service_origin_rejected", "remote_addr", r.RemoteAddr, "origin", r.Header.Get("Origin"))
-		http.Error(w, compatError("ERR-99", "Origen no permitido"), http.StatusForbidden)
+		if originErr != nil {
+			http.Error(w, compatError("ERR-99", originErr.Error()), http.StatusForbidden)
+		} else {
+			http.Error(w, compatError("ERR-99", "Origen no permitido"), http.StatusForbidden)
+		}
 		return
 	}
 	if r.Method == http.MethodOptions {
@@ -415,9 +437,13 @@ func handleRetrieveService(store *legacyStorage, w http.ResponseWriter, r *http.
 		http.Error(w, compatError("ERR-99", "Peticion externa no permitida"), http.StatusForbidden)
 		return
 	}
-	if ok := setCompatHeaders(r.Context(), w, r, trust, allowedDomains); !ok {
+	if ok, originErr := setCompatHeaders(r.Context(), w, r, trust, allowedDomains); !ok {
 		trace.WarnContext(r.Context(), "retrieve_service_origin_rejected", "remote_addr", r.RemoteAddr, "origin", r.Header.Get("Origin"))
-		http.Error(w, compatError("ERR-99", "Origen no permitido"), http.StatusForbidden)
+		if originErr != nil {
+			http.Error(w, compatError("ERR-99", originErr.Error()), http.StatusForbidden)
+		} else {
+			http.Error(w, compatError("ERR-99", "Origen no permitido"), http.StatusForbidden)
+		}
 		return
 	}
 	if r.Method == http.MethodOptions {
@@ -505,10 +531,11 @@ func safeLegacyServiceOperation(raw string) string {
 	}
 }
 
-func setCompatHeaders(ctx context.Context, w http.ResponseWriter, r *http.Request, trust ports.TrustPolicy, allowedDomains []string) bool {
+func setCompatHeaders(ctx context.Context, w http.ResponseWriter, r *http.Request, trust ports.TrustPolicy, allowedDomains []string) (bool, error) {
 	origin := strings.TrimSpace(r.Header.Get("Origin"))
-	if !isAllowedWebOriginWithPolicy(ctx, origin, trust, allowedDomains) {
-		return false
+	allowed, err := allowWebOriginWithPolicy(ctx, origin, trust, allowedDomains)
+	if !allowed {
+		return false, err
 	}
 	if origin != "" {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
@@ -517,7 +544,7 @@ func setCompatHeaders(ctx context.Context, w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	return true
+	return true, nil
 }
 
 func parseCompatForm(w http.ResponseWriter, r *http.Request) error {
@@ -527,31 +554,39 @@ func parseCompatForm(w http.ResponseWriter, r *http.Request) error {
 
 // Por defecto se rechazan los handshakes sin Origin y los orígenes opacos
 // "null" (iframes con sandbox, file://, data:). Para integraciones V1
-// estrictamente locales que no envían Origin, la única excepción es la
-// política de máquina permitir_origen_vacio, fijada por un administrador. La
-// la variable GRXFIRMA_WS_ALLOW_EMPTY_ORIGIN ya no rebaja la seguridad.
+// estrictamente locales que no envían Origin, hace falta el ajuste expreso
+// origen_vacio. La variable GRXFIRMA_WS_ALLOW_EMPTY_ORIGIN no lo activa.
 const envWSPermitirOrigenVacio = "GRXFIRMA_WS_ALLOW_EMPTY_ORIGIN"
 
 func origenEstrictoRequerido() bool {
-	return !machinepolicy.OptIn(machinepolicy.PermitirOrigenVacio)
+	return !excepciones.Enabled("origen_vacio")
 }
 
 func isAllowedWebOriginWithPolicy(ctx context.Context, origin string, trust ports.TrustPolicy, fallbackDomains []string) bool {
+	allowed, _ := allowWebOriginWithPolicy(ctx, origin, trust, fallbackDomains)
+	return allowed
+}
+
+func allowWebOriginWithPolicy(ctx context.Context, origin string, trust ports.TrustPolicy, fallbackDomains []string) (bool, error) {
 	origin = strings.TrimSpace(origin)
 	if origin == "" || strings.EqualFold(origin, "null") {
-		return !origenEstrictoRequerido()
+		if err := excepciones.Require(ctx, "origen_vacio"); err != nil {
+			return false, err
+		}
+		avisos.Registrar(localizador.Detectar().T(excepciones.Warning("origen_vacio")), "")
+		return true, nil
 	}
 	if isOwnLocalSignerOrigin(origin) {
-		return true
+		return true, nil
 	}
 	if trust == nil {
-		return isAllowedWebOrigin(origin, fallbackDomains)
+		return isAllowedWebOrigin(origin, fallbackDomains), nil
 	}
 	decision, err := trust.Evaluate(ctx, origin)
 	if err != nil {
-		return false
+		return false, nil
 	}
-	return decision.IsAllowed()
+	return decision.IsAllowed(), nil
 }
 
 func isAllowedWebOrigin(origin string, allowedDomains []string) bool {
@@ -715,9 +750,13 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 	// H-06: Validar Origin en el handshake WebSocket antes de aceptar la conexión.
 	// Orígenes externos sólo se aceptan si la política de confianza central los permite.
 	origin := strings.TrimSpace(r.Header.Get("Origin"))
-	if !isAllowedWebOriginWithPolicy(ctx, origin, adapter.Trust, allowedDomains) {
+	if allowed, originErr := allowWebOriginWithPolicy(ctx, origin, adapter.Trust, allowedDomains); !allowed {
 		trace.WarnContext(ctx, "websocket_handshake_forbidden_origin", "remote_addr", r.RemoteAddr, "origin", origin, "path", r.URL.Path)
-		http.Error(w, "WebSocket: origen no permitido", http.StatusForbidden)
+		if originErr != nil {
+			http.Error(w, originErr.Error(), http.StatusForbidden)
+		} else {
+			http.Error(w, "WebSocket: origen no permitido", http.StatusForbidden)
+		}
 		return nil
 	}
 	key := strings.TrimSpace(r.Header.Get("Sec-WebSocket-Key"))
@@ -840,7 +879,17 @@ func serveLegacyWebSocket(ctx context.Context, adapter *Adaptador, hooks *Sessio
 			// ejemplo, en el editor del sello), la operación se cancela y no
 			// deja ventanas ni procesos abiertos.
 			handleCtx, stopWatching := watchPeerClose(ctxOperacion, conn, buf.Reader)
-			result, err := adapter.HandleText(handleCtx, strings.TrimSpace(r.Header.Get("Origin")), message)
+			var result Resultado
+			var err error
+			if !esEco && (origin == "" || strings.EqualFold(origin, "null")) {
+				err = excepciones.Require(handleCtx, "origen_vacio")
+				if err == nil {
+					avisos.Registrar(localizador.Detectar().T(excepciones.Warning("origen_vacio")), "")
+				}
+			}
+			if err == nil {
+				result, err = adapter.HandleText(handleCtx, origin, message)
+			}
 			peerGone := handleCtx.Err() != nil
 			stopWatching()
 			if err != nil {
@@ -974,6 +1023,13 @@ func truncateForTrace(raw string, limit int) string {
 func legacyWebSocketErrorText(err error) string {
 	if err == nil {
 		return compatError("SAF_03", "Parametros incorrectos")
+	}
+	var blocked *excepciones.Block
+	if errors.As(err, &blocked) {
+		return compatError("SAF_09", blocked.Error())
+	}
+	if blocked = excepciones.FromText(err.Error()); blocked != nil {
+		return compatError("SAF_09", blocked.Error())
 	}
 	if errors.Is(err, cryptopolicy.ErrSHA1Disabled) {
 		return compatError(

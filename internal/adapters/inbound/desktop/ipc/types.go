@@ -80,10 +80,14 @@ type respuesta struct {
 	Action    string `json:"action"`
 	// ErrorCode, Phase, Retryable y Outcome forman el contrato estable que
 	// permite a las GUI representar un resultado sin interpretar Error.
-	ErrorCode string `json:"errorCode"`
-	Phase     string `json:"phase"`
-	Retryable bool   `json:"retryable"`
-	Outcome   string `json:"outcome"`
+	ErrorCode   string   `json:"errorCode"`
+	ExceptionID string   `json:"exceptionId,omitempty"`
+	WarningKeys []string `json:"warnings,omitempty"`
+	BlockKey    string   `json:"blockKey,omitempty"`
+	SettingKey  string   `json:"settingKey,omitempty"`
+	Phase       string   `json:"phase"`
+	Retryable   bool     `json:"retryable"`
+	Outcome     string   `json:"outcome"`
 	// Data puede ser cualquier valor JSON (objeto, array, string, numero).
 	Data       any                         `json:"data,omitempty"`
 	Error      string                      `json:"error,omitempty"`

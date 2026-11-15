@@ -8,11 +8,13 @@ package signer
 import (
 	"bytes"
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/digitorus/pkcs7"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -43,6 +45,29 @@ func exigirAlgoritmoAntiguo(t *testing.T, result domain.VerificationResult) {
 	}
 }
 
+func TestXAdESSHA1NoSeEvaluaSinAjuste(t *testing.T) {
+	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, true)
+	machinepolicy.UnsetForTest(t, "permitir_sha1_leer")
+	excepciones.SetForTest(t, "sha1_leer", false)
+	priv, cert := certForTest(t, "SHA1 antigua")
+	payload := []byte(`<datos><importe>10</importe></datos>`)
+	firmado, err := NewXAdESBESDetached().Sign(context.Background(), domain.SignatureJob{
+		Document: domain.Document{Name: "datos.xml", MIMEType: "application/xml", Content: payload},
+		Format:   domain.FormatXAdES, Action: domain.ActionSign,
+		Options: map[string]string{"algorithm": "SHA1withRSA"},
+	}, &LocalSigningKey{Signer: priv, Certificate: cert})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var block *excepciones.Block
+	_, _, err = NewXAdESVerifier().Verify(context.Background(), domain.Document{
+		Name: "firma.xsig", MIMEType: "application/xml", Content: firmado.Data,
+	}, domain.CertificateChain{})
+	if !errors.As(err, &block) || block.ID != "sha1_leer" {
+		t.Fatalf("SHA-1 XML debe detenerse antes del hash: %v", err)
+	}
+}
+
 // Lote 13b, punto 1: FacturaE 3.1 con prefijo en la raíz y firmada con
 // SHA-1, como las facturas oficiales de @firma de 2009. Antes salía
 // «Compatibilidad histórica; validación XML estándar no acreditada» con
@@ -50,6 +75,7 @@ func exigirAlgoritmoAntiguo(t *testing.T, result domain.VerificationResult) {
 // integridad se comprueba por el camino estándar y el aviso es el de
 // algoritmo antiguo.
 func TestFacturaEVerifier_SHA1ConPrefijoIntegridadComprobadaConAviso(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, true)
 	priv, cert := certForTest(t, "FacturaE SHA-1 histórica")
 	payload := []byte(`<fe:Facturae xmlns:fe="` + facturaeNamespace31 + `"><FileHeader/><Parties/><Invoices>QA 2009</Invoices></fe:Facturae>`)
@@ -98,6 +124,7 @@ func TestFacturaEVerifier_RaizConPrefijoSinNamespaceNoEsFactura(t *testing.T) {
 // se rechazaba con error «SignerInfo no declara SHA-256...». Ahora la
 // integridad se comprueba y la firma sale con el aviso de algoritmo antiguo.
 func TestCAdESVerifier_SHA1IntegridadComprobadaConAviso(t *testing.T) {
+	activarExcepcionPrueba(t, "sha1_leer")
 	priv, cert := certForTest(t, "CAdES SHA-1 histórica")
 	contenido := []byte("documento firmado en 2012")
 	datos, err := pkcs7.NewSignedData(contenido)

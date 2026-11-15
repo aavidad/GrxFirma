@@ -13,6 +13,8 @@ import (
 
 	"grxfirma/internal/adapters/outbound/desktop/proxysecretstore"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 type secretStoreStub struct {
@@ -34,7 +36,8 @@ func (s secretStoreStub) Status(context.Context) (ports.ProxySecretStoreStatus, 
 }
 
 func TestTransportWithDependencies_ConsumeSecretoYRespetaExclusion(t *testing.T) {
-	t.Parallel()
+	machinepolicy.UnsetForTest(t, "permitir_proxy_http")
+	excepciones.SetForTest(t, "proxy_http", true)
 
 	enabled := true
 	typ := "manual"
@@ -81,6 +84,25 @@ func TestTransportWithDependencies_ConsumeSecretoYRespetaExclusion(t *testing.T)
 	excluded, _ := http.NewRequest(http.MethodGet, "https://intra.example/recurso", nil)
 	if got, err := transport.Proxy(excluded); err != nil || got != nil {
 		t.Fatalf("proxy excluido = %#v, %v", got, err)
+	}
+}
+
+func TestProxyDeEntornoConCredencialesHTTPRequiereAjuste(t *testing.T) {
+	t.Setenv("HTTPS_PROXY", "http://prueba:secreto@proxy.example:8080")
+	machinepolicy.UnsetForTest(t, "permitir_proxy_http")
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	setEnvironmentProxy(transport)
+	req, err := http.NewRequest(http.MethodGet, "https://servicio.example", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	excepciones.SetForTest(t, "proxy_http", false)
+	if proxy, err := transport.Proxy(req); err == nil || proxy != nil {
+		t.Fatalf("proxy HTTP con credenciales sin ajuste: %v, %v", proxy, err)
+	}
+	excepciones.SetForTest(t, "proxy_http", true)
+	if proxy, err := transport.Proxy(req); err != nil || proxy == nil || proxy.User == nil {
+		t.Fatalf("proxy HTTP con ajuste: %v, %v", proxy, err)
 	}
 }
 

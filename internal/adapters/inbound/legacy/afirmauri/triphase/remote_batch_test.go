@@ -6,29 +6,128 @@
 package triphase
 
 import (
+	"bytes"
 	"context"
 	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/security/cryptopolicy"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
+	"grxfirma/internal/security/signingpolicy"
 )
 
 type mockLegacyBatchKey struct {
 	chain [][]byte
+}
+
+type invalidChainBatchKey struct{ *mockLegacyBatchKey }
+
+func (*invalidChainBatchKey) CertificateChainDER() [][]byte { return [][]byte{[]byte("invalid")} }
+
+var (
+	triphaseTestCertOnce sync.Once
+	triphaseTestCertDER  []byte
+	triphaseTestCertErr  error
+)
+
+func validTriphaseTestCertificateDER() []byte {
+	triphaseTestCertOnce.Do(func() {
+		private, err := rsa.GenerateKey(rand.Reader, 2048)
+		if err != nil {
+			triphaseTestCertErr = err
+			return
+		}
+		now := time.Now()
+		template := &x509.Certificate{SerialNumber: big.NewInt(30), NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour), KeyUsage: x509.KeyUsageDigitalSignature}
+		triphaseTestCertDER, triphaseTestCertErr = x509.CreateCertificate(rand.Reader, template, template, &private.PublicKey, private)
+	})
+	if triphaseTestCertErr != nil {
+		panic(triphaseTestCertErr)
+	}
+	return append([]byte(nil), triphaseTestCertDER...)
+}
+
+func TestRemoteBatchHTTPRequiereAjuste(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_trifasica_http")
+	excepciones.SetForTest(t, "trifasica_http", false)
+	e := New(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader("OK")), Header: make(http.Header)}, nil
+	})})
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	_, _, err := e.doLegacyBatchPOST(ctx, "http://batch.example/post", nil)
+	var blocked *excepciones.Block
+	if !errors.As(err, &blocked) || blocked.ID != "trifasica_http" {
+		t.Fatalf("HTTP sin ajuste: %v", err)
+	}
+	excepciones.SetForTest(t, "trifasica_http", true)
+	if _, _, err := e.doLegacyBatchPOST(ctx, "http://batch.example/post", nil); err != nil {
+		t.Fatalf("HTTP con ajuste: %v", err)
+	}
+	if got := warnings.Claves(); len(got) != 1 || got[0] != excepciones.Warning("trifasica_http") {
+		t.Fatalf("falta aviso de operación: %v", got)
+	}
+	machinepolicy.SetForTest(t, "permitir_trifasica_http", false)
+	if _, _, err := e.doLegacyBatchPOST(ctx, "http://batch.example/post", nil); !errors.As(err, &blocked) {
+		t.Fatalf("la directiva debe prohibir HTTP: %v", err)
+	}
+	machinepolicy.ErrorForTest(t, "permitir_trifasica_http", errors.New("ilegible"))
+	if _, _, err := e.doLegacyBatchPOST(ctx, "http://batch.example/post", nil); !errors.As(err, &blocked) {
+		t.Fatalf("la directiva ilegible debe prohibir HTTP: %v", err)
+	}
+}
+
+func TestTrifasicaRSA1024PreflightContextual(t *testing.T) {
+	private, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	template := &x509.Certificate{SerialNumber: big.NewInt(1), NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour), KeyUsage: x509.KeyUsageDigitalSignature}
+	der, err := x509.CreateCertificate(rand.Reader, template, template, &private.PublicKey, private)
+	if err != nil {
+		t.Fatal(err)
+	}
+	key := &mockLegacyBatchKey{chain: [][]byte{der}}
+	machinepolicy.UnsetForTest(t, "permitir_rsa_corta")
+	excepciones.SetForTest(t, "rsa_corta", false)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	var blocked *excepciones.Block
+	if err := requireLegacyBatchSigningPreflight(ctx, key); !errors.As(err, &blocked) || blocked.ID != "rsa_corta" {
+		t.Fatalf("RSA 1024 sin ajuste: %v", err)
+	}
+	excepciones.SetForTest(t, "rsa_corta", true)
+	if err := requireLegacyBatchSigningPreflight(ctx, key); err != nil {
+		t.Fatalf("RSA 1024 con ajuste: %v", err)
+	}
+	if got := warnings.Claves(); len(got) != 1 || got[0] != excepciones.Warning("rsa_corta") {
+		t.Fatalf("falta aviso contextual: %v", got)
+	}
+}
+
+func TestTrifasicaRechazaDERInvalidoAntesDeFirmar(t *testing.T) {
+	key := &invalidChainBatchKey{mockLegacyBatchKey: &mockLegacyBatchKey{}}
+	if err := requireLegacyBatchSigningPreflight(context.Background(), key); !errors.Is(err, signingpolicy.ErrCertificateUnsuitable) {
+		t.Fatalf("DER inválido debe bloquearse antes de SignDigest: %v", err)
+	}
 }
 
 func TestHashLegacyPreData_RechazaSHA1SinOptIn(t *testing.T) {
@@ -66,7 +165,12 @@ func (m *mockLegacyBatchKey) SignDigest(digest []byte, _ crypto.Hash) ([]byte, e
 
 func (m *mockLegacyBatchKey) CertificateChainDER() [][]byte {
 	out := make([][]byte, 0, len(m.chain))
-	for _, der := range m.chain {
+	for i, der := range m.chain {
+		if i == 0 {
+			if _, err := x509.ParseCertificate(der); err != nil {
+				der = validTriphaseTestCertificateDER()
+			}
+		}
 		out = append(out, append([]byte(nil), der...))
 	}
 	return out
@@ -276,7 +380,7 @@ func TestExecuteLegacyRemoteResult_WebSocketDirectoNoExigeSesionDeIntercambio(t 
 	if err != nil {
 		t.Fatalf("cert no es base64 estándar: %v", err)
 	}
-	if string(decodedCert) != "cert-der-hoja" {
+	if !bytes.Equal(decodedCert, validTriphaseTestCertificateDER()) {
 		t.Fatalf("cert devuelto inesperado: %q", string(decodedCert))
 	}
 }

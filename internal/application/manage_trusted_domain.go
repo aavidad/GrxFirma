@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strings"
 
+	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 )
 
@@ -36,6 +37,7 @@ func NuevoManageTrustedDomainUseCase(
 
 // Ejecutar aplica la accion indicada sobre el origen.
 func (uc *ManageTrustedDomainUseCase) Ejecutar(ctx context.Context, cmd ManageTrustedDomainCommand) (ManageTrustedDomainResult, error) {
+	ctx, avisos := domain.ConAvisosOperacion(ctx)
 	if err := ctx.Err(); err != nil {
 		return ManageTrustedDomainResult{}, err
 	}
@@ -66,8 +68,9 @@ func (uc *ManageTrustedDomainUseCase) Ejecutar(ctx context.Context, cmd ManageTr
 	_ = uc.publicarEvento(ctx, "dominio_confianza_actualizado", fmt.Sprintf("%s:%s", cmd.Action, origin))
 	uc.auditar(ctx, origin, cmd.Action, true, nil)
 	return ManageTrustedDomainResult{
-		Origin: origin,
-		Action: cmd.Action,
+		Origin:   origin,
+		Action:   cmd.Action,
+		Warnings: avisos.Claves(),
 	}, nil
 }
 

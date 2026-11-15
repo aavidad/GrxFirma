@@ -383,6 +383,21 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
+	for _, signerInfo := range signerInfos {
+		signerCert, err := findSignerCertificate(certs, signerInfo.SID)
+		if err != nil {
+			return domain.VerificationResult{}, certRefs, err
+		}
+		_, antiguo, err := validarAlgoritmosSignerInfo(signerCert, signerInfo)
+		if err != nil {
+			return domain.VerificationResult{}, certRefs, err
+		}
+		if antiguo {
+			if blocked, yes := bloqueoSHA1Previo(ctx, string(domain.FormatCAdES)); yes {
+				return blocked, certRefs, nil
+			}
+		}
+	}
 
 	result := domain.NewVerificationSuccess(string(domain.FormatCAdES), "firma CAdES válida", nil)
 	signers := make([]domain.CertificateRef, 0, len(signerInfos))
@@ -474,9 +489,9 @@ func (v *CAdESVerifier) verifyCMS(ctx context.Context, cmsDER, externalContent [
 	}
 	result = exigirRevocacionConcluyente(registro, result)
 	if sinOriginal {
-		result = anotarAlgoritmoAntiguo(result, antiguos)
+		result = anotarAlgoritmoAntiguo(result, antiguos, ctx)
 	} else {
-		result = marcarAlgoritmoAntiguo(registro, result, antiguos)
+		result = marcarAlgoritmoAntiguo(registro, result, antiguos, ctx)
 	}
 	if codificacionBER {
 		result.Details = append(result.Details, detalleCodificacionBER)

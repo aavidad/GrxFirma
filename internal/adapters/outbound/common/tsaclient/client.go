@@ -24,6 +24,7 @@ import (
 	"github.com/digitorus/timestamp"
 	"grxfirma/internal/adapters/outbound/common/anidamientoasn1"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 )
 
 var (
@@ -85,6 +86,11 @@ func (c *Client) RequestTimestamp(ctx context.Context, hash []byte, hashAlgo cry
 	if err != nil || endpoint == nil || endpoint.Hostname() == "" ||
 		(endpoint.Scheme != "https" && endpoint.Scheme != "http") || endpoint.User != nil || endpoint.Fragment != "" {
 		return nil, errors.New("URL HTTP(S) de TSA inválida")
+	}
+	if endpoint.Scheme == "http" {
+		if err := excepciones.Require(ctx, "tsa_http"); err != nil {
+			return nil, err
+		}
 	}
 	hashOID, err := oidForHash(hashAlgo)
 	if err != nil {

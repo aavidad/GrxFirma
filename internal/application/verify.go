@@ -9,7 +9,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"grxfirma/internal/security/excepciones"
 	"time"
 
 	"grxfirma/internal/domain"
@@ -89,6 +91,7 @@ func (uc *VerifySignatureUseCase) verificar(ctx context.Context, cmd VerifyComma
 
 // Ejecutar verifica el documento firmado y devuelve el resultado tecnico y los firmantes hallados.
 func (uc *VerifySignatureUseCase) Ejecutar(ctx context.Context, cmd VerifyCommand) (VerifyResult, error) {
+	ctx, avisos := domain.ConAvisosOperacion(ctx)
 	anchors, err := uc.anclas.Anchors(ctx)
 	if err != nil {
 		uc.auditar(ctx, cmd, false, err)
@@ -101,9 +104,16 @@ func (uc *VerifySignatureUseCase) Ejecutar(ctx context.Context, cmd VerifyComman
 	}
 	verification, signers, err := uc.verificar(domain.ConRegistroConfianzaForzada(ctx, registro), cmd, anchors)
 	if err != nil {
+		var block *excepciones.Block
+		if errors.As(err, &block) {
+			uc.auditar(ctx, cmd, false, err)
+			v := domain.VerificationResult{Valid: false, Reason: block.Error(), Coverage: domain.CoberturaNoAcreditada, Warnings: []string{block.BlockKey}, Errors: []string{block.Error()}, Integrity: domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: block.Error()}, Trust: domain.VerificationAspect{Status: domain.VerificationStatusUnknown, Reason: block.Error()}}
+			return VerifyResult{Verification: v.Normalize(), Firmantes: signers}, nil
+		}
 		uc.auditar(ctx, cmd, false, err)
 		return VerifyResult{}, fmt.Errorf("no se pudo verificar la firma del documento: %w", err)
 	}
+	verification.Warnings = domain.UnirAvisos(verification.Warnings, avisos.Claves()...)
 	verification = verification.WithSignerSummaries(signers).Normalize()
 	forzada := uc.completarConfianzaForzada(ctx, cmd, anchors, registro, &verification)
 

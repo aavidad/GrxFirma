@@ -20,6 +20,7 @@ import (
 	"github.com/digitorus/pkcs7"
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -78,6 +79,7 @@ func peticionENISHA1(cms []byte) eniDocumentRequest {
 // se coteja igual y, si corresponde, el ENI sale con el aviso.
 func TestCreateENIDocumentCAdESSHA1QueCorrespondeLlevaAviso(t *testing.T) {
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	excepciones.SetForTest(t, "sha1_conservar", true)
 	facade := newAndroidFacadeForTest(t)
 	original := []byte("acta de la sesión de 2012 con importe 100")
 	cms := cadesSHA1Movil(t, original, false)
@@ -134,6 +136,7 @@ func TestCreateENIDocumentCAdESSHA1LoCierraLaPolitica(t *testing.T) {
 // TestSignJSONCofirmaCAdESExplicitaSHA1ConOriginal (lote 17b).
 func TestComprobarOriginalCofirmaSHA1(t *testing.T) {
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	excepciones.SetForTest(t, "sha1_conservar", true)
 	original := []byte("convenio firmado en 2012")
 	csig := cadesSHA1Movil(t, original, true)
 	avisos, err := comprobarOriginalCofirma(csig, original, false)
@@ -154,6 +157,7 @@ func TestComprobarOriginalCofirmaSHA1(t *testing.T) {
 // SHA-1; la cofirma resultante (mixta, SHA-1 y SHA-256) también.
 func TestSignJSONCofirmaCAdESExplicitaSHA1ConOriginal(t *testing.T) {
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	excepciones.SetForTest(t, "sha1_conservar", true)
 	facade := newAndroidFacadeForTest(t)
 	id := importPKCS12(t, facade, ephemeralRSAPKCS12(t, "cofirmante"), "cofirmante")
 	original := []byte("convenio firmado en 2012")

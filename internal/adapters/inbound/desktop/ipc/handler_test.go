@@ -3075,6 +3075,7 @@ func TestDespachar_InstallPublicRoots_OK(t *testing.T) {
 		ConfigDir: dir,
 		tlsDeps: tlsIPCDependencies{
 			ensureBrowserCompatibleCertificate: func(
+				_ context.Context,
 				certDir string,
 				prefix string,
 			) (string, string, string, string, error) {
@@ -3122,6 +3123,7 @@ func TestDespachar_InstallPublicRoots_RechazaFuenteNoGestionada(t *testing.T) {
 		ConfigDir: dir,
 		tlsDeps: tlsIPCDependencies{
 			ensureBrowserCompatibleCertificate: func(
+				_ context.Context,
 				certDir string,
 				prefix string,
 			) (string, string, string, string, error) {
@@ -3159,6 +3161,7 @@ func TestDespachar_InstallPublicRoots_FalloConfianzaUsaCodigoEstable(t *testing.
 		ConfigDir: dir,
 		tlsDeps: tlsIPCDependencies{
 			ensureBrowserCompatibleCertificate: func(
+				_ context.Context,
 				certDir string,
 				prefix string,
 			) (string, string, string, string, error) {

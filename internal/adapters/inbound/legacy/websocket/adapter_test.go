@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -31,7 +32,9 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/avisos"
 	"grxfirma/internal/security/cryptopolicy"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -80,6 +83,59 @@ func TestLegacyWebSocketErrorText_ClaveNoDisponibleEsErrorFirma(t *testing.T) {
 	want := compatError("SAF_09", "Error en la operacion de firma")
 	if got != want {
 		t.Fatalf("legacyWebSocketErrorText() = %q, want %q", got, want)
+	}
+}
+
+func TestLegacyWebSocketErrorText_PreservaBloqueoDeExcepcion(t *testing.T) {
+	blocked := &excepciones.Block{ID: "sha1_crear", BlockKey: "excepciones.sha1_crear.bloqueo"}
+	got := legacyWebSocketErrorText(fmt.Errorf("firma: %w", blocked))
+	if !strings.Contains(got, "[sha1_crear; excepciones.sha1_crear.bloqueo]") || !strings.Contains(got, blocked.Error()) {
+		t.Fatalf("el portal perdió la explicación del bloqueo: %q", got)
+	}
+}
+
+func TestStorageServiceOrigenVacioDevuelveIdentificadorDeBloqueo(t *testing.T) {
+	machinepolicy.UnsetForTest(t, machinepolicy.PermitirOrigenVacio)
+	excepciones.SetForTest(t, "origen_vacio", false)
+	req := httptest.NewRequest(http.MethodPost, "https://127.0.0.1/storage", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+	recorder := httptest.NewRecorder()
+	handleStorageService(nil, recorder, req, nil, nil)
+	if recorder.Code != http.StatusForbidden || !strings.Contains(recorder.Body.String(), "[origen_vacio; excepciones.origen_vacio.bloqueo]") {
+		t.Fatalf("el bloqueo perdió identificador: código=%d cuerpo=%q", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestAutomaticTrustRequiresExceptionWithoutStoppingServer(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("instalación automática solo Linux")
+	}
+	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
+	excepciones.SetForTest(t, "ca_instalacion_automatica", false)
+	avisos.Reiniciar()
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	installed := 0
+	installer := func(context.Context, string) error { installed++; return nil }
+	if err := ensureAutomaticTrustIfAllowed(ctx, "ca.pem", installer); err != nil || installed != 0 {
+		t.Fatalf("sin ajuste no debe instalar ni detener servidor: instalaciones=%d err=%v", installed, err)
+	}
+	if !strings.Contains(avisos.Texto(), "[ca_instalacion_automatica;") {
+		t.Fatalf("falta bloqueo visible: %q", avisos.Texto())
+	}
+	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
+	if err := ensureAutomaticTrustIfAllowed(ctx, "ca.pem", installer); err != nil || installed != 1 {
+		t.Fatalf("con ajuste debe instalar: instalaciones=%d err=%v", installed, err)
+	}
+	if got := warnings.Claves(); len(got) != 1 || got[0] != excepciones.Warning("ca_instalacion_automatica") {
+		t.Fatalf("falta aviso de operación: %v", got)
+	}
+	machinepolicy.SetForTest(t, "permitir_ca_instalacion_automatica", false)
+	if err := ensureAutomaticTrustIfAllowed(ctx, "ca.pem", installer); err != nil || installed != 1 {
+		t.Fatalf("directiva denegada instaló CA: instalaciones=%d err=%v", installed, err)
+	}
+	machinepolicy.ErrorForTest(t, "permitir_ca_instalacion_automatica", errors.New("ilegible"))
+	if err := ensureAutomaticTrustIfAllowed(ctx, "ca.pem", installer); err != nil || installed != 1 {
+		t.Fatalf("directiva ilegible instaló CA: instalaciones=%d err=%v", installed, err)
 	}
 }
 

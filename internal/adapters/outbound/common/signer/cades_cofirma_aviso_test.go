@@ -19,6 +19,7 @@ import (
 // CAdES explícita siguen funcionando (retrocompatibilidad), pero ya no en
 // silencio: quien firma recibe el aviso de que no ha visto el documento.
 func TestCAdES_CofirmaExplicitaAvisaDeQueNoSeHaVistoElDocumento(t *testing.T) {
+	activarExcepcionPrueba(t, "cofirma_sin_original")
 	titulo := localizador.Detectar().T("firma.cofirma_sin_original.aviso_titulo")
 	explicita, _ := firmarCAdESParaPrueba(t, []byte("documento que no se enseña"), domain.ActionSign, "Firmante A", nil)
 	implicita, _ := firmarCAdESParaPrueba(t, []byte("documento dentro"), domain.ActionSign, "Firmante A",
@@ -51,6 +52,7 @@ func TestCAdES_CofirmaExplicitaAvisaDeQueNoSeHaVistoElDocumento(t *testing.T) {
 // Lote 16d: el mismo aviso llega al resultado de la firma por el contexto,
 // para que Qt y WinUI lo enseñen tras firmar en el idioma de la persona.
 func TestCAdES_CofirmaExplicitaAnotaElAvisoEnElResultado(t *testing.T) {
+	activarExcepcionPrueba(t, "cofirma_sin_original")
 	explicita, _ := firmarCAdESParaPrueba(t, []byte("documento que no se enseña"), domain.ActionSign, "Firmante A", nil)
 	implicita, _ := firmarCAdESParaPrueba(t, []byte("documento dentro"), domain.ActionSign, "Firmante A",
 		map[string]string{"mode": "implicit"})
@@ -80,7 +82,7 @@ func TestCAdES_CofirmaExplicitaAnotaElAvisoEnElResultado(t *testing.T) {
 			}
 			want := []string(nil)
 			if caso.aviso {
-				want = []string{AvisoCofirmaSinOriginal}
+				want = []string{avisoExcepcionPrueba("cofirma_sin_original")}
 			}
 			if got := rec.Claves(); !slices.Equal(got, want) {
 				t.Fatalf("avisos = %q, want %q", got, want)

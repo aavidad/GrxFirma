@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 )
 
 const (
@@ -140,7 +141,7 @@ func (p *EnvelopeProtector) Protect(_ context.Context, job domain.ProtectionJob,
 	}, nil
 }
 
-func (p *EnvelopeProtector) Unprotect(_ context.Context, protected domain.Document, keys []domain.ProtectionKeyMaterial) (domain.UnprotectedPayload, error) {
+func (p *EnvelopeProtector) Unprotect(ctx context.Context, protected domain.Document, keys []domain.ProtectionKeyMaterial) (domain.UnprotectedPayload, error) {
 	var env protectedEnvelope
 	if err := json.Unmarshal(protected.Content, &env); err != nil {
 		return domain.UnprotectedPayload{}, fmt.Errorf("contenedor protegido no valido: %w", err)
@@ -154,6 +155,11 @@ func (p *EnvelopeProtector) Unprotect(_ context.Context, protected domain.Docume
 	}
 	if len(env.Recipients) == 0 {
 		return domain.UnprotectedPayload{}, errors.New("contenedor protegido sin destinatarios")
+	}
+	if aadV1Ambigua(env) {
+		if err := excepciones.Require(ctx, "afp_aad_ambigua"); err != nil {
+			return domain.UnprotectedPayload{}, err
+		}
 	}
 	nonce, err := base64.StdEncoding.DecodeString(env.NonceB64)
 	if err != nil {
@@ -209,7 +215,7 @@ func (p *EnvelopeProtector) Unprotect(_ context.Context, protected domain.Docume
 		// Un sobre v1 con saltos de línea en sus campos lo escribió una
 		// versión anterior o alguien que quiere mover texto de un campo a
 		// otro: se abre, saneado, pero se avisa y queda registrado.
-		out.Avisos = append(out.Avisos, avisoAFPNombreNoAutenticado)
+		out.Avisos = append(out.Avisos, excepciones.Warning("afp_aad_ambigua"))
 		out.Detalles = append(out.Detalles, detalleAFPAADV1Ambigua)
 	}
 	return out, nil
@@ -218,8 +224,7 @@ func (p *EnvelopeProtector) Unprotect(_ context.Context, protected domain.Docume
 // Aviso visible (clave de los catálogos) y detalle de auditoría de un .afp v1
 // cuyo nombre o tipo no quedan autenticados.
 const (
-	avisoAFPNombreNoAutenticado = "El nombre o el tipo de este archivo protegido pudieron cambiarse después de protegerlo; suele pasar con los que hizo una versión anterior de GrxFirma. El contenido sí está comprobado. GrxFirma ha ajustado el nombre por seguridad: revíselo antes de abrir el archivo."
-	detalleAFPAADV1Ambigua      = "afp_v1_aad_ambigua"
+	detalleAFPAADV1Ambigua = "afp_v1_aad_ambigua"
 )
 
 // versionSobreSolicitada devuelve la versión del .afp que se escribe: la 1

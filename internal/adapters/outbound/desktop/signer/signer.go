@@ -15,6 +15,7 @@ import (
 	"grxfirma/internal/adapters/outbound/common/tsaclient"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/signingpolicy"
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 )
@@ -79,7 +80,10 @@ func (m *MotorFirmaGo) Sign(ctx context.Context, job domain.SignatureJob, key po
 	if m.reloj != nil {
 		ahora = m.reloj.Now().UTC()
 	}
-	if err := clave.validateSigningIdentity(ahora); err != nil {
+	if clave == nil || clave.cert == nil || clave.priv == nil {
+		return domain.SignatureResult{}, &signingpolicy.Error{Reason: signingpolicy.MissingIdentity}
+	}
+	if err := signingpolicy.ValidateSigningCertificateDER(ctx, clave.cert.Raw, ahora); err != nil {
 		return domain.SignatureResult{}, err
 	}
 

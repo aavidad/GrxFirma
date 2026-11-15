@@ -6,6 +6,7 @@
 package signer
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"time"
@@ -22,7 +23,11 @@ import (
 // canonicalizan con C14N exclusiva, que no depende de los espacios de nombres
 // de los ancestros: la firma sigue siendo válida al colocarla en su destino,
 // siempre que el nodo se inserte tal cual y declare sus propios prefijos.
-func FirmarNodoXAdES(nodo []byte, id string, key ports.SigningKey, options map[string]string) ([]byte, error) {
+func FirmarNodoXAdES(nodo []byte, id string, key ports.SigningKey, options map[string]string, contexts ...context.Context) ([]byte, error) {
+	ctx := context.Background()
+	if len(contexts) > 0 && contexts[0] != nil {
+		ctx = contexts[0]
+	}
 	// Las claves de los almacenes del sistema se convierten a la clave local
 	// del motor, como en el resto de formatos.
 	if conv, ok := key.(interface{ ToLocalSigningKey() *LocalSigningKey }); ok {
@@ -33,7 +38,10 @@ func FirmarNodoXAdES(nodo []byte, id string, key ports.SigningKey, options map[s
 		return nil, err
 	}
 	// Misma política que el resto de firmas: certificado vigente y apto.
-	if err := signingpolicy.ValidateCertificateDER(clave.Certificate.Raw, time.Now()); err != nil {
+	if err := signingpolicy.ValidateSigningCertificateDER(ctx, clave.Certificate.Raw, time.Now()); err != nil {
+		return nil, err
+	}
+	if err := requireXAdESAlgorithm(ctx, options); err != nil {
 		return nil, err
 	}
 	algOpts, err := resolveXAdESAlgorithmOptions(options)

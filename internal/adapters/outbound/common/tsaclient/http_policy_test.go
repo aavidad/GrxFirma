@@ -62,6 +62,7 @@ func TestTimestampClientPreservesConfiguration(t *testing.T) {
 }
 
 func TestTimestampRejectsCrossOriginBeforeSending(t *testing.T) {
+	permitirTSAHTTP(t)
 	var calls atomic.Int32
 	destination := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls.Add(1) }))
 	defer destination.Close()
@@ -77,6 +78,7 @@ func TestTimestampRejectsCrossOriginBeforeSending(t *testing.T) {
 }
 
 func TestTimestampPreservesPOSTThroughSameOriginRedirect(t *testing.T) {
+	permitirTSAHTTP(t)
 	responder := tsatest.NewResponder(t)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/start" {

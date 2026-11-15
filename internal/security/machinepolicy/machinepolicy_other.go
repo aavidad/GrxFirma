@@ -34,19 +34,29 @@ func readOptIn(name string) (bool, bool, error) {
 	if err != nil {
 		return false, false, err
 	}
+	return decodeOptIn(data, name)
+}
+
+func decodeOptIn(data []byte, name string) (bool, bool, error) {
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return false, false, err
+	}
+	if raw == nil {
+		return false, false, errors.New("machinepolicy.object_required")
 	}
 	value, ok := raw[name]
 	if !ok {
 		return false, false, nil
 	}
-	var enabled bool
+	var enabled *bool
 	if err := json.Unmarshal(value, &enabled); err != nil {
 		return false, false, err
 	}
-	return enabled, true, nil
+	if enabled == nil {
+		return false, false, errors.New("machinepolicy.boolean_required")
+	}
+	return *enabled, true, nil
 }
 
 // readPolicyFile lee la política de máquina rechazando ficheros que no sean

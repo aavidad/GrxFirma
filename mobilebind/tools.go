@@ -273,7 +273,7 @@ func (f *Facade) ProtectJSON(payload string, secret []byte) (out string, err err
 			return "", newFacadeError("debe indicarse al menos un destinatario")
 		}
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	options := map[string]string{"container": container}
 	var protected domain.ProtectedPayload
@@ -356,7 +356,7 @@ func (f *Facade) UnprotectJSON(payload string, secret []byte) (out string, err e
 	if err != nil {
 		return "", newFacadeError("documento protegido no valido")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(f.operationContext(), f.timeout)
 	defer cancel()
 	useCase := application.NuevoUnprotectDocumentUseCase(mobileSessionDecryptionKeys{f.session},
 		protector.NuevoAdaptiveProtector(), nil, nil)

@@ -7,14 +7,47 @@ package signer
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
+
+func TestCAdES_CofirmaSinOriginalRequiereAjusteYRespetaMaquina(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_cofirma_sin_original")
+	excepciones.SetForTest(t, "cofirma_sin_original", false)
+	explicita, _ := firmarCAdESParaPrueba(t, []byte("documento no aportado"), domain.ActionSign, "Firmante A", nil)
+	priv, cert := certForTest(t, "Cofirmante B")
+	doc, err := domain.NewDocument("firma.csig", explicita, "application/pkcs7-signature")
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := domain.SignatureJob{Document: doc, Format: domain.FormatCAdES, Action: domain.ActionCoSign}
+	key := &LocalSigningKey{ID: "b", Signer: priv, Certificate: cert}
+	ctx, avisos := domain.ConAvisosOperacion(context.Background())
+	var block *excepciones.Block
+	if _, err := NewCAdESBESDetached().Sign(ctx, job, key); !errors.As(err, &block) || block.ID != "cofirma_sin_original" {
+		t.Fatalf("sin ajuste: %v", err)
+	}
+	excepciones.SetForTest(t, "cofirma_sin_original", true)
+	if _, err := NewCAdESBESDetached().Sign(ctx, job, key); err != nil {
+		t.Fatal(err)
+	}
+	if got := avisos.Claves(); len(got) != 1 || got[0] != excepciones.Warning("cofirma_sin_original") {
+		t.Fatalf("aviso = %q", got)
+	}
+	machinepolicy.SetForTest(t, "permitir_cofirma_sin_original", false)
+	if _, err := NewCAdESBESDetached().Sign(ctx, job, key); !errors.As(err, &block) || block.ID != "cofirma_sin_original" {
+		t.Fatalf("directiva prohibitiva: %v", err)
+	}
+}
 
 // Lote 16c: el aviso de cofirma sin documento va también al registro de la
 // operación (contexto), de donde lo toman el resultado de la firma y la CLI.
 func TestCAdES_CofirmaExplicitaAnotaElAvisoEnLaOperacion(t *testing.T) {
+	activarExcepcionPrueba(t, "cofirma_sin_original")
 	explicita, _ := firmarCAdESParaPrueba(t, []byte("documento que no se enseña"), domain.ActionSign, "Firmante A", nil)
 	implicita, _ := firmarCAdESParaPrueba(t, []byte("documento dentro"), domain.ActionSign, "Firmante A",
 		map[string]string{"mode": "implicit"})
@@ -41,7 +74,7 @@ func TestCAdES_CofirmaExplicitaAnotaElAvisoEnLaOperacion(t *testing.T) {
 				t.Fatal(err)
 			}
 			claves := avisos.Claves()
-			hay := len(claves) == 1 && claves[0] == domain.AvisoCofirmaSinOriginal
+			hay := len(claves) == 1 && claves[0] == avisoExcepcionPrueba("cofirma_sin_original")
 			if hay != caso.aviso || (!caso.aviso && len(claves) != 0) {
 				t.Fatalf("avisos de la operación = %q, want aviso=%v", claves, caso.aviso)
 			}

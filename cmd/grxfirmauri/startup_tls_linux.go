@@ -19,7 +19,7 @@ func ensureStartupLocalTLSTrustPlatform(ctx context.Context, configDir string) (
 	var changed bool
 	err := localtlstrust.WithLocalTLSStartupLock(ctx, configDir, func() error {
 		certDir := filepath.Join(configDir, "tls")
-		_, _, rootCertFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificate(certDir, "websocket-localhost")
+		_, _, rootCertFile, _, err := resttls.EnsureBrowserCompatibleLocalhostCertificateContext(ctx, certDir, "websocket-localhost")
 		if err != nil {
 			return err
 		}

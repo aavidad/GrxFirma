@@ -78,7 +78,9 @@ func (s *FacturaESigner) Sign(ctx context.Context, job domain.SignatureJob, key 
 	}
 	// Revisión del contenido: se informa al usuario sin impedir la firma.
 	if incidencias, err := RevisarFacturaE(invoiceXML); err == nil && len(incidencias) > 0 {
-		avisos.Registrar("Revisión de la factura", ResumenIncidenciasFactura(incidencias))
+		resumen := ResumenIncidenciasFactura(incidencias)
+		avisos.Registrar("Revisión de la factura", resumen)
+		domain.AnotarAviso(ctx, "factura.revision.incidencias.aviso")
 	}
 
 	now := time.Now().UTC()

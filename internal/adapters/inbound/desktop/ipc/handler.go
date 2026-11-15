@@ -48,6 +48,7 @@ import (
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/signingpolicy"
 )
 
@@ -66,6 +67,7 @@ const (
 
 type tlsIPCDependencies struct {
 	ensureBrowserCompatibleCertificate func(
+		ctx context.Context,
 		dir string,
 		prefix string,
 	) (certFile, keyFile, rootCertFile, source string, err error)
@@ -75,7 +77,7 @@ type tlsIPCDependencies struct {
 
 func defaultTLSIPCDependencies() tlsIPCDependencies {
 	return tlsIPCDependencies{
-		ensureBrowserCompatibleCertificate: resttls.EnsureBrowserCompatibleLocalhostCertificate,
+		ensureBrowserCompatibleCertificate: resttls.EnsureBrowserCompatibleLocalhostCertificateContext,
 		ensureManagedTrust:                 localtlstrust.EnsureManagedTrusted,
 		removeManagedTrust:                 localtlstrust.RemoveManagedTrusted,
 	}
@@ -239,6 +241,8 @@ func desktopIPCTimeoutDe(accion string) time.Duration {
 
 // despachar procesa una peticion y devuelve la respuesta serializada.
 func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
+	ctx = excepciones.WithConfigDir(ctx, m.configDirSeguro())
+	ctx, avisosOperacion := domain.ConAvisosOperacion(ctx)
 	accion := strings.ToLower(strings.TrimSpace(p.Action))
 	if err := ctx.Err(); err != nil {
 		return respuesta{OK: false, Action: accion, Error: err.Error()}
@@ -343,6 +347,8 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp = m.handleServiceStart(ctx)
 	case "service_stop":
 		resp = m.handleServiceStop(ctx)
+	case "unsafe_exceptions_list", "unsafe_exceptions_set":
+		resp = m.handleUnsafeExceptions(ctx, accion, p.Params)
 	case "get_settings":
 		resp = m.handleGetSettings(ctx)
 	case "save_settings":
@@ -392,6 +398,20 @@ func (m *Manejador) despachar(ctx context.Context, p peticion) respuesta {
 		resp.Diagnostic = &resultadoDiagnosticoGuiado{
 			Category: "app_local", FailureCode: resp.Error,
 			UserMessage: m.t(resp.Error), ExpertMessage: resp.Error,
+		}
+	}
+	resp.WarningKeys = domain.UnirAvisos(resp.WarningKeys, avisosOperacion.Claves()...)
+	mensajeBloqueo := resp.Error
+	if verified, ok := resp.Data.(resultadoVerificacion); ok {
+		mensajeBloqueo += verified.Reason + strings.Join(verified.Errors, " ") + strings.Join(verified.Warnings, " ")
+	}
+	if bloqueo := excepciones.FromText(mensajeBloqueo); bloqueo != nil {
+		resp.ErrorCode = "unsafe_exception_blocked"
+		resp.ExceptionID = bloqueo.ID
+		resp.BlockKey = bloqueo.BlockKey
+		resp.SettingKey = bloqueo.SettingKey
+		if !resp.OK {
+			resp.Error = m.t(bloqueo.BlockKey)
 		}
 	}
 	resp = m.explicarFalloRemoto(resp, peticionRemota)
@@ -2953,6 +2973,7 @@ func (m *Manejador) handleInstallPublicRoots(ctx context.Context) respuesta {
 	deps := m.tlsIPCDependencies()
 	_, _, rootCertFile, source, err :=
 		deps.ensureBrowserCompatibleCertificate(
+			ctx,
 			tlsDir,
 			tlsIPCCertificatePrefix,
 		)
@@ -2960,8 +2981,10 @@ func (m *Manejador) handleInstallPublicRoots(ctx context.Context) respuesta {
 		tlsDir,
 		tlsIPCCertificatePrefix+"-root.crt.pem",
 	)
-	if err != nil ||
-		source != "grxfirma-local-ca" ||
+	if err != nil {
+		return respuesta{OK: false, Action: "install_public_roots", Error: err.Error()}
+	}
+	if source != "grxfirma-local-ca" ||
 		filepath.Clean(rootCertFile) != filepath.Clean(expectedRootCertFile) {
 		return respuesta{
 			OK:        false,

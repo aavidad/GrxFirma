@@ -23,6 +23,8 @@ import (
 
 	"grxfirma/internal/adapters/outbound/common/protector"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 )
 
 // Lote 19: retrocompatibilidad de F-02. Sin almacén de secretos del sistema
@@ -80,14 +82,17 @@ func tieneAviso(avisos *domain.AvisosOperacion) bool {
 }
 
 func TestLocalStrongKeyring_SinAlmacenUsaLaIdentidadV1(t *testing.T) {
-	t.Parallel()
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", true)
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 
 	for nombre, almacen := range map[string]func() *almacenMemoria{
 		"almacen_caido": func() *almacenMemoria { a := nuevoAlmacenMemoria(); a.fallaTodo = true; return a },
 		"sin_almacen":   func() *almacenMemoria { return nil },
 	} {
 		t.Run(nombre, func(t *testing.T) {
-			t.Parallel()
+
 			cfg, data := t.TempDir(), t.TempDir()
 			id, seed, xKey, legacyPath := identidadAltoV1(t, filepath.Join(cfg, "protection", "strong"))
 			var keyring *protector.LocalStrongKeyring
@@ -163,6 +168,10 @@ func capturarSlog(t *testing.T) *bytes.Buffer {
 }
 
 func TestLocalStrongKeyring_SinAlmacenCreaV1YLaMigraAlVolver(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", true)
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 	registro := capturarSlog(t)
 
 	cfg, data := t.TempDir(), t.TempDir()
@@ -244,7 +253,10 @@ func TestLocalStrongKeyring_SinAlmacenCreaV1YLaMigraAlVolver(t *testing.T) {
 }
 
 func TestLocalStrongKeyring_FalloAlGuardarNoPierdeLaV1(t *testing.T) {
-	t.Parallel()
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", true)
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 
 	cfg, data := t.TempDir(), t.TempDir()
 	id, seed, xKey, legacyPath := identidadAltoV1(t, filepath.Join(cfg, "protection", "strong"))
@@ -267,7 +279,10 @@ func TestLocalStrongKeyring_FalloAlGuardarNoPierdeLaV1(t *testing.T) {
 }
 
 func TestLocalStrongKeyring_MixtoV2YV1SinMigrar(t *testing.T) {
-	t.Parallel()
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", true)
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 
 	cfg, data := t.TempDir(), t.TempDir()
 	almacen := nuevoAlmacenMemoria()
@@ -297,7 +312,10 @@ func TestLocalStrongKeyring_MixtoV2YV1SinMigrar(t *testing.T) {
 }
 
 func TestLocalStrongKeyring_V2HuerfanaNoCaeAFichero(t *testing.T) {
-	t.Parallel()
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", true)
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 
 	cfg, data := t.TempDir(), t.TempDir()
 	almacen := nuevoAlmacenMemoria()
@@ -325,7 +343,10 @@ func TestLocalStrongKeyring_V2HuerfanaNoCaeAFichero(t *testing.T) {
 }
 
 func TestLocalCombinedKeyring_NoOcultaElAltoConV1Usable(t *testing.T) {
-	t.Parallel()
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", true)
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
 
 	ctx := context.Background()
 	cfg, data := t.TempDir(), t.TempDir()
@@ -345,5 +366,65 @@ func TestLocalCombinedKeyring_NoOcultaElAltoConV1Usable(t *testing.T) {
 	keys, err := combined.DecryptionKeys(ctx, protected)
 	if err != nil || len(keys) != 1 || keys[0].RecipientID != id {
 		t.Fatalf("LocalCombinedKeyring.DecryptionKeys() = %d claves, %v", len(keys), err)
+	}
+}
+
+func TestLocalStrongKeyring_BloqueaClaveFicheroSinAjuste(t *testing.T) {
+	excepciones.SetForTest(t, "alto_clave_fichero_leer", false)
+	excepciones.SetForTest(t, "alto_clave_fichero_crear", false)
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	cfg, data := t.TempDir(), t.TempDir()
+	legacyDir := filepath.Join(cfg, "protection", "strong")
+	id, seed, xKey, _ := identidadAltoV1(t, legacyDir)
+	keyring := protector.NuevoLocalStrongKeyring(cfg, data, nil)
+	protectedOriginal, protected := protegerAlto(t, destinatarioDeV1(t, id, seed, xKey))
+	_ = protectedOriginal
+	if _, err := keyring.DecryptionKeys(context.Background(), protected); err == nil || !strings.Contains(err.Error(), "alto_clave_fichero_leer") {
+		t.Fatalf("lectura sin bloqueo: %v", err)
+	}
+	// Una directiva ilegible y una prohibición explícita prevalecen sobre el ajuste.
+	for _, tc := range []struct {
+		name   string
+		policy func(*testing.T)
+	}{
+		{"prohibido", func(t *testing.T) { machinepolicy.SetForTest(t, "permitir_alto_clave_fichero_leer", false) }},
+		{"ilegible", func(t *testing.T) {
+			machinepolicy.ErrorForTest(t, "permitir_alto_clave_fichero_leer", errors.New("ilegible"))
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			excepciones.SetForTest(t, "alto_clave_fichero_leer", true)
+			tc.policy(t)
+			if _, err := keyring.DecryptionKeys(context.Background(), protected); err == nil || !strings.Contains(err.Error(), "alto_clave_fichero_leer") {
+				t.Fatalf("lectura sin bloqueo: %v", err)
+			}
+		})
+	}
+	noLegacy := protector.NuevoLocalStrongKeyring(t.TempDir(), t.TempDir(), nil)
+	if _, err := noLegacy.List(context.Background()); err == nil || !strings.Contains(err.Error(), "alto_clave_fichero_crear") {
+		t.Fatalf("creación sin bloqueo: %v", err)
+	}
+}
+
+func TestLocalStrongKeyring_ConfiguracionUsuarioActivaSoloLoElegido(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_crear")
+	machinepolicy.UnsetForTest(t, "permitir_alto_clave_fichero_leer")
+	cfg, data := t.TempDir(), t.TempDir()
+	raw := []byte(`{"excepciones_inseguras":{"alto_clave_fichero_crear":true,"alto_clave_fichero_leer":true}}`)
+	if err := os.WriteFile(filepath.Join(cfg, "config.json"), raw, 0600); err != nil {
+		t.Fatal(err)
+	}
+	keyring := protector.NuevoLocalStrongKeyring(cfg, data, nil)
+	ctx, warnings := domain.ConAvisosOperacion(context.Background())
+	recipients, err := keyring.List(ctx)
+	if err != nil || len(recipients) != 1 {
+		t.Fatalf("identidad sin almacén: %v, %v", recipients, err)
+	}
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("alto_clave_fichero_crear")) {
+		t.Fatalf("falta aviso de creación: %v", warnings.Claves())
+	}
+	if !slices.Contains(warnings.Claves(), excepciones.Warning("alto_clave_fichero_leer")) {
+		t.Fatalf("falta aviso de lectura: %v", warnings.Claves())
 	}
 }

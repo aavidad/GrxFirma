@@ -24,6 +24,7 @@ import (
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
 	"grxfirma/internal/security/cryptopolicy"
+	"grxfirma/internal/security/signingpolicy"
 )
 
 const (
@@ -69,11 +70,17 @@ func (e *XAdESBESDetached) Sign(ctx context.Context, job domain.SignatureJob, ke
 	if job.Format != domain.FormatXAdES {
 		return domain.SignatureResult{}, fmt.Errorf("este motor solo soporta formato %s", domain.FormatXAdES)
 	}
+	if err := requireXAdESAlgorithm(ctx, job.Options); err != nil {
+		return domain.SignatureResult{}, err
+	}
 	clave, err := requireLocalSigningKeyXAdES(key)
 	if err != nil {
 		return domain.SignatureResult{}, err
 	}
-	avisarIncidenciasFacturaB2B(job)
+	if err := signingpolicy.CheckRSAKey(ctx, clave.Certificate); err != nil {
+		return domain.SignatureResult{}, err
+	}
+	avisarIncidenciasFacturaB2B(ctx, job)
 
 	var (
 		xmlSig         []byte
@@ -458,13 +465,17 @@ func resolveXAdESAlgorithmOptions(options map[string]string) (xadesAlgorithmOpti
 	case "SHA512WITHRSA":
 		return xadesAlgorithmOptions{Label: "SHA512withRSA", Hash: crypto.SHA512, SignatureMethod: algRSASHA512, DigestMethod: algSHA512}, nil
 	case "SHA1WITHRSA":
-		if err := cryptopolicy.RequireLegacySHA1(); err != nil {
-			return xadesAlgorithmOptions{}, err
-		}
 		return xadesAlgorithmOptions{Label: "SHA1withRSA", Hash: crypto.SHA1, SignatureMethod: algRSASHA1, DigestMethod: algSHA1}, nil
 	default:
 		return xadesAlgorithmOptions{}, fmt.Errorf("algoritmo XAdES no soportado: %s", raw)
 	}
+}
+
+func requireXAdESAlgorithm(ctx context.Context, options map[string]string) error {
+	if strings.EqualFold(strings.TrimSpace(valorOpcion(options, "algorithm")), "SHA1withRSA") {
+		return cryptopolicy.RequireLegacySHA1(ctx)
+	}
+	return nil
 }
 
 func resolveXAdESBuildOptions(options map[string]string, alg xadesAlgorithmOptions) xadesBuildOptions {

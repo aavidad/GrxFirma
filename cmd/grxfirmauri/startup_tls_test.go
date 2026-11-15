@@ -9,12 +9,16 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"io"
 	"strings"
 	"testing"
 )
 
 func TestPrepareStartupLocalTLSTrustReportsOnlyChanges(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
+	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
 	previousEnsure := ensureStartupLocalTLSTrust
 	previousPresent := presentStartupTLSTrustFailure
 	previousNotice := getStartupTLSTrustNotice()
@@ -48,7 +52,27 @@ func TestPrepareStartupLocalTLSTrustReportsOnlyChanges(t *testing.T) {
 	}
 }
 
+func TestPrepareStartupLocalTLSTrustSinAjusteNoInstala(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
+	excepciones.SetForTest(t, "ca_instalacion_automatica", false)
+	previous := ensureStartupLocalTLSTrust
+	t.Cleanup(func() { ensureStartupLocalTLSTrust = previous })
+	ensureStartupLocalTLSTrust = func(context.Context, string) (bool, error) {
+		t.Fatal("la instalación automática se inició sin ajuste")
+		return false, nil
+	}
+	var stderr bytes.Buffer
+	if err := prepareStartupLocalTLSTrust(context.Background(), t.TempDir(), &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(stderr.String(), "ca_instalacion_automatica") {
+		t.Fatalf("falta identificador en el bloqueo: %q", stderr.String())
+	}
+}
+
 func TestPrepareStartupLocalTLSTrustExplainsFailure(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
+	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
 	previousEnsure := ensureStartupLocalTLSTrust
 	previousPresent := presentStartupTLSTrustFailure
 	previousNotice := getStartupTLSTrustNotice()
@@ -76,6 +100,8 @@ func TestPrepareStartupLocalTLSTrustExplainsFailure(t *testing.T) {
 }
 
 func TestProtocolEntryPreparesTrustBeforeHandler(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
+	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
 	previousEnsure := ensureStartupLocalTLSTrust
 	previousPresent := presentStartupTLSTrustFailure
 	previousNotice := getStartupTLSTrustNotice()
@@ -105,6 +131,8 @@ func TestProtocolEntryPreparesTrustBeforeHandler(t *testing.T) {
 }
 
 func TestProtocolEntryStopsWhenTrustCannotBeInstalled(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_ca_instalacion_automatica")
+	excepciones.SetForTest(t, "ca_instalacion_automatica", true)
 	previousEnsure := ensureStartupLocalTLSTrust
 	previousPresent := presentStartupTLSTrustFailure
 	previousNotice := getStartupTLSTrustNotice()

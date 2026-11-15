@@ -67,6 +67,7 @@ func TestXMLAssessment_SignedInfoAnidadoLegitimoNoAutenticaElDirecto(t *testing.
 // firmada: la firma ya no puede salir válida. Un DOCTYPE, con o sin
 // subconjunto interno, se rechaza al verificar un XML firmado.
 func TestXAdESVerifier_PIInyectadaInvalida(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	firmado := string(operarXAdES(t, []byte(`<pedido><importe>10</importe></pedido>`), "application/xml", domain.ActionSign, map[string]string{"format": "XAdES Enveloped"}, "Victima"))
 	verificar := func(contenido string) (domain.VerificationResult, error) {
 		vr, _, err := NewXAdESVerifier().Verify(context.Background(), domain.Document{Name: "p.xsig", Content: []byte(contenido)}, domain.CertificateChain{})

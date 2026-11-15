@@ -38,6 +38,7 @@ func firmarCAdESParaPrueba(t *testing.T, datos []byte, accion domain.SignatureAc
 // Flujo de Canarias ("firma secuencial") y portafirmas: firma, cofirma y
 // contrafirma sobre la misma firma CAdES explícita.
 func TestCAdES_CofirmaYContrafirma(t *testing.T) {
+	activarExcepcionPrueba(t, "cofirma_sin_original")
 	contenido := []byte("Texto de prueba CAdES con certificado FNMT")
 	firma, _ := firmarCAdESParaPrueba(t, contenido, domain.ActionSign, "Firmante A", nil)
 	cofirma, _ := firmarCAdESParaPrueba(t, firma, domain.ActionCoSign, "Cofirmante B", nil)
@@ -119,6 +120,7 @@ func TestCAdES_CofirmaYContrafirma(t *testing.T) {
 }
 
 func TestCAdES_CofirmaExigeDatosSiNingunFirmanteComparteAlgoritmo(t *testing.T) {
+	activarExcepcionPrueba(t, "cofirma_sin_original")
 	firma, _ := firmarCAdESParaPrueba(t, []byte("datos"), domain.ActionSign, "A", nil)
 	_, _ = firmarCAdESParaPrueba(t, firma, domain.ActionCoSign, "B", map[string]string{"algorithm": "SHA256withRSA"})
 	priv, cert := certForTest(t, "C")

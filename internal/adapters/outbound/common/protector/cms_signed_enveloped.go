@@ -22,6 +22,7 @@ import (
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
 	"grxfirma/internal/ports"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/signingpolicy"
 )
 
@@ -69,7 +70,6 @@ func (p *CMSSignedEnvelopedProtector) ProtectAndSign(ctx context.Context, job do
 	if len(recipients) == 0 {
 		return domain.ProtectedPayload{}, errors.New("debe existir al menos un destinatario de proteccion")
 	}
-
 	local, err := extractLocalSigningKey(key)
 	if err != nil {
 		return domain.ProtectedPayload{}, fmt.Errorf("clave de firma no exportable para SignedAndEnvelopedData: %w", err)
@@ -81,10 +81,15 @@ func (p *CMSSignedEnvelopedProtector) ProtectAndSign(ctx context.Context, job do
 	if p.clock != nil {
 		now = p.clock.Now()
 	}
-	if err := signingpolicy.ValidateCertificateDER(local.Certificate.Raw, now); err != nil {
+	if err := signingpolicy.ValidateSigningCertificateDER(ctx, local.Certificate.Raw, now); err != nil {
 		return domain.ProtectedPayload{}, err
 	}
 	if err := validateCMSSigningIdentity(local.Certificate, local.Signer.Public()); err != nil {
+		return domain.ProtectedPayload{}, err
+	}
+	// Esta modalidad heredada de la biblioteca solo cifra la CEK con RSA
+	// PKCS#1 v1.5; su producción requiere el mismo ajuste que EnvelopedData.
+	if err := excepciones.Require(ctx, "cms_rsa_v15_crear"); err != nil {
 		return domain.ProtectedPayload{}, err
 	}
 
@@ -156,11 +161,17 @@ func decryptSignedEnvelopedCMS(ctx context.Context, protected domain.Document, k
 	if legacy, detected, err := decryptLegacyV1SignedEnvelopedCMS(ctx, protected, keys, trustAnchors); detected {
 		return legacy, err
 	}
+	revision, err := revisarSignedEnvelopedCMS(protected.Content, ctx)
+	if err != nil {
+		return domain.UnprotectedPayload{}, err
+	}
+	for _, id := range revision.excepciones() {
+		if err := excepciones.Require(ctx, id); err != nil {
+			return domain.UnprotectedPayload{}, err
+		}
+	}
 
-	var (
-		p7  *cryptobinpkcs7.PKCS7
-		err error
-	)
+	var p7 *cryptobinpkcs7.PKCS7
 	func() {
 		cmsCryptobinParseMu.Lock()
 		defer cmsCryptobinParseMu.Unlock()
@@ -218,11 +229,11 @@ func decryptSignedEnvelopedCMS(ctx context.Context, protected domain.Document, k
 			p7.Content = nil
 			return domain.UnprotectedPayload{}, err
 		}
-		return domain.UnprotectedPayload{
+		return conAvisosRevisionCMS(domain.UnprotectedPayload{
 			Document:    doc,
 			Profile:     domain.ProtectionProfileCompat,
 			RecipientID: key.RecipientID,
-		}, nil
+		}, revision), nil
 	}
 	return domain.UnprotectedPayload{}, errors.New("no se pudo desproteger el SignedAndEnvelopedData con las claves disponibles")
 }

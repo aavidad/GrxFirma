@@ -16,6 +16,7 @@ import (
 	cryptobinpkcs7 "github.com/deatil/go-cryptobin/pkcs7"
 
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -95,6 +96,10 @@ func claveRSAPrueba(t *testing.T) ([]domain.ProtectionKeyMaterial, []byte) {
 
 func TestCMSUnprotect_DestinatariosAjenosSeIgnoranConAviso(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, false)
+	excepciones.SetForTest(t, "cms_rsa_v15_leer", true)
+	excepciones.SetForTest(t, "cms_cifrado_heredado", true)
+	machinepolicy.UnsetForTest(t, "permitir_cms_rsa_v15_leer")
+	machinepolicy.UnsetForTest(t, "permitir_cms_cifrado_heredado")
 	claves, certDER := claveRSAPrueba(t)
 	base := envelopedConCifrado(t, cryptobinpkcs7.AES256GCM, certDER)
 	casos := map[string]struct {
@@ -114,7 +119,7 @@ func TestCMSUnprotect_DestinatariosAjenosSeIgnoranConAviso(t *testing.T) {
 		if string(out.Document.Content) != contenidoCMSPrueba {
 			t.Errorf("%s: contenido %q", nombre, out.Document.Content)
 		}
-		if len(out.Avisos) != 1 || out.Avisos[0] != avisoCMSDestinatariosAjenos {
+		if len(out.Avisos) != 2 || out.Avisos[0] != excepciones.Warning("cms_rsa_v15_leer") || out.Avisos[1] != avisoCMSDestinatariosAjenos {
 			t.Errorf("%s: falta el aviso visible: %v", nombre, out.Avisos)
 		}
 		if len(out.Detalles) != 1 || out.Detalles[0] != detalleCMSDestinatariosAjenos+caso.detalle {
@@ -125,13 +130,13 @@ func TestCMSUnprotect_DestinatariosAjenosSeIgnoranConAviso(t *testing.T) {
 	// Con un cifrado heredado, los dos avisos.
 	heredado := conDestinatarios(t, envelopedConCifrado(t, cryptobinpkcs7.DESEDE3CBC, certDER), nil, [][]byte{destinatarioKARIPrueba}, false)
 	out, err := NuevoCMSProtector().Unprotect(context.Background(), heredado, claves)
-	if err != nil || len(out.Avisos) != 2 || len(out.Detalles) != 2 {
+	if err != nil || len(out.Avisos) != 3 || len(out.Detalles) != 2 {
 		t.Fatalf("heredado y ajeno: %v %v %v", err, out.Avisos, out.Detalles)
 	}
 
 	// Sin ajenos, nada cambia: ni aviso ni sobre reescrito.
 	out, err = NuevoCMSProtector().Unprotect(context.Background(), base, claves)
-	if err != nil || len(out.Avisos) != 0 || len(out.Detalles) != 0 {
+	if err != nil || len(out.Avisos) != 1 || out.Avisos[0] != excepciones.Warning("cms_rsa_v15_leer") || len(out.Detalles) != 0 {
 		t.Fatalf("sin ajenos: %v %v", err, out.Avisos)
 	}
 	if revision, err := revisarCMS(base.Content); err != nil || revision.sinAjenos != nil || revision.ajenos != nil {
@@ -141,6 +146,8 @@ func TestCMSUnprotect_DestinatariosAjenosSeIgnoranConAviso(t *testing.T) {
 
 func TestCMSUnprotect_SinDestinatarioNuestroUtilizableSigueSiendoError(t *testing.T) {
 	machinepolicy.SetForTest(t, machinepolicy.ProhibirCifradoCMSHeredado, false)
+	excepciones.SetForTest(t, "cms_rsa_v15_leer", true)
+	machinepolicy.UnsetForTest(t, "permitir_cms_rsa_v15_leer")
 	claves, certDER := claveRSAPrueba(t)
 	base := envelopedConCifrado(t, cryptobinpkcs7.AES256GCM, certDER)
 

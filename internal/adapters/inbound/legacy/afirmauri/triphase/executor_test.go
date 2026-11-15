@@ -35,7 +35,7 @@ type mockSigningKey struct {
 
 func (k *mockSigningKey) KeyID() string { return k.id }
 func (k *mockSigningKey) CertificateChainDER() [][]byte {
-	return [][]byte{[]byte("cert-der")}
+	return [][]byte{validTriphaseTestCertificateDER()}
 }
 func (k *mockSigningKey) SignDigest(digest []byte, hash crypto.Hash) ([]byte, error) {
 	if k.signErr != nil {

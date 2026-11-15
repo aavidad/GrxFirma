@@ -168,6 +168,12 @@ func (e *Executor) FirmarConServidor(ctx context.Context, req SolicitudFirmaServ
 	if n > 1 {
 		slog.Warn("triphase_server_varias_firmas", "firmas", n, "operacion", cop)
 	}
+	if err := requireLegacyBatchSigningPreflight(ctx, key); err != nil {
+		return nil, err
+	}
+	if err := requireLegacyBatchSHA1(ctx, algoritmo); err != nil {
+		return nil, err
+	}
 	firmados, err := signLegacyBatchTriphaseXML(datosTrifasicos, key, algoritmo, req.ExtraParams, nil)
 	if err != nil {
 		trazaServidorTrifasico("firma_local", "error")

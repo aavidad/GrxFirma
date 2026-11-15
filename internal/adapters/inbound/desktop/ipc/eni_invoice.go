@@ -250,7 +250,7 @@ func (m *Manejador) handleGenerateENIFile(ctx context.Context, raw json.RawMessa
 	}
 	defer ports.CloseSigningKey(key)
 	sign := func(node []byte, id string) ([]byte, error) {
-		return commonsigner.FirmarNodoXAdES(node, id, key, p.Options)
+		return commonsigner.FirmarNodoXAdES(node, id, key, p.Options, ctx)
 	}
 	output, err := eni.GenerarExpediente(meta, docs, sign, commonsigner.CanonicalizarExclusivo, time.Now())
 	if err != nil {

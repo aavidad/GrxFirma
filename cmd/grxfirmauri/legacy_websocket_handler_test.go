@@ -363,7 +363,7 @@ func TestLegacyWebSocketHandler_LoadRechazaRutaDirectaPorDefecto(t *testing.T) {
 			"filePath": path,
 		}),
 	})
-	if resp != "SAF_25: Las rutas directas del protocolo están deshabilitadas" {
+	if !strings.HasPrefix(resp, "SAF_25: ") || !strings.Contains(resp, "[rutas_directas; excepciones.rutas_directas.bloqueo]") {
 		t.Fatalf("handleLoad() = %q, want rechazo de ruta directa", resp)
 	}
 }

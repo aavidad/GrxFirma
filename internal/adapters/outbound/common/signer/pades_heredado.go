@@ -47,12 +47,15 @@ func esSubFiltroPDFHeredado(subFilter string) bool {
 // contenido aportado (tiene que ser idéntico al eContent y cuadrar con
 // messageDigest) y se marca SHA-1 por el resumen del documento.
 func (v *CAdESVerifier) verificarPKCS7SHA1PDF(ctx context.Context, cmsDER, signedBytes []byte, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
+	if blocked, yes := bloqueoSHA1Previo(ctx, string(domain.FormatPAdES)); yes {
+		return blocked, nil, nil
+	}
 	resumen := sha1.Sum(signedBytes) // #nosec G401 -- verificación de una firma PDF antigua.
 	result, signers, err := v.verifyCMS(ctx, cmsDER, resumen[:], cmsContenidoOriginalAportado, anchors)
 	if err != nil {
 		return domain.VerificationResult{}, nil, err
 	}
-	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, []string{detalleAlgoritmoSHA1})
+	result = marcarAlgoritmoAntiguo(domain.RegistroConfianzaForzadaDe(ctx), result, []string{detalleAlgoritmoSHA1}, ctx)
 	result.Material.HuellasContenidoFirmado = []string{huellaContenido(signedBytes)}
 	return result, signers, nil
 }
@@ -61,6 +64,9 @@ func (v *CAdESVerifier) verificarPKCS7SHA1PDF(ctx context.Context, cmsDER, signe
 // certificado de /Cert cuya clave RSA verifica la firma sobre el rango; /Cert
 // está dentro de lo firmado, así que también queda protegido.
 func (v *CAdESVerifier) verificarPKCS1PDF(ctx context.Context, contents []byte, certsDER [][]byte, signedBytes []byte, anchors domain.CertificateChain) (domain.VerificationResult, []domain.CertificateRef, error) {
+	if blocked, yes := bloqueoSHA1Previo(ctx, string(domain.FormatPAdES)); yes {
+		return blocked, nil, nil
+	}
 	var firma []byte
 	resto, err := asn1.Unmarshal(contents, &firma)
 	if err != nil || len(resto) != 0 || len(firma) == 0 {
@@ -106,7 +112,7 @@ func (v *CAdESVerifier) verificarPKCS1PDF(ctx context.Context, contents []byte, 
 	result = exigirRevocacionConcluyente(registro, result)
 	// adbe.x509.rsa_sha1 lleva SHA-1 en su propia definición aunque el
 	// DigestInfo use otro resumen.
-	result = marcarAlgoritmoAntiguo(registro, result, []string{detalleAlgoritmoSHA1})
+	result = marcarAlgoritmoAntiguo(registro, result, []string{detalleAlgoritmoSHA1}, ctx)
 	return result.Normalize(), []domain.CertificateRef{certificateToRef(firmante)}, nil
 }
 

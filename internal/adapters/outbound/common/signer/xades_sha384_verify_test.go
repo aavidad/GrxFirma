@@ -38,6 +38,7 @@ func TestXMLDigest_SHA384YAlgoritmosInvalidos(t *testing.T) {
 }
 
 func TestXAdESVerifier_SHA384YMismaFirmaConPayloadAlterado(t *testing.T) {
+	activarExcepcionPrueba(t, "xml_c14n_antigua")
 	private, cert := certForTest(t, "QA verificación SHA384")
 	payload := []byte(`<raiz>prueba SHA384</raiz>`)
 	signed, _, err := buildXAdESBES(domain.SignatureJob{

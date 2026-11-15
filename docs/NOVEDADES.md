@@ -7,9 +7,15 @@
 
 Estas notas describen los cambios visibles para quienes usan la aplicación.
 
-## Próxima versión (sin publicar)
+## Novedades de la próxima versión
 
-- Al proteger con el perfil «alto» o exportar su destinatario propio, GrxFirma avisa también si la clave privada está guardada en un fichero del equipo porque no hay almacén de secretos del sistema. La operación se completa y el aviso aparece en el idioma elegido.
+Las opciones que crean firmas o archivos con algoritmos antiguos empiezan desactivadas, también al actualizar desde 0.0.127. Lo mismo ocurre al abrir o comprobar archivos antiguos que necesitan esos algoritmos. GrxFirma indicará qué operación ha bloqueado, por qué supone un riesgo y qué ajuste permite continuar. Hoy puede activarlo en `config.json`, dentro de `excepciones_inseguras`. El fichero está en `~/.config/grxfirma/config.json` (Linux y macOS) o `%APPDATA%\GrxFirma\config.json` (Windows). Por ejemplo, `{"excepciones_inseguras":{"cms_cbc":true}}` permite leer un sobre CMS AES-CBC. Si el equipo tiene una directiva que lo prohíbe, deberá pedir el cambio a su administrador. La sección de preferencias de la interfaz llegará en el lote siguiente.
+
+Al crear un sobre CMS nuevo, GrxFirma usa RSA-OAEP con SHA-256. El transporte antiguo RSA PKCS#1 v1.5 exige activar su excepción. También requieren ajuste las firmas SHA-1, las claves RSA de menos de 2048 bits, los intercambios DES de AutoFirma 1.x incluso cuando todos los servidores usan HTTPS, y la firma de PDF que conserva RC4 o AES-CBC con MD5. En Linux, instalar automáticamente la CA local al abrir un enlace de firma requiere otro ajuste; la instalación expresa desde el instalador o la orden de la línea de órdenes sigue disponible.
+
+Abrir sobres CMS con cifrados antiguos o AES-CBC, usar claves antiguas del perfil alto guardadas en fichero y verificar firmas SHA-1 o XML con canonicalización histórica también exige su ajuste. Para crear una identidad del perfil alto en fichero cuando falta el almacén, active tanto `alto_clave_fichero_crear` como `alto_clave_fichero_leer`, ya que GrxFirma debe poder reabrirla. Sin los ajustes de lectura, la firma antigua no se evalúa ni se declara válida. Cofirmar o contrafirmar una firma sin aportar el documento original requiere el ajuste y mantiene la confirmación de cada operación. Al permitir cualquiera de estos casos, el resultado muestra un aviso en cada uso.
+
+Una TSA por HTTP, las credenciales enviadas a un proxy HTTP y la firma trifásica por HTTP requieren sus ajustes. Una redirección trifásica a otro origen autorizado se anuncia en el resultado. Cuando GrxFirma delega un enlace de firma en AutoFirma, avisa de que se aplican los controles de ese programa.
 
 ## 0.0.127 — 2026-11-14
 

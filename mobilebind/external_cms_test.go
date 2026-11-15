@@ -15,10 +15,14 @@ import (
 
 	cryptobinpkcs7 "github.com/deatil/go-cryptobin/pkcs7"
 	cryptobinx509 "github.com/deatil/go-cryptobin/x509"
+	"grxfirma/internal/security/excepciones"
+	"grxfirma/internal/security/machinepolicy"
 	"software.sslmate.com/src/go-pkcs12"
 )
 
 func TestProtectAndSignWithExternalSigner(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_cms_rsa_v15_crear")
+	excepciones.SetForTest(t, "cms_rsa_v15_crear", true)
 	facade := newAndroidFacadeForTest(t)
 	recipientP12, recipient := encipheringPKCS12(t, "destino")
 	cardID, card := installSimulatedDNIe(t, facade)

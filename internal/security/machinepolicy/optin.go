@@ -11,6 +11,7 @@ import "sync"
 // el administrador no ha puesto la directiva.
 type valorPrueba struct {
 	valor, fijado bool
+	err           error
 }
 
 var (
@@ -33,19 +34,32 @@ func OptIn(name string) bool {
 // directivas en las que «deshabilitada» cierra algo que sin la directiva se
 // admite por compatibilidad (por ejemplo, permitir_sha1_legacy a 0 o false
 // cierra el ENI de una firma SHA-1 antigua). Si la política no se puede leer,
-// cuenta como no fijada, igual que en OptIn.
+// devuelve false y fijado=true para cerrar las habilitaciones. Para
+// restricciones negativas debe usarse ReadOptIn y comprobar el error.
 func OptInFijado(name string) (habilitado, fijado bool) {
+	habilitado, fijado, err := ReadOptIn(name)
+	if err != nil {
+		return false, true
+	}
+	return habilitado, fijado
+}
+
+// ReadOptIn distingue ausencia de una directiva ilegible. Los consumidores
+// de restricciones negativas deben tratar el error como una prohibición.
+func ReadOptIn(name string) (bool, bool, error) {
 	overridesMu.RLock()
 	v, ok := overrides[name]
 	overridesMu.RUnlock()
 	if ok {
-		return v.valor, v.fijado
+		return v.valor, v.fijado, v.err
 	}
-	enabled, present, err := readOptIn(name)
-	if err != nil || !present {
-		return false, false
-	}
-	return enabled, true
+	return readOptIn(name)
+}
+
+// ErrorForTest simula una directiva ilegible sin acceder a la del equipo.
+func ErrorForTest(tb testHandle, name string, err error) {
+	tb.Helper()
+	fijarParaPrueba(tb, name, valorPrueba{err: err})
 }
 
 // testHandle es el subconjunto de testing.TB necesario; evita enlazar el

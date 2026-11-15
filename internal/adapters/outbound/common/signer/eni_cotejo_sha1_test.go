@@ -15,6 +15,7 @@ import (
 
 	commonsigner "grxfirma/internal/adapters/outbound/common/signer"
 	"grxfirma/internal/domain"
+	"grxfirma/internal/security/excepciones"
 	"grxfirma/internal/security/machinepolicy"
 )
 
@@ -45,6 +46,7 @@ func cadesSHA1Prueba(t *testing.T, datos []byte, separada bool) []byte {
 // coteja con el centinela propio; con otro contenido sigue sin corresponder.
 func TestCotejarCAdESConSHA1CorrespondeConAviso(t *testing.T) {
 	machinepolicy.UnsetForTest(t, machinepolicy.PermitirSHA1Legacy)
+	excepciones.SetForTest(t, "sha1_conservar", true)
 	original := []byte("acta firmada en 2012 con AutoFirma")
 	otro := []byte("acta firmada en 2012 con AutoFirma, cambiada")
 	for nombre, separada := range map[string]bool{"implícita": false, "explícita": true} {
@@ -90,6 +92,10 @@ func TestCotejarCAdESConSHA1CorrespondeConAviso(t *testing.T) {
 }
 
 func TestCotejarXAdESConSHA1CorrespondeConAviso(t *testing.T) {
+	machinepolicy.UnsetForTest(t, "permitir_sha1_leer")
+	excepciones.SetForTest(t, "sha1_leer", true)
+	machinepolicy.UnsetForTest(t, "permitir_xml_c14n_antigua")
+	excepciones.SetForTest(t, "xml_c14n_antigua", true)
 	machinepolicy.SetForTest(t, machinepolicy.PermitirSHA1Legacy, true) // solo para generar la firma de prueba
 	priv, cert := generarCertRSAPrueba(t)
 	original := []byte(`<?xml version="1.0"?><datos><importe>10</importe></datos>`)
