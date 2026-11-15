@@ -10,14 +10,12 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"grxfirma/internal/testsupport/perfil"
 )
 
 func TestWriteFileNoSustituyeSinConfirmacionYLeePorDescriptor(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
-	t.Setenv("APPDATA", filepath.Join(home, "AppData", "Roaming"))
-	t.Setenv("LOCALAPPDATA", filepath.Join(home, "AppData", "Local"))
+	home := perfil.Nuevo(t)
 	dir := filepath.Join(home, "Descargas")
 	first := filepath.Join(dir, "firma.pdf")
 	if got, err := WriteFile(first, []byte("primera"), false); err != nil || got != first {
@@ -45,8 +43,7 @@ func TestWriteFileNoSigueEnlaceEnDirectorioIntermedio(t *testing.T) {
 	if runtime.GOOS != "linux" {
 		t.Skip("apertura fijada por descriptor Linux")
 	}
-	home := t.TempDir()
-	t.Setenv("HOME", home)
+	home := perfil.Nuevo(t)
 	config := filepath.Join(home, ".config", "grxfirma")
 	if err := os.MkdirAll(config, 0o700); err != nil {
 		t.Fatal(err)
@@ -76,7 +73,7 @@ func TestWriteFileAdmiteAliasDelHomeConocido(t *testing.T) {
 	if err := os.Symlink(realHome, alias); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("HOME", alias)
+	perfil.Aislar(t, alias)
 	target := filepath.Join(alias, "Descargas", "firma.pdf")
 	got, err := WriteFile(target, []byte("firma"), false)
 	if err != nil {
@@ -84,5 +81,25 @@ func TestWriteFileAdmiteAliasDelHomeConocido(t *testing.T) {
 	}
 	if data, err := ReadFileLimit(got, 16); err != nil || string(data) != "firma" {
 		t.Fatalf("alias HOME legítimo: %q, %v", data, err)
+	}
+}
+
+// Un directorio simbólico dentro de la carpeta elegida no se sigue al guardar,
+// aunque apunte a una carpeta que no está protegida: antes del lote 30w, fuera
+// de Linux se escribía en la ruta física ya resuelta y el enlace no se veía.
+func TestWriteFileRechazaDirectorioSimbolicoEnTodosLosSistemas(t *testing.T) {
+	home := perfil.Nuevo(t)
+	outside := t.TempDir()
+	link := filepath.Join(home, "Descargas")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Skipf("el entorno no permite crear enlaces simbólicos: %v", err)
+	}
+	for _, force := range []bool{false, true} {
+		if got, err := WriteFile(filepath.Join(link, "escape.txt"), []byte("contenido"), force); err == nil {
+			t.Fatalf("force=%v: se guardó a través del enlace en %q", force, got)
+		}
+		if _, err := os.Lstat(filepath.Join(outside, "escape.txt")); !os.IsNotExist(err) {
+			t.Fatalf("force=%v: se escribió en el destino del enlace: %v", force, err)
+		}
 	}
 }

@@ -8,6 +8,8 @@
 package portalpaths
 
 import (
+	"path/filepath"
+
 	"grxfirma/internal/adapters/outbound/common/securefile"
 	"grxfirma/internal/adapters/outbound/desktop/filesystem"
 )
@@ -16,14 +18,18 @@ func readFilePinned(path string, max int64) ([]byte, error) {
 	return securefile.ReadFileLimit(path, max)
 }
 
+// WriteFile comprueba la ruta y escribe en la ruta pedida, no en la física
+// que devuelve Check. El escritor recorre esa ruta con Lstat y rechaza un
+// enlace simbólico o una unión en cualquier componente; con la ruta ya
+// resuelta por EvalSymlinks no quedaría ningún enlace que rechazar y se
+// guardaría fuera de la carpeta elegida.
 func WriteFile(path string, data []byte, force bool) (string, error) {
-	physical, err := Check(path)
-	if err != nil {
+	if _, err := Check(path); err != nil {
 		return "", err
 	}
 	policy := filesystem.PoliticaRenombrar
 	if force {
 		policy = filesystem.PoliticaForzar
 	}
-	return filesystem.NuevoEscritorResultado(policy).Escribir(physical, data)
+	return filesystem.NuevoEscritorResultado(policy).Escribir(filepath.Clean(path), data)
 }
