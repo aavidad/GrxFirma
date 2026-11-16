@@ -66,4 +66,9 @@ func TestApplySignerVerificationMetadata_RSA1024NoValida(t *testing.T) {
 	if !containsDetail(res.Warnings, motivoClaveRSADebil) {
 		t.Fatalf("falta el aviso de clave RSA corta: %v", res.Warnings)
 	}
+	// El certificado sale como no válido para que todas las pantallas lo
+	// pinten en rojo, no como «íntegra sin confirmar».
+	if res.Certificate.Status != domain.VerificationStatusInvalid || res.Certificate.Reason != motivoClaveRSADebil {
+		t.Fatalf("certificado = %+v; se esperaba inválido por clave RSA corta", res.Certificate)
+	}
 }

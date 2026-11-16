@@ -1337,6 +1337,10 @@ func applySignerVerificationMetadata(registro *domain.RegistroConfianzaForzada, 
 				result.Valid = false
 				result.Reason = motivoClaveRSADebil
 			}
+			// Una clave por debajo del mínimo es un fallo del certificado, no un
+			// aviso: todas las pantallas lo muestran como firma no válida (rojo).
+			result.Certificate.Status = domain.VerificationStatusInvalid
+			result.Certificate.Reason = motivoClaveRSADebil
 			result.Warnings = appendUniqueString(result.Warnings, motivoClaveRSADebil)
 		}
 	}
