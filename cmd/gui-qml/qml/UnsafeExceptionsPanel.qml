@@ -7,6 +7,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "UnsafeText.js" as UnsafeText
+import "ThemeContrast.js" as Contrast
 
 GroupBox {
     id: panel
@@ -137,70 +138,147 @@ GroupBox {
         Repeater {
             id: rows
             model: panel.items
-            delegate: ColumnLayout {
+            delegate: Rectangle {
                 id: row
                 required property var modelData
                 readonly property string policyNote: UnsafeText.policyNoteKey(modelData)
+                // Opción insegura activada: recuadro de 2 px, fondo teñido e
+                // icono de aviso. Los colores se ajustan a 3:1 frente al fondo
+                // de la página y al del propio recuadro, en todos los temas.
+                readonly property bool unsafeActive: modelData.enabled === true
+                readonly property color pageColor: panel.theme.backgroundColor
+                readonly property color fillColor: unsafeActive
+                    ? Contrast.tinted(panel.theme.cardColor, panel.theme.errorColor, 0.14)
+                    : "transparent"
+                readonly property color markColor: Contrast.accentOnBoth(unsafeActive ? fillColor : pageColor,
+                                                                         pageColor, panel.theme.errorColor, 3.0)
+                readonly property color textColor: unsafeActive ? Contrast.readableOn(fillColor, panel.theme.textColor)
+                                                                : panel.theme.textColor
                 property alias changeButton: changeButton
                 property alias helpButton: helpButton
+                objectName: "unsafeRow-" + modelData.id
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                spacing: 8
-                Text {
-                    Layout.fillWidth: true
-                    text: panel.t("excepciones." + row.modelData.id + ".ajuste")
-                    textFormat: Text.PlainText
-                    font.pixelSize: Typography.control
-                    font.bold: true
-                    color: panel.theme.textColor
-                    wrapMode: Text.WordWrap
-                    Accessible.role: Accessible.Heading
+                implicitHeight: rowContent.implicitHeight + 2 * rowContent.anchors.margins
+                radius: 8
+                color: fillColor
+                border.width: unsafeActive ? 2 : 0
+                border.color: markColor
+                Rectangle {
+                    // Separador entre filas normales; la activada ya va recuadrada.
+                    visible: !row.unsafeActive
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    height: 1
+                    color: panel.theme.secondaryTextColor
                 }
-                Text {
-                    Layout.fillWidth: true
-                    text: panel.stateText(row.modelData)
-                    textFormat: Text.PlainText
-                    font.pixelSize: Typography.control
-                    color: panel.theme.textColor
-                    wrapMode: Text.WordWrap
-                }
-                // Una sola nota: «solo lectura» si la organización lo activa,
-                // su texto si lo prohíbe; nunca las dos (lote 39h).
-                Text {
-                    objectName: "unsafePolicy-" + row.modelData.id
-                    Layout.fillWidth: true
-                    visible: row.policyNote !== ""
-                    text: row.policyNote === "" ? "" : panel.t(row.policyNote)
-                    textFormat: Text.PlainText
-                    font.pixelSize: Typography.control
-                    color: panel.theme.textColor
-                    wrapMode: Text.WordWrap
-                }
-                ResponsiveRow {
-                    Layout.fillWidth: true
-                    spacing: 12
-                    ThemedButton {
-                        id: changeButton
+                ColumnLayout {
+                    id: rowContent
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 12
+                    spacing: 8
+                    RowLayout {
                         Layout.fillWidth: true
-                        Layout.minimumHeight: 44
-                        objectName: "unsafeChange-" + row.modelData.id
-                        visible: row.modelData.enabled || (row.modelData.activable === true && !row.modelData.fixed)
-                        text: panel.t(row.modelData.enabled ? "excepciones.pantalla.desactivar" : "excepciones.pantalla.activar")
-                        enabled: panel.localIpc && !panel.busy && !row.modelData.fixed && (row.modelData.enabled || row.modelData.activable === true)
-                        Accessible.description: panel.t("excepciones." + row.modelData.id + ".ajuste")
-                        onClicked: panel.change(row.modelData)
+                        spacing: 10
+                        // Triángulo de aviso: marca la opción activada por su
+                        // forma, no solo por el color. Decorativo para el lector
+                        // de pantalla, que ya lee «Activada» en la línea de estado.
+                        Canvas {
+                            id: warningIcon
+                            objectName: "unsafeActiveIcon-" + row.modelData.id
+                            visible: row.unsafeActive
+                            readonly property color strokeColor: row.markColor
+                            readonly property color markFill: row.fillColor
+                            Layout.preferredWidth: Typography.minimum(22)
+                            Layout.preferredHeight: Typography.minimum(22)
+                            Layout.alignment: Qt.AlignTop
+                            Accessible.ignored: true
+                            onStrokeColorChanged: warningIcon.requestPaint()
+                            onMarkFillChanged: warningIcon.requestPaint()
+                            onWidthChanged: warningIcon.requestPaint()
+                            onHeightChanged: warningIcon.requestPaint()
+                            onPaint: {
+                                const ctx = getContext("2d")
+                                const w = width, h = height, line = Math.max(2, w / 10)
+                                ctx.clearRect(0, 0, w, h)
+                                ctx.lineJoin = "round"
+                                ctx.lineCap = "round"
+                                ctx.lineWidth = line
+                                ctx.fillStyle = strokeColor
+                                ctx.beginPath()
+                                ctx.moveTo(w / 2, line / 2)
+                                ctx.lineTo(w - line / 2, h - line / 2)
+                                ctx.lineTo(line / 2, h - line / 2)
+                                ctx.closePath()
+                                ctx.fill()
+                                ctx.strokeStyle = markFill
+                                ctx.beginPath()
+                                ctx.moveTo(w / 2, h * 0.36)
+                                ctx.lineTo(w / 2, h * 0.62)
+                                ctx.moveTo(w / 2, h * 0.78)
+                                ctx.lineTo(w / 2, h * 0.79)
+                                ctx.stroke()
+                            }
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: panel.t("excepciones." + row.modelData.id + ".ajuste")
+                            textFormat: Text.PlainText
+                            font.pixelSize: Typography.control
+                            font.bold: true
+                            color: row.textColor
+                            wrapMode: Text.WordWrap
+                            Accessible.role: Accessible.Heading
+                        }
                     }
-                    ThemedButton {
-                        id: helpButton
-                        objectName: "unsafeHelp-" + row.modelData.id
+                    Text {
                         Layout.fillWidth: true
-                        Layout.minimumHeight: 44
-                        text: panel.t("excepciones.mas_informacion")
-                        Accessible.description: panel.t("excepciones." + row.modelData.id + ".ajuste")
-                        onClicked: panel.helpRequested(row.modelData)
+                        text: panel.stateText(row.modelData)
+                        textFormat: Text.PlainText
+                        font.pixelSize: Typography.control
+                        color: row.textColor
+                        wrapMode: Text.WordWrap
+                    }
+                    // Una sola nota: «solo lectura» si la organización lo activa,
+                    // su texto si lo prohíbe; nunca las dos (lote 39h).
+                    Text {
+                        objectName: "unsafePolicy-" + row.modelData.id
+                        Layout.fillWidth: true
+                        visible: row.policyNote !== ""
+                        text: row.policyNote === "" ? "" : panel.t(row.policyNote)
+                        textFormat: Text.PlainText
+                        font.pixelSize: Typography.control
+                        color: row.textColor
+                        wrapMode: Text.WordWrap
+                    }
+                    ResponsiveRow {
+                        Layout.fillWidth: true
+                        spacing: 12
+                        ThemedButton {
+                            id: changeButton
+                            Layout.fillWidth: true
+                            Layout.minimumHeight: 44
+                            objectName: "unsafeChange-" + row.modelData.id
+                            visible: row.modelData.enabled || (row.modelData.activable === true && !row.modelData.fixed)
+                            text: panel.t(row.modelData.enabled ? "excepciones.pantalla.desactivar" : "excepciones.pantalla.activar")
+                            enabled: panel.localIpc && !panel.busy && !row.modelData.fixed && (row.modelData.enabled || row.modelData.activable === true)
+                            Accessible.description: panel.t("excepciones." + row.modelData.id + ".ajuste")
+                            onClicked: panel.change(row.modelData)
+                        }
+                        ThemedButton {
+                            id: helpButton
+                            objectName: "unsafeHelp-" + row.modelData.id
+                            Layout.fillWidth: true
+                            Layout.minimumHeight: 44
+                            text: panel.t("excepciones.mas_informacion")
+                            Accessible.description: panel.t("excepciones." + row.modelData.id + ".ajuste")
+                            onClicked: panel.helpRequested(row.modelData)
+                        }
                     }
                 }
-                Rectangle { Layout.fillWidth: true; height: 1; color: panel.theme.secondaryTextColor }
             }
         }
     }

@@ -234,6 +234,12 @@ private:
   bool m_activeDiagnosticsRunning = false;
 
   void setStatus(const QString &s);
+
+  // Como setStatus, pero avisa aunque el texto no cambie: el resultado de
+
+  // una operación sustituye lo que la QML haya puesto en la barra (lote p3).
+
+  void announceStatus(const QString &s);
 };
 
 #endif // BACKENDBRIDGE_H

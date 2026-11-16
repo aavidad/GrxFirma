@@ -76,3 +76,23 @@ function balancedSurface(textColor) {
     const level = Math.max(0, Math.min(1, v))
     return Qt.rgba(level, level, level, 1)
 }
+
+// Color de borde o de icono que se distingue a la vez de dos superficies
+// vecinas (dentro y fuera de un recuadro), con 3:1 por defecto (WCAG 1.4.11).
+// Prueba el acento ajustado a cada superficie y, si ninguno vale para las dos,
+// el texto más legible sobre la primera.
+function accentOnBoth(first, second, accent, minimum) {
+    const target = minimum === undefined ? 3.0 : minimum
+    const candidates = [accentOn(first, accent, target), accentOn(second, accent, target),
+                        readableOn(first), readableOn(second)]
+    for (let i = 0; i < candidates.length; i++)
+        if (ratio(first, candidates[i]) >= target && ratio(second, candidates[i]) >= target)
+            return candidates[i]
+    return readableOn(first)
+}
+
+// Superficie opaca teñida con una parte (0..1) del color dado.
+function tinted(surface, tint, amount) {
+    const c = toColor(tint)
+    return Qt.tint(toColor(surface), Qt.rgba(c.r, c.g, c.b, amount))
+}
