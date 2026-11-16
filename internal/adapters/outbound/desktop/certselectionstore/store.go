@@ -8,7 +8,6 @@ package certselectionstore
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,7 +15,6 @@ import (
 	"sync"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
-	"grxfirma/internal/appdirs"
 )
 
 type Store struct {
@@ -26,10 +24,7 @@ type Store struct {
 	mu             sync.Mutex
 }
 
-const (
-	maxPreferenceFileBytes = 1024 * 1024
-	sessionFileName        = "preferred-certificates-session.json"
-)
+const maxPreferenceFileBytes = 1024 * 1024
 
 func New(configDir string) *Store {
 	sessionPath, sessionErr := SessionPath()
@@ -40,43 +35,42 @@ func New(configDir string) *Store {
 	}
 }
 
-// SessionPath devuelve dónde se guardan las preferencias que solo valen
-// durante la sesión: <carpeta privada de ejecución>/grxfirma/. Nunca está en la
-// carpeta temporal compartida; ver appdirs.RuntimeUsuario.
-func SessionPath() (string, error) {
-	dir, err := appdirs.RuntimeUsuario()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(dir, "grxfirma", sessionFileName), nil
-}
-
-// LoadSession no usa preferencias de una carpeta que no sea privada del
-// usuario: las trata como inexistentes y el usuario vuelve a elegir.
+// LoadSession solo usa el fichero de esta sesión, en una carpeta privada del
+// usuario; si no, no hay preferencia y el usuario vuelve a elegir.
 func (s *Store) LoadSession(_ context.Context, origin string) (string, bool, error) {
 	if s.sessionPath == "" {
 		return "", false, nil
 	}
-	if err := securefile.CheckPrivateDir(filepath.Dir(s.sessionPath)); err != nil {
-		if errors.Is(err, os.ErrNotExist) || errors.Is(err, securefile.ErrNotPrivateDir) {
-			return "", false, nil
-		}
-		return "", false, fmt.Errorf("comprobar carpeta de preferencias de sesión: %w", err)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	raw, err := ReadSessionFile(s.sessionPath)
+	if err != nil {
+		return "", false, fmt.Errorf("leer preferencias de sesión: %w", err)
 	}
-	return s.load(s.sessionPath, origin)
+	id := strings.TrimSpace(raw[strings.TrimSpace(origin)])
+	return id, id != "", nil
 }
 
 func (s *Store) SaveSession(_ context.Context, origin, certificateID string) error {
 	if s.sessionPath == "" {
 		return fmt.Errorf("guardar preferencias de sesión: %w", s.sessionErr)
 	}
-	if strings.TrimSpace(origin) == "" || strings.TrimSpace(certificateID) == "" {
+	origin = strings.TrimSpace(origin)
+	certificateID = strings.TrimSpace(certificateID)
+	if origin == "" || certificateID == "" {
 		return nil
 	}
-	if err := securefile.EnsurePrivateDir(filepath.Dir(s.sessionPath)); err != nil {
-		return fmt.Errorf("crear carpeta privada de preferencias de sesión: %w", err)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	raw, err := ReadSessionFile(s.sessionPath)
+	if err != nil {
+		return fmt.Errorf("leer preferencias de sesión existentes: %w", err)
 	}
-	return s.save(s.sessionPath, origin, certificateID)
+	raw[origin] = certificateID
+	if err := WriteSessionFile(s.sessionPath, raw); err != nil {
+		return fmt.Errorf("guardar preferencias de sesión: %w", err)
+	}
+	return nil
 }
 
 func (s *Store) LoadPersistent(_ context.Context, origin string) (string, bool, error) {

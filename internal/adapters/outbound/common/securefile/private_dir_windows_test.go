@@ -39,3 +39,28 @@ func TestCheckPrivateDirWindowsRechazaCarpetaAjena(t *testing.T) {
 		t.Fatalf("carpeta del sistema dada por privada: %v", err)
 	}
 }
+
+// Una carpeta creada a mano hereda la DACL de su madre: no es privada hasta
+// que EnsurePrivateDir le pone la DACL protegida.
+func TestCheckPrivateDirWindowsExigeDACLProtegida(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "heredada")
+	if err := os.Mkdir(dir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := CheckPrivateDir(dir); !errors.Is(err, ErrNotPrivateDir) {
+		t.Fatalf("DACL heredada dada por privada: %v", err)
+	}
+	if err := EnsurePrivateDir(dir); err != nil {
+		t.Fatal(err)
+	}
+	if err := CheckPrivateDir(dir); err != nil {
+		t.Fatalf("DACL de EnsurePrivateDir no aceptada: %v", err)
+	}
+	// Abrirla a Todos la deja fuera.
+	if out, err := exec.Command("icacls", dir, "/grant", "*S-1-1-0:(R)").CombinedOutput(); err != nil {
+		t.Skipf("icacls no disponible: %v %s", err, out)
+	}
+	if err := CheckPrivateDir(dir); !errors.Is(err, ErrNotPrivateDir) {
+		t.Fatalf("carpeta abierta a Todos dada por privada: %v", err)
+	}
+}

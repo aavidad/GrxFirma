@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"grxfirma/internal/adapters/inbound/common/rest"
+	"grxfirma/internal/adapters/outbound/common/localizador"
 	"grxfirma/internal/adapters/outbound/desktop/pdfpreview"
 	"grxfirma/internal/application"
 	"grxfirma/internal/domain"
@@ -2390,10 +2391,13 @@ func TestRoutes_ServiceInstallSinCarpetaPrivadaNoUsaTemporal(t *testing.T) {
 	t.Setenv("XDG_RUNTIME_DIR", "")
 	t.Setenv("HOME", "")
 	gestor := &serviceManagerMockREST{}
-	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithServicio(gestor)
+	adaptador := nuevoAdaptadorPruebas(nil, nil, nil).WithServicio(gestor).WithLocalizador(localizador.Para("es"))
 	rr := doJSON(t, adaptador.Routes(), http.MethodPost, "/service/install", map[string]any{})
 	if !bytes.Contains(rr.Body.Bytes(), []byte(`"ok":false`)) {
 		t.Fatalf("se esperaba ok=false: %s", rr.Body.String())
+	}
+	if bytes.Contains(rr.Body.Bytes(), []byte("appdirs:")) || !bytes.Contains(rr.Body.Bytes(), []byte("HOME")) {
+		t.Fatalf("se esperaba el texto traducido, no el error interno: %s", rr.Body.String())
 	}
 	if gestor.installSocket != "" {
 		t.Fatalf("se instaló el servicio con socket %q", gestor.installSocket)

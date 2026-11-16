@@ -1556,14 +1556,9 @@ func TestRunImportarP12_RecibeCompatYaRetiradaDelEntorno(t *testing.T) {
 
 func TestRunLimpiarAutoseleccionCert_BorraPersistenteYSesion(t *testing.T) {
 	tmp := t.TempDir()
-	runtimeDir := filepath.Join(tmp, "runtime")
-	if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	sesion := prepararSesionAutoseleccionPrueba(t, tmp)
 
 	persistente := filepath.Join(tmp, "preferred-certificates.json")
-	sesion := filepath.Join(runtimeDir, "grxfirma", "preferred-certificates-session.json")
 	if err := os.WriteFile(persistente, []byte(`{"https://portal":"cert-1"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -1598,14 +1593,9 @@ func TestRunLimpiarAutoseleccionCert_BorraPersistenteYSesion(t *testing.T) {
 
 func TestRunListarAutoseleccionCert_MuestraPersistenteYSesion(t *testing.T) {
 	tmp := t.TempDir()
-	runtimeDir := filepath.Join(tmp, "runtime")
-	if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	sesion := prepararSesionAutoseleccionPrueba(t, tmp)
 
 	persistente := filepath.Join(tmp, "preferred-certificates.json")
-	sesion := filepath.Join(runtimeDir, "grxfirma", "preferred-certificates-session.json")
 	if err := os.WriteFile(persistente, []byte(`{"https://persistente":"cert-persistente"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -1638,14 +1628,9 @@ func TestRunListarAutoseleccionCert_MuestraPersistenteYSesion(t *testing.T) {
 
 func TestRunListarAutoseleccionCert_FiltraPorDominio(t *testing.T) {
 	tmp := t.TempDir()
-	runtimeDir := filepath.Join(tmp, "runtime")
-	if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	sesion := prepararSesionAutoseleccionPrueba(t, tmp)
 
 	persistente := filepath.Join(tmp, "preferred-certificates.json")
-	sesion := filepath.Join(runtimeDir, "grxfirma", "preferred-certificates-session.json")
 	if err := os.WriteFile(persistente, []byte(`{"https://uno":"cert-uno","https://dos":"cert-dos"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -1683,14 +1668,9 @@ func TestRunListarAutoseleccionCert_FiltraPorDominio(t *testing.T) {
 
 func TestRunEliminarAutoseleccionCert_BorraSoloElDominioPedido(t *testing.T) {
 	tmp := t.TempDir()
-	runtimeDir := filepath.Join(tmp, "runtime")
-	if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	sesion := prepararSesionAutoseleccionPrueba(t, tmp)
 
 	persistente := filepath.Join(tmp, "preferred-certificates.json")
-	sesion := filepath.Join(runtimeDir, "grxfirma", "preferred-certificates-session.json")
 	if err := os.WriteFile(persistente, []byte(`{"https://uno":"cert-uno","https://dos":"cert-dos"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -1739,14 +1719,9 @@ func TestRunEliminarAutoseleccionCert_BorraSoloElDominioPedido(t *testing.T) {
 
 func TestRunResetearAutoseleccionCert_ConfirmaYBorraTodo(t *testing.T) {
 	tmp := t.TempDir()
-	runtimeDir := filepath.Join(tmp, "runtime")
-	if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	sesion := prepararSesionAutoseleccionPrueba(t, tmp)
 
 	persistente := filepath.Join(tmp, "preferred-certificates.json")
-	sesion := filepath.Join(runtimeDir, "grxfirma", "preferred-certificates-session.json")
 	if err := os.WriteFile(persistente, []byte(`{"https://uno":"cert-uno"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -1783,14 +1758,9 @@ func TestRunResetearAutoseleccionCert_ConfirmaYBorraTodo(t *testing.T) {
 
 func TestRunResetearAutoseleccionCert_CancelaSinBorrar(t *testing.T) {
 	tmp := t.TempDir()
-	runtimeDir := filepath.Join(tmp, "runtime")
-	if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	sesion := prepararSesionAutoseleccionPrueba(t, tmp)
 
 	persistente := filepath.Join(tmp, "preferred-certificates.json")
-	sesion := filepath.Join(runtimeDir, "grxfirma", "preferred-certificates-session.json")
 	if err := os.WriteFile(persistente, []byte(`{"https://uno":"cert-uno"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -1827,14 +1797,9 @@ func TestRunResetearAutoseleccionCert_CancelaSinBorrar(t *testing.T) {
 
 func TestRunExportarAutoseleccionCert_GeneraFicheroJSON(t *testing.T) {
 	tmp := t.TempDir()
-	runtimeDir := filepath.Join(tmp, "runtime")
-	if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	sesion := prepararSesionAutoseleccionPrueba(t, tmp)
 
 	persistente := filepath.Join(tmp, "preferred-certificates.json")
-	sesion := filepath.Join(runtimeDir, "grxfirma", "preferred-certificates-session.json")
 	if err := os.WriteFile(persistente, []byte(`{"https://persistente":"cert-persistente"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -1880,11 +1845,7 @@ func TestRunExportarAutoseleccionCert_GeneraFicheroJSON(t *testing.T) {
 
 func TestRunImportarAutoseleccionCert_RestauraPersistenteYSesion(t *testing.T) {
 	tmp := t.TempDir()
-	runtimeDir := filepath.Join(tmp, "runtime")
-	if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	sesion := prepararSesionAutoseleccionPrueba(t, tmp)
 
 	origen := filepath.Join(tmp, "autoseleccion.json")
 	if err := os.WriteFile(origen, []byte(`{
@@ -1915,7 +1876,6 @@ func TestRunImportarAutoseleccionCert_RestauraPersistenteYSesion(t *testing.T) {
 	}
 
 	persistente := filepath.Join(tmp, "preferred-certificates.json")
-	sesion := filepath.Join(runtimeDir, "grxfirma", "preferred-certificates-session.json")
 
 	dataPersistente, err := os.ReadFile(persistente)
 	if err != nil {

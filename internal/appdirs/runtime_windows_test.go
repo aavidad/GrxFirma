@@ -7,30 +7,15 @@
 
 package appdirs
 
-import (
-	"os/exec"
-	"path/filepath"
-	"testing"
-)
+import "testing"
 
-func TestRuntimeUsuarioWindowsAdmiteXDGCarpetaReal(t *testing.T) {
-	prepararPerfil(t)
-	xdg := t.TempDir()
-	t.Setenv("XDG_RUNTIME_DIR", xdg)
-	if dir, err := RuntimeUsuario(); err != nil || dir != xdg {
-		t.Fatalf("XDG_RUNTIME_DIR real no admitido: %q, %v", dir, err)
-	}
-}
-
-func TestRuntimeUsuarioWindowsRechazaXDGUnion(t *testing.T) {
+func TestRuntimeUsuarioIgnoraXDGEnWindows(t *testing.T) {
 	home := prepararPerfil(t)
-	destino := t.TempDir()
-	union := filepath.Join(t.TempDir(), "union")
-	if out, err := exec.Command("cmd", "/c", "mklink", "/J", union, destino).CombinedOutput(); err != nil {
-		t.Skipf("no se pudo crear la unión: %v %s", err, out)
-	}
-	t.Setenv("XDG_RUNTIME_DIR", union)
+	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
 	if dir, err := RuntimeUsuario(); err != nil || dir != reservaEsperada(home) {
-		t.Fatalf("unión admitida como XDG_RUNTIME_DIR: %q, %v", dir, err)
+		t.Fatalf("XDG_RUNTIME_DIR usado en Windows: %q, %v", dir, err)
+	}
+	if dir, ok := XDGRuntimePrivado(); ok {
+		t.Fatalf("XDG_RUNTIME_DIR admitido en Windows: %q", dir)
 	}
 }
