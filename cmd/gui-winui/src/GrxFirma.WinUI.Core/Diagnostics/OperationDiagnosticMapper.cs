@@ -298,7 +298,9 @@ public static class OperationDiagnosticMapper
         var owner = NormalizeOwner(exception.LikelyOwner);
         var action = SuggestedActionForPhase(phase, exception.Retryable, text);
         var userMessage = CleanVisibleText(
-            exception.UserMessage,
+            string.IsNullOrEmpty(exception.UserMessageKey)
+                ? exception.UserMessage
+                : text(exception.UserMessageKey),
             512,
             text("winui.diagnostico.canal.mensaje"), text);
 

@@ -19,6 +19,7 @@ public sealed class IpcClientException : Exception
         : base(CatalogLocalizer.Shared.Text(userMessageKey))
     {
         Code = code;
+        UserMessageKey = userMessageKey;
         Reason = reason;
         UserMessage = Message;
         Phase = phase;
@@ -28,6 +29,12 @@ public sealed class IpcClientException : Exception
 
     public string Code { get; }
     public string UserMessage { get; }
+
+    /// <summary>
+    /// Clave del catálogo de <see cref="UserMessage"/>, para que el
+    /// diagnóstico lo presente en el idioma de su propio catálogo.
+    /// </summary>
+    public string UserMessageKey { get; }
     public string Phase { get; }
     public string LikelyOwner { get; }
     public bool Retryable { get; }

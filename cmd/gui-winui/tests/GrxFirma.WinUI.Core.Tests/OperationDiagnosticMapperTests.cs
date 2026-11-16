@@ -314,6 +314,17 @@ public sealed class OperationDiagnosticMapperTests
         Assert.AreEqual("[contenido protegido]", Es("winui.diagnostico.contenido_protegido"));
     }
 
+    // El mensaje del canal local se resuelve con el catálogo del diagnóstico,
+    // no con el que había al crear la excepción.
+    [TestMethod]
+    public void IpcExceptionMessage_UsesTheDiagnosticCatalog()
+    {
+        var mapped = OperationDiagnosticMapper.FromException(
+            IpcClientException.ProtocolVersion(), catalogText: TestCatalogs.In("en"));
+        Assert.AreEqual("The interface and local engine use incompatible versions.", mapped.UserMessage);
+        Assert.AreEqual("winui.ipc.versiones_incompatibles", IpcClientException.ProtocolVersion().UserMessageKey);
+    }
+
     // Un «$» en la traducción del marcador no se toma como referencia de
     // grupo de la expresión regular.
     [TestMethod]
