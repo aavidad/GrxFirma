@@ -2948,10 +2948,14 @@ func (a *Adaptador) handleServiceAction(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 	if callErr != nil {
+		texto := callErr.Error()
+		if errors.Is(callErr, appdirs.ErrRuntimeNoDisponible) {
+			texto = a.t("error.servicio_sin_carpeta_privada")
+		}
 		writeJSON(w, http.StatusOK, serviceActionResponse{
 			OK:      false,
-			Error:   callErr.Error(),
-			Message: callErr.Error(),
+			Error:   texto,
+			Message: texto,
 		})
 		return
 	}

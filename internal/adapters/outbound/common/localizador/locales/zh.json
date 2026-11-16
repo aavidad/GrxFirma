@@ -7240,4 +7240,5 @@
   ,"En Linux, retirar el paquete con apt ya no falla si nunca se llegó a crear el certificado local, por ejemplo porque no se abrió ningún enlace de firma. Además, grxfirma-afirmauri --help muestra la ayuda y ya no instala ese certificado.": "在 Linux 上，如果本地证书从未创建过（例如从未打开过签名链接），用 apt 卸载软件包不再失败。此外，grxfirma-afirmauri --help 现在会显示帮助，不再安装该证书。"
   ,"En Windows, al desinstalar ya no quedan en el registro claves vacías de la conexión entre la extensión del navegador y GrxFirma.": "在 Windows 上，卸载后注册表中不再残留与浏览器扩展和 GrxFirma 之间连接相关的空键。"
   ,"Al verificar un PDF firmado, un texto del propio PDF o del certificado que se parezca a la estructura de la firma ya no hace fallar una firma correcta.": "验证已签名的 PDF 时，PDF 本身或证书中与签名结构相似的文字不再导致正确的签名验证失败。"
+  ,"error.servicio_sin_carpeta_privada": "无法安装服务，因为缺少有效的个人文件夹。请将 HOME 设为绝对路径，然后重试。"
 }
