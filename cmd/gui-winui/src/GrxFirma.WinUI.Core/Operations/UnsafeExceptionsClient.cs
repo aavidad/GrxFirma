@@ -58,6 +58,12 @@ public sealed class UnsafeExceptionConsentViewModel(UnsafeExceptionState item)
 
     public string PrimaryButtonKey => Item.OperationPending
         ? "excepciones.activar_continuar" : "excepciones.pantalla.activar";
+
+    // Con la ayuda abierta o cuando la persona no puede activarla (lo decide
+    // la organización), el único botón cierra el aviso: no hay nada que
+    // cancelar. Solo cuando se ofrece activar, el otro botón es «Cancelar».
+    public string CloseButtonKey(bool helpOnly) => !helpOnly && Item.Activable
+        ? "excepciones.cancelar" : "excepciones.pantalla.cerrar";
 }
 
 // Dónde aceptó la persona, para el recibo del motor. Es un valor cerrado: el

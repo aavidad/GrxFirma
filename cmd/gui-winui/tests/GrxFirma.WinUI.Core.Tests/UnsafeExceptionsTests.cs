@@ -209,6 +209,22 @@ public sealed class UnsafeExceptionsTests
     }
 
     [TestMethod]
+    public void Dialog_OrganizationLock_OnlyButtonSaysCerrar()
+    {
+        // Si la organización lo prohíbe no hay nada que cancelar: el único
+        // botón cierra el aviso, también cuando nace de una operación detenida.
+        foreach (var pending in new[] { false, true })
+        {
+            var locked = new UnsafeExceptionConsentViewModel(Item(activable: false) with { OperationPending = pending });
+            Assert.AreEqual("excepciones.pantalla.cerrar", locked.CloseButtonKey(helpOnly: false));
+            Assert.AreEqual("excepciones.pantalla.cerrar", locked.CloseButtonKey(helpOnly: true));
+            var offered = new UnsafeExceptionConsentViewModel(Item() with { OperationPending = pending });
+            Assert.AreEqual("excepciones.cancelar", offered.CloseButtonKey(helpOnly: false));
+            Assert.AreEqual("excepciones.pantalla.cerrar", offered.CloseButtonKey(helpOnly: true));
+        }
+    }
+
+    [TestMethod]
     public async Task RetryWarnings_ReachOperationNotice()
     {
         var transport = new Fake();

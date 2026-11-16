@@ -126,7 +126,7 @@ internal static class UnsafeExceptionDialog
             RequestedTheme = theme,
             Title = Localizer.Text(model.TitleKey(helpOnly)),
             Content = scroll,
-            CloseButtonText = Localizer.Text(helpOnly ? "excepciones.pantalla.cerrar" : "excepciones.cancelar"),
+            CloseButtonText = Localizer.Text(model.CloseButtonKey(helpOnly)),
             PrimaryButtonText = !helpOnly && item.Activable ? Localizer.Text(model.PrimaryButtonKey) : string.Empty,
             IsPrimaryButtonEnabled = false,
             // El botón principal se distingue por su estilo, no por ser el
