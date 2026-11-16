@@ -14,7 +14,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"testing"
+	"time"
 )
 
 func TestLegacyLoadPathsFromCommandOutput_ConservaPipeEnNombre(t *testing.T) {
@@ -43,7 +45,7 @@ func TestLegacyLoadGTKArgs_UsaSeparadorNoAmbiguoParaPipe(t *testing.T) {
 }
 
 func TestDialogCancellation_DistingueCancelacionDeError(t *testing.T) {
-	exitOne := commandOutputError(t, "exit 1")
+	exitOne := commandOutputError(t, 1, "")
 	if !isLinuxDialogCancelErr(exitOne) {
 		t.Fatal("exit 1 de un diálogo Linux debe representar cancelación")
 	}
@@ -51,15 +53,39 @@ func TestDialogCancellation_DistingueCancelacionDeError(t *testing.T) {
 		t.Fatal("un exit 1 genérico de osascript no debe representar cancelación")
 	}
 
-	exit255 := commandOutputError(t, "exit 255")
+	exit255 := commandOutputError(t, 255, "")
 	if isLinuxDialogCancelErr(exit255) {
 		t.Fatal("exit 255 de un diálogo Linux debe conservarse como error")
 	}
 
-	appleCancel := commandOutputError(t, "printf 'execution error: User canceled. (-128)\\n' >&2; exit 1")
+	appleCancel := commandOutputError(t, 1, "execution error: User canceled. (-128)\n")
 	if !isAppleScriptCancelErr(appleCancel) {
 		t.Fatal("el error AppleScript -128 debe representar cancelación")
 	}
+}
+
+// Variables con las que el binario de prueba hace de diálogo externo en
+// TestAyudanteSalidaDialogo.
+const (
+	envAyudanteDialogo       = "GRXFIRMA_TEST_AYUDANTE_DIALOGO"
+	envAyudanteDialogoCodigo = "GRXFIRMA_TEST_AYUDANTE_DIALOGO_CODIGO"
+	envAyudanteDialogoError  = "GRXFIRMA_TEST_AYUDANTE_DIALOGO_STDERR"
+)
+
+// TestAyudanteSalidaDialogo no es una prueba: es el proceso hijo de
+// commandOutputError. Escribe en la salida de error y termina con el código
+// pedido, igual que zenity u osascript, sin depender de sh, que en Windows no
+// existe.
+func TestAyudanteSalidaDialogo(t *testing.T) {
+	if os.Getenv(envAyudanteDialogo) != "1" {
+		t.Skip("proceso auxiliar de TestDialogCancellation_DistingueCancelacionDeError")
+	}
+	code, err := strconv.Atoi(os.Getenv(envAyudanteDialogoCodigo))
+	if err != nil {
+		os.Exit(3)
+	}
+	_, _ = os.Stderr.WriteString(os.Getenv(envAyudanteDialogoError))
+	os.Exit(code)
 }
 
 func TestSelectLegacyLoadPaths_UsaQarmaTrasErrorZenity(t *testing.T) {
@@ -123,12 +149,25 @@ func TestSelectLegacyLoadPaths_UsaKDialogTrasErroresGTK(t *testing.T) {
 	}
 }
 
-func commandOutputError(t *testing.T, script string) error {
+// commandOutputError lanza el propio binario de prueba como diálogo externo
+// que termina con code y escribe stderr, y devuelve el error de Output. Un
+// contexto con plazo evita que la prueba se quede esperando al hijo.
+func commandOutputError(t *testing.T, code int, stderr string) error {
 	t.Helper()
-	cmd := exec.Command("sh", "-c", script)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestAyudanteSalidaDialogo$", "-test.count=1")
+	cmd.Env = append(os.Environ(),
+		envAyudanteDialogo+"=1",
+		envAyudanteDialogoCodigo+"="+strconv.Itoa(code),
+		envAyudanteDialogoError+"="+stderr,
+	)
 	_, err := cmd.Output()
+	if ctx.Err() != nil {
+		t.Fatalf("el proceso auxiliar no terminó a tiempo: %v", ctx.Err())
+	}
 	if err == nil {
-		t.Fatalf("el comando de prueba no devolvió error: %q", script)
+		t.Fatalf("el proceso auxiliar no devolvió error (código pedido %d)", code)
 	}
 	return err
 }

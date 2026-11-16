@@ -8,6 +8,7 @@ package certselectionstore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,28 +16,66 @@ import (
 	"sync"
 
 	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/appdirs"
 )
 
 type Store struct {
 	persistentPath string
 	sessionPath    string
+	sessionErr     error
 	mu             sync.Mutex
 }
 
-const maxPreferenceFileBytes = 1024 * 1024
+const (
+	maxPreferenceFileBytes = 1024 * 1024
+	sessionFileName        = "preferred-certificates-session.json"
+)
 
 func New(configDir string) *Store {
+	sessionPath, sessionErr := SessionPath()
 	return &Store{
 		persistentPath: filepath.Join(configDir, "preferred-certificates.json"),
-		sessionPath:    filepath.Join(runtimeDir(), "preferred-certificates-session.json"),
+		sessionPath:    sessionPath,
+		sessionErr:     sessionErr,
 	}
 }
 
+// SessionPath devuelve dónde se guardan las preferencias que solo valen
+// durante la sesión: <carpeta privada de ejecución>/grxfirma/. Nunca está en la
+// carpeta temporal compartida; ver appdirs.RuntimeUsuario.
+func SessionPath() (string, error) {
+	dir, err := appdirs.RuntimeUsuario()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "grxfirma", sessionFileName), nil
+}
+
+// LoadSession no usa preferencias de una carpeta que no sea privada del
+// usuario: las trata como inexistentes y el usuario vuelve a elegir.
 func (s *Store) LoadSession(_ context.Context, origin string) (string, bool, error) {
+	if s.sessionPath == "" {
+		return "", false, nil
+	}
+	if err := securefile.CheckPrivateDir(filepath.Dir(s.sessionPath)); err != nil {
+		if errors.Is(err, os.ErrNotExist) || errors.Is(err, securefile.ErrNotPrivateDir) {
+			return "", false, nil
+		}
+		return "", false, fmt.Errorf("comprobar carpeta de preferencias de sesión: %w", err)
+	}
 	return s.load(s.sessionPath, origin)
 }
 
 func (s *Store) SaveSession(_ context.Context, origin, certificateID string) error {
+	if s.sessionPath == "" {
+		return fmt.Errorf("guardar preferencias de sesión: %w", s.sessionErr)
+	}
+	if strings.TrimSpace(origin) == "" || strings.TrimSpace(certificateID) == "" {
+		return nil
+	}
+	if err := securefile.EnsurePrivateDir(filepath.Dir(s.sessionPath)); err != nil {
+		return fmt.Errorf("crear carpeta privada de preferencias de sesión: %w", err)
+	}
 	return s.save(s.sessionPath, origin, certificateID)
 }
 
@@ -100,15 +139,4 @@ func (s *Store) save(path, origin, certificateID string) error {
 		return fmt.Errorf("guardar preferencias de certificado: %w", err)
 	}
 	return nil
-}
-
-func runtimeDir() string {
-	if dir := strings.TrimSpace(os.Getenv("XDG_RUNTIME_DIR")); dir != "" {
-		return filepath.Join(dir, "grxfirma")
-	}
-	user := strings.TrimSpace(os.Getenv("USER"))
-	if user == "" {
-		user = "default"
-	}
-	return filepath.Join(os.TempDir(), "grxfirma-"+user)
 }
