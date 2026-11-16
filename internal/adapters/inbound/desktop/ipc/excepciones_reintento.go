@@ -190,6 +190,10 @@ func (m *Manejador) storeUnsafeRetry(ctx context.Context, r *unsafeRetry, id str
 	}
 	r.exceptionID = id
 	r.stored = true
+	// El plazo cuenta desde que la persona ve el aviso, igual que el
+	// temporizador que borra la entrada: la operación original pudo tardar
+	// (por ejemplo, esperando el PIN) y no debe comerse el tiempo del aviso.
+	r.expires = time.Now().Add(unsafeRetryTTL)
 	m.unsafeRetries[token] = r
 	r.timer = time.AfterFunc(unsafeRetryTTL, func() {
 		m.unsafeRetryMu.Lock()
