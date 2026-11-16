@@ -6,6 +6,7 @@
 package io.github.aavidad.grxfirma.android.ui
 
 import io.github.aavidad.grxfirma.android.R
+import io.github.aavidad.grxfirma.android.core.CoreJsonCodec
 import io.github.aavidad.grxfirma.android.core.CoreReadiness
 import io.github.aavidad.grxfirma.android.model.SignerSummary
 import io.github.aavidad.grxfirma.android.model.VerificationSummary
@@ -67,6 +68,38 @@ class VerificationCardTest {
         assertEquals(Verdict.INCOMPLETE, VerificationCard.verdict(untrusted.copy(integrityStatus = "unknown")))
         assertEquals(Verdict.REVOCATION_INCONCLUSIVE,
             VerificationCard.verdict(accredited.copy(valid = false, reason = "revocación no concluyente")))
+    }
+
+    /**
+     * Orden de Alberto (16/11/2026): el motor deja el certificado inválido cuando
+     * la clave RSA del firmante tiene menos de 2048 bits y no se ha aceptado la
+     * excepción. Con el resultado tal como llega del motor, la tarjeta dice
+     * «Firma no válida» en rojo, no «íntegra sin confirmar» en ámbar.
+     */
+    @Test
+    fun `a short RSA key from the engine is a red invalid signature`() {
+        val engine = """
+            {
+              "valid": false,
+              "reason": "clave RSA del firmante de menos de 2048 bits",
+              "format": "CAdES",
+              "coverage": "full",
+              "signers": ["CN=PRUEBA SINTETICA 2,O=GrxFirma QA,C=ES"],
+              "details": ["rsa_bits=1024"],
+              "integrity_status": "valid",
+              "certificate_status": "invalid",
+              "trust_status": "valid",
+              "revocation_mode": "embedded_evidence_only",
+              "warnings": ["clave RSA del firmante de menos de 2048 bits"],
+              "errors": []
+            }
+        """.trimIndent()
+        val v = CoreJsonCodec.parseVerification(engine).toUiText()
+        val verdict = VerificationCard.verdict(v)
+        assertEquals(Verdict.INVALID, verdict)
+        assertEquals(R.string.verdict_invalid, VerificationCard.title(verdict))
+        assertEquals(R.color.error, VerificationCard.color(verdict))
+        assertTrue(R.string.verification_certificate_bad in VerificationCard.summary(v).map { (it as? UiText.Resource)?.id })
     }
 
     /**
