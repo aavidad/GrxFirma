@@ -465,7 +465,9 @@ public sealed class IpcClientTests
             exception.UserMessage);
         var diagnostic = GrxFirma.WinUI.Core.Diagnostics.OperationDiagnosticMapper.FromException(exception);
         Assert.AreEqual("SUCCESS_WITH_UNSAFE_EXCEPTION_BLOCKED", diagnostic.FailureCode);
-        StringAssert.Contains(diagnostic.SuggestedAction, "misma versión");
+        Assert.AreEqual(
+            GrxFirma.WinUI.Core.Localization.CatalogLocalizer.Shared.Text("winui.diagnostico.accion.protocolo"),
+            diagnostic.SuggestedAction);
     }
 
     [TestMethod]

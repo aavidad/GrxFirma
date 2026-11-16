@@ -5,6 +5,7 @@
 
 using System.Text.Json;
 using GrxFirma.WinUI.Core.Diagnostics;
+using GrxFirma.WinUI.Core.Localization;
 
 namespace GrxFirma.WinUI.Core.Tests;
 
@@ -66,7 +67,9 @@ public sealed class DiagnosticIncidentReportTests
         Assert.AreEqual(
             1,
             root.GetProperty("steps").GetArrayLength());
-        StringAssert.Contains(json, "[contenido protegido]");
+        // El marcador sale del catálogo compartido, en el idioma de la interfaz.
+        StringAssert.Contains(json,
+            CatalogLocalizer.Shared.Text("winui.diagnostico.contenido_protegido"));
         AssertDoesNotContain(json, @"C:\Users\persona");
         AssertDoesNotContain(json, "/home/persona");
         AssertDoesNotContain(json, "secreto");

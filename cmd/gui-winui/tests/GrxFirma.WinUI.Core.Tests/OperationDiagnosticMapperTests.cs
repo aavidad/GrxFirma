@@ -6,12 +6,22 @@
 using System.Text.Json;
 using GrxFirma.WinUI.Core.Diagnostics;
 using GrxFirma.WinUI.Core.Ipc;
+using GrxFirma.WinUI.Core.Localization;
 
 namespace GrxFirma.WinUI.Core.Tests;
 
 [TestClass]
 public sealed class OperationDiagnosticMapperTests
 {
+    private static readonly string[] Languages =
+        ["ca", "de", "en", "es", "eu", "fr", "gl", "it", "pt", "va", "zh"];
+
+    private static readonly Lazy<CatalogLocalizer> Catalogs =
+        new(() => new CatalogLocalizer(FindLocales(), "es"));
+
+    // Los textos del mapeo salen del catálogo real del repositorio.
+    private static string Es(string key) => Catalogs.Value.Text("es", key);
+
     [TestMethod]
     public void BackendDiagnostic_IsPreservedSanitized_AndPresentationLimitsSteps()
     {
@@ -55,7 +65,7 @@ public sealed class OperationDiagnosticMapperTests
             },
             diagnostic: diagnostic);
 
-        var mapped = OperationDiagnosticMapper.FromResult(result);
+        var mapped = OperationDiagnosticMapper.FromResult(result, Es);
         var serialized = JsonSerializer.Serialize(mapped);
         var presentation = OperationDiagnosticPresentation.From(mapped);
 
@@ -110,12 +120,12 @@ public sealed class OperationDiagnosticMapperTests
         var success = OperationDiagnosticMapper.FromResult(NewResult<object>(
             isSuccess: true,
             outcome: "success",
-            phase: "operation"));
+            phase: "operation"), Es);
         var partial = OperationDiagnosticMapper.FromResult(NewResult<object>(
             isSuccess: true,
             outcome: "partial",
             errorCode: "partial_result",
-            phase: "operation"));
+            phase: "operation"), Es);
 
         Assert.IsNull(success.FailureCode);
         Assert.AreEqual(
@@ -136,7 +146,7 @@ public sealed class OperationDiagnosticMapperTests
     {
         var exception = IpcClientException.ProtocolVersion();
 
-        var mapped = OperationDiagnosticMapper.FromException(exception);
+        var mapped = OperationDiagnosticMapper.FromException(exception, catalogText: Es);
         var visibleText = VisibleText(mapped);
 
         Assert.AreEqual("UNSUPPORTED_PROTOCOL", mapped.FailureCode);
@@ -242,6 +252,118 @@ public sealed class OperationDiagnosticMapperTests
         Assert.AreEqual(icacls, OperationDiagnosticMapper.FromResult(NewResult<object>(
             false, "failure", SettingsAccessFailure.NoPermissionCode), Text).SettingsAccess!.Command);
         Assert.IsNull(OperationDiagnosticMapper.FromResult(NewResult<object>(false, "failure", "operation_failed"), Text).SettingsAccess);
+    }
+
+    [TestMethod]
+    public void EveryVisibleText_ComesFromTheCatalogInAllLanguages()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        foreach (var language in Languages)
+        {
+            string Text(string key) => Catalogs.Value.Text(language, key);
+            var diagnostics = new List<OperationDiagnostic>
+            {
+                OperationDiagnosticMapper.FromUserCancellation(Text),
+                OperationDiagnosticMapper.FromException(new InvalidOperationException("x"), catalogText: Text),
+                OperationDiagnosticMapper.FromException(
+                    new OperationCanceledException(cancellation.Token), cancellation.Token, Text),
+                OperationDiagnosticMapper.Sanitize(new OperationDiagnostic(), Text),
+                OperationDiagnosticMapper.Sanitize(new OperationDiagnostic
+                {
+                    LikelyOwner = "afirma",
+                    Steps = [new OperationDiagnosticStep { Code = "x" }],
+                }, Text),
+            };
+            foreach (var exception in new[]
+                     {
+                         IpcClientException.ProtocolVersion(), IpcClientException.Protocol(),
+                         IpcClientException.Connection(), IpcClientException.Connection(retryable: false),
+                         IpcClientException.Closed(), IpcClientException.ClosedAfterRequest(),
+                         IpcClientException.ServerIdentity(), IpcClientException.Configuration(),
+                     })
+            {
+                diagnostics.Add(OperationDiagnosticMapper.FromException(exception, catalogText: Text));
+            }
+            foreach (var outcome in new[] { "success", "partial", "failure" })
+            foreach (var phase in new[] { "admission", "protocol", "operation", null })
+            {
+                diagnostics.Add(OperationDiagnosticMapper.FromResult(NewResult<object>(
+                    outcome != "failure", outcome, phase: phase), Text));
+            }
+
+            foreach (var diagnostic in diagnostics)
+            {
+                foreach (var visible in VisibleText(diagnostic).Split('\n').Append(diagnostic.ExpertMessage).Where(text => text.Length > 0))
+                {
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(visible), language);
+                    Assert.IsFalse(visible.Contains("winui.", StringComparison.Ordinal),
+                        $"{language}: clave sin traducir en «{visible}»");
+                }
+            }
+        }
+    }
+
+    [TestMethod]
+    public void RedactionMarker_FollowsTheLanguage()
+    {
+        var diagnostic = new OperationDiagnostic { ExpertMessage = @"Fallo al leer C:\Users\persona\a.pdf" };
+        foreach (var language in Languages)
+        {
+            var marker = Catalogs.Value.Text(language, "winui.diagnostico.contenido_protegido");
+            Assert.IsFalse(marker.StartsWith("winui.", StringComparison.Ordinal), language);
+            var mapped = OperationDiagnosticMapper.Sanitize(diagnostic, key => Catalogs.Value.Text(language, key));
+            StringAssert.Contains(mapped.ExpertMessage, marker, language);
+            Assert.IsFalse(mapped.ExpertMessage.Contains("persona", StringComparison.Ordinal), language);
+        }
+        Assert.AreEqual("[protected content]", Catalogs.Value.Text("en", "winui.diagnostico.contenido_protegido"));
+        Assert.AreEqual("[contenido protegido]", Es("winui.diagnostico.contenido_protegido"));
+    }
+
+    // Un «$» en la traducción del marcador no se toma como referencia de
+    // grupo de la expresión regular.
+    [TestMethod]
+    public void RedactionMarker_IsInsertedLiterally()
+    {
+        var mapped = OperationDiagnosticMapper.Sanitize(
+            new OperationDiagnostic { ExpertMessage = "token=secreto" },
+            key => key == "winui.diagnostico.contenido_protegido" ? "[$0 oculto]" : Es(key));
+        Assert.AreEqual("[$0 oculto]", mapped.ExpertMessage);
+    }
+
+    // El detalle técnico se compone de dos frases completas; antes quedaba
+    // «ein Ergebnis erfolgreich» en alemán y «parcial» sin traducir.
+    [TestMethod]
+    public void MetadataExpertMessage_UsesWholeSentences()
+    {
+        var partial = OperationDiagnosticMapper.FromResult(NewResult<object>(
+            true, "partial", phase: "admission"), Es);
+        Assert.AreEqual(
+            "El motor local comunicó un resultado parcial. Fase comunicada: admisión.",
+            partial.ExpertMessage);
+        var failure = OperationDiagnosticMapper.FromResult(NewResult<object>(
+            false, "failure"), key => Catalogs.Value.Text("de", key));
+        Assert.AreEqual(
+            "Die lokale Engine hat einen Fehlschlag gemeldet. Sie hat keine erkannte Phase gemeldet.",
+            failure.ExpertMessage);
+        var zh = OperationDiagnosticMapper.FromResult(NewResult<object>(
+            true, "success", phase: "protocol"), key => Catalogs.Value.Text("zh", key));
+        Assert.AreEqual("本地引擎报告的结果为成功。报告的阶段：协议。", zh.ExpertMessage);
+    }
+
+    private static string FindLocales()
+    {
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        {
+            var candidate = Path.Combine(directory.FullName, "internal", "adapters", "outbound", "common", "localizador", "locales");
+            if (File.Exists(Path.Combine(candidate, "es.json")))
+            {
+                return candidate;
+            }
+        }
+
+        Assert.Fail("No se encuentran los catálogos del repositorio.");
+        return string.Empty;
     }
 
     private static IpcCallResult<TData> NewResult<TData>(
