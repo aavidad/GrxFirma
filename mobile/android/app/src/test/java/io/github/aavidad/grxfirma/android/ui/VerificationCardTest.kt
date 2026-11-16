@@ -58,12 +58,36 @@ class VerificationCardTest {
         // Caso real de la revisión: íntegra, pero sin anclas de confianza en el móvil.
         val untrusted = accredited.copy(certificateStatus = "unknown", trustStatus = "unknown")
         assertEquals(Verdict.INTACT_UNCHECKED, VerificationCard.verdict(untrusted))
-        assertEquals(Verdict.INVALID, VerificationCard.verdict(accredited.copy(valid = false)))
+        // Íntegra y nada inválido: el motor no la da por válida, pero no es un fallo rojo.
+        assertEquals(Verdict.INTACT_NOT_CONFIRMED, VerificationCard.verdict(accredited.copy(valid = false)))
+        assertEquals(Verdict.INVALID, VerificationCard.verdict(accredited.copy(valid = false, integrityStatus = "unknown")))
+        assertEquals(Verdict.INVALID, VerificationCard.verdict(accredited.copy(valid = false, integrityStatus = "invalid")))
         assertEquals(Verdict.INVALID, VerificationCard.verdict(accredited.copy(integrityStatus = "invalid")))
         assertEquals(Verdict.INVALID, VerificationCard.verdict(accredited.copy(certificateStatus = "invalid")))
         assertEquals(Verdict.INCOMPLETE, VerificationCard.verdict(untrusted.copy(integrityStatus = "unknown")))
         assertEquals(Verdict.REVOCATION_INCONCLUSIVE,
             VerificationCard.verdict(accredited.copy(valid = false, reason = "revocación no concluyente")))
+    }
+
+    /**
+     * Recorrido 0.0.128: firma SHA-1 con la integridad válida y la confianza sin
+     * evaluar salía «Firma no válida» en rojo. Como en el escritorio, solo es roja
+     * cuando algo es inválido; aquí es ámbar y dice lo que pasó.
+     */
+    @Test
+    fun `an intact signature left unevaluated is amber, not a red failure`() {
+        val unevaluated = accredited.copy(valid = false, reason = "confianza no evaluada", certificateStatus = "unknown",
+            trustStatus = "unknown", warnings = listOf("excepciones.sha1_leer.aviso", "movil.verificacion.cadena_no_evaluada"))
+        val verdict = VerificationCard.verdict(unevaluated)
+        assertEquals(Verdict.INTACT_NOT_CONFIRMED, verdict)
+        assertEquals(R.string.verdict_intact_not_confirmed, VerificationCard.title(verdict))
+        assertEquals(R.color.status_warning, VerificationCard.color(verdict))
+        assertTrue("El motivo explica por qué no se confirma", VerificationCard.showsReason(verdict, unevaluated.reason))
+        assertTrue(UiText.Resource(R.string.verification_integrity_ok) in VerificationCard.summary(unevaluated))
+        // Cualquier aspecto inválido sigue en rojo aunque la integridad sea válida.
+        assertEquals(Verdict.INVALID, VerificationCard.verdict(unevaluated.copy(certificateStatus = "invalid")))
+        assertEquals(Verdict.INVALID, VerificationCard.verdict(unevaluated.copy(trustStatus = "invalid")))
+        assertEquals(R.color.error, VerificationCard.color(Verdict.INVALID))
     }
 
     @Test

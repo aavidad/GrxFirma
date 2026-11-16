@@ -619,6 +619,7 @@
     </plurals>
     <string name="verdict_valid">Firma válida</string>
     <string name="verdict_intact_unchecked">Firma íntegra; no se pudo comprobar el certificado</string>
+    <string name="verdict_intact_not_confirmed">Firma íntegra; no se pudo confirmar que sea válida</string>
     <string name="verdict_incomplete">No se pudo comprobar la firma por completo</string>
     <string name="verdict_revocation_inconclusive">Firma no confirmada: no se pudo saber si el certificado está revocado</string>
     <string name="verdict_invalid">Firma no válida</string>

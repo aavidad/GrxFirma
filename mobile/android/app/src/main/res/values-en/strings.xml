@@ -619,6 +619,7 @@
     </plurals>
     <string name="verdict_valid">Valid signature</string>
     <string name="verdict_intact_unchecked">Signature intact; the certificate could not be checked</string>
+    <string name="verdict_intact_not_confirmed">Signature intact; its validity could not be confirmed</string>
     <string name="verdict_incomplete">The signature could not be fully checked</string>
     <string name="verdict_revocation_inconclusive">Signature not confirmed: it could not be checked whether the certificate is revoked</string>
     <string name="verdict_invalid">Invalid signature</string>

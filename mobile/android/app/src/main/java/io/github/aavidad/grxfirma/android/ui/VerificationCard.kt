@@ -11,7 +11,7 @@ import androidx.annotation.StringRes
 import io.github.aavidad.grxfirma.android.R
 
 /** Veredicto de una verificación, de mejor a peor. Decide título y color de la tarjeta. */
-enum class Verdict { VALID, INTACT_UNCHECKED, INCOMPLETE, REVOCATION_INCONCLUSIVE, INVALID }
+enum class Verdict { VALID, INTACT_UNCHECKED, INTACT_NOT_CONFIRMED, INCOMPLETE, REVOCATION_INCONCLUSIVE, INVALID }
 
 /**
  * Tarjeta de resultado de una verificación: un veredicto que no contradice
@@ -22,10 +22,18 @@ object VerificationCard {
     /** Motivo cerrado del motor cuando no puede confirmar la revocación. */
     private const val REVOCATION_INCONCLUSIVE_REASON = "revocación no concluyente"
 
+    /**
+     * Rojo solo cuando algo ha fallado de verdad: integridad, certificado o
+     * confianza inválidos, o una firma rechazada sin integridad comprobada.
+     * Con la integridad válida y nada inválido, una firma que el motor no da
+     * por válida (p. ej. la confianza quedó sin evaluar porque falta activar
+     * una opción) es ámbar, como en el escritorio.
+     */
     fun verdict(v: UiText.Verification): Verdict = when {
         !v.valid && v.reason == REVOCATION_INCONCLUSIVE_REASON -> Verdict.REVOCATION_INCONCLUSIVE
-        !v.valid || v.integrityStatus == "invalid" || v.certificateStatus == "invalid" ||
-            v.trustStatus == "invalid" -> Verdict.INVALID
+        v.integrityStatus == "invalid" || v.certificateStatus == "invalid" || v.trustStatus == "invalid" -> Verdict.INVALID
+        !v.valid && v.integrityStatus == "valid" -> Verdict.INTACT_NOT_CONFIRMED
+        !v.valid -> Verdict.INVALID
         v.reason == REVOCATION_INCONCLUSIVE_REASON -> Verdict.REVOCATION_INCONCLUSIVE
         v.accredited() -> Verdict.VALID
         v.integrityStatus == "valid" -> Verdict.INTACT_UNCHECKED
@@ -36,6 +44,7 @@ object VerificationCard {
     fun title(verdict: Verdict): Int = when (verdict) {
         Verdict.VALID -> R.string.verdict_valid
         Verdict.INTACT_UNCHECKED -> R.string.verdict_intact_unchecked
+        Verdict.INTACT_NOT_CONFIRMED -> R.string.verdict_intact_not_confirmed
         Verdict.INCOMPLETE -> R.string.verdict_incomplete
         Verdict.REVOCATION_INCONCLUSIVE -> R.string.verdict_revocation_inconclusive
         Verdict.INVALID -> R.string.verdict_invalid
@@ -120,9 +129,13 @@ object VerificationCard {
         return warnings to errors
     }
 
-    /** El motivo del motor («firma PAdES válida») contradiría un veredicto ámbar: solo acompaña a un rechazo. */
+    /**
+     * El motivo del motor («firma PAdES válida») contradiría un veredicto ámbar:
+     * solo acompaña a un rechazo o explica por qué una firma íntegra no se confirma.
+     */
     fun showsReason(verdict: Verdict, reason: String): Boolean =
-        reason.isNotBlank() && (verdict == Verdict.INVALID || verdict == Verdict.REVOCATION_INCONCLUSIVE)
+        reason.isNotBlank() && (verdict == Verdict.INVALID || verdict == Verdict.REVOCATION_INCONCLUSIVE ||
+            verdict == Verdict.INTACT_NOT_CONFIRMED)
 
     /** «CN=Ana Pérez,O=Diputación,C=ES» → «Ana Pérez». Si no hay CN, el nombre completo. */
     fun commonName(distinguishedName: String): String {

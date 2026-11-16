@@ -601,6 +601,7 @@
     </plurals>
     <string name="verdict_valid">签名有效</string>
     <string name="verdict_intact_unchecked">签名完整；无法检查证书</string>
+    <string name="verdict_intact_not_confirmed">签名完整；无法确认其有效性</string>
     <string name="verdict_incomplete">无法完整检查签名</string>
     <string name="verdict_revocation_inconclusive">签名未确认：无法确定证书是否已被吊销</string>
     <string name="verdict_invalid">签名无效</string>
