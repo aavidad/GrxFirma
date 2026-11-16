@@ -16,6 +16,10 @@ public static class VerificationPresentation
         {
             title = "Resultado no utilizable";
         }
+        else if (VerificationAssessment.HasShortRsaKeyWithoutException(result))
+        {
+            title = "Firma no válida";
+        }
         else if (VerificationAssessment.HasXmlCanonicalizationCompatibility(result))
         {
             title = "Compatibilidad histórica; validación estándar no acreditada";

@@ -7275,4 +7275,5 @@
   ,"En Windows, al desinstalar ya no quedan en el registro claves vacías de la conexión entre la extensión del navegador y GrxFirma.": "Windowsen, desinstalatzean ez da jada erregistroan geratzen nabigatzailearen luzapenaren eta GrxFirmaren arteko konexioaren gako hutsik."
   ,"Al verificar un PDF firmado, un texto del propio PDF o del certificado que se parezca a la estructura de la firma ya no hace fallar una firma correcta.": "Sinatutako PDF bat egiaztatzean, PDFko edo ziurtagiriko testu batek sinaduraren egituraren antza izateak ez du jada sinadura zuzen bat huts eginarazten."
   ,"error.servicio_sin_carpeta_privada": "Ezin da zerbitzua instalatu, ez dagoelako baliozko karpeta pertsonalik. Ezarri HOME bide-izen absolutu batekin eta saiatu berriro."
+  ,"Firma no válida": "Sinadura ez da baliozkoa"
 }

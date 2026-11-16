@@ -589,15 +589,20 @@ public sealed class VerifyPageViewModel
             VerificationAssessment.HasValidSignatureEvidence(data);
         var hasXmlCompatibility =
             VerificationAssessment.HasXmlCanonicalizationCompatibility(data);
+        // Clave RSA corta sin excepción: firma no válida, siempre en rojo.
+        var hasShortRsaKey =
+            VerificationAssessment.HasShortRsaKeyWithoutException(data);
         HasResult = true;
         ResultTitle = VerificationPresentation.GetTitle(data);
-        ResultSeverity = hasXmlCompatibility
-            ? InfoBarSeverity.Warning
-            : !hasValidSignatureEvidence
-                ? InfoBarSeverity.Error
-                : VerificationAssessment.HasEstablishedTrust(data)
-                    ? InfoBarSeverity.Success
-                    : InfoBarSeverity.Warning;
+        ResultSeverity = hasShortRsaKey
+            ? InfoBarSeverity.Error
+            : hasXmlCompatibility
+                ? InfoBarSeverity.Warning
+                : !hasValidSignatureEvidence
+                    ? InfoBarSeverity.Error
+                    : VerificationAssessment.HasEstablishedTrust(data)
+                        ? InfoBarSeverity.Success
+                        : InfoBarSeverity.Warning;
         if (VerificationAssessment.HasForcedTrust(data))
         {
             // Nunca «de confianza»: válida porque el usuario lo aceptó.

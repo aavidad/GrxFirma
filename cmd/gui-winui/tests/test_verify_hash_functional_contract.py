@@ -3,6 +3,7 @@
 # Licencia: EUPL 1.2 o posterior
 # SPDX-License-Identifier: EUPL-1.2
 
+import json
 import pathlib
 import re
 import unittest
@@ -116,10 +117,38 @@ class VerifyAndHashFunctionalContractTests(unittest.TestCase):
         )
         self.assertRegex(
             self.verify_vm,
-            r"ResultSeverity = hasXmlCompatibility\s*\? InfoBarSeverity.Warning",
+            r"ResultSeverity = hasShortRsaKey\s*\? InfoBarSeverity.Error\s*"
+            r": hasXmlCompatibility\s*\? InfoBarSeverity.Warning",
         )
         self.assertIn("no se acredita su validez conforme a XMLDSig", self.verify_vm)
         self.assertIn("data.VisibleEvidence.Select(", self.verify_vm)
+
+    def test_short_rsa_key_without_exception_is_red_invalid_signature(self):
+        # Orden de Alberto (16/11/2026): clave RSA corta sin excepción, en
+        # rojo y como «Firma no válida». Se decide con datos estructurados.
+        self.assertIn(
+            "VerificationAssessment.HasShortRsaKeyWithoutException(data)",
+            self.verify_vm,
+        )
+        assessment = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/"
+                      "VerificationAssessment.cs").read_text(encoding="utf-8")
+        method = assessment.split("HasShortRsaKeyWithoutException(VerifyResult? result)", 1)[1]
+        method = method.split("private static bool IsKnownStatus", 1)[0]
+        self.assertIn('"rsa_bits="', method)
+        self.assertIn('"trust.user_forced"', method)
+        self.assertIn('"clave_rsa_corta"', method)
+        self.assertIn("MinimumRsaBits", method)
+        self.assertNotIn(".Reason", method)
+        presentation = (ROOT / "cmd/gui-winui/src/GrxFirma.WinUI.Core/Operations/"
+                        "VerificationPresentation.cs").read_text(encoding="utf-8")
+        self.assertRegex(
+            presentation,
+            r"HasShortRsaKeyWithoutException\(result\)\)\s*\{\s*title = \"Firma no válida\";",
+        )
+        for path in sorted((ROOT / "internal/adapters/outbound/common/localizador/locales").glob("*.json")):
+            with self.subTest(locale=path.stem):
+                catalog = json.loads(path.read_text(encoding="utf-8"))
+                self.assertTrue(catalog.get("Firma no válida", "").strip())
 
     def test_effective_reverification_clears_old_details_before_engine_request(self):
         method = self.verify_vm.split("public async Task VerifyAsync()", 1)[1].split(

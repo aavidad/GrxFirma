@@ -55,6 +55,39 @@ public static class VerificationAssessment
         !HasXmlCanonicalizationCompatibility(result) &&
         result.Evidence?.Any(item => item?.Type is "trust.user_forced") == true;
 
+    // Orden de Alberto (16/11/2026): una clave RSA del firmante por debajo de
+    // 2048 bits, sin la excepción clave_rsa_corta aceptada, es una firma no
+    // válida (rojo). Se decide con datos estructurados: el detalle
+    // rsa_bits=N del certificado y la evidencia trust.user_forced, nunca con
+    // el texto del motivo. Un certificado caducado o de emisor desconocido no
+    // entra aquí.
+    public const int MinimumRsaBits = 2048;
+
+    public static bool HasShortRsaKeyWithoutException(VerifyResult? result)
+    {
+        if (result?.Certificate is null ||
+            !IsStatus(result.Certificate.Status, "invalid"))
+        {
+            return false;
+        }
+        if (result.Evidence?.Any(item =>
+                item?.Type is "trust.user_forced" &&
+                string.Equals(item.Summary?.Trim(), "clave_rsa_corta", StringComparison.Ordinal)) == true)
+        {
+            return false;
+        }
+        return (result.Certificate.Details ?? []).Any(static detail =>
+            detail is not null &&
+            detail.Trim().StartsWith("rsa_bits=", StringComparison.Ordinal) &&
+            int.TryParse(
+                detail.Trim()["rsa_bits=".Length..],
+                System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var bits) &&
+            bits > 0 &&
+            bits < MinimumRsaBits);
+    }
+
     private static bool IsKnownStatus(string? value) =>
         value?.Trim().ToLowerInvariant() is
             "valid" or "invalid" or "warning" or "unknown";

@@ -7275,4 +7275,5 @@
   ,"En Windows, al desinstalar ya no quedan en el registro claves vacías de la conexión entre la extensión del navegador y GrxFirma.": "A Windows, en desinstal·lar ja no queden al registre claus buides de la connexió entre l'extensió del navegador i GrxFirma."
   ,"Al verificar un PDF firmado, un texto del propio PDF o del certificado que se parezca a la estructura de la firma ya no hace fallar una firma correcta.": "En verificar un PDF signat, un text del mateix PDF o del certificat que s'assembli a l'estructura de la signatura ja no fa fallar una signatura correcta."
   ,"error.servicio_sin_carpeta_privada": "No es pot instal·lar el servei perquè falta una carpeta personal vàlida. Definiu HOME amb un camí absolut i torneu-ho a provar."
+  ,"Firma no válida": "Signatura no vàlida"
 }

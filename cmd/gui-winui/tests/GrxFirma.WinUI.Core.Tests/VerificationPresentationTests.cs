@@ -94,4 +94,89 @@ public sealed class VerificationPresentationTests
             VerificationPresentation.GetTitle(result));
         Assert.AreEqual("Resultado no utilizable", VerificationPresentation.GetTitle(result with { IsValid = true }));
     }
+
+    // Orden de Alberto (16/11/2026): la clave RSA corta sin excepción es firma
+    // no válida; caducado y emisor desconocido conservan su título.
+    private static VerifyResult ShortRsaResult(string bits = "1024") =>
+        JsonSerializer.Deserialize<VerifyResult>($$"""
+            {
+              "valid": false,
+              "reason": "clave RSA del firmante de menos de 2048 bits",
+              "integrity": { "status": "valid" },
+              "certificate": {
+                "status": "invalid",
+                "reason": "clave RSA del firmante de menos de 2048 bits",
+                "details": ["subject=Firmante sintético", "rsa_bits={{bits}}"]
+              },
+              "trust": { "status": "valid" },
+              "evidence": []
+            }
+            """)!;
+
+    [TestMethod]
+    [DataRow("1024")]
+    [DataRow("2047")]
+    public void ShortRsaKeyWithoutException_IsInvalidSignature(string bits)
+    {
+        var result = ShortRsaResult(bits);
+        Assert.IsTrue(VerificationAssessment.IsCoherent(result));
+        Assert.IsTrue(VerificationAssessment.HasShortRsaKeyWithoutException(result));
+        Assert.IsFalse(VerificationAssessment.HasValidSignatureEvidence(result));
+        Assert.AreEqual("Firma no válida", VerificationPresentation.GetTitle(result));
+    }
+
+    [TestMethod]
+    public void ShortRsaKeyWithAcceptedException_IsNotInvalidSignature()
+    {
+        var result = ShortRsaResult() with
+        {
+            IsValid = true,
+            Certificate = new VerifyAspect { Status = "valid", Details = ["rsa_bits=1024"] },
+            Evidence = [new VerifyEvidence { Type = "trust.user_forced", Summary = "clave_rsa_corta" }],
+        };
+        Assert.IsFalse(VerificationAssessment.HasShortRsaKeyWithoutException(result));
+        Assert.IsTrue(VerificationAssessment.HasForcedTrust(result));
+        Assert.AreNotEqual("Firma no válida", VerificationPresentation.GetTitle(result));
+    }
+
+    [TestMethod]
+    public void OtherAcceptedException_DoesNotHideShortRsaKey()
+    {
+        var result = ShortRsaResult() with
+        {
+            Evidence = [new VerifyEvidence { Type = "trust.user_forced", Summary = "ca_desconocida" }],
+        };
+        Assert.IsTrue(VerificationAssessment.HasShortRsaKeyWithoutException(result));
+        Assert.AreEqual("Firma no válida", VerificationPresentation.GetTitle(result));
+    }
+
+    [TestMethod]
+    public void ExpiredOrUnknownIssuer_KeepTheirTitle()
+    {
+        var expired = Result(false, "valid", "invalid", "valid") with
+        {
+            Certificate = new VerifyAspect
+            {
+                Status = "invalid",
+                Reason = "certificado caducado: Firmante sintético",
+                Details = ["not_after=2020-01-01T00:00:00Z", "rsa_bits=4096"],
+            },
+        };
+        Assert.IsFalse(VerificationAssessment.HasShortRsaKeyWithoutException(expired));
+        Assert.AreEqual("Validez de firma no acreditada", VerificationPresentation.GetTitle(expired));
+        var unknownIssuer = Result(false, "valid", "valid", "invalid");
+        Assert.IsFalse(VerificationAssessment.HasShortRsaKeyWithoutException(unknownIssuer));
+        Assert.AreEqual("Firma íntegra, pero no confiable", VerificationPresentation.GetTitle(unknownIssuer));
+    }
+
+    [TestMethod]
+    public void MalformedOrLongRsaDetail_IsNotShortKey()
+    {
+        foreach (var bits in new[] { "2048", "4096", "mil", "-1", "0", " 1024x" })
+        {
+            Assert.IsFalse(
+                VerificationAssessment.HasShortRsaKeyWithoutException(ShortRsaResult(bits)),
+                bits);
+        }
+    }
 }
