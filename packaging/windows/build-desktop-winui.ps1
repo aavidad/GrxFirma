@@ -18,6 +18,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "Compilación detenida: complete la sección de la versión actual en docs/NOVEDADES.md."
 }
 . (Join-Path $PSScriptRoot "reproducible-build.ps1")
+. (Join-Path $PSScriptRoot "cswinrt-canonical-sources.ps1")
 $SourceDateEpoch = Initialize-GrxFirmaReproducibleBuild -RootDirectory $RepositoryRoot
 
 $Script:ExpectedDotNetSdk = "10.0.302"
@@ -617,6 +618,11 @@ $workDirectory = Join-Path $temporaryRoot "grxfirma-winui-amd64"
 $candidateStage = Join-Path $workDirectory $Script:StageName
 $publishDirectory = Join-Path $workDirectory "publish"
 $buildArtifactsDirectory = Join-Path $workDirectory "artifacts"
+# Primera compilación, solo para sacar las fuentes de CsWinRT y fijar su orden.
+$csWinRtArtifactsDirectory = Join-Path $workDirectory "artifacts-cswinrt"
+$csWinRtGeneratedDirectory = Join-Path $workDirectory "cswinrt-generated"
+$csWinRtCanonicalDirectory = Join-Path $workDirectory "cswinrt-canonical"
+$csWinRtSourceList = Join-Path $workDirectory "cswinrt-canonical-sources.txt"
 $nugetDirectory = Join-Path $workDirectory "nuget-packages"
 $dotnetHome = Join-Path $workDirectory "dotnet-home"
 $nugetHttpCache = Join-Path $workDirectory "nuget-http-cache"
@@ -670,6 +676,7 @@ try {
         (Join-Path $candidateStage "app"),
         $publishDirectory,
         $buildArtifactsDirectory,
+        $csWinRtArtifactsDirectory,
         $nugetDirectory,
         $dotnetHome,
         $nugetHttpCache,
@@ -694,17 +701,70 @@ try {
         "-p:PathMap=$RepositoryRoot=/_/"
     )
 
+    # La primera compilación va a su propio ArtifactsPath para que la
+    # publicación empiece de cero y no dependa de lo incremental.
+    $csWinRtMsBuildProperties = @(
+        foreach ($property in $commonMsBuildProperties) {
+            if ($property.StartsWith("-p:ArtifactsPath=", [System.StringComparison]::Ordinal)) {
+                "-p:ArtifactsPath=$csWinRtArtifactsDirectory"
+            } else {
+                $property
+            }
+        }
+    )
+    $winUiPublishProperties = @(
+        "-p:WindowsPackageType=None",
+        "-p:EnableMsixTooling=true",
+        "-p:WindowsAppSDKSelfContained=true",
+        "-p:SelfContained=true",
+        "-p:PublishSingleFile=false",
+        "-p:PublishTrimmed=false",
+        "-p:PublishReadyToRun=false",
+        "-p:DebugSymbols=false",
+        "-p:DebugType=None"
+    )
+
     Write-Output "Restaurando WinUI con lockfile y .NET SDK $($Script:ExpectedDotNetSdk)..."
-    & $dotnetCommand restore `
-        $winUiProject `
-        --runtime $Script:RuntimeIdentifier `
-        --locked-mode `
-        --disable-parallel `
-        --packages $nugetDirectory `
-        @commonMsBuildProperties
-    if ($LASTEXITCODE -ne 0) {
-        throw "dotnet restore --locked-mode fallo con codigo $LASTEXITCODE."
+    foreach ($restoreProperties in @($commonMsBuildProperties, $csWinRtMsBuildProperties)) {
+        & $dotnetCommand restore `
+            $winUiProject `
+            --runtime $Script:RuntimeIdentifier `
+            --locked-mode `
+            --disable-parallel `
+            --packages $nugetDirectory `
+            @restoreProperties
+        if ($LASTEXITCODE -ne 0) {
+            throw "dotnet restore --locked-mode fallo con codigo $LASTEXITCODE."
+        }
     }
+
+    # CsWinRT ordena y nombra sus clases WinRTTypeDetails con un hash
+    # aleatorio por proceso. Se compila una vez para guardar sus fuentes, se
+    # dejan en forma canónica y la publicación las compila en lugar del
+    # generador (cmd/gui-winui/Directory.Build.props). Así la dll sale igual
+    # en cada compilación del mismo código.
+    Write-Output "Compilando WinUI para fijar el orden de las fuentes de CsWinRT..."
+    & $dotnetCommand build `
+        $winUiProject `
+        --configuration Release `
+        --runtime $Script:RuntimeIdentifier `
+        --self-contained true `
+        --no-restore `
+        @winUiPublishProperties `
+        "-p:EmitCompilerGeneratedFiles=true" `
+        "-p:CompilerGeneratedFilesOutputPath=$csWinRtGeneratedDirectory" `
+        @csWinRtMsBuildProperties
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet build WinUI (fuentes de CsWinRT) fallo con codigo $LASTEXITCODE."
+    }
+    $csWinRtSources = ConvertTo-GrxFirmaCanonicalCsWinRTSources `
+        -GeneratedDirectory (Join-Path $csWinRtGeneratedDirectory "WinRT.SourceGenerator") `
+        -DestinationDirectory $csWinRtCanonicalDirectory `
+        -ListPath $csWinRtSourceList
+    Write-Output (
+        "Fuentes de CsWinRT en forma canónica: $($csWinRtSources.Files) ficheros, " +
+        "$($csWinRtSources.Renamed) clases compartidas renombradas."
+    )
 
     Write-Output "Publicando WinUI 3 self-contained para win-x64..."
     & $dotnetCommand publish `
@@ -714,15 +774,8 @@ try {
         --self-contained true `
         --no-restore `
         --output $publishDirectory `
-        "-p:WindowsPackageType=None" `
-        "-p:EnableMsixTooling=true" `
-        "-p:WindowsAppSDKSelfContained=true" `
-        "-p:SelfContained=true" `
-        "-p:PublishSingleFile=false" `
-        "-p:PublishTrimmed=false" `
-        "-p:PublishReadyToRun=false" `
-        "-p:DebugSymbols=false" `
-        "-p:DebugType=None" `
+        @winUiPublishProperties `
+        "-p:GrxFirmaCsWinRTCanonicalSources=$csWinRtSourceList" `
         @commonMsBuildProperties
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet publish WinUI fallo con codigo $LASTEXITCODE."

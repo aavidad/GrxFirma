@@ -186,21 +186,31 @@ replican en los payloads Qt y WinUI y se regenera el manifiesto WinUI completo.
 El verificador independiente vuelve a comprobar inventario, hashes e igualdad
 del backend. `build-desktop-winui.ps1` no maneja certificados por sí mismo.
 
-### Límite de reproducibilidad de WinUI 3
+### Reproducibilidad de WinUI 3
 
-En Windows App SDK `2.3.1`, el generador XAML/WinRT no produce actualmente una
-`grxfirma-winui.dll` byte-idéntica entre dos compilaciones limpias. La
-comparación controlada con el mismo SDK, lockfiles, ruta intermedia,
-`SOURCE_DATE_EPOCH`, un solo nodo MSBuild y build servers desactivados aisló la
-variación al orden interno de las clases `WinRTTypeDetails` generadas. En la
-prueba realizada, 514 de las 516 entradas fueron byte-idénticas. Las otras dos
-fueron la DLL y `PUBLISH-MANIFEST.sha256`, que registra el hash real de esa DLL.
+El generador de CsWinRT (`WinRT.SourceGenerator`) escribe las clases
+`WinRTTypeDetails` recorriendo un conjunto ordenado por el hash de las cadenas,
+y .NET siembra ese hash al azar en cada proceso del compilador. Por eso, sin
+más, dos compilaciones del mismo código dan una `grxfirma-winui.dll` distinta:
+cambian el orden de esas clases y el nombre de las que comparten varios tipos
+(las de `x:Bind` y `MainWindow`).
 
-Por tanto, el contrato actual garantiza dependencias bloqueadas, conjunto de
-ficheros controlado, timestamps/orden ZIP estables e integridad SHA-256 completa
-de cada build. No promete todavía un ZIP WinUI byte-idéntico. No se reescribe ni
-normaliza la DLL después de compilar: eso ocultaría el comportamiento del
-generador y alteraría un binario que más adelante debe firmarse.
+`build-desktop-winui.ps1` lo corrige sin tocar la DLL después de compilar:
+
+1. Compila una vez, en un `ArtifactsPath` propio, con
+   `EmitCompilerGeneratedFiles=true` para guardar las fuentes de CsWinRT.
+2. `cswinrt-canonical-sources.ps1` las deja en forma canónica: cada clase
+   compartida toma el nombre del menor de los tipos que la usan y las clases
+   van ordenadas. El contenido de cada clase no cambia. Si el formato del
+   generador cambia, el paso se detiene con un error en vez de adivinar.
+3. Publica con `GrxFirmaCsWinRTCanonicalSources`. El objetivo de
+   `cmd/gui-winui/Directory.Build.props` quita entonces `WinRT.SourceGenerator`
+   de los analizadores de `CoreCompile` y compila esas fuentes en su lugar.
+   Sin esa propiedad, las compilaciones de desarrollo y pruebas no cambian.
+
+Dos construcciones del mismo commit en carpetas distintas dan la misma DLL, el
+mismo ZIP y el mismo instalador de la suite. La prueba
+`tests/test-cswinrt-canonical-sources.ps1` comprueba la forma canónica en la CI.
 
 Las variables de entorno cuyo nombre identifica contraseñas, tokens, secretos,
 credenciales o key logs se retiran temporalmente durante la compilación. El
