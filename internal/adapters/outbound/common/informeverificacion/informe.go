@@ -155,6 +155,12 @@ func HTML(d Datos) ([]byte, error) {
 		v.Veredicto, v.ClaseVeredicto = loc.T("report.verdict.valid_warnings"), "aviso"
 	case r.Integrity.Status == domain.VerificationStatusInvalid:
 		v.Veredicto, v.ClaseVeredicto = loc.T("report.verdict.invalid"), "error"
+	case r.ClaveRSACortaSinExcepcion():
+		// Una clave RSA del firmante por debajo de 2048 bits, sin la
+		// excepción aceptada, invalida la firma aunque el documento esté
+		// íntegro (orden de Alberto, 16/11/2026). Un certificado caducado o de
+		// emisor desconocido sigue en el caso «íntegra sin acreditar».
+		v.Veredicto, v.ClaseVeredicto = loc.T("report.verdict.invalid"), "error"
 	case r.Integrity.Status == domain.VerificationStatusValid && conAlgoritmoAntiguo(r):
 		// El documento no ha cambiado, pero la firma usa SHA-1: se dice eso, y
 		// solo se añade lo del certificado si además no se ha acreditado.

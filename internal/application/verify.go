@@ -12,8 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"grxfirma/internal/security/excepciones"
-	"strconv"
-	"strings"
 	"time"
 
 	"grxfirma/internal/domain"
@@ -192,13 +190,8 @@ func limiteDictamenClasico(v domain.VerificationResult) domain.MotivoDictamen {
 			return domain.MotivoDictamenAlgoritmoHeredado
 		}
 	}
-	for _, detail := range v.Certificate.Details {
-		if bits, ok := strings.CutPrefix(detail, "rsa_bits="); ok {
-			parsed, err := strconv.Atoi(bits)
-			if err == nil && parsed < 2048 && !forced[string(domain.ConfianzaClaveRSACorta)] {
-				return domain.MotivoDictamenClaveRSACorta
-			}
-		}
+	if v.ClaveRSACortaSinExcepcion() {
+		return domain.MotivoDictamenClaveRSACorta
 	}
 	return ""
 }
