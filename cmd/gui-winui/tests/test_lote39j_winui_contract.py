@@ -88,7 +88,11 @@ class SettingsAccessAtStartupContract(unittest.TestCase):
 
     def test_mapper_takes_the_catalog_text_by_error_code_outside_redaction(self):
         mapper = read(CORE / "Diagnostics/OperationDiagnosticMapper.cs")
-        self.assertIn("SettingsAccessFailure.From(result.ErrorCode, catalogText ?? CatalogLocalizer.Shared.Text)", mapper)
+        # El mapeo resuelve una sola vez el catálogo (el de las pruebas o el
+        # compartido) y lo usa también para los textos de ajustes sin permiso.
+        self.assertIn("catalogText ?? CatalogLocalizer.Shared.Text", mapper)
+        self.assertIn("var text = Catalog(catalogText);", mapper)
+        self.assertIn("SettingsAccessFailure.From(result.ErrorCode, text)", mapper)
         self.assertIn("SettingsAccess = settingsAccess", mapper)
         diagnostic = read(CORE / "Diagnostics/OperationDiagnostic.cs")
         field = diagnostic.index("public SettingsAccessFailure? SettingsAccess")
