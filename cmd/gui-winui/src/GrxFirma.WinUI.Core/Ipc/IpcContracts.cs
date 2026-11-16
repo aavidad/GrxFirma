@@ -131,11 +131,11 @@ public sealed record IpcCallResult<TData>
 
     public string SafeUserMessage =>
         IsSuccess
-            ? CatalogLocalizer.Shared.TranslateVisibleText("Operación completada.")
+            ? CatalogLocalizer.Shared.Text("winui.ipc.operacion_completada")
             : SafeIpcText.Clean(
                 Diagnostic?.UserMessage,
                 512,
-                "La operación no se pudo completar.");
+                CatalogLocalizer.Shared.Text("winui.diagnostico.resultado.fallido"));
 }
 
 public sealed record IpcHello

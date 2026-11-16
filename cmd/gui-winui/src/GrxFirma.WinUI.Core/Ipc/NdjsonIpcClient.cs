@@ -523,7 +523,7 @@ public sealed class NdjsonIpcClient : IIpcClient
             .Select(step => step with
             {
                 Code = SafeIpcText.Clean(step.Code, 64, "unknown"),
-                Label = SafeIpcText.Clean(step.Label, 160, "Paso observado"),
+                Label = SafeIpcText.Clean(step.Label, 160, CatalogLocalizer.Shared.Text("winui.diagnostico.paso_observado")),
                 Owner = SafeIpcText.Clean(step.Owner, 64, "unknown"),
                 UserMessage = SafeIpcText.Clean(step.UserMessage, 512, string.Empty),
                 SuggestedAction = SafeIpcText.Clean(
@@ -541,11 +541,11 @@ public sealed class NdjsonIpcClient : IIpcClient
             UserMessage = SafeIpcText.Clean(
                 diagnostic.UserMessage,
                 512,
-                "La operación no se pudo completar."),
+                CatalogLocalizer.Shared.Text("winui.diagnostico.resultado.fallido")),
             ExpertMessage = SafeIpcText.Clean(
                 diagnostic.ExpertMessage,
                 4096,
-                CatalogLocalizer.Shared.TranslateVisibleText("No hay detalle técnico disponible.")),
+                CatalogLocalizer.Shared.Text("winui.diagnostico.respaldo.detalle")),
             LikelyOwner = SafeIpcText.Clean(
                 diagnostic.LikelyOwner,
                 64,
@@ -553,11 +553,11 @@ public sealed class NdjsonIpcClient : IIpcClient
             ResponsibilityMessage = SafeIpcText.Clean(
                 diagnostic.ResponsibilityMessage,
                 512,
-                CatalogLocalizer.Shared.TranslateVisibleText("No se ha podido determinar el responsable probable.")),
+                CatalogLocalizer.Shared.Text("winui.diagnostico.respaldo.responsable")),
             SuggestedAction = SafeIpcText.Clean(
                 diagnostic.SuggestedAction,
                 512,
-                CatalogLocalizer.Shared.TranslateVisibleText("Vuelva a intentarlo o abra una incidencia si el problema continúa.")),
+                CatalogLocalizer.Shared.Text("winui.ipc.respaldo_accion")),
             Steps = steps,
         };
     }

@@ -315,7 +315,10 @@
   "approval.document.sized",
   "approval.documents",
   "approval.size.bytes",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.diagnostico.presentacion.origen_navegador",
+  "winui.diagnostico.presentacion.origen_afirma",
+  "winui.diagnostico.presentacion.paso_responsable"
  ],
  "de": [
   " + base64",
@@ -445,7 +448,8 @@
   "report.signer.organization",
   "qt.filedialog.filter",
   "qt.qstandardpaths.downloads",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.diagnostico.presentacion.paso_estado"
  ],
  "en": [
   " + base64",
@@ -1826,7 +1830,12 @@
   "approval.document.sized",
   "approval.documents",
   "approval.size.bytes",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.ipc.operacion_completada",
+  "winui.diagnostico.presentacion.paso_estado",
+  "winui.diagnostico.presentacion.paso_responsable",
+  "winui.diagnostico.presentacion.estado_correcto",
+  "winui.diagnostico.presentacion.estado_omitido"
  ],
  "it": [
   " + base64",
@@ -2459,7 +2468,9 @@
   "approval.document.sized",
   "approval.documents",
   "approval.size.bytes",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.diagnostico.presentacion.paso_estado",
+  "winui.diagnostico.presentacion.estado_omitido"
  ],
  "va": [
   " + base64",
@@ -2819,7 +2830,10 @@
   "approval.document.sized",
   "approval.documents",
   "approval.size.bytes",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.diagnostico.presentacion.origen_navegador",
+  "winui.diagnostico.presentacion.origen_afirma",
+  "winui.diagnostico.presentacion.paso_responsable"
  ],
  "zh": [
   " + base64",

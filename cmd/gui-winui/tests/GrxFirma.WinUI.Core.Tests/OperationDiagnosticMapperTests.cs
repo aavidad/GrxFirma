@@ -6,21 +6,15 @@
 using System.Text.Json;
 using GrxFirma.WinUI.Core.Diagnostics;
 using GrxFirma.WinUI.Core.Ipc;
-using GrxFirma.WinUI.Core.Localization;
 
 namespace GrxFirma.WinUI.Core.Tests;
 
 [TestClass]
 public sealed class OperationDiagnosticMapperTests
 {
-    private static readonly string[] Languages =
-        ["ca", "de", "en", "es", "eu", "fr", "gl", "it", "pt", "va", "zh"];
+    private static readonly string[] Languages = TestCatalogs.Languages;
 
-    private static readonly Lazy<CatalogLocalizer> Catalogs =
-        new(() => new CatalogLocalizer(FindLocales(), "es"));
-
-    // Los textos del mapeo salen del catálogo real del repositorio.
-    private static string Es(string key) => Catalogs.Value.Text("es", key);
+    private static string Es(string key) => TestCatalogs.Es(key);
 
     [TestMethod]
     public void BackendDiagnostic_IsPreservedSanitized_AndPresentationLimitsSteps()
@@ -261,7 +255,7 @@ public sealed class OperationDiagnosticMapperTests
         cancellation.Cancel();
         foreach (var language in Languages)
         {
-            string Text(string key) => Catalogs.Value.Text(language, key);
+            string Text(string key) => TestCatalogs.In(language)(key);
             var diagnostics = new List<OperationDiagnostic>
             {
                 OperationDiagnosticMapper.FromUserCancellation(Text),
@@ -310,13 +304,13 @@ public sealed class OperationDiagnosticMapperTests
         var diagnostic = new OperationDiagnostic { ExpertMessage = @"Fallo al leer C:\Users\persona\a.pdf" };
         foreach (var language in Languages)
         {
-            var marker = Catalogs.Value.Text(language, "winui.diagnostico.contenido_protegido");
+            var marker = TestCatalogs.In(language)("winui.diagnostico.contenido_protegido");
             Assert.IsFalse(marker.StartsWith("winui.", StringComparison.Ordinal), language);
-            var mapped = OperationDiagnosticMapper.Sanitize(diagnostic, key => Catalogs.Value.Text(language, key));
+            var mapped = OperationDiagnosticMapper.Sanitize(diagnostic, TestCatalogs.In(language));
             StringAssert.Contains(mapped.ExpertMessage, marker, language);
             Assert.IsFalse(mapped.ExpertMessage.Contains("persona", StringComparison.Ordinal), language);
         }
-        Assert.AreEqual("[protected content]", Catalogs.Value.Text("en", "winui.diagnostico.contenido_protegido"));
+        Assert.AreEqual("[protected content]", TestCatalogs.In("en")("winui.diagnostico.contenido_protegido"));
         Assert.AreEqual("[contenido protegido]", Es("winui.diagnostico.contenido_protegido"));
     }
 
@@ -342,28 +336,13 @@ public sealed class OperationDiagnosticMapperTests
             "El motor local comunicó un resultado parcial. Fase comunicada: admisión.",
             partial.ExpertMessage);
         var failure = OperationDiagnosticMapper.FromResult(NewResult<object>(
-            false, "failure"), key => Catalogs.Value.Text("de", key));
+            false, "failure"), TestCatalogs.In("de"));
         Assert.AreEqual(
             "Die lokale Engine hat einen Fehlschlag gemeldet. Sie hat keine erkannte Phase gemeldet.",
             failure.ExpertMessage);
         var zh = OperationDiagnosticMapper.FromResult(NewResult<object>(
-            true, "success", phase: "protocol"), key => Catalogs.Value.Text("zh", key));
+            true, "success", phase: "protocol"), TestCatalogs.In("zh"));
         Assert.AreEqual("本地引擎报告的结果为成功。报告的阶段：协议。", zh.ExpertMessage);
-    }
-
-    private static string FindLocales()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var candidate = Path.Combine(directory.FullName, "internal", "adapters", "outbound", "common", "localizador", "locales");
-            if (File.Exists(Path.Combine(candidate, "es.json")))
-            {
-                return candidate;
-            }
-        }
-
-        Assert.Fail("No se encuentran los catálogos del repositorio.");
-        return string.Empty;
     }
 
     private static IpcCallResult<TData> NewResult<TData>(

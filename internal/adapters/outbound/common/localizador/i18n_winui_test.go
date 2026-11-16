@@ -55,11 +55,30 @@ func TestI18nWinUIClavesLiteralesExistenEnTodosLosCatalogos(t *testing.T) {
 	}
 }
 
-// El mapeo de diagnósticos de WinUI no lleva frases fijas: todo lo que ve la
-// persona (también el marcador «[contenido protegido]») sale del catálogo.
+// El canal local y el diagnóstico de WinUI no llevan frases fijas: todo lo
+// que ve la persona (también el marcador «[contenido protegido]») sale del
+// catálogo por clave.
+var superficiesWinUISinTextoFijo = []string{
+	"Diagnostics/OperationDiagnosticMapper.cs",
+	"Diagnostics/OperationDiagnosticPresentation.cs",
+	"Ipc/IpcClientException.cs",
+	"Ipc/NdjsonIpcClient.cs",
+	"Ipc/IpcContracts.cs",
+}
+
 func TestI18nWinUIMapeoDiagnosticoSinTextoFijo(t *testing.T) {
-	ruta := filepath.Join(raizRepositorio(t), "cmd", "gui-winui", "src",
-		"GrxFirma.WinUI.Core", "Diagnostics", "OperationDiagnosticMapper.cs")
+	core := filepath.Join(raizRepositorio(t), "cmd", "gui-winui", "src", "GrxFirma.WinUI.Core")
+	for _, relativa := range superficiesWinUISinTextoFijo {
+		comprobarSinTextoFijo(t, filepath.Join(core, filepath.FromSlash(relativa)))
+	}
+	mapeo := leerSuperficie(t, filepath.Join(core, "Diagnostics", "OperationDiagnosticMapper.cs"))
+	if !strings.Contains(mapeo, `"winui.diagnostico.contenido_protegido"`) {
+		t.Errorf("el marcador de contenido protegido ya no sale del catálogo")
+	}
+}
+
+func comprobarSinTextoFijo(t *testing.T, ruta string) {
+	t.Helper()
 	fuente := leerSuperficie(t, ruta)
 	// Las expresiones regulares van en literales crudos """…""" y @"…".
 	fuente = regexp.MustCompile(`(?s)""".*?"""`).ReplaceAllString(fuente, "")
@@ -68,6 +87,9 @@ func TestI18nWinUIMapeoDiagnosticoSinTextoFijo(t *testing.T) {
 	// Dos palabras seguidas: así no saltan los fragmentos de las cadenas
 	// interpoladas de los códigos técnicos ($"{phase ?? "unknown"}_ipc").
 	frase := regexp.MustCompile(`\p{L}{3,} +\p{L}{2,}`)
+	// Una palabra suelta con mayúscula inicial («Correcto», «Falló») también
+	// es texto visible; los códigos técnicos van en minúscula o en MAYÚSCULAS.
+	palabra := regexp.MustCompile(`^\p{Lu}\p{Ll}+[.!?]?$`)
 	for numero, linea := range strings.Split(fuente, "\n") {
 		if strings.HasPrefix(strings.TrimSpace(linea), "//") {
 			continue
@@ -77,12 +99,9 @@ func TestI18nWinUIMapeoDiagnosticoSinTextoFijo(t *testing.T) {
 			if err != nil {
 				texto = crudo
 			}
-			if frase.MatchString(texto) {
+			if frase.MatchString(texto) || palabra.MatchString(texto) {
 				t.Errorf("%s:%d: texto visible fijo %q; use una clave del catálogo", ruta, numero+1, texto)
 			}
 		}
-	}
-	if !strings.Contains(fuente, `"winui.diagnostico.contenido_protegido"`) {
-		t.Errorf("%s: el marcador de contenido protegido ya no sale del catálogo", ruta)
 	}
 }

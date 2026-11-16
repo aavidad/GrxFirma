@@ -75,12 +75,13 @@ class BlockedVerification(unittest.TestCase):
         exception = read(CORE / "Ipc/IpcClientException.cs")
         factory = exception[exception.index("InconsistentResponse(string reason)"):]
         factory = factory[:factory.index(";")]
-        self.assertIn("La interfaz y el motor local usan versiones incompatibles.", factory)
+        self.assertIn('"winui.ipc.versiones_incompatibles"', factory)
         self.assertIn("reason: reason", factory)
         mapper = read(CORE / "Diagnostics/OperationDiagnosticMapper.cs")
         self.assertIn("NormalizeTechnicalCode(exception.Reason)", mapper)
         es = json.loads(read(LOCALES / "es.json"))
-        self.assertIn("La interfaz y el motor local usan versiones incompatibles.", es)
+        self.assertEqual("La interfaz y el motor local usan versiones incompatibles.",
+                         es["winui.ipc.versiones_incompatibles"])
 
 
 class SettingsRows(unittest.TestCase):
@@ -140,7 +141,7 @@ class DialogFromSettings(unittest.TestCase):
             catalog = json.loads(read(path))
             for key in ("excepciones.pantalla.activar", "excepciones.activar_continuar",
                         "excepciones.pantalla.aceptar_titulo", "excepciones.pantalla.titulo",
-                        "La interfaz y el motor local usan versiones incompatibles."):
+                        "winui.ipc.versiones_incompatibles"):
                 self.assertTrue(catalog.get(key), f"{path.name}: {key}")
 
 

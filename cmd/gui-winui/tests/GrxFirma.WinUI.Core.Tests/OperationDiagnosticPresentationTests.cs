@@ -32,7 +32,7 @@ public sealed class OperationDiagnosticPresentationTests
             LikelyOwner = wireOwner,
             ResponsibilityMessage = "Responsabilidad",
             SuggestedAction = "Acción",
-        });
+        }, TestCatalogs.Es);
 
         Assert.AreEqual(expectedOwner, presentation.Owner);
         Assert.AreEqual(expectedLabel, presentation.OwnerLabel);
@@ -53,7 +53,7 @@ public sealed class OperationDiagnosticPresentationTests
             DiagnosticStepPresentation.StatusIconText(status));
         Assert.AreEqual(
             expectedText,
-            DiagnosticStepPresentation.StatusDescription(status));
+            DiagnosticStepPresentation.StatusDescription(status, TestCatalogs.Es));
     }
 
     [TestMethod]
@@ -97,7 +97,7 @@ public sealed class OperationDiagnosticPresentationTests
             ResponsibilityMessage = "Sin responsable",
             SuggestedAction = "Abrir desde un error real",
             Steps = [],
-        });
+        }, TestCatalogs.Es);
 
         Assert.AreEqual(0, presentation.Steps.Count);
     }
@@ -113,7 +113,7 @@ public sealed class OperationDiagnosticPresentationTests
             Owner = "remote_service",
             UserMessage = "El servicio remoto rechazó la operación.",
             SuggestedAction = "Contacte con la sede electrónica.",
-        });
+        }, TestCatalogs.Es);
 
         Assert.AreEqual(DiagnosticOwner.Portal, presentation.Owner);
         Assert.AreEqual(
@@ -150,7 +150,7 @@ public sealed class OperationDiagnosticPresentationTests
                     Status = DiagnosticStepStatus.Success,
                 })
                 .ToArray(),
-        });
+        }, TestCatalogs.Es);
 
         Assert.AreEqual(32, presentation.Steps.Count);
         Assert.AreEqual("Paso 32", presentation.Steps[^1].Label);
@@ -177,7 +177,7 @@ public sealed class OperationDiagnosticPresentationTests
                     UserMessage = "Detalle\u0002",
                 },
             ],
-        });
+        }, TestCatalogs.Es);
 
         Assert.IsNull(presentation.FailureCode);
         Assert.IsFalse(presentation.Cause.Any(character =>
@@ -186,5 +186,45 @@ public sealed class OperationDiagnosticPresentationTests
             character == '\u0001'));
         Assert.AreEqual("step", presentation.Steps.Single().Code);
         Assert.AreEqual("Paso observado", presentation.Steps.Single().Label);
+    }
+
+    // Los textos de respaldo, los responsables, los estados y las frases
+    // compuestas salen del catálogo en los 11 idiomas, sin claves a la vista.
+    [TestMethod]
+    public void FallbackTexts_ComeFromTheCatalogInAllLanguages()
+    {
+        foreach (var language in TestCatalogs.Languages)
+        {
+            var text = TestCatalogs.In(language);
+            var presentation = OperationDiagnosticPresentation.From(new()
+            {
+                LikelyOwner = "unknown",
+                Steps = Enum.GetValues<DiagnosticStepStatus>()
+                    .Select(status => new OperationDiagnosticStep { Code = "x", Status = status, Owner = "portal" })
+                    .ToArray(),
+            }, text);
+            var visible = new List<string>
+            {
+                presentation.Cause, presentation.OwnerLabel, presentation.Responsibility,
+                presentation.SuggestedAction, presentation.ExpertDetail,
+            };
+            foreach (var owner in Enum.GetValues<DiagnosticOwner>())
+                visible.Add(OperationDiagnosticPresentation.OwnerText(owner, text));
+            foreach (var step in presentation.Steps)
+            {
+                visible.AddRange([step.Label, step.StatusText, step.StatusDisplayText, step.Detail,
+                    step.OwnerDisplayText, step.SuggestedActionDisplayText, step.AutomationSummary]);
+                StringAssert.Contains(step.StatusDisplayText, step.StatusText, language);
+                StringAssert.Contains(step.AutomationSummary, step.OwnerLabel, language);
+            }
+            foreach (var value in visible)
+            {
+                Assert.IsFalse(string.IsNullOrWhiteSpace(value), language);
+                Assert.IsFalse(value.Contains("winui.", StringComparison.Ordinal), $"{language}: «{value}»");
+                Assert.IsFalse(value.Contains("{0}", StringComparison.Ordinal), $"{language}: «{value}»");
+            }
+        }
+        Assert.AreEqual("Not checked", DiagnosticStepPresentation.StatusDescription(
+            DiagnosticStepStatus.Unknown, TestCatalogs.In("en")));
     }
 }
