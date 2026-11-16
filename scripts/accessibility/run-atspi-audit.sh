@@ -24,12 +24,41 @@ if ! "$PYTHON" -c 'import pyatspi' >/dev/null 2>&1; then
 fi
 
 WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/grxfirma-atspi.XXXXXX")
+# El portal de documentos y gvfs montan FUSE en $WORK_DIR/run/doc y
+# $WORK_DIR/run/gvfs, y al cerrarse el bus pueden tardar en desmontar: se
+# desmontan aquí y se reintenta el borrado para no dejar restos en /tmp.
+unmount_work_dir() {
+    local mount_point
+    [ -r /proc/self/mounts ] || return 0
+    while read -r _ mount_point _; do
+        case "$mount_point" in
+            "$WORK_DIR"/*)
+                fusermount3 -uz "$mount_point" 2>/dev/null ||
+                    fusermount -uz "$mount_point" 2>/dev/null ||
+                    umount -l "$mount_point" 2>/dev/null || true
+                ;;
+        esac
+    done </proc/self/mounts
+}
 cleanup() {
-    rm -rf -- "$WORK_DIR"
+    local attempt
+    for attempt in 1 2 3 4 5; do
+        unmount_work_dir
+        if rm -rf -- "$WORK_DIR" 2>/dev/null; then
+            return 0
+        fi
+        sleep "$attempt"
+    done
+    printf 'AVISO: no se pudo borrar %s\n' "$WORK_DIR" >&2
 }
 trap cleanup EXIT HUP INT TERM
 
-mkdir -p "$WORK_DIR/build" "$WORK_DIR/home" "$WORK_DIR/config" "$WORK_DIR/cache"
+mkdir -p "$WORK_DIR/build" "$WORK_DIR/home" "$WORK_DIR/config" "$WORK_DIR/cache" \
+    "$WORK_DIR/data"
+# Carpeta de ejecución propia (0700): sin ella, gnome-keyring y el bus de
+# accesibilidad buscan sus sockets en el XDG_RUNTIME_DIR real del usuario y
+# pueden hablar con su llavero.
+mkdir -m 700 "$WORK_DIR/run"
 # GRXFIRMA_QT_APP permite auditar un binario ya compilado sin recompilar.
 APP_BINARY=${GRXFIRMA_QT_APP:-}
 if [ -z "$APP_BINARY" ]; then
@@ -57,13 +86,18 @@ done
 
 # Fuera del árbol de fuentes: la aplicación carga cmd/gui-qml/qml/main.qml del
 # directorio actual si existe, y aquí se audita el QML compilado en el binario.
+# El entorno aislado se fija antes de dbus-run-session para que también lo
+# hereden los servicios que arranca el bus (llavero, bus de accesibilidad).
 cd "$WORK_DIR"
-dbus-run-session -- "$XVFB_RUN" -a -s '-screen 0 1440x900x24 -nolisten tcp' \
-    env -u WAYLAND_DISPLAY \
-    QT_QPA_PLATFORM=xcb \
+env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS \
     HOME="$WORK_DIR/home" \
     XDG_CONFIG_HOME="$WORK_DIR/config" \
     XDG_CACHE_HOME="$WORK_DIR/cache" \
+    XDG_DATA_HOME="$WORK_DIR/data" \
+    XDG_RUNTIME_DIR="$WORK_DIR/run" \
+    dbus-run-session -- "$XVFB_RUN" -a -s '-screen 0 1440x900x24 -nolisten tcp' \
+    env -u WAYLAND_DISPLAY \
+    QT_QPA_PLATFORM=xcb \
     QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1 \
     QT_ACCESSIBILITY=1 \
     QT_QUICK_BACKEND=software \
