@@ -7,12 +7,39 @@
 
 package securefile
 
-import "os"
+import (
+	"fmt"
+	"os"
 
-// En Windows OpenDir ya rechaza uniones y enlaces. El propietario no se
-// compara: un proceso elevado del mismo usuario crea carpetas cuyo
-// propietario es Administradores. La carpeta vive en %LOCALAPPDATA%, que el
-// perfil ya reserva al usuario, y EnsurePrivateDir le aplica la DACL privada.
-func checkOpenedDirOwner(*os.File) error { return nil }
+	"golang.org/x/sys/windows"
+)
 
+// checkOpenedDirOwner exige que la carpeta, ya abierta sin seguir uniones ni
+// enlaces, sea del usuario del proceso. Un proceso elevado del mismo usuario
+// crea carpetas a nombre de Administradores, y SYSTEM puede con todo: ambos
+// se admiten porque ya tienen poder sobre cualquier carpeta del usuario. El
+// propietario de una carpeta conserva el derecho a cambiar su DACL, así que
+// una carpeta de otra persona nunca se da por privada aunque se pudiera
+// reescribir su DACL.
+func checkOpenedDirOwner(dir *os.File) error {
+	sd, err := windows.GetSecurityInfo(windows.Handle(dir.Fd()), windows.SE_FILE_OBJECT, windows.OWNER_SECURITY_INFORMATION)
+	if err != nil {
+		return fmt.Errorf("%w: owner unavailable: %v", ErrNotPrivateDir, err)
+	}
+	owner, _, err := sd.Owner()
+	if err != nil || owner == nil {
+		return fmt.Errorf("%w: owner unavailable", ErrNotPrivateDir)
+	}
+	user, err := currentUserSID()
+	if err != nil {
+		return err
+	}
+	if owner.Equals(user) || owner.IsWellKnown(windows.WinBuiltinAdministratorsSid) || owner.IsWellKnown(windows.WinLocalSystemSid) {
+		return nil
+	}
+	return fmt.Errorf("%w: owned by %s", ErrNotPrivateDir, owner.String())
+}
+
+// La DACL no se compara con bits POSIX: EnsurePrivateDir la deja protegida al
+// escribir, y la carpeta vive en el perfil del usuario.
 func checkOpenedDirPrivate(*os.File) error { return nil }
