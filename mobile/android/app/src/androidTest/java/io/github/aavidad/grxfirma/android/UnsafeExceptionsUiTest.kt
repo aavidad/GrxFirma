@@ -19,6 +19,7 @@ import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.espresso.matcher.RootMatchers.isDialog
+import androidx.test.platform.app.InstrumentationRegistry
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aavidad.grxfirma.android.core.UnsafeExceptionState
 import io.github.aavidad.grxfirma.android.core.UnsafeExceptions
@@ -304,6 +305,63 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                     assertTrue("El texto (${layout.height}) cabe en el botón ($room)", layout.height <= room)
                     assertTrue("El texto cabe a lo ancho", layout.getLineWidth(0) <= button.width - button.totalPaddingLeft - button.totalPaddingRight)
                 }
+        }
+    }
+
+    /**
+     * Recorrido 0.0.128: con la letra al 200 % y el tamaño de pantalla al máximo,
+     * «Cancelar» de Preferencias salía cortado por abajo. Los dos botones quedan
+     * enteros, dentro del área segura y con 48 dp.
+     */
+    @Test fun preferencesButtonsAreWholeAtTwoHundredPercentTextAndLargestDisplaySize() {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        fun shell(command: String): String = automation.executeShellCommand(command).use { fd ->
+            java.io.FileInputStream(fd.fileDescriptor).bufferedReader().readText().trim()
+        }
+        val previousScale = shell("settings get system font_scale")
+        val physical = Regex("""(\d+)x(\d+)""").find(shell("wm size"))!!.destructured
+            .let { (w, h) -> minOf(w.toInt(), h.toInt()) }
+        val density = Regex("""Physical density: (\d+)""").find(shell("wm density"))!!.groupValues[1].toInt()
+        // El tamaño de pantalla más grande que ofrece Ajustes deja 320 dp de ancho mínimo.
+        val largest = minOf(physical * 160 / 320, density * 3 / 2)
+        try {
+            shell("settings put system font_scale 2.0")
+            shell("wm density $largest")
+            // El cambio llega al proceso de forma asíncrona: se espera antes de abrir la actividad.
+            val deadline = android.os.SystemClock.uptimeMillis() + 10_000
+            while (android.os.SystemClock.uptimeMillis() < deadline) {
+                val system = android.content.res.Resources.getSystem().configuration
+                if (system.fontScale == 2f && system.densityDpi == largest) break
+                Thread.sleep(100)
+            }
+            val applied = android.content.res.Resources.getSystem().configuration
+            assertEquals("Letra al 200 %", 2f, applied.fontScale)
+            assertEquals("Tamaño de pantalla al máximo", largest, applied.densityDpi)
+            ActivityScenario.launch(MainActivity::class.java).use {
+                TestMenus.open(R.id.action_preferences, R.string.preferences_button)
+                for (button in listOf(R.id.prefSave, R.id.prefCancel)) {
+                    onView(withId(button)).inRoot(isDialog()).check(matches(isCompletelyDisplayed()))
+                        .check { view, error ->
+                            if (error != null) throw error
+                            assertControlInsideSafeArea(view)
+                            val material = view as com.google.android.material.button.MaterialButton
+                            val dp = view.resources.displayMetrics.density
+                            assertTrue("Área táctil de 48 dp", material.height >= (48 * dp).toInt() - 1)
+                            val layout = material.layout
+                            assertNotNull(layout)
+                            for (line in 0 until layout.lineCount) {
+                                assertFalse("Sin elipsis", layout.getEllipsisCount(line) > 0)
+                            }
+                            val room = material.height - material.totalPaddingTop - material.totalPaddingBottom
+                            assertTrue("El texto (${layout.height}) cabe en el botón ($room)", layout.height <= room)
+                        }
+                }
+                onView(withId(R.id.prefCancel)).inRoot(isDialog()).perform(click())
+            }
+        } finally {
+            shell("wm density reset")
+            if (previousScale == "null" || previousScale.isEmpty()) shell("settings delete system font_scale")
+            else shell("settings put system font_scale $previousScale")
         }
     }
 

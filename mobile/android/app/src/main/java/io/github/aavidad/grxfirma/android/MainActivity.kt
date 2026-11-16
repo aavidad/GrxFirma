@@ -1919,9 +1919,10 @@ class MainActivity : AppCompatActivity() {
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.preferences_title)
             .setView(dialogBinding.root)
-            .setPositiveButton(R.string.preferences_save, null)
-            .setNegativeButton(R.string.preferences_cancel, null)
             .create()
+        // Botones propios en un pie fijo: los del diálogo se cortaban con la
+        // letra al 200 % y la pantalla al máximo.
+        dialogBinding.prefCancel.setOnClickListener { dialog.dismiss() }
         dialogBinding.prefRestore.setOnClickListener {
             MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.preferences_restore)
@@ -1933,30 +1934,28 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton(R.string.preferences_cancel, null)
                 .show()
         }
-        dialog.setOnShowListener {
-            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val settings = with(dialogBinding) {
-                    AppSettings(
-                        defaultFormat = formats.getOrElse(prefFormat.selectedItemPosition) { "auto" },
-                        defaultProfile = AppSettings.PROFILES.getOrElse(prefProfile.selectedItemPosition) { "baseline" },
-                        tsaEnabled = prefTsaEnabled.isChecked,
-                        tsaUrl = prefTsaUrl.text?.toString()?.trim().orEmpty(),
-                        outputName = OutputNames.POLICIES.getOrElse(prefOutputName.selectedItemPosition) { OutputNames.SUFFIX },
-                        theme = AppSettings.THEMES.getOrElse(prefTheme.selectedItemPosition) { AppSettings.THEME_SYSTEM },
-                        sessionTimeoutMinutes = AppSettings.TIMEOUTS.getOrElse(prefSessionTimeout.selectedItemPosition) {
-                            AppSettings.DEFAULT_TIMEOUT
-                        },
-                        sealLanguage = AppSettings.SEAL_LANGUAGES.getOrElse(prefSealLanguage.selectedItemPosition) { "" },
-                    )
-                }
-                if (viewModel.savePreferences(settings)) {
-                    dialogBinding.prefTsaUrlLayout.error = null
-                    dialog.dismiss()
-                    selectDefaultFormat()
-                    AppCompatDelegate.setDefaultNightMode(AppSettings.nightMode(settings.theme))
-                } else {
-                    dialogBinding.prefTsaUrlLayout.error = getString(R.string.error_tsa_configuration)
-                }
+        dialogBinding.prefSave.setOnClickListener {
+            val settings = with(dialogBinding) {
+                AppSettings(
+                    defaultFormat = formats.getOrElse(prefFormat.selectedItemPosition) { "auto" },
+                    defaultProfile = AppSettings.PROFILES.getOrElse(prefProfile.selectedItemPosition) { "baseline" },
+                    tsaEnabled = prefTsaEnabled.isChecked,
+                    tsaUrl = prefTsaUrl.text?.toString()?.trim().orEmpty(),
+                    outputName = OutputNames.POLICIES.getOrElse(prefOutputName.selectedItemPosition) { OutputNames.SUFFIX },
+                    theme = AppSettings.THEMES.getOrElse(prefTheme.selectedItemPosition) { AppSettings.THEME_SYSTEM },
+                    sessionTimeoutMinutes = AppSettings.TIMEOUTS.getOrElse(prefSessionTimeout.selectedItemPosition) {
+                        AppSettings.DEFAULT_TIMEOUT
+                    },
+                    sealLanguage = AppSettings.SEAL_LANGUAGES.getOrElse(prefSealLanguage.selectedItemPosition) { "" },
+                )
+            }
+            if (viewModel.savePreferences(settings)) {
+                dialogBinding.prefTsaUrlLayout.error = null
+                dialog.dismiss()
+                selectDefaultFormat()
+                AppCompatDelegate.setDefaultNightMode(AppSettings.nightMode(settings.theme))
+            } else {
+                dialogBinding.prefTsaUrlLayout.error = getString(R.string.error_tsa_configuration)
             }
         }
         dialog.setOnDismissListener { unsafePanel = null }
