@@ -621,6 +621,7 @@
     <string name="verdict_intact_unchecked">Sinatura íntegra; non se puido comprobar o certificado</string>
     <string name="verdict_intact_not_confirmed">Sinatura íntegra; non se puido confirmar que sexa válida</string>
     <string name="verdict_incomplete">Non se puido comprobar a sinatura por completo</string>
+    <string name="verdict_integrity_warning">A sinatura ten avisos e non se pode dar por válida</string>
     <string name="verdict_revocation_inconclusive">Sinatura non confirmada: non se puido saber se o certificado está revogado</string>
     <string name="verdict_invalid">Sinatura non válida</string>
     <string name="verification_post_sign">Comprobación da sinatura creada: %1$s</string>

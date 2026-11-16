@@ -90,6 +90,25 @@ class VerificationCardTest {
         assertEquals(R.color.error, VerificationCard.color(Verdict.INVALID))
     }
 
+    /**
+     * Integridad «warning» y firma no válida (XML con la compatibilidad de
+     * canonicalización histórica): WinUI y Qt la pintan en ámbar y Android la
+     * pintaba en rojo. El rojo queda para lo que falla de verdad.
+     */
+    @Test
+    fun `integrity with warnings and an invalid signature is amber, not red`() {
+        val compat = accredited.copy(valid = false, reason = "compatibilidad XML histórica",
+            integrityStatus = "warning", certificateStatus = "valid", trustStatus = "unknown")
+        val verdict = VerificationCard.verdict(compat)
+        assertEquals(Verdict.INTEGRITY_WARNING, verdict)
+        assertEquals(R.string.verdict_integrity_warning, VerificationCard.title(verdict))
+        assertEquals(R.color.status_warning, VerificationCard.color(verdict))
+        assertTrue("El motivo explica los avisos", VerificationCard.showsReason(verdict, compat.reason))
+        // Si además algo es inválido, sigue en rojo.
+        assertEquals(Verdict.INVALID, VerificationCard.verdict(compat.copy(certificateStatus = "invalid")))
+        assertEquals(Verdict.INVALID, VerificationCard.verdict(compat.copy(trustStatus = "invalid")))
+    }
+
     @Test
     fun `title and color never contradict the verdict`() {
         assertEquals(R.string.verdict_valid, VerificationCard.title(Verdict.VALID))

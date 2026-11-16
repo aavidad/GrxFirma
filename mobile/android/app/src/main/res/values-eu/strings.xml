@@ -621,6 +621,7 @@
     <string name="verdict_intact_unchecked">Sinadura osorik dago; ezin izan da ziurtagiria egiaztatu</string>
     <string name="verdict_intact_not_confirmed">Sinadura osorik dago; ezin izan da baieztatu baliozkoa den</string>
     <string name="verdict_incomplete">Ezin izan da sinadura osorik egiaztatu</string>
+    <string name="verdict_integrity_warning">Sinadurak abisuak ditu eta ezin da baliozkotzat hartu</string>
     <string name="verdict_revocation_inconclusive">Sinadura ez da berretsi: ezin izan da jakin ziurtagiria baliogabetuta dagoen</string>
     <string name="verdict_invalid">Sinadura ez da baliozkoa</string>
     <string name="verification_post_sign">Sortutako sinaduraren egiaztapena: %1$s</string>
