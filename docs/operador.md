@@ -517,14 +517,25 @@ para el alcance, el borrado seguro y las obligaciones del despliegue.
 Ruta:
 
 ```text
-/tmp/grxfirma-metrics.json
+$XDG_RUNTIME_DIR/grxfirma/metrics.json
 ```
+
+Si `XDG_RUNTIME_DIR` falta o no es una carpeta privada del usuario, se usa
+`~/.local/run/grxfirma/metrics.json` (en Windows,
+`%LOCALAPPDATA%\GrxFirma\run\grxfirma\metrics.json`). La carpeta se crea con
+permisos 0700. Si no hay carpeta privada, o la que hay es un enlace o es de
+otro usuario, no se escriben métricas y la operación sigue igual.
 
 Rotación:
 
 ```text
-/tmp/grxfirma-metrics.json.1
+$XDG_RUNTIME_DIR/grxfirma/metrics.json.1
 ```
+
+Hasta la versión 0.0.128 el fichero estaba en `/tmp/grxfirma-metrics.json`.
+Esa ruta ya no se usa: quien la leía tiene que apuntar a la nueva. El sistema
+vacía `XDG_RUNTIME_DIR` al cerrar la sesión, así que conviene copiar el fichero
+antes si hace falta guardarlo.
 
 Métricas ya emitidas:
 
@@ -1183,7 +1194,7 @@ la política corporativa del navegador y limitarse a los portales aprobados.
 Mirar en este orden:
 
 1. `audit.jsonl`
-2. `/tmp/grxfirma-metrics.json`
+2. `$XDG_RUNTIME_DIR/grxfirma/metrics.json`
 3. exportación de incidencia saneada desde la aplicación
 4. límites efectivos y timeouts
 
@@ -1379,7 +1390,7 @@ Exec=grxfirma-afirmauri %u
    - firma CLI
    - Native Messaging
    - portal con `afirma://`
-   - presencia de `audit.jsonl` y `/tmp/grxfirma-metrics.json`
+   - presencia de `audit.jsonl` y `$XDG_RUNTIME_DIR/grxfirma/metrics.json`
 
 ### Rollback
 
@@ -1397,7 +1408,7 @@ make uninstall-user
    - `~/.mozilla/native-messaging-hosts/com.grxfirma.native.json`
    - `~/.mozilla/native-messaging-hosts/io.github.aavidad.grxfirma.json`
    - los manifests equivalentes de Chrome, Chromium y Edge si existen
-4. Conservar `audit.jsonl` y `/tmp/grxfirma-metrics.json` para análisis.
+4. Conservar `audit.jsonl` y `$XDG_RUNTIME_DIR/grxfirma/metrics.json` para análisis.
 5. Documentar el caso y no eliminar V2 definitivamente hasta aislar la causa.
 
 ## Evidencia de identidad reforzada
