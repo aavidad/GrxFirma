@@ -44,7 +44,8 @@ cleanup() {
     local attempt
     for attempt in 1 2 3 4 5; do
         unmount_work_dir
-        if rm -rf -- "$WORK_DIR" 2>/dev/null; then
+        # --one-file-system: si queda un montaje vivo dentro, no se entra en él.
+        if rm -rf --one-file-system -- "$WORK_DIR" 2>/dev/null; then
             return 0
         fi
         sleep "$attempt"

@@ -92,6 +92,7 @@ type snapshot struct {
 type Collector struct {
 	mu                sync.Mutex
 	path              string
+	dirReady          bool // la carpeta ya se comprobó privada en este proceso
 	maxBytes          int64
 	signTotal         map[signKey]int64
 	signDuration      map[string]durationAggregate
@@ -178,8 +179,13 @@ func (c *Collector) exportLocked() {
 	if c.path == "" {
 		return
 	}
-	if err := securefile.EnsurePrivateDir(filepath.Dir(c.path)); err != nil {
-		return
+	// La carpeta se protege una vez por proceso (en Windows eso reescribe la
+	// DACL); si una escritura falla, se vuelve a comprobar en la siguiente.
+	if !c.dirReady {
+		if err := securefile.EnsurePrivateDir(filepath.Dir(c.path)); err != nil {
+			return
+		}
+		c.dirReady = true
 	}
 	data, err := json.MarshalIndent(c.snapshotLocked(), "", "  ")
 	if err != nil {
@@ -188,7 +194,9 @@ func (c *Collector) exportLocked() {
 	if !c.rotateLocked(int64(len(data))) {
 		return
 	}
-	_ = securefile.WriteFileAtomic(c.path, append(data, '\n'), 0o600)
+	if err := securefile.WriteFileAtomic(c.path, append(data, '\n'), 0o600); err != nil {
+		c.dirReady = false
+	}
 }
 
 // rotateLocked pasa el fichero actual a .1 si con lo nuevo supera el límite.
