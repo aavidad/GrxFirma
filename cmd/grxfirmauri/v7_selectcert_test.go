@@ -16,6 +16,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"grxfirma/internal/adapters/inbound/legacy/afirmauri/triphase"
 	"grxfirma/internal/domain"
@@ -23,7 +24,37 @@ import (
 	"grxfirma/internal/security/machinepolicy"
 )
 
+// limiteSelectCertV7 corta la prueba si la orden no vuelve: una espera de
+// interfaz no puede dejar colgada la batería.
+const limiteSelectCertV7 = 60 * time.Second
+
+// sinInterfazProtocolo hace que runConDependencias pase la URI directamente al
+// manejador de la prueba. Con -tags fyne_gui, maybeRunProtocolUI abriría una
+// ventana GLFW desde una goroutine mientras el hilo principal está en
+// testing.Run; esa creación espera al hilo principal para siempre. Estas
+// pruebas comprueban la CA y la subida del certificado, no la ventana.
+func sinInterfazProtocolo(t *testing.T) {
+	t.Helper()
+	t.Setenv("GRXFIRMA_PROTOCOL_UI", "0")
+}
+
+// runConDependenciasConLimite ejecuta runConDependencias y falla con un motivo
+// claro si no termina dentro de limiteSelectCertV7.
+func runConDependenciasConLimite(t *testing.T, args []string, stderr io.Writer, manejar manejadorSolicitudProtocolo) int {
+	t.Helper()
+	hecho := make(chan int, 1)
+	go func() { hecho <- runConDependencias(context.Background(), args, stderr, manejar) }()
+	select {
+	case code := <-hecho:
+		return code
+	case <-time.After(limiteSelectCertV7):
+		t.Fatalf("runConDependencias no terminó en %s: algo espera a una interfaz que la prueba no atiende", limiteSelectCertV7)
+		return -1
+	}
+}
+
 func TestV7SelectCertHTTPSNoNecesitaInstalarCAMantieneLaExistente(t *testing.T) {
+	sinInterfazProtocolo(t)
 	previous, previousPresent := ensureStartupLocalTLSTrust, presentStartupTLSTrustFailure
 	previousNotice := getStartupTLSTrustNotice()
 	t.Cleanup(func() {
@@ -67,7 +98,7 @@ func TestV7SelectCertHTTPSNoNecesitaInstalarCAMantieneLaExistente(t *testing.T) 
 				return &http.Response{StatusCode: 200, Header: http.Header{}, Body: io.NopCloser(strings.NewReader("OK"))}, nil
 			})}
 			var output bytes.Buffer
-			code := runConDependencias(context.Background(), []string{"afirma://selectcert?id=uno&stservlet=https%3A%2F%2Fportal.example%2Fst"}, &output, func(ctx context.Context, _ io.Writer, _ string) int {
+			code := runConDependenciasConLimite(t, []string{"afirma://selectcert?id=uno&stservlet=https%3A%2F%2Fportal.example%2Fst"}, &output, func(ctx context.Context, _ io.Writer, _ string) int {
 				if err := triphase.New(client).UploadCertificate(ctx, domain.ExchangeSession{RequestID: "uno", UploadEndpoint: "https://portal.example/st"}, []byte("cert-der"), nil); err != nil {
 					t.Error(err)
 					return 1
@@ -85,6 +116,7 @@ func TestV7SelectCertHTTPSNoNecesitaInstalarCAMantieneLaExistente(t *testing.T) 
 }
 
 func TestV7SelectCertHTTP_SinPermisoDevuelveTrifasicaNoCA(t *testing.T) {
+	sinInterfazProtocolo(t)
 	home := t.TempDir()
 	setTestUserHome(t, home)
 	for _, id := range []string{"ca_instalacion_automatica", "trifasica_http"} {
@@ -99,7 +131,7 @@ func TestV7SelectCertHTTP_SinPermisoDevuelveTrifasicaNoCA(t *testing.T) {
 	})}
 	var operationErr error
 	var output bytes.Buffer
-	code := runConDependencias(context.Background(), []string{"afirma://selectcert?id=uno&stservlet=http%3A%2F%2Fportal.example%2Fst"}, &output, func(ctx context.Context, _ io.Writer, _ string) int {
+	code := runConDependenciasConLimite(t, []string{"afirma://selectcert?id=uno&stservlet=http%3A%2F%2Fportal.example%2Fst"}, &output, func(ctx context.Context, _ io.Writer, _ string) int {
 		operationErr = triphase.New(client).UploadCertificate(ctx, domain.ExchangeSession{RequestID: "uno", UploadEndpoint: "http://portal.example/st"}, []byte("cert-der"), nil)
 		if operationErr != nil {
 			return 1
