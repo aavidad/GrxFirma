@@ -464,6 +464,7 @@ jobs:
           ./packaging/windows/tests/test-nsis-path-preflight.ps1
           ./packaging/windows/tests/test-qt-runtime-validation.ps1
           ./packaging/windows/tests/test-reproducible-builds.ps1
+          ./packaging/windows/tests/test-cswinrt-canonical-sources.ps1
           ./scripts/release/tests/test-windows-authenticode-contracts.ps1
           ./scripts/release/tests/test-windows-dual-gui-finalizer-contracts.ps1
           ./scripts/release/tests/test-windows-signpath-contracts.ps1

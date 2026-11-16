@@ -30,4 +30,40 @@
     <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(_GrxFirmaVersion)', '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'))"
            Text="VERSION.txt debe contener una versión SemVer válida del producto." />
   </Target>
+  <!-- Compilación reproducible de grxfirma-winui.dll.
+       El generador de CsWinRT (WinRT.SourceGenerator) ordena y nombra sus
+       clases *WinRTTypeDetails con un hash que .NET siembra al azar en cada
+       proceso, así que dos compilaciones del mismo código dan dll distintas.
+       packaging/windows/build-desktop-winui.ps1 compila una vez para obtener
+       esas fuentes, las deja en forma canónica (cswinrt-canonical-sources.ps1)
+       y publica con GrxFirmaCsWinRTCanonicalSources apuntando a la lista de
+       ficheros. Entonces esas fuentes se compilan en lugar del generador; el
+       código es el mismo. Sin la propiedad (compilaciones de desarrollo y
+       pruebas) no cambia nada.
+       Va después de XamlPreCompile y MarkupCompilePass2, que siguen usando el
+       generador: las fuentes citan las clases de x:Bind de la segunda pasada. -->
+  <Target Name="GrxFirmaUseCanonicalCsWinRTSources"
+          BeforeTargets="CoreCompile"
+          Condition="'$(GrxFirmaCsWinRTCanonicalSources)' != '' And '$(MSBuildProjectName)' == 'GrxFirma.WinUI'">
+    <Error Condition="!Exists('$(GrxFirmaCsWinRTCanonicalSources)')"
+           Text="No existe la lista de fuentes canónicas de CsWinRT: $(GrxFirmaCsWinRTCanonicalSources)" />
+    <ReadLinesFromFile File="$(GrxFirmaCsWinRTCanonicalSources)">
+      <Output TaskParameter="Lines" ItemName="_GrxFirmaCanonicalCsWinRTSource" />
+    </ReadLinesFromFile>
+    <ItemGroup>
+      <_GrxFirmaCsWinRTGenerator Include="@(Analyzer)" Condition="'%(Filename)' == 'WinRT.SourceGenerator'" />
+    </ItemGroup>
+    <Error Condition="'@(_GrxFirmaCanonicalCsWinRTSource)' == ''"
+           Text="La lista de fuentes canónicas de CsWinRT está vacía." />
+    <Error Condition="'@(_GrxFirmaCsWinRTGenerator)' == ''"
+           Text="No se encuentra el generador WinRT.SourceGenerator entre los analizadores; revise cswinrt-canonical-sources.ps1 si ha cambiado CsWinRT." />
+    <Error Condition="!Exists('%(_GrxFirmaCanonicalCsWinRTSource.Identity)')"
+           Text="Falta una fuente canónica de CsWinRT: %(_GrxFirmaCanonicalCsWinRTSource.Identity)" />
+    <ItemGroup>
+      <Analyzer Remove="@(_GrxFirmaCsWinRTGenerator)" />
+      <Compile Include="@(_GrxFirmaCanonicalCsWinRTSource)" />
+    </ItemGroup>
+    <Message Importance="high"
+             Text="GrxFirma.WinUI: se compilan @(_GrxFirmaCanonicalCsWinRTSource->Count()) fuentes canónicas de CsWinRT en lugar de WinRT.SourceGenerator." />
+  </Target>
 </Project>
