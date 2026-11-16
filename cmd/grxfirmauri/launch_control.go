@@ -20,6 +20,7 @@ import (
 
 	legacyws "grxfirma/internal/adapters/inbound/legacy/websocket"
 	"grxfirma/internal/adapters/outbound/common/config"
+	"grxfirma/internal/adapters/outbound/common/securefile"
 )
 
 const legacyLaunchControlSocketEnv = "GRXFIRMA_LEGACY_LAUNCH_SOCKET"
@@ -47,9 +48,14 @@ type launchControlResponse struct {
 //  2. conservar la validación posterior de trust/origin en el flujo real;
 //  3. caer sin ruido al modo puntual actual si el socket no responde o rechaza.
 func tryForwardLaunchToResident(rawURI string) (bool, error) {
-	socketPath, err := legacyLaunchControlSocketPath()
+	socketPath, gestionada, err := legacyLaunchControlSocketPath()
 	if err != nil {
 		return false, err
+	}
+	// Si la carpeta no es privada, el socket podría ser de otro usuario: no
+	// se le entrega la URI y se sigue en modo puntual.
+	if gestionada && securefile.CheckPrivateDir(filepath.Dir(socketPath)) != nil {
+		return false, nil
 	}
 	conn, err := net.DialTimeout("unix", socketPath, 350*time.Millisecond)
 	if err != nil {
@@ -84,11 +90,15 @@ func startLegacyLaunchControlServer(
 	if adapter == nil {
 		return func() {}, errors.New("adaptador legacy no configurado")
 	}
-	socketPath, err := legacyLaunchControlSocketPath()
+	socketPath, gestionada, err := legacyLaunchControlSocketPath()
 	if err != nil {
 		return func() {}, err
 	}
-	if err := os.MkdirAll(filepath.Dir(socketPath), 0o700); err != nil {
+	crearCarpeta := func(dir string) error { return os.MkdirAll(dir, 0o700) }
+	if gestionada {
+		crearCarpeta = securefile.EnsurePrivateDir
+	}
+	if err := crearCarpeta(filepath.Dir(socketPath)); err != nil {
 		return func() {}, fmt.Errorf("creando directorio del socket de control: %w", err)
 	}
 	_ = os.Remove(socketPath)
@@ -262,16 +272,21 @@ func startResidentServiceLaunch(
 	return nil
 }
 
-func legacyLaunchControlSocketPath() (string, error) {
+// legacyLaunchControlSocketPath devuelve el socket de control del residente y
+// si su carpeta la gestiona GrxFirma (todo salvo la ruta fijada con
+// GRXFIRMA_LEGACY_LAUNCH_SOCKET). XDG_RUNTIME_DIR solo se usa si es privado
+// del usuario; si no, la caché del usuario, como hasta ahora sin
+// XDG_RUNTIME_DIR.
+func legacyLaunchControlSocketPath() (string, bool, error) {
 	if override := strings.TrimSpace(os.Getenv(legacyLaunchControlSocketEnv)); override != "" {
-		return override, nil
+		return override, false, nil
 	}
-	if runtimeDir := strings.TrimSpace(os.Getenv("XDG_RUNTIME_DIR")); runtimeDir != "" {
-		return filepath.Join(runtimeDir, "grxfirma-afirmauri-control.sock"), nil
+	if runtimeDir, ok := appdirs.XDGRuntimePrivado(); ok {
+		return filepath.Join(runtimeDir, "grxfirma-afirmauri-control.sock"), true, nil
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", fmt.Errorf("obteniendo home para socket de control: %w", err)
+		return "", false, fmt.Errorf("obteniendo home para socket de control: %w", err)
 	}
-	return filepath.Join(appdirs.Cache(home), "afirmauri-control.sock"), nil
+	return filepath.Join(appdirs.Cache(home), "afirmauri-control.sock"), true, nil
 }
