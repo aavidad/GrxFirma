@@ -64,12 +64,22 @@ private fun Context.dp(value: Int) = (value * resources.displayMetrics.density +
 private fun column(context: Context) = LinearLayout(context).apply {
     orientation = LinearLayout.VERTICAL
 }
-private fun paragraph(context: Context, value: CharSequence, heading: Boolean = false) = TextView(context).apply {
+/**
+ * Cada párrafo y cada encabezado es una parada propia de TalkBack. Sin esto,
+ * TalkBack junta todo el texto de una zona desplazable y lo lee de un tirón.
+ */
+private fun TextView.readAlone() = apply { ViewCompat.setScreenReaderFocusable(this, true) }
+private fun paragraph(
+    context: Context,
+    value: CharSequence,
+    heading: Boolean = false,
+    headingStyle: Int = com.google.android.material.R.style.TextAppearance_Material3_TitleLarge,
+) = TextView(context).apply {
     text = value
-    setTextAppearance(if (heading) com.google.android.material.R.style.TextAppearance_Material3_TitleLarge
-        else com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
+    setTextAppearance(if (heading) headingStyle else com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
     setPadding(0, context.dp(8), 0, context.dp(8))
     ViewCompat.setAccessibilityHeading(this, heading)
+    readAlone()
 }
 /** Con letra grande dos botones no caben uno al lado del otro. */
 private fun Context.largeText() = resources.configuration.fontScale > 1.3f
@@ -287,6 +297,7 @@ class UnsafeExceptionDialog(
                     setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
                     setPadding(0, context.dp(12), 0, 0)
                     ViewCompat.setAccessibilityHeading(this, true)
+                    readAlone()
                 })
                 body.addView(paragraph(context, text).apply {
                     if (index == 0) id = R.id.unsafeHelpText
@@ -342,8 +353,8 @@ class UnsafeExceptionsPanel(
     private val context = container.context
     private val status = paragraph(context, "").apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
     private val rows = column(context)
-    // Casi nadie lo necesita: va con borde, no relleno.
-    private val refreshButton = secondary(context, UnsafeExceptionTexts.text(context, "actualizar"), outlined = true).apply {
+    // Casi nadie lo necesita: solo texto y al final de la lista, por debajo de las acciones de cada caso.
+    private val refreshButton = secondary(context, UnsafeExceptionTexts.text(context, "actualizar"), outlined = false).apply {
         id = R.id.unsafeRefresh
         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         setOnClickListener { refresh() }
@@ -355,11 +366,13 @@ class UnsafeExceptionsPanel(
     /** «Ajuste: estado nuevo», en la región viva de la sección (TalkBack lo lee sin mover el foco). */
     private var announcement = ""
     init {
-        container.addView(paragraph(context, UnsafeExceptionTexts.text(context, "seccion"), heading = true))
+        container.addView(paragraph(context, UnsafeExceptionTexts.text(context, "seccion"), heading = true).apply {
+            id = R.id.unsafeSectionTitle
+        })
         container.addView(paragraph(context, UnsafeExceptionTexts.text(context, "introduccion")))
         container.addView(status)
-        container.addView(refreshButton)
         container.addView(rows)
+        container.addView(refreshButton)
     }
 
     fun render(state: MainUiState) {
@@ -423,7 +436,11 @@ class UnsafeExceptionsPanel(
                 setColor(ContextCompat.getColor(context, R.color.status_warning_container))
             }
         }
-        row.addView(paragraph(context, name, heading = true))
+        // Un escalón por debajo del título «Seguridad»: la jerarquía se ve, no solo la oye TalkBack.
+        row.addView(paragraph(context, name, heading = true,
+            headingStyle = com.google.android.material.R.style.TextAppearance_Material3_TitleMedium).apply {
+            tag = "unsafe-name-${item.id}"
+        })
         // Una sola línea de estado: «Activado el …» ya dice que está activado.
         val key = statusKey(item)
         val statusText = EngineText.resolve(context, key).let {

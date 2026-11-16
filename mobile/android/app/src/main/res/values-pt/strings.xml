@@ -637,6 +637,7 @@
     </plurals>
     <string name="verdict_valid">Assinatura válida</string>
     <string name="verdict_intact_unchecked">Assinatura íntegra; não foi possível verificar o certificado</string>
+    <string name="verdict_intact_not_confirmed">Assinatura íntegra; não foi possível confirmar a sua validade</string>
     <string name="verdict_incomplete">Não foi possível verificar a assinatura por completo</string>
     <string name="verdict_revocation_inconclusive">Assinatura não confirmada: não foi possível saber se o certificado está revogado</string>
     <string name="verdict_invalid">Assinatura inválida</string>

@@ -619,6 +619,7 @@
     </plurals>
     <string name="verdict_valid">Gültige Signatur</string>
     <string name="verdict_intact_unchecked">Signatur unverändert; das Zertifikat konnte nicht geprüft werden</string>
+    <string name="verdict_intact_not_confirmed">Signatur unverändert; ihre Gültigkeit konnte nicht bestätigt werden</string>
     <string name="verdict_incomplete">Die Signatur konnte nicht vollständig geprüft werden</string>
     <string name="verdict_revocation_inconclusive">Signatur nicht bestätigt: Es ließ sich nicht prüfen, ob das Zertifikat widerrufen ist</string>
     <string name="verdict_invalid">Ungültige Signatur</string>

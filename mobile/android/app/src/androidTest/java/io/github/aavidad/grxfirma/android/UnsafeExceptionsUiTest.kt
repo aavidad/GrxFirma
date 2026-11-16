@@ -254,6 +254,59 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
         }
     }
 
+    /**
+     * Recorrido 0.0.128: TalkBack leía toda la ayuda de un tirón. Cada encabezado y
+     * cada párrafo es ahora una parada propia del lector de pantalla.
+     */
+    @Test fun helpIsReadSectionBySectionByTalkBack() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { UnsafeExceptionDialog.showHelp(it, item) }
+            onView(withId(R.id.unsafeHelpScroll)).inRoot(isDialog()).check { view, error ->
+                if (error != null) throw error
+                val texts = mutableListOf<android.widget.TextView>()
+                fun walk(v: View) {
+                    if (v is android.widget.TextView && v !is android.widget.Button) texts += v
+                    if (v is ViewGroup) for (i in 0 until v.childCount) walk(v.getChildAt(i))
+                }
+                walk(view)
+                assertTrue("Título, siete encabezados y sus párrafos: ${texts.size}", texts.size >= 15)
+                texts.forEach { text ->
+                    val info = androidx.core.view.accessibility.AccessibilityNodeInfoCompat.obtain()
+                    ViewCompat.onInitializeAccessibilityNodeInfo(text, info)
+                    assertTrue("«${text.text.take(30)}» es una parada propia de TalkBack", info.isScreenReaderFocusable)
+                }
+            }
+        }
+    }
+
+    /** Recorrido 0.0.128: «Cerrar» se veía cortado. Con la letra al doble se ve entero y con 48 dp. */
+    @Test fun helpCloseIsWholeAtTwoHundredPercentTextSize() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val configuration = Configuration(activity.resources.configuration).apply { fontScale = 2f }
+                val context = android.view.ContextThemeWrapper(activity, R.style.Theme_GrxFirma).apply {
+                    applyOverrideConfiguration(configuration)
+                }
+                UnsafeExceptionDialog.showHelp(context, item)
+            }
+            onView(withId(R.id.unsafeHelpClose)).inRoot(isDialog()).check(matches(isCompletelyDisplayed()))
+                .check { view, error ->
+                    if (error != null) throw error
+                    assertControlInsideSafeArea(view)
+                    val button = view as com.google.android.material.button.MaterialButton
+                    val density = view.resources.displayMetrics.density
+                    assertTrue("Área táctil de 48 dp", button.height >= (48 * density).toInt() - 1)
+                    val layout = button.layout
+                    assertNotNull(layout)
+                    assertEquals("«Cerrar» en una sola línea, sin cortar", 1, layout.lineCount)
+                    assertFalse("Sin elipsis", layout.getEllipsisCount(0) > 0)
+                    val room = button.height - button.totalPaddingTop - button.totalPaddingBottom
+                    assertTrue("El texto (${layout.height}) cabe en el botón ($room)", layout.height <= room)
+                    assertTrue("El texto cabe a lo ancho", layout.getLineWidth(0) <= button.width - button.totalPaddingLeft - button.totalPaddingRight)
+                }
+        }
+    }
+
     /** Vuelta 2: al cambiar un caso solo se rehace su fila; el resto, y el foco, siguen donde estaban. */
     @Test fun changingOneCaseOnlyRebuildsItsRow() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
@@ -273,7 +326,18 @@ class UnsafeExceptionsUiTest : AccessibilityTest() {
                 val status = binding.root.findViewWithTag<android.widget.TextView>("unsafe-status-sha1_leer").text.toString()
                 assertTrue("Una sola línea con la fecha: $status", status.startsWith(UnsafeExceptionTexts.text(activity, "aceptada_fecha").substringBefore("{date}")))
                 val refresh = binding.root.findViewById<com.google.android.material.button.MaterialButton>(R.id.unsafeRefresh)
-                assertTrue("Actualizar lista va con borde", refresh.strokeWidth > 0)
+                assertEquals("Actualizar lista va solo como texto", 0, refresh.strokeWidth)
+                val change = binding.root.findViewWithTag<com.google.android.material.button.MaterialButton>("unsafe-change-cms_cbc")
+                assertNotEquals("Actualizar lista no va rellena", change.backgroundTintList?.defaultColor, refresh.backgroundTintList?.defaultColor)
+                val unsafePreferences = binding.unsafePreferences
+                assertEquals("Actualizar lista va al final de la sección", unsafePreferences.childCount - 1, unsafePreferences.indexOfChild(refresh))
+                assertTrue("Área táctil de 48 dp", refresh.minimumHeight >= (48 * activity.resources.displayMetrics.density).toInt() - 1)
+                // La cabecera de la sección es mayor que el nombre de cada caso.
+                val section = binding.root.findViewById<android.widget.TextView>(R.id.unsafeSectionTitle)
+                val name = binding.root.findViewWithTag<android.widget.TextView>("unsafe-name-cms_cbc")
+                assertTrue("Seguridad (${section.textSize}) mayor que el caso (${name.textSize})", section.textSize > name.textSize)
+                assertTrue(ViewCompat.isAccessibilityHeading(section))
+                assertTrue(ViewCompat.isAccessibilityHeading(name))
             }
         }
     }

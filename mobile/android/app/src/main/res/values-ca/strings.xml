@@ -637,6 +637,7 @@
     </plurals>
     <string name="verdict_valid">Signatura vàlida</string>
     <string name="verdict_intact_unchecked">Signatura íntegra; no s\'ha pogut comprovar el certificat</string>
+    <string name="verdict_intact_not_confirmed">Signatura íntegra; no s\'ha pogut confirmar que sigui vàlida</string>
     <string name="verdict_incomplete">No s\'ha pogut comprovar la signatura del tot</string>
     <string name="verdict_revocation_inconclusive">Signatura no confirmada: no s\'ha pogut saber si el certificat està revocat</string>
     <string name="verdict_invalid">Signatura no vàlida</string>
