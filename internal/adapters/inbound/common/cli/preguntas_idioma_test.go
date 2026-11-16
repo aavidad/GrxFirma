@@ -46,11 +46,7 @@ func TestBorrarAutoseleccionPreguntaEnElIdiomaYAceptaLasRespuestas(t *testing.T)
 		afirmativas := append(strings.Split(loc.T("cli.confirm.yes_answers"), ","), "s", "sí", "y", "yes")
 		for _, resp := range append(afirmativas, "n", "", "no") {
 			tmp := t.TempDir()
-			runtimeDir := filepath.Join(tmp, "runtime")
-			if err := os.MkdirAll(filepath.Join(runtimeDir, "grxfirma"), 0o700); err != nil {
-				t.Fatal(err)
-			}
-			t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+			prepararSesionAutoseleccionPrueba(t, tmp)
 			persistente := filepath.Join(tmp, "preferred-certificates.json")
 			if err := os.WriteFile(persistente, []byte(`{"https://uno":"cert-uno"}`), 0o600); err != nil {
 				t.Fatal(err)

@@ -2837,15 +2837,27 @@ func (a *Adaptador) ejecutarAutoseleccionLimpiar(_ context.Context, cfg configCL
 	}
 	eliminados := 0
 
-	for _, ruta := range []string{persistente, sesion} {
-		if err := os.Remove(ruta); err != nil {
-			if !errors.Is(err, os.ErrNotExist) {
-				fmt.Fprintf(a.Stderr, "error limpiando autoselección en %s: %v\n", ruta, err)
-				return 1
-			}
-			continue
+	borrarPersistente := func() (bool, error) {
+		err := os.Remove(persistente)
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
 		}
-		eliminados++
+		return err == nil, err
+	}
+	// El de sesión se borra con las comprobaciones de carpeta privada.
+	borrarSesion := func() (bool, error) { return certselectionstore.RemoveSessionFile(sesion) }
+	for _, paso := range []struct {
+		ruta   string
+		borrar func() (bool, error)
+	}{{persistente, borrarPersistente}, {sesion, borrarSesion}} {
+		borrado, err := paso.borrar()
+		if err != nil {
+			fmt.Fprintf(a.Stderr, "error limpiando autoselección en %s: %v\n", paso.ruta, err)
+			return 1
+		}
+		if borrado {
+			eliminados++
+		}
 	}
 
 	if cfg.json {
@@ -2883,7 +2895,7 @@ func (a *Adaptador) ejecutarAutoseleccionListar(_ context.Context, cfg configCLI
 		fmt.Fprintf(a.Stderr, "error leyendo autoselección persistente: %v\n", err)
 		return 1
 	}
-	preferenciasSesion, err := leerMapaAutoseleccion(sesion)
+	preferenciasSesion, err := certselectionstore.ReadSessionFile(sesion)
 	if err != nil {
 		fmt.Fprintf(a.Stderr, "error leyendo autoselección de sesión: %v\n", err)
 		return 1
@@ -2941,7 +2953,7 @@ func (a *Adaptador) ejecutarAutoseleccionEliminar(_ context.Context, cfg configC
 		fmt.Fprintf(a.Stderr, "error eliminando autoselección persistente: %v\n", err)
 		return 1
 	}
-	eliminadoSesion, err := eliminarEntradaAutoseleccion(sesion, origen)
+	eliminadoSesion, err := eliminarEntradaAutoseleccionSesion(sesion, origen)
 	if err != nil {
 		fmt.Fprintf(a.Stderr, "error eliminando autoselección de sesión: %v\n", err)
 		return 1
@@ -2989,7 +3001,7 @@ func (a *Adaptador) ejecutarAutoseleccionResetear(ctx context.Context, cfg confi
 		fmt.Fprintf(a.Stderr, "error leyendo autoselección persistente: %v\n", err)
 		return 1
 	}
-	preferenciasSesion, err := leerMapaAutoseleccion(sesion)
+	preferenciasSesion, err := certselectionstore.ReadSessionFile(sesion)
 	if err != nil {
 		fmt.Fprintf(a.Stderr, "error leyendo autoselección de sesión: %v\n", err)
 		return 1
@@ -3039,7 +3051,7 @@ func (a *Adaptador) ejecutarAutoseleccionExportar(_ context.Context, cfg configC
 		fmt.Fprintf(a.Stderr, "error leyendo autoselección persistente: %v\n", err)
 		return 1
 	}
-	preferenciasSesion, err := leerMapaAutoseleccion(sesion)
+	preferenciasSesion, err := certselectionstore.ReadSessionFile(sesion)
 	if err != nil {
 		fmt.Fprintf(a.Stderr, "error leyendo autoselección de sesión: %v\n", err)
 		return 1
@@ -3122,7 +3134,7 @@ func (a *Adaptador) ejecutarAutoseleccionImportar(_ context.Context, cfg configC
 		fmt.Fprintf(a.Stderr, "error guardando autoselección persistente: %v\n", err)
 		return 1
 	}
-	if err := guardarMapaAutoseleccion(sesion, payload.Sesion); err != nil {
+	if err := certselectionstore.WriteSessionFile(sesion, payload.Sesion); err != nil {
 		fmt.Fprintf(a.Stderr, "error guardando autoselección de sesión: %v\n", err)
 		return 1
 	}
@@ -4309,9 +4321,33 @@ func (a *Adaptador) rutaAutoseleccionPersistente() (string, error) {
 
 // rutaAutoseleccionSesion es la misma ruta que usa el motor al recordar un
 // certificado durante la sesión. Sin carpeta personal falla cerrado: nunca se
-// lee ni se escribe en la carpeta temporal compartida.
+// lee ni se escribe en la carpeta temporal compartida. Si el sistema no da un
+// identificador de arranque o de sesión, devuelve "" y no hay preferencias de
+// sesión que leer ni guardar.
 func (a *Adaptador) rutaAutoseleccionSesion() (string, error) {
-	return certselectionstore.SessionPath()
+	ruta, err := certselectionstore.SessionPath()
+	if errors.Is(err, certselectionstore.ErrSessionIDNoDisponible) {
+		return "", nil
+	}
+	return ruta, err
+}
+
+// eliminarEntradaAutoseleccionSesion quita un origen del fichero de sesión
+// leyéndolo y guardándolo con las comprobaciones de carpeta privada.
+func eliminarEntradaAutoseleccionSesion(ruta, origen string) (bool, error) {
+	origen = strings.TrimSpace(origen)
+	datos, err := certselectionstore.ReadSessionFile(ruta)
+	if err != nil || origen == "" {
+		return false, err
+	}
+	if _, ok := datos[origen]; !ok {
+		return false, nil
+	}
+	delete(datos, origen)
+	if err := certselectionstore.WriteSessionFile(ruta, datos); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func leerMapaAutoseleccion(ruta string) (map[string]string, error) {

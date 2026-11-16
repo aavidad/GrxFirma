@@ -7,23 +7,15 @@
 
 package appdirs
 
-import (
-	"os"
-	"path/filepath"
-)
+import "path/filepath"
 
 func runtimeReserva(home string) string {
 	return filepath.Join(windowsRoot(home, "LOCALAPPDATA", "Local"), "run")
 }
 
-// En Windows el sistema no fija XDG_RUNTIME_DIR; si el usuario lo define se
-// respeta como antes, siempre que sea una carpeta real y no un enlace ni una
-// unión. Los permisos no se pueden comprobar con bits POSIX: quien escribe
-// dentro aplica la DACL privada con securefile.EnsurePrivateDir.
-func carpetaPrivadaDelUsuario(dir string) bool {
-	info, err := os.Lstat(dir)
-	if err != nil || !info.IsDir() {
-		return false
-	}
-	return info.Mode()&(os.ModeSymlink|os.ModeIrregular) == 0
+// En Windows el sistema no fija XDG_RUNTIME_DIR y sus permisos no se pueden
+// comprobar con bits POSIX: se ignora y se usa siempre la carpeta local del
+// perfil, que securefile.EnsurePrivateDir deja con una DACL privada.
+func carpetaPrivadaDelUsuario(string) bool {
+	return false
 }

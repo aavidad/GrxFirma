@@ -72,3 +72,20 @@ func TestSaveSessionRechazaCarpetaEnlace(t *testing.T) {
 		t.Fatalf("se escribió a través del enlace: %v", entries)
 	}
 }
+
+// La carpeta madre (la de ejecución) también tiene que ser privada.
+func TestLoadSessionIgnoraCarpetaMadreNoPrivada(t *testing.T) {
+	perfilSinXDG(t)
+	store := New(t.TempDir())
+	if err := store.SaveSession(context.Background(), "https://portal.example", "cert"); err != nil {
+		t.Fatal(err)
+	}
+	ruta, _ := SessionPath()
+	madre := filepath.Dir(filepath.Dir(ruta))
+	if err := os.Chmod(madre, 0o777); err != nil {
+		t.Fatal(err)
+	}
+	if id, ok, err := store.LoadSession(context.Background(), "https://portal.example"); err != nil || ok || id != "" {
+		t.Fatalf("preferencia leída con la carpeta madre abierta: %q, %v, %v", id, ok, err)
+	}
+}
