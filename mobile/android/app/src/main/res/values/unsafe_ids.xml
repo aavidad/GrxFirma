@@ -21,4 +21,5 @@
     <item name="unsafeHelpTitle" type="id" />
     <item name="unsafeHelpClose" type="id" />
     <item name="unsafeHelpScroll" type="id" />
+    <item name="unsafeSectionTitle" type="id" />
 </resources>
