@@ -31,9 +31,17 @@ public sealed record OperationDiagnosticPresentation
     public required IReadOnlyList<DiagnosticStepPresentation> Steps { get; init; }
 
     public static OperationDiagnosticPresentation From(
-        OperationDiagnostic diagnostic)
+        OperationDiagnostic diagnostic) => From(diagnostic, null);
+
+    // Los textos de respaldo salen del catálogo por clave; lo que manda el
+    // motor sigue pasando por TranslateVisibleText. catalogText solo lo
+    // cambian las pruebas.
+    public static OperationDiagnosticPresentation From(
+        OperationDiagnostic diagnostic,
+        Func<string, string>? catalogText)
     {
         ArgumentNullException.ThrowIfNull(diagnostic);
+        var text = catalogText ?? CatalogLocalizer.Shared.Text;
 
         var owner = MapOwner(diagnostic.LikelyOwner);
         return new OperationDiagnosticPresentation
@@ -41,25 +49,25 @@ public sealed record OperationDiagnosticPresentation
             Cause = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
                 diagnostic.UserMessage,
                 512,
-                "No se ha podido determinar una causa sencilla.")),
+                text("winui.diagnostico.presentacion.causa_desconocida"))),
             Owner = owner,
-            OwnerLabel = OwnerText(owner),
+            OwnerLabel = OwnerText(owner, text),
             Responsibility = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
                 diagnostic.ResponsibilityMessage,
                 512,
-                "No se ha podido determinar quién debe revisar el problema.")),
+                text("winui.diagnostico.presentacion.responsable_desconocido"))),
             SuggestedAction = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
                 diagnostic.SuggestedAction,
                 512,
-                "No hay una acción concreta registrada. Conserve el código para soporte.")),
+                text("winui.diagnostico.presentacion.accion_desconocida"))),
             ExpertDetail = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
                 diagnostic.ExpertMessage,
                 4096,
-                "No hay detalle técnico disponible.")),
+                text("winui.diagnostico.respaldo.detalle"))),
             FailureCode = NormalizeFailureCode(diagnostic.FailureCode),
             Steps = diagnostic.Steps
                 .Take(MaxVisibleSteps)
-                .Select(DiagnosticStepPresentation.From)
+                .Select(step => DiagnosticStepPresentation.From(step, text))
                 .ToArray(),
         };
     }
@@ -86,14 +94,16 @@ public sealed record OperationDiagnosticPresentation
             _ => DiagnosticOwner.Unknown,
         };
 
-    public static string OwnerText(DiagnosticOwner owner) =>
-        CatalogLocalizer.Shared.TranslateVisibleText(owner switch
+    public static string OwnerText(DiagnosticOwner owner) => OwnerText(owner, null);
+
+    public static string OwnerText(DiagnosticOwner owner, Func<string, string>? catalogText) =>
+        (catalogText ?? CatalogLocalizer.Shared.Text)(owner switch
     {
-        DiagnosticOwner.Computer => "Este equipo o la aplicación local",
-        DiagnosticOwner.Browser => "El navegador",
-        DiagnosticOwner.Portal => "El portal o sede electrónica",
-        DiagnosticOwner.GovernmentAFirma => "La plataforma @firma",
-        _ => "Responsable desconocido",
+        DiagnosticOwner.Computer => "winui.diagnostico.presentacion.origen_equipo",
+        DiagnosticOwner.Browser => "winui.diagnostico.presentacion.origen_navegador",
+        DiagnosticOwner.Portal => "winui.diagnostico.presentacion.origen_portal",
+        DiagnosticOwner.GovernmentAFirma => "winui.diagnostico.presentacion.origen_afirma",
+        _ => "winui.diagnostico.presentacion.origen_desconocido",
     });
 
     private static string? NormalizeFailureCode(string? value)
@@ -127,24 +137,29 @@ public sealed record DiagnosticStepPresentation
     public required string SuggestedActionDisplayText { get; init; }
     public required string AutomationSummary { get; init; }
 
-    public static DiagnosticStepPresentation From(OperationDiagnosticStep step)
+    public static DiagnosticStepPresentation From(OperationDiagnosticStep step) => From(step, null);
+
+    public static DiagnosticStepPresentation From(
+        OperationDiagnosticStep step,
+        Func<string, string>? catalogText)
     {
         ArgumentNullException.ThrowIfNull(step);
+        var text = catalogText ?? CatalogLocalizer.Shared.Text;
         var label = CatalogLocalizer.Shared.TranslateVisibleText(
-            SafeIpcText.Clean(step.Label, 160, "Paso observado"));
-        var statusText = StatusDescription(step.Status);
+            SafeIpcText.Clean(step.Label, 160, text("winui.diagnostico.paso_observado")));
+        var statusText = StatusDescription(step.Status, text);
         var detail = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
             step.UserMessage,
             512,
             step.Status == DiagnosticStepStatus.Unknown
-                ? "Este paso no se ha comprobado."
-                : "Sin detalle adicional."));
+                ? text("winui.diagnostico.presentacion.paso_sin_comprobar")
+                : text("winui.diagnostico.presentacion.paso_sin_detalle")));
         var owner = OperationDiagnosticPresentation.MapOwner(step.Owner);
-        var ownerLabel = OperationDiagnosticPresentation.OwnerText(owner);
+        var ownerLabel = OperationDiagnosticPresentation.OwnerText(owner, text);
         var suggestedAction = CatalogLocalizer.Shared.TranslateVisibleText(SafeIpcText.Clean(
             step.SuggestedAction,
             512,
-            "No hay una acción específica registrada para este paso."));
+            text("winui.diagnostico.presentacion.paso_sin_accion")));
 
         return new DiagnosticStepPresentation
         {
@@ -155,21 +170,20 @@ public sealed record DiagnosticStepPresentation
             StatusText = statusText,
             StatusDisplayText = string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
-                CatalogLocalizer.Shared.Text("Estado: {0}"), statusText),
+                text("winui.diagnostico.presentacion.paso_estado"), statusText),
             Detail = detail,
             Owner = owner,
             OwnerLabel = ownerLabel,
             OwnerDisplayText = string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
-                CatalogLocalizer.Shared.Text("Responsable probable: {0}"), ownerLabel),
+                text("winui.diagnostico.presentacion.paso_responsable"), ownerLabel),
             SuggestedAction = suggestedAction,
             SuggestedActionDisplayText = string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
-                CatalogLocalizer.Shared.Text("Qué hacer ahora: {0}"), suggestedAction),
+                text("winui.diagnostico.presentacion.paso_que_hacer"), suggestedAction),
             AutomationSummary = string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
-                CatalogLocalizer.Shared.Text(
-                    "{0}. Estado: {1}. Responsable probable: {2}. {3} Qué hacer ahora: {4}"),
+                text("winui.diagnostico.presentacion.paso_resumen"),
                 label, statusText, ownerLabel, detail, suggestedAction),
         };
     }
@@ -182,12 +196,14 @@ public sealed record DiagnosticStepPresentation
         _ => "?",
     };
 
-    public static string StatusDescription(DiagnosticStepStatus status) =>
-        CatalogLocalizer.Shared.TranslateVisibleText(status switch
+    public static string StatusDescription(DiagnosticStepStatus status) => StatusDescription(status, null);
+
+    public static string StatusDescription(DiagnosticStepStatus status, Func<string, string>? catalogText) =>
+        (catalogText ?? CatalogLocalizer.Shared.Text)(status switch
     {
-        DiagnosticStepStatus.Success => "Correcto",
-        DiagnosticStepStatus.Failure => "Falló",
-        DiagnosticStepStatus.Skipped => "Omitido",
-        _ => "No comprobado",
+        DiagnosticStepStatus.Success => "winui.diagnostico.presentacion.estado_correcto",
+        DiagnosticStepStatus.Failure => "winui.diagnostico.presentacion.estado_fallo",
+        DiagnosticStepStatus.Skipped => "winui.diagnostico.presentacion.estado_omitido",
+        _ => "winui.diagnostico.presentacion.estado_no_comprobado",
     });
 }

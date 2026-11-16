@@ -460,12 +460,14 @@ public sealed class IpcClientTests
         Assert.AreEqual("protocol_violation", exception.Code);
         Assert.AreEqual("SUCCESS_WITH_UNSAFE_EXCEPTION_BLOCKED", exception.Reason);
         Assert.AreEqual(
-            GrxFirma.WinUI.Core.Localization.CatalogLocalizer.Shared.TranslateVisibleText(
-                "La interfaz y el motor local usan versiones incompatibles."),
+            GrxFirma.WinUI.Core.Localization.CatalogLocalizer.Shared.Text(
+                "winui.ipc.versiones_incompatibles"),
             exception.UserMessage);
         var diagnostic = GrxFirma.WinUI.Core.Diagnostics.OperationDiagnosticMapper.FromException(exception);
         Assert.AreEqual("SUCCESS_WITH_UNSAFE_EXCEPTION_BLOCKED", diagnostic.FailureCode);
-        StringAssert.Contains(diagnostic.SuggestedAction, "misma versión");
+        Assert.AreEqual(
+            GrxFirma.WinUI.Core.Localization.CatalogLocalizer.Shared.Text("winui.diagnostico.accion.protocolo"),
+            diagnostic.SuggestedAction);
     }
 
     [TestMethod]

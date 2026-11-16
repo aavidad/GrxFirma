@@ -315,7 +315,10 @@
   "approval.document.sized",
   "approval.documents",
   "approval.size.bytes",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.diagnostico.presentacion.origen_navegador",
+  "winui.diagnostico.presentacion.origen_afirma",
+  "winui.diagnostico.presentacion.paso_responsable"
  ],
  "de": [
   " + base64",
@@ -445,7 +448,8 @@
   "report.signer.organization",
   "qt.filedialog.filter",
   "qt.qstandardpaths.downloads",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.diagnostico.presentacion.paso_estado"
  ],
  "en": [
   " + base64",
@@ -1452,7 +1456,6 @@
   "con avisos",
   "contacto",
   "content-type",
-  "correcto",
   "crear",
   "csc.gui.client_id",
   "csc.gui.conectar",
@@ -1461,9 +1464,9 @@
   "csc.gui.host_oauth",
   "csc.gui.remoto",
   "custom",
-  "de admisión",
-  "de operación",
-  "de protocolo",
+  "winui.diagnostico.motor.fase_admision",
+  "winui.diagnostico.motor.fase_operacion",
+  "winui.diagnostico.motor.fase_protocolo",
   "desactivada",
   "diagnostico-grxfirma-",
   "directorio",
@@ -1508,7 +1511,6 @@
   "facturae.submit_face",
   "facturae.validate_face",
   "facturae.xml_filter",
-  "fallido",
   "format",
   "formatConfigFacturaEPolicy",
   "formatConfigPadesSubFilter",
@@ -1828,7 +1830,12 @@
   "approval.document.sized",
   "approval.documents",
   "approval.size.bytes",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.ipc.operacion_completada",
+  "winui.diagnostico.presentacion.paso_estado",
+  "winui.diagnostico.presentacion.paso_responsable",
+  "winui.diagnostico.presentacion.estado_correcto",
+  "winui.diagnostico.presentacion.estado_omitido"
  ],
  "it": [
   " + base64",
@@ -2282,7 +2289,7 @@
   "csc.gui.enviar_codigo",
   "csc.gui.remoto",
   "custom",
-  "de protocolo",
+  "winui.diagnostico.motor.fase_protocolo",
   "diagnostico-grxfirma-",
   "disco",
   "disco + base64",
@@ -2461,7 +2468,9 @@
   "approval.document.sized",
   "approval.documents",
   "approval.size.bytes",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.diagnostico.presentacion.paso_estado",
+  "winui.diagnostico.presentacion.estado_omitido"
  ],
  "va": [
   " + base64",
@@ -2821,7 +2830,10 @@
   "approval.document.sized",
   "approval.documents",
   "approval.size.bytes",
-  "excepciones.sha1_leer.aviso"
+  "excepciones.sha1_leer.aviso",
+  "winui.diagnostico.presentacion.origen_navegador",
+  "winui.diagnostico.presentacion.origen_afirma",
+  "winui.diagnostico.presentacion.paso_responsable"
  ],
  "zh": [
   " + base64",

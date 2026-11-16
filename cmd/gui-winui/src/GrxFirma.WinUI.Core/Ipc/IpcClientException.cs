@@ -11,14 +11,15 @@ public sealed class IpcClientException : Exception
 {
     private IpcClientException(
         string code,
-        string userMessage,
+        string userMessageKey,
         string phase,
         string likelyOwner,
         bool retryable = false,
         string? reason = null)
-        : base(CatalogLocalizer.Shared.TranslateVisibleText(userMessage))
+        : base(CatalogLocalizer.Shared.Text(userMessageKey))
     {
         Code = code;
+        UserMessageKey = userMessageKey;
         Reason = reason;
         UserMessage = Message;
         Phase = phase;
@@ -28,6 +29,12 @@ public sealed class IpcClientException : Exception
 
     public string Code { get; }
     public string UserMessage { get; }
+
+    /// <summary>
+    /// Clave del catálogo de <see cref="UserMessage"/>, para que el
+    /// diagnóstico lo presente en el idioma de su propio catálogo.
+    /// </summary>
+    public string UserMessageKey { get; }
     public string Phase { get; }
     public string LikelyOwner { get; }
     public bool Retryable { get; }
@@ -42,14 +49,14 @@ public sealed class IpcClientException : Exception
     internal static IpcClientException Configuration() =>
         new(
             "invalid_configuration",
-            "La configuración de conexión local no es válida.",
+            "winui.ipc.configuracion_no_valida",
             "admission",
             "app_local");
 
     internal static IpcClientException Connection(bool retryable = true) =>
         new(
             "connection_failed",
-            "No se pudo conectar de forma segura con el motor local.",
+            "winui.ipc.conexion_fallida",
             "admission",
             "unknown",
             retryable);
@@ -57,14 +64,14 @@ public sealed class IpcClientException : Exception
     internal static IpcClientException ServerIdentity() =>
         new(
             "server_identity_mismatch",
-            "Se rechazó la conexión porque el motor local no coincide con el proceso esperado.",
+            "winui.ipc.identidad_no_coincide",
             "admission",
             "environment");
 
     internal static IpcClientException Protocol() =>
         new(
             "protocol_violation",
-            "El motor local devolvió una respuesta no válida.",
+            "winui.ipc.respuesta_no_valida",
             "protocol",
             "app_local");
 
@@ -74,7 +81,7 @@ public sealed class IpcClientException : Exception
     internal static IpcClientException InconsistentResponse(string reason) =>
         new(
             "protocol_violation",
-            "La interfaz y el motor local usan versiones incompatibles.",
+            "winui.ipc.versiones_incompatibles",
             "protocol",
             "app_local",
             reason: reason);
@@ -82,21 +89,21 @@ public sealed class IpcClientException : Exception
     internal static IpcClientException ProtocolVersion() =>
         new(
             "unsupported_protocol",
-            "La interfaz y el motor local usan versiones incompatibles.",
+            "winui.ipc.versiones_incompatibles",
             "protocol",
             "app_local");
 
     internal static IpcClientException FrameTooLarge() =>
         new(
             "message_too_large",
-            "Un mensaje del canal local supera el límite permitido.",
+            "winui.ipc.mensaje_demasiado_grande",
             "protocol",
             "app_local");
 
     internal static IpcClientException Closed(bool retryable = true) =>
         new(
             "connection_closed",
-            "La conexión segura con el motor local se cerró antes de completar la operación.",
+            "winui.ipc.conexion_cerrada",
             "admission",
             "unknown",
             retryable);
@@ -104,7 +111,7 @@ public sealed class IpcClientException : Exception
     internal static IpcClientException ClosedAfterRequest() =>
         new(
             "connection_closed",
-            "El canal local se cerró después de enviar la petición y antes de recibir una respuesta.",
+            "winui.ipc.cerrada_tras_peticion",
             "protocol",
             "unknown",
             true);
