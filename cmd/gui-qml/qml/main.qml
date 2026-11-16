@@ -140,7 +140,8 @@ Window {
             // La firma detenida por seguridad no es una avería: su tarjeta lo
             // dice así (lote 39a, vuelta 2). Llega antes que signingFinished.
             if (UnsafeResume.isSigning(block.operationAction)) window.signBlockedPending = true
-            window.signBlockedCaseId = String(block.id || "")
+            // Solo un bloqueo de firma fija el título que la tarjeta quita del motivo.
+            if (UnsafeResume.isSigning(block.operationAction)) window.signBlockedCaseId = String(block.id || "")
             const pending = Object.assign({}, block)
             pending.resend = window.unsafeOperationCanResend(pending)
             // La firma no se repite por el motor: su reintento no se activa.

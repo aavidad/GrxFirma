@@ -79,7 +79,10 @@ class LoteP3QtContract(unittest.TestCase):
         self.assertIn('"excepciones." + window.signBlockedCaseId + ".titulo"', cause)
         self.assertIn('tr("excepciones.pantalla.titulo")', cause)
         blocked = source.split("function onUnsafeExceptionBlocked(block)", 1)[1][:900]
-        self.assertIn('window.signBlockedCaseId = String(block.id || "")', blocked)
+        # Solo un bloqueo de firma cambia el caso: otro bloqueo que llegue antes
+        # de signingFinished no puede hacer que se quite un título ajeno.
+        self.assertIn('if (UnsafeResume.isSigning(block.operationAction)) window.signBlockedCaseId = String(block.id || "")', blocked)
+        self.assertEqual(blocked.count("window.signBlockedCaseId ="), 1)
 
     def test_recipients_reload_is_a_user_request(self):
         source = main_qml()
