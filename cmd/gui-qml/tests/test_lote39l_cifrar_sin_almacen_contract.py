@@ -40,11 +40,12 @@ class CifrarSinAlmacenContract(unittest.TestCase):
         self.assertNotIn("loadProtectionRecipients(true)", nav)
 
     def test_automatic_block_does_not_open_dialog(self):
+        # Lote p3: la marca va por requestId (ver test_lote_p3_qt_contract).
         self.assertIn(
-            "quietRecipientsBlock = unsafeBlocked && !m_protectionRecipientsUserRequest;",
+            "quietRecipientsBlock = unsafeBlocked && !userRecipientsRequest;",
             self.bridge)
         emit = self.bridge.index("emit unsafeExceptionBlocked(block);")
-        guard = self.bridge.rindex("if (!ok && matchesPendingRequest", 0, emit)
+        guard = self.bridge.rindex("if (!ok && (matchesPendingRequest || userRecipientsRequest)", 0, emit)
         self.assertIn("!quietRecipientsBlock", self.bridge[guard:emit])
 
     def test_recipients_block_is_not_a_failure(self):
@@ -60,7 +61,7 @@ class CifrarSinAlmacenContract(unittest.TestCase):
                       BRIDGE_H.read_text(encoding="utf-8"))
         self.assertIn("loadProtectionRecipients(bool userRequested = false)",
                       BACKEND_H.read_text(encoding="utf-8"))
-        self.assertIn("m_protectionRecipientsUserRequest = userRequested;", self.bridge)
+        self.assertIn("m_protectionRecipientsUserRequests.insert(m_lastRequestId);", self.bridge)
 
     def test_section_shows_calm_notice_with_button(self):
         start = self.qml.index("visible: window.protectOwnIdentityUnavailable")

@@ -130,6 +130,7 @@ Window {
     }
     property var unsafeNotice: []
     property bool signBlockedPending: false
+    property string signBlockedCaseId: ""
     Connections {
         target: typeof isIpcMode !== "undefined" && isIpcMode ? backend : null
         ignoreUnknownSignals: true
@@ -139,6 +140,7 @@ Window {
             // La firma detenida por seguridad no es una avería: su tarjeta lo
             // dice así (lote 39a, vuelta 2). Llega antes que signingFinished.
             if (UnsafeResume.isSigning(block.operationAction)) window.signBlockedPending = true
+            window.signBlockedCaseId = String(block.id || "")
             const pending = Object.assign({}, block)
             pending.resend = window.unsafeOperationCanResend(pending)
             // La firma no se repite por el motor: su reintento no se activa.
@@ -152,11 +154,13 @@ Window {
     }
     Rectangle {
         id: unsafeNoticeBanner
-        anchors.bottomMargin: statusBar.height
+        objectName: "unsafeNoticeBanner"
+        // Arriba, al principio del contenido y bajo el aviso de versión nueva:
+        // es lo primero que se ve tras una operación con una opción insegura.
         z: 90
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.top: updateBanner.visible ? updateBanner.bottom : parent.top
         visible: window.unsafeNotice.length > 0 && !window.portalSealMode
         color: currentTheme.cardColor
         border.color: currentTheme.secondaryTextColor
@@ -250,6 +254,8 @@ Window {
     property string sealPreviewMessage: ""
     property string sealStyle: "institutional"
     property string smartcardMessage: ""
+    property bool smartcardRefreshPending: false
+    property string certificateOperationStatus: ""
     property real previewPageWidthPoints: 0
     property real previewPageHeightPoints: 0
     property string previewGeometryPath: ""
@@ -432,7 +438,32 @@ Window {
             return
         localTLSStartupNoticeState = state
         localTLSStartupNoticeShown = true
+        localTLSStartupNoticePending = true
+        openPendingLocalTLSStartupNotice()
+    }
+    // El aviso de la CA local espera a la primera respuesta de los ajustes:
+    // si no se pueden leer, su diálogo sale primero y la CA después de
+    // cerrarlo, nunca encima (lote p3).
+    property bool localTLSStartupNoticePending: false
+    property bool startupSettingsAnswered: false
+    function openPendingLocalTLSStartupNotice() {
+        if (!localTLSStartupNoticePending || !startupSettingsAnswered || settingsAccessDialog.visible)
+            return
+        localTLSStartupNoticePending = false
         localTLSStartupNoticeDialog.open()
+    }
+    function markStartupSettingsAnswered() {
+        startupSettingsAnswered = true
+        localTLSStartupFallbackTimer.stop()
+        Qt.callLater(window.openPendingLocalTLSStartupNotice)
+    }
+    Timer {
+        // Si el motor no contesta a los ajustes, el aviso no se pierde.
+        id: localTLSStartupFallbackTimer
+        interval: 6000
+        repeat: false
+        running: true
+        onTriggered: window.markStartupSettingsAnswered()
     }
 
     function startDirectUpdateCheck() {
@@ -5099,6 +5130,7 @@ Window {
                        ? tr("Tarjeta detectada. Se actualiza la lista de certificados; puede que necesites configurar el módulo PKCS#11.")
                        : tr("Lector detectado sin tarjeta. Introduce el DNIe o tarjeta y vuelve a consultar."))
             }
+            window.smartcardRefreshPending = true
             backend.refreshCertificates()
         }
         function onProtectionRecipientChanged(ok, message) {
@@ -5665,11 +5697,16 @@ Window {
     }
 
     // El motivo del bloqueo ya empieza por el título del aviso; la tarjeta lo
-    // lleva como encabezado y no lo repite.
+    // lleva como encabezado y no lo repite. Se quita el común o el del caso:
+    // en inglés no coincidían y decía dos veces lo mismo (lote p3).
     function signBlockedCause(message) {
         const text = String(message || "").trim()
-        const title = tr("excepciones.pantalla.titulo")
-        if (title !== "" && text.indexOf(title) === 0) {
+        const caseTitleKey = window.signBlockedCaseId !== "" ? "excepciones." + window.signBlockedCaseId + ".titulo" : ""
+        const caseTitle = caseTitleKey !== "" ? tr(caseTitleKey) : ""
+        const titles = [tr("excepciones.pantalla.titulo"), caseTitle !== caseTitleKey ? caseTitle : ""]
+        for (let i = 0; i < titles.length; i++) {
+            const title = titles[i]
+            if (title === "" || text.indexOf(title) !== 0) continue
             const rest = text.substring(title.length).replace(/^[.:;,]?\s*/, "")
             if (rest !== "") return rest
         }
@@ -6021,13 +6058,22 @@ Window {
         parent: window.contentItem
         theme: currentTheme
         translate: function(key) { return window.tr(key) }
+        onClosed: Qt.callLater(window.openPendingLocalTLSStartupNotice)
     }
     Connections {
         target: backend
         ignoreUnknownSignals: true
         function onSettingsAccessFailed(action, message) {
+            // Si el aviso de la CA ya estaba abierto, se aparta y vuelve
+            // cuando se cierre este.
+            if (localTLSStartupNoticeDialog.visible) {
+                window.localTLSStartupNoticePending = true
+                localTLSStartupNoticeDialog.close()
+            }
             settingsAccessDialog.present(action, message)
+            window.markStartupSettingsAnswered()
         }
+        function onSettingsLoaded(s) { window.markStartupSettingsAnswered() }
     }
 
     ThemedDialog {
@@ -8909,6 +8955,19 @@ Window {
             console.log(tr("QML: Certificados recibidos:"), certs.length)
             backend.cscStatus()
             window.certificates = certs
+            // La barra de estado dice siempre cuántos hay tras cada carga:
+            // el puente no avisa si su texto no cambia y la barra se quedaba
+            // con el mensaje de otra operación (lote p3).
+            // Si la carga sigue a una operación con certificados (importar,
+            // cargar o retirar una credencial temporal), su resultado se
+            // conserva delante del recuento en vez de perderse.
+            const certificateCount = tr("Certificados cargados: %1").arg(certs.length)
+            window.statusMessage = window.certificateOperationStatus !== ""
+                    ? window.certificateOperationStatus + " " + certificateCount : certificateCount
+            window.certificateOperationStatus = ""
+            // El aviso de la tarjeta solo vale para la consulta que lo dio.
+            if (window.smartcardRefreshPending) window.smartcardRefreshPending = false
+            else window.smartcardMessage = ""
             window.syncCertificateSelection(certs)
             if (certs.length > 0) {
                 window.showNoCertificateHelp = true
@@ -9408,6 +9467,7 @@ Window {
         }
         function onCertificateImportFinished(ok, message) {
             backend.updateStatus(ok ? ("✅ " + message) : (tr("Error: ") + message))
+            window.certificateOperationStatus = ok ? "✅ " + message : ""
             if (ok) {
                 backend.backendLogReceived(tr("Firma: Certificado importado con éxito."))
             } else {
@@ -9432,6 +9492,7 @@ Window {
         }
         function onTemporaryCertificateFinished(ok, message, certificate) {
             window.statusMessage = (ok ? "✅ " : tr("Error: ")) + message
+            window.certificateOperationStatus = ok ? "✅ " + message : ""
             if (!ok) {
                 window.pendingTemporaryRemovalId = ""
                 backend.backendLogReceived(tr("Error cargando certificado temporal: ") + message)
@@ -9671,9 +9732,10 @@ Window {
     RowLayout {
         visible: !portalSealMode
         anchors.fill: parent
-        anchors.topMargin: updateBanner.visible ? updateBanner.height : 0
+        anchors.topMargin: (updateBanner.visible ? updateBanner.height : 0)
+                           + (unsafeNoticeBanner.visible ? unsafeNoticeBanner.height : 0)
         // El contenido termina encima de la barra de estado, sin quedar debajo de ella.
-        anchors.bottomMargin: statusBar.height + (unsafeNoticeBanner.visible ? unsafeNoticeBanner.height : 0)
+        anchors.bottomMargin: statusBar.height
         spacing: 0
 
         // SIDEBAR
@@ -14523,7 +14585,9 @@ Window {
                                         }
                                         ThemedButton {
                                             text: tr("Cargar destinatarios")
-                                            onClicked: backend.loadProtectionRecipients()
+                                            // Recargar es una petición de la persona: si la clave propia
+                                            // necesita permiso, el aviso se abre (lote p3).
+                                            onClicked: backend.loadProtectionRecipients(true)
                                         }
                                     }
                                     Text {

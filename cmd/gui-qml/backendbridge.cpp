@@ -972,6 +972,11 @@ void BackendBridge::setStatus(const QString &s) {
   }
 }
 
+void BackendBridge::announceStatus(const QString &s) {
+  m_status = s;
+  emit statusChanged();
+}
+
 void BackendBridge::startBackend(const QString &addr, const QString &token,
                                  const QString &mode,
                                  const QString &fingerprints, bool useTLS) {
@@ -1818,8 +1823,8 @@ void BackendBridge::refreshCertificates() {
       QVariantList list;
       for (const auto &c : certs)
         list << c.toVariant();
-      emit certificatesLoaded(list);
       setStatus(bt(QStringLiteral("Certificados actualizados")));
+      emit certificatesLoaded(list);
     } else {
       QString errorMsg = reply->errorString();
       if (errorMsg.contains("Connection refused"))
@@ -2347,7 +2352,7 @@ void BackendBridge::checkCertificates() {
       for (const auto &c : certs)
         list << c.toVariant();
       emit certificatesLoaded(list);
-      setStatus(bt(QStringLiteral("Chequeo de certificados finalizado.")));
+      announceStatus(bt(QStringLiteral("Chequeo de certificados finalizado.")));
       emit backendLogReceived(bt(
           QStringLiteral("Chequeo exhaustivo de certificados completado.")));
     } else {

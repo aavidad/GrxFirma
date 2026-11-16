@@ -58,6 +58,7 @@ private slots:
   void tokenSettingsTimeoutIgnoresLateReply();
   void tokenSettingsUsesFixedErrorCodeNotMessage();
   void settingsAccessUsesInterfaceCatalogAndOwnDialog();
+  void protectionRecipientsUserRequestSurvivesAutomaticLoad();
   void unexpectedServerReceivesNothing();
   void expectedServerReceivesDeferredRequest();
   void secretFrameZeroesInputs();
@@ -644,6 +645,56 @@ void IpcBridgeTransientSecretTest::droppedVerifyResponseFailsExactlyOnce() {
 
 // D-01: si el otro extremo no es el proceso esperado, la GUI cierra sin
 // enviar nada, tampoco la acción que tenía diferida.
+// Lote p3: la carga automática de destinatarios y la petición de la persona
+// (crear la clave propia o recargar la lista) se cruzan. Cada respuesta se
+// juzga por su propia petición: la automática no abre el aviso de seguridad
+// y la de la persona lo abre aunque ya no sea la última en vuelo.
+void IpcBridgeTransientSecretTest::protectionRecipientsUserRequestSurvivesAutomaticLoad() {
+  IpcBridge bridge;
+  QLocalServer server;
+  auto *peer = connectPeer(bridge, server);
+  QVERIFY(peer);
+  peer->readAll();
+  QSignalSpy blocked(&bridge, &IpcBridge::unsafeExceptionBlocked);
+  QSignalSpy unavailable(&bridge, &IpcBridge::protectionOwnIdentityUnavailable);
+  const auto blockReply = [](const QJsonObject &sent) {
+    return QJsonObject{{"action", "protection_recipients"}, {"requestId", sent.value("requestId")},
+        {"ok", false}, {"exceptionId", "alto_clave_fichero_crear"}, {"activable", true},
+        {"acceptanceVersion", "2026-11-15.3"},
+        {"exception", QJsonObject{{"id", "alto_clave_fichero_crear"}}}};
+  };
+  const auto write = [peer](const QJsonObject &reply) {
+    peer->write(QJsonDocument(reply).toJson(QJsonDocument::Compact) + '\n');
+    peer->flush();
+  };
+
+  // Automática y luego la persona; responde primero la automática.
+  bridge.loadProtectionRecipients(false);
+  const auto automatic = nextRequest(peer);
+  bridge.loadProtectionRecipients(true);
+  const auto user = nextRequest(peer);
+  QCOMPARE(automatic.value("action").toString(), QStringLiteral("protection_recipients"));
+  QCOMPARE(user.value("action").toString(), QStringLiteral("protection_recipients"));
+  write(blockReply(automatic));
+  QTRY_COMPARE(unavailable.count(), 1);
+  QCOMPARE(blocked.count(), 0);
+  write(blockReply(user));
+  QTRY_COMPARE(blocked.count(), 1);
+  QCOMPARE(blocked.at(0).at(0).toMap().value("operationAction").toString(),
+           QStringLiteral("protection_recipients"));
+
+  // La persona y luego otra automática; la de la persona ya no es la última.
+  bridge.loadProtectionRecipients(true);
+  const auto userFirst = nextRequest(peer);
+  bridge.loadProtectionRecipients(false);
+  const auto automaticLater = nextRequest(peer);
+  write(blockReply(userFirst));
+  QTRY_COMPARE(blocked.count(), 2);
+  write(blockReply(automaticLater));
+  QTRY_COMPARE(unavailable.count(), 4);
+  QCOMPARE(blocked.count(), 2);
+}
+
 void IpcBridgeTransientSecretTest::unexpectedServerReceivesNothing() {
   IpcBridge bridge;
   QLocalServer server;

@@ -898,6 +898,11 @@ void IpcBridge::setStatus(const QString &s) {
   }
 }
 
+void IpcBridge::announceStatus(const QString &s) {
+  m_status = s;
+  emit statusChanged();
+}
+
 void IpcBridge::setLastDiagnostic(const QVariantMap &diagnostic) {
   if (m_lastDiagnostic != diagnostic) {
     m_lastDiagnostic = diagnostic;
@@ -1476,8 +1481,8 @@ void IpcBridge::refreshCertificates() {
         QVariantList list;
         for (const auto &c : certs)
           list << c.toVariant();
-        emit certificatesLoaded(list);
         setStatus(it(QStringLiteral("Certificados actualizados (REST)")));
+        emit certificatesLoaded(list);
       } else {
         emit backendLogReceived(
             it(QStringLiteral("Error REST: ")) + reply->errorString());
@@ -1666,10 +1671,18 @@ void IpcBridge::removeForcedTrust(const QString &type,
 }
 
 void IpcBridge::loadProtectionRecipients(bool userRequested) {
-  m_protectionRecipientsUserRequest = userRequested;
   emit backendLogReceived(
       it(QStringLiteral("🛡️ Solicitando destinatarios de protección IPC")));
+  const QString previousRequestId = m_lastRequestId;
   sendRequest("protection_recipients", QVariantMap());
+  // sendRequest (o la cola de reconexión) estrena un requestId; si no lo hay,
+  // la petición no salió y no queda nada que marcar.
+  if (userRequested && m_lastRequestId != previousRequestId &&
+      !m_lastRequestId.isEmpty()) {
+    if (m_protectionRecipientsUserRequests.size() >= 8)
+      m_protectionRecipientsUserRequests.clear();
+    m_protectionRecipientsUserRequests.insert(m_lastRequestId);
+  }
 }
 
 void IpcBridge::importProtectionRecipient(const QString &path) {
@@ -2184,10 +2197,16 @@ void IpcBridge::onReadyRead() {
     // choca con un bloqueo (crear la clave propia sin almacén de secretos),
     // no se abre el aviso de seguridad ni se marca un fallo: la sección lo
     // explica y el aviso sale cuando la persona pide crear la clave.
+    // Cada respuesta se juzga por su propia petición: si una carga automática
+    // y la petición de la persona se cruzan, la de la persona abre el aviso
+    // aunque ya no sea la última en vuelo (lote p3).
     bool quietRecipientsBlock = false;
+    bool userRecipientsRequest = false;
     if (action == QStringLiteral("protection_recipients")) {
-      quietRecipientsBlock = unsafeBlocked && !m_protectionRecipientsUserRequest;
-      m_protectionRecipientsUserRequest = false;
+      userRecipientsRequest =
+          !obj.value("requestId").toString().isEmpty() &&
+          m_protectionRecipientsUserRequests.remove(requestId);
+      quietRecipientsBlock = unsafeBlocked && !userRecipientsRequest;
     }
     const auto unsafeRequest = m_unsafeRequests.find(requestId);
     if (unsafeRequest != m_unsafeRequests.end()) {
@@ -2199,7 +2218,8 @@ void IpcBridge::onReadyRead() {
       }
     }
     if (action.startsWith(QStringLiteral("unsafe_exceptions_"))) continue;
-    if (!ok && matchesPendingRequest && !quietRecipientsBlock &&
+    if (!ok && (matchesPendingRequest || userRecipientsRequest) &&
+        !quietRecipientsBlock &&
         !obj.value("requestId").toString().isEmpty() &&
         !obj.value("exceptionId").toString().isEmpty()) {
       QVariantMap block = obj.value("exception").toObject().toVariantMap();
@@ -2648,7 +2668,7 @@ void IpcBridge::onReadyRead() {
           it(QStringLiteral("Chequeo finalizado: %1 válidos, %2 fallidos."))
               .arg(ok)
               .arg(fail);
-      setStatus(msg);
+      announceStatus(msg);
       emit backendLogReceived(it(QStringLiteral("")) + msg);
       continue;
     }
@@ -2742,8 +2762,10 @@ void IpcBridge::onReadyRead() {
       QJsonArray arr = data.toArray();
       for (const auto &v : arr)
         certs << v.toVariant();
-      emit certificatesLoaded(certs);
+      // El estado va antes que la lista: la QML pone después el recuento
+      // y no lo pisa un texto que no ha cambiado (lote p3).
       setStatus(it(QStringLiteral("Certificados cargados")));
+      emit certificatesLoaded(certs);
     } else if (data.isObject()) {
       QJsonObject res = data.toObject();
       if (res.contains("OutputPath")) {
@@ -3057,7 +3079,7 @@ void IpcBridge::checkCertificates() {
         for (const auto &c : certs)
           list << c.toVariant();
         emit certificatesLoaded(list);
-        setStatus(it(QStringLiteral("Chequeo finalizado (REST)")));
+        announceStatus(it(QStringLiteral("Chequeo finalizado (REST)")));
       } else {
         emit backendLogReceived(
             it(QStringLiteral("Error REST: ")) + reply->errorString());

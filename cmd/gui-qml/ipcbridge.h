@@ -14,6 +14,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
+#include <QSet>
 #include <QProcess>
 #include <QString>
 #include <QUrl>
@@ -350,6 +351,9 @@ private:
   void stopOwnedWebCompatibilityServer();
   void tryConnect();
   void setStatus(const QString &s);
+  // Como setStatus, pero avisa aunque el texto no cambie: el resultado de
+  // una operación sustituye lo que la QML haya puesto en la barra (lote p3).
+  void announceStatus(const QString &s);
   void setLastDiagnostic(const QVariantMap &diagnostic);
   void setLastRequestId(const QString &requestId);
   void setLastTraceId(const QString &traceId);
@@ -363,7 +367,10 @@ private:
   bool m_requestLocalTLSStartupAfterDeferred = false;
   bool m_refreshCertificatesAfterLocalTLSStartup = false;
   bool m_expertMode = false;
-  bool m_protectionRecipientsUserRequest = false;
+  // Peticiones de destinatarios hechas por la persona (crear la clave propia
+  // o recargar la lista), por su requestId: una carga automática que se
+  // cruce con ellas no les quita el aviso de seguridad (lote p3).
+  QSet<QString> m_protectionRecipientsUserRequests;
   QString m_addr;
   QString m_token;
   QString m_socketPath; // For socket connection
