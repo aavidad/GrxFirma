@@ -4,266 +4,311 @@
 <!-- Licencia: EUPL 1.2 o posterior -->
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 
-<!-- Preferencias: formato, perfil, TSA, nombre al guardar y tema. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Preferencias: formato, perfil, TSA, nombre al guardar y tema.
+     Los ajustes se desplazan; «Guardar» y «Cancelar» quedan fijos abajo, uno
+     encima de otro y a todo lo ancho, para que no se corten con la letra
+     grande ni con el tamaño de pantalla al máximo. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:id="@+id/prefScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fadeScrollbars="false"
+        android:requiresFadingEdge="vertical"
+        android:fadingEdgeLength="32dp"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="8dp">
+
+            <TextView
+                style="@style/TextAppearance.Material3.BodyMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/preferences_helper"
+                android:textColor="@color/on_surface" />
+
+            <LinearLayout
+                android:id="@+id/prefFormatRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/control_spacing"
+                android:gravity="top"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/prefFormatLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/pref_default_format">
+
+                    <io.github.aavidad.grxfirma.android.ui.DropdownField
+                        android:id="@+id/prefFormat"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prefFormatHelp"
+                    android:contentDescription="@string/pref_default_format"
+                    android:tooltipText="@string/pref_default_format"
+                    style="@style/Widget.GrxFirma.HelpButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/prefProfileLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/pref_default_profile">
+
+                    <io.github.aavidad.grxfirma.android.ui.DropdownField
+                        android:id="@+id/prefProfile"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:entries="@array/signature_profiles"
+                        android:minHeight="48dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prefProfileHelp"
+                    style="@style/Widget.GrxFirma.HelpButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@string/profile_help_name"
+                    android:tooltipText="@string/profile_help_name" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/prefTsaEnabledRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/prefTsaEnabled"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/pref_tsa_enabled" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prefTsaEnabledHelp"
+                    android:contentDescription="@string/pref_tsa_enabled"
+                    android:tooltipText="@string/pref_tsa_enabled"
+                    style="@style/Widget.GrxFirma.HelpButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/prefTsaUrlRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/prefTsaUrlLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/pref_tsa_url"
+                    app:helperText="@string/tsa_helper">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/prefTsaUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:importantForAutofill="no"
+                        android:inputType="textUri"
+                        android:maxLength="2048"
+                        android:minHeight="48dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prefTsaUrlHelp"
+                    android:contentDescription="@string/pref_tsa_url"
+                    android:tooltipText="@string/pref_tsa_url"
+                    style="@style/Widget.GrxFirma.HelpButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/prefOutputNameLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/control_spacing"
+                android:hint="@string/pref_output_name">
+
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/prefOutputName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/output_name_policies"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Idioma del sello visible: como la app o uno fijo (p. ej. castellano para la Administración). -->
+            <LinearLayout
+                android:id="@+id/prefSealLanguageRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="top"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/prefSealLanguageLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/pref_seal_language"
+                    app:helperText="@string/pref_seal_language_helper">
+
+                    <io.github.aavidad.grxfirma.android.ui.DropdownField
+                        android:id="@+id/prefSealLanguage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prefSealLanguageHelp"
+                    android:contentDescription="@string/pref_seal_language"
+                    android:tooltipText="@string/pref_seal_language"
+                    style="@style/Widget.GrxFirma.HelpButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/prefThemeLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/pref_theme">
+
+                <io.github.aavidad.grxfirma.android.ui.DropdownField
+                    android:id="@+id/prefTheme"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/themes"
+                    android:minHeight="48dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:id="@+id/prefSessionTimeoutRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="top"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/prefSessionTimeoutLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/pref_certificate_timeout">
+
+                    <io.github.aavidad.grxfirma.android.ui.DropdownField
+                        android:id="@+id/prefSessionTimeout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/prefSessionTimeoutHelp"
+                    android:contentDescription="@string/pref_certificate_timeout"
+                    android:tooltipText="@string/pref_certificate_timeout"
+                    style="@style/Widget.GrxFirma.HelpButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@id/unsafePreferences"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="vertical" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/prefRestore"
+                style="@style/Widget.GrxFirma.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:minHeight="48dp"
+                android:text="@string/preferences_restore" />
+        </LinearLayout>
+    </ScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/outline_variant" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="24dp"
-        android:paddingTop="8dp">
-
-        <TextView
-            style="@style/TextAppearance.Material3.BodyMedium"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/preferences_helper"
-            android:textColor="@color/on_surface" />
-
-        <LinearLayout
-            android:id="@+id/prefFormatRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/control_spacing"
-            android:gravity="top"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/prefFormatLayout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:hint="@string/pref_default_format">
-
-                <io.github.aavidad.grxfirma.android.ui.DropdownField
-                    android:id="@+id/prefFormat"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="48dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prefFormatHelp"
-                android:contentDescription="@string/pref_default_format"
-                android:tooltipText="@string/pref_default_format"
-                style="@style/Widget.GrxFirma.HelpButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/prefProfileLayout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:hint="@string/pref_default_profile">
-
-                <io.github.aavidad.grxfirma.android.ui.DropdownField
-                    android:id="@+id/prefProfile"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:entries="@array/signature_profiles"
-                    android:minHeight="48dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prefProfileHelp"
-                style="@style/Widget.GrxFirma.HelpButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:contentDescription="@string/profile_help_name"
-                android:tooltipText="@string/profile_help_name" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/prefTsaEnabledRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/prefTsaEnabled"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:text="@string/pref_tsa_enabled" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prefTsaEnabledHelp"
-                android:contentDescription="@string/pref_tsa_enabled"
-                android:tooltipText="@string/pref_tsa_enabled"
-                style="@style/Widget.GrxFirma.HelpButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/prefTsaUrlRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="top"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/prefTsaUrlLayout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:hint="@string/pref_tsa_url"
-                app:helperText="@string/tsa_helper">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/prefTsaUrl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:importantForAutofill="no"
-                    android:inputType="textUri"
-                    android:maxLength="2048"
-                    android:minHeight="48dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prefTsaUrlHelp"
-                android:contentDescription="@string/pref_tsa_url"
-                android:tooltipText="@string/pref_tsa_url"
-                style="@style/Widget.GrxFirma.HelpButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/prefOutputNameLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/control_spacing"
-            android:hint="@string/pref_output_name">
-
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/prefOutputName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:entries="@array/output_name_policies"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Idioma del sello visible: como la app o uno fijo (p. ej. castellano para la Administración). -->
-        <LinearLayout
-            android:id="@+id/prefSealLanguageRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="top"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/prefSealLanguageLayout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:hint="@string/pref_seal_language"
-                app:helperText="@string/pref_seal_language_helper">
-
-                <io.github.aavidad.grxfirma.android.ui.DropdownField
-                    android:id="@+id/prefSealLanguage"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="48dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prefSealLanguageHelp"
-                android:contentDescription="@string/pref_seal_language"
-                android:tooltipText="@string/pref_seal_language"
-                style="@style/Widget.GrxFirma.HelpButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/prefThemeLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="@string/pref_theme">
-
-            <io.github.aavidad.grxfirma.android.ui.DropdownField
-                android:id="@+id/prefTheme"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:entries="@array/themes"
-                android:minHeight="48dp" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <LinearLayout
-            android:id="@+id/prefSessionTimeoutRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="top"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/prefSessionTimeoutLayout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:hint="@string/pref_certificate_timeout">
-
-                <io.github.aavidad.grxfirma.android.ui.DropdownField
-                    android:id="@+id/prefSessionTimeout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="48dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/prefSessionTimeoutHelp"
-                android:contentDescription="@string/pref_certificate_timeout"
-                android:tooltipText="@string/pref_certificate_timeout"
-                style="@style/Widget.GrxFirma.HelpButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@id/unsafePreferences"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:orientation="vertical" />
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/prefRestore"
-            style="@style/Widget.GrxFirma.Button.TextButton"
+            android:id="@+id/prefSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/preferences_save" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/prefCancel"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:minHeight="48dp"
-            android:text="@string/preferences_restore" />
+            android:text="@string/preferences_cancel" />
     </LinearLayout>
-</ScrollView>
+</LinearLayout>

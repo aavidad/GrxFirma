@@ -639,6 +639,7 @@
     <string name="verdict_intact_unchecked">Signatura íntegra; no s\'ha pogut comprovar el certificat</string>
     <string name="verdict_intact_not_confirmed">Signatura íntegra; no s\'ha pogut confirmar que siga vàlida</string>
     <string name="verdict_incomplete">No s\'ha pogut comprovar la signatura del tot</string>
+    <string name="verdict_integrity_warning">La signatura té avisos i no es pot donar per vàlida</string>
     <string name="verdict_revocation_inconclusive">Signatura no confirmada: no s\'ha pogut saber si el certificat està revocat</string>
     <string name="verdict_invalid">Signatura no vàlida</string>
     <string name="verification_post_sign">Comprovació de la signatura creada: %1$s</string>

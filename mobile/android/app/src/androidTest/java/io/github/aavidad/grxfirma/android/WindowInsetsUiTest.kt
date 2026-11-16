@@ -105,6 +105,7 @@ class WindowInsetsUiTest : AccessibilityTest() {
                 TestMenus.open(action, title)
                 // Acerca de usa una columna propia de acciones, incluido Cerrar.
                 val button = if (action == R.id.action_about) allOf(withText(R.string.help_close), isDisplayed())
+                    else if (action == R.id.action_preferences) withId(R.id.prefSave)
                     else withId(android.R.id.button1)
                 onView(button).inRoot(isDialog())
                     .perform(awaitStableGeometry()).check { view, error ->
@@ -130,12 +131,12 @@ class WindowInsetsUiTest : AccessibilityTest() {
                     if (error != null) throw error
                     assertInsideSafeArea(view)
                 }
-            onView(withId(android.R.id.button1)).inRoot(isDialog())
+            onView(withId(R.id.prefSave)).inRoot(isDialog())
                 .perform(awaitStableGeometry(requireIme = true)).check { view, error ->
                     if (error != null) throw error
                     assertInsideSafeArea(view)
                 }
-            onView(withId(android.R.id.button2)).inRoot(isDialog()).perform(click())
+            onView(withId(R.id.prefCancel)).inRoot(isDialog()).perform(click())
         }
     }
 

@@ -621,6 +621,7 @@
     <string name="verdict_intact_unchecked">Firma íntegra; no se pudo comprobar el certificado</string>
     <string name="verdict_intact_not_confirmed">Firma íntegra; no se pudo confirmar que sea válida</string>
     <string name="verdict_incomplete">No se pudo comprobar la firma por completo</string>
+    <string name="verdict_integrity_warning">La firma tiene avisos y no se puede dar por válida</string>
     <string name="verdict_revocation_inconclusive">Firma no confirmada: no se pudo saber si el certificado está revocado</string>
     <string name="verdict_invalid">Firma no válida</string>
     <string name="verification_post_sign">Comprobación de la firma creada: %1$s</string>

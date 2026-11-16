@@ -8,16 +8,33 @@ package metrics
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
+
+	"grxfirma/internal/adapters/outbound/common/securefile"
+	"grxfirma/internal/appdirs"
 )
 
 const (
-	defaultPath     = "/tmp/grxfirma-metrics.json"
+	defaultDirName  = "grxfirma"
+	defaultFileName = "metrics.json"
 	defaultMaxBytes = 1 << 20
 )
+
+// DefaultPath devuelve dónde se guardan las métricas por defecto:
+// <carpeta privada de ejecución>/grxfirma/metrics.json. Nunca está en la
+// carpeta temporal compartida; ver appdirs.RuntimeUsuario. Si no hay carpeta
+// privada devuelve el error y no hay ruta por defecto.
+func DefaultPath() (string, error) {
+	dir, err := appdirs.RuntimeUsuario()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, defaultDirName, defaultFileName), nil
+}
 
 type signKey struct {
 	Format string `json:"format"`
@@ -70,9 +87,12 @@ type snapshot struct {
 }
 
 // Collector mantiene métricas agregadas en memoria y las exporta a JSON.
+// Si no tiene ruta (no hay carpeta privada del usuario) sigue contando en
+// memoria pero no escribe nada: falla cerrado sin romper la operación.
 type Collector struct {
 	mu                sync.Mutex
 	path              string
+	dirReady          bool // la carpeta ya se comprobó privada en este proceso
 	maxBytes          int64
 	signTotal         map[signKey]int64
 	signDuration      map[string]durationAggregate
@@ -80,9 +100,13 @@ type Collector struct {
 	protocolRequests  map[protocolKey]int64
 }
 
+// New crea un recolector que escribe en path. Con path vacío usa DefaultPath;
+// si tampoco hay ruta por defecto, el recolector no escribe a disco.
 func New(path string, maxBytes int64) *Collector {
 	if path == "" {
-		path = defaultPath
+		if def, err := DefaultPath(); err == nil {
+			path = def
+		}
 	}
 	if maxBytes <= 0 {
 		maxBytes = defaultMaxBytes
@@ -97,8 +121,9 @@ func New(path string, maxBytes int64) *Collector {
 	}
 }
 
+// NewDefault crea un recolector en la ruta de DefaultPath.
 func NewDefault() *Collector {
-	return New(defaultPath, defaultMaxBytes)
+	return New("", defaultMaxBytes)
 }
 
 func (c *Collector) RecordSign(_ context.Context, format string, status string, duration time.Duration) {
@@ -147,26 +172,52 @@ func (c *Collector) RecordProtocolRequest(_ context.Context, op string, status s
 	c.exportLocked()
 }
 
+// exportLocked escribe la instantánea solo dentro de una carpeta privada del
+// usuario. Si la carpeta no se puede crear o no es privada (enlace, de otro
+// usuario, con permisos para otros) no escribe nada.
 func (c *Collector) exportLocked() {
+	if c.path == "" {
+		return
+	}
+	// La carpeta se protege una vez por proceso (en Windows eso reescribe la
+	// DACL); si una escritura falla, se vuelve a comprobar en la siguiente.
+	if !c.dirReady {
+		if err := securefile.EnsurePrivateDir(filepath.Dir(c.path)); err != nil {
+			return
+		}
+		c.dirReady = true
+	}
 	data, err := json.MarshalIndent(c.snapshotLocked(), "", "  ")
 	if err != nil {
 		return
 	}
-	_ = os.MkdirAll(filepath.Dir(c.path), 0o700)
-	c.rotateLocked(int64(len(data)))
-	_ = os.WriteFile(c.path, append(data, '\n'), 0o600)
+	if !c.rotateLocked(int64(len(data))) {
+		return
+	}
+	if err := securefile.WriteFileAtomic(c.path, append(data, '\n'), 0o600); err != nil {
+		c.dirReady = false
+	}
 }
 
-func (c *Collector) rotateLocked(incoming int64) {
-	info, err := os.Stat(c.path)
+// rotateLocked pasa el fichero actual a .1 si con lo nuevo supera el límite.
+// Devuelve false si el fichero actual no es un fichero normal (por ejemplo,
+// un enlace): entonces no se escribe.
+func (c *Collector) rotateLocked(incoming int64) bool {
+	info, err := os.Lstat(c.path)
 	if err != nil {
-		return
+		return errors.Is(err, os.ErrNotExist)
+	}
+	if !info.Mode().IsRegular() {
+		return false
 	}
 	if info.Size()+incoming <= c.maxBytes {
-		return
+		return true
 	}
-	_ = os.Remove(c.path + ".1")
-	_ = os.Rename(c.path, c.path+".1")
+	old := c.path + ".1"
+	if err := securefile.RemoveFile(old); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return false
+	}
+	return os.Rename(c.path, old) == nil
 }
 
 func (c *Collector) snapshotLocked() snapshot {
